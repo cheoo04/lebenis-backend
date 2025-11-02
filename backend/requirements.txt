@@ -11,6 +11,7 @@ django-cors-headers==4.3.0
 
 # Environment variables
 python-decouple==3.8
+python-dotenv==1.0.0
 
 # Geolocation
 geopy==2.4.0
