@@ -7,7 +7,11 @@ from .base import *
 DEBUG = False
 SECRET_KEY = config('SECRET_KEY')  # Ne JAMAIS utiliser de valeur par défaut en production
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='lebenis-backend.onrender.com,localhost',
+    cast=lambda v: [s.strip() for s in v.split(',')]
+)
 
 # HTTPS/SSL
 SECURE_SSL_REDIRECT = True
