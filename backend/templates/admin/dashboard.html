@@ -1,0 +1,19 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<h1>{{ site_header }}</h1>
+<h2>{{ index_title }}</h2>
+
+<div>
+  <h3>Statistiques Générales</h3>
+  <ul>
+    <li>Total Commerçants : {{ total_merchants }}</li>
+    <li>Commerçants Validés : {{ validated_merchants }}</li>
+    <li>Total Livreurs : {{ total_drivers }}</li>
+    <li>Livreurs Validés : {{ validated_drivers }}</li>
+    <li>Livraisons la semaine dernière : {{ deliveries_last_week }}</li>
+    <li>Livraisons en attente d’assignation : {{ deliveries_pending }}</li>
+  </ul>
+</div>
+{% endblock %}

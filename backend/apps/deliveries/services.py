@@ -1,0 +1,763 @@
+# apps/deliveries/services.py
+
+import logging
+from decimal import Decimal
+from datetime import datetime
+from django.db import transaction
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+
+from .models import Delivery
+from apps.drivers.models import Driver, DriverZone
+from apps.notifications.models import Notification
+
+logger = logging.getLogger(__name__)
+
+
+class DeliveryAssignmentService:
+    """
+    Service gérant l'assignation des livreurs aux livraisons.
+    Fournit des méthodes pour l'assignation manuelle et automatique.
+    """
+    
+    def __init__(self):
+        self.logger = logger
+    
+    # =========================================================================
+    # ASSIGNATION MANUELLE (PAR L'ADMIN)
+    # =========================================================================
+    
+    @transaction.atomic
+    def assign_driver_manually(self, delivery_id, driver_id, assigned_by_user):
+        """
+        Assigne manuellement un livreur à une livraison.
+        Utilisé par les administrateurs.
+        
+        Args:
+            delivery_id: UUID de la livraison
+            driver_id: UUID du livreur
+            assigned_by_user: User qui fait l'assignation (admin)
+            
+        Returns:
+            dict: Résultat de l'assignation avec détails
+            
+        Raises:
+            ValidationError: Si l'assignation est impossible
+        """
+        try:
+            # 1. Récupérer la livraison
+            delivery = Delivery.objects.select_for_update().get(id=delivery_id)
+            
+            # 2. Vérifications de statut
+            if delivery.status not in ['pending_assignment', 'assigned']:
+                raise ValidationError(
+                    f"Impossible d'assigner : statut actuel '{delivery.status}'"
+                )
+            
+            # 3. Récupérer le livreur
+            driver = Driver.objects.select_related('user').get(id=driver_id)
+            
+            # 4. Vérifications du livreur
+            if driver.verification_status != 'verified':
+                raise ValidationError(
+                    f"Le livreur {driver.user.full_name} n'est pas vérifié"
+                )
+            
+            if not driver.is_available:
+                raise ValidationError(
+                    f"Le livreur {driver.user.full_name} n'est pas disponible"
+                )
+            
+            # 5. Vérifier la capacité du véhicule
+            if delivery.package_weight_kg > driver.vehicle_capacity_kg:
+                raise ValidationError(
+                    f"Le colis ({delivery.package_weight_kg} kg) dépasse "
+                    f"la capacité du véhicule ({driver.vehicle_capacity_kg} kg)"
+                )
+            
+            # 6. Assigner le livreur
+            old_driver = delivery.driver
+            delivery.driver = driver
+            delivery.status = 'assigned'
+            delivery.assigned_at = timezone.now()
+            delivery.save()
+            
+            # 7. Créer une notification pour le livreur
+            self._create_assignment_notification(delivery, driver)
+            
+            # 8. Logger l'action
+            self.logger.info(
+                f"✅ Assignation manuelle réussie | "
+                f"Delivery: {delivery.tracking_number} | "
+                f"Driver: {driver.user.full_name} | "
+                f"Assigned by: {assigned_by_user.email}"
+            )
+            
+            return {
+                'success': True,
+                'delivery_id': str(delivery.id),
+                'tracking_number': delivery.tracking_number,
+                'driver_name': driver.user.full_name,
+                'driver_phone': driver.user.phone,
+                'previous_driver': old_driver.user.full_name if old_driver else None,
+                'assigned_at': delivery.assigned_at.isoformat()
+            }
+            
+        except Delivery.DoesNotExist:
+            raise ValidationError("Livraison introuvable")
+        except Driver.DoesNotExist:
+            raise ValidationError("Livreur introuvable")
+        except Exception as e:
+            self.logger.error(f"❌ Erreur assignation manuelle: {str(e)}", exc_info=True)
+            raise ValidationError(f"Erreur lors de l'assignation: {str(e)}")
+    
+    # =========================================================================
+    # ASSIGNATION AUTOMATIQUE (ALGORITHME INTELLIGENT)
+    # =========================================================================
+    
+    @transaction.atomic
+    def assign_driver_automatically(self, delivery_id):
+        """
+        Assigne automatiquement le meilleur livreur disponible.
+        
+        Critères de sélection (par priorité) :
+        1. Livreur vérifié et disponible
+        2. Travaille dans la zone de livraison
+        3. Capacité du véhicule suffisante
+        4. Meilleur rating
+        5. Moins de livraisons en cours
+        6. Plus proche géographiquement (si GPS disponible)
+        
+        Args:
+            delivery_id: UUID de la livraison
+            
+        Returns:
+            dict: Résultat de l'assignation
+            
+        Raises:
+            ValidationError: Si aucun livreur disponible
+        """
+        try:
+            # 1. Récupérer la livraison
+            delivery = Delivery.objects.select_for_update().get(id=delivery_id)
+            
+            # 2. Vérifier le statut
+            if delivery.status != 'pending_assignment':
+                raise ValidationError(
+                    f"Statut invalide pour auto-assignation: {delivery.status}"
+                )
+            
+            # 3. Trouver le meilleur livreur
+            best_driver = self._find_best_driver(delivery)
+            
+            if not best_driver:
+                raise ValidationError(
+                    f"Aucun livreur disponible pour la zone '{delivery.delivery_commune}'"
+                )
+            
+            # 4. Assigner
+            delivery.driver = best_driver
+            delivery.status = 'assigned'
+            delivery.assigned_at = timezone.now()
+            delivery.save()
+            
+            # 5. Notification
+            self._create_assignment_notification(delivery, best_driver)
+            
+            # 6. Logger
+            self.logger.info(
+                f"🤖 Auto-assignation réussie | "
+                f"Delivery: {delivery.tracking_number} | "
+                f"Driver: {best_driver.user.full_name} | "
+                f"Zone: {delivery.delivery_commune}"
+            )
+            
+            return {
+                'success': True,
+                'delivery_id': str(delivery.id),
+                'tracking_number': delivery.tracking_number,
+                'driver_name': best_driver.user.full_name,
+                'driver_phone': best_driver.user.phone,
+                'driver_rating': float(best_driver.rating),
+                'assigned_at': delivery.assigned_at.isoformat()
+            }
+            
+        except Delivery.DoesNotExist:
+            raise ValidationError("Livraison introuvable")
+        except Exception as e:
+            self.logger.error(f"❌ Erreur auto-assignation: {str(e)}", exc_info=True)
+            raise
+    
+    # =========================================================================
+    # MÉTHODES PRIVÉES - ALGORITHME DE SÉLECTION
+    # =========================================================================
+    
+    def _find_best_driver(self, delivery):
+        """
+        Trouve le meilleur livreur pour une livraison donnée.
+        
+        Returns:
+            Driver: Meilleur livreur ou None
+        """
+        # 1. Livreurs de base (vérifiés + disponibles + capacité suffisante)
+        base_query = Driver.objects.filter(
+            verification_status='verified',
+            is_available=True,
+            vehicle_capacity_kg__gte=delivery.package_weight_kg
+        ).select_related('user')
+        
+        # 2. Filtrer par zone (prioritaire)
+        drivers_in_zone = base_query.filter(
+            zones__commune__iexact=delivery.delivery_commune
+        ).distinct()
+        
+        if not drivers_in_zone.exists():
+            # Fallback : Prendre tous les livreurs disponibles
+            self.logger.warning(
+                f"⚠️ Aucun livreur dans la zone '{delivery.delivery_commune}', "
+                f"recherche élargie"
+            )
+            drivers_in_zone = base_query
+        
+        # 3. Annoter avec le nombre de livraisons en cours
+        from django.db.models import Count, Q
+        
+        drivers_with_stats = drivers_in_zone.annotate(
+            active_deliveries_count=Count(
+                'deliveries',
+                filter=Q(
+                    deliveries__status__in=[
+                        'assigned', 'pickup_in_progress', 'picked_up', 'in_transit'
+                    ]
+                )
+            )
+        )
+        
+        # 4. Trier par critères multiples
+        sorted_drivers = drivers_with_stats.order_by(
+            'active_deliveries_count',  # Moins de livraisons en cours
+            '-rating',                   # Meilleur rating
+            '-successful_deliveries',    # Plus d'expérience
+        )
+        
+        # 5. Retourner le meilleur
+        best_driver = sorted_drivers.first()
+        
+        if best_driver:
+            self.logger.debug(
+                f"🎯 Meilleur driver trouvé: {best_driver.user.full_name} | "
+                f"Rating: {best_driver.rating} | "
+                f"Livraisons actives: {best_driver.active_deliveries_count}"
+            )
+        
+        return best_driver
+    
+    # =========================================================================
+    # RÉASSIGNATION (CHANGEMENT DE LIVREUR)
+    # =========================================================================
+    
+    @transaction.atomic
+    def reassign_delivery(self, delivery_id, new_driver_id, reason=""):
+        """
+        Réassigne une livraison à un autre livreur.
+        
+        Args:
+            delivery_id: UUID de la livraison
+            new_driver_id: UUID du nouveau livreur
+            reason: Raison de la réassignation
+            
+        Returns:
+            dict: Résultat de la réassignation
+        """
+        try:
+            delivery = Delivery.objects.select_for_update().get(id=delivery_id)
+            
+            if delivery.status not in ['assigned', 'pickup_in_progress']:
+                raise ValidationError(
+                    "Impossible de réassigner : livraison déjà en cours ou terminée"
+                )
+            
+            old_driver = delivery.driver
+            new_driver = Driver.objects.get(id=new_driver_id)
+            
+            # Vérifications
+            if new_driver.verification_status != 'verified':
+                raise ValidationError("Le nouveau livreur n'est pas vérifié")
+            
+            if not new_driver.is_available:
+                raise ValidationError("Le nouveau livreur n'est pas disponible")
+            
+            # Réassigner
+            delivery.driver = new_driver
+            delivery.assigned_at = timezone.now()
+            delivery.save()
+            
+            # Notifications
+            self._create_reassignment_notification(delivery, old_driver, new_driver, reason)
+            
+            self.logger.info(
+                f"🔄 Réassignation | Delivery: {delivery.tracking_number} | "
+                f"De: {old_driver.user.full_name} → À: {new_driver.user.full_name} | "
+                f"Raison: {reason or 'Non spécifiée'}"
+            )
+            
+            return {
+                'success': True,
+                'delivery_id': str(delivery.id),
+                'old_driver': old_driver.user.full_name,
+                'new_driver': new_driver.user.full_name,
+                'reason': reason
+            }
+            
+        except (Delivery.DoesNotExist, Driver.DoesNotExist) as e:
+            raise ValidationError(str(e))
+    
+    # =========================================================================
+    # ACCEPTATION/REFUS PAR LE LIVREUR
+    # =========================================================================
+    
+    @transaction.atomic
+    def driver_accept_delivery(self, delivery_id, driver):
+        """
+        Le livreur accepte une livraison qui lui a été assignée.
+        
+        Args:
+            delivery_id: UUID de la livraison
+            driver: Instance du Driver
+            
+        Returns:
+            dict: Confirmation d'acceptation
+        """
+        try:
+            delivery = Delivery.objects.select_for_update().get(id=delivery_id)
+            
+            # Vérifications
+            if delivery.driver != driver:
+                raise ValidationError("Cette livraison n'est pas assignée à vous")
+            
+            if delivery.status != 'assigned':
+                raise ValidationError(f"Statut invalide: {delivery.status}")
+            
+            # Passer au statut suivant
+            delivery.status = 'pickup_in_progress'
+            delivery.save()
+            
+            # Notifier le merchant
+            Notification.objects.create(
+                user=delivery.merchant.user,
+                notification_type='delivery_update',
+                title='Livreur en route',
+                message=f"Le livreur {driver.user.full_name} est en route pour récupérer votre colis {delivery.tracking_number}",
+                related_entity_type='delivery',
+                related_entity_id=delivery.id
+            )
+            
+            self.logger.info(
+                f"✅ Livraison acceptée | {delivery.tracking_number} | "
+                f"Driver: {driver.user.full_name}"
+            )
+            
+            return {
+                'success': True,
+                'message': 'Livraison acceptée avec succès',
+                'new_status': 'pickup_in_progress'
+            }
+            
+        except Delivery.DoesNotExist:
+            raise ValidationError("Livraison introuvable")
+    
+    @transaction.atomic
+    def driver_reject_delivery(self, delivery_id, driver, reason):
+        """
+        Le livreur refuse une livraison.
+        La livraison retourne en pending_assignment pour réassignation.
+        
+        Args:
+            delivery_id: UUID de la livraison
+            driver: Instance du Driver
+            reason: Raison du refus
+            
+        Returns:
+            dict: Confirmation de refus
+        """
+        try:
+            delivery = Delivery.objects.select_for_update().get(id=delivery_id)
+            
+            if delivery.driver != driver:
+                raise ValidationError("Cette livraison n'est pas assignée à vous")
+            
+            if delivery.status not in ['assigned', 'pickup_in_progress']:
+                raise ValidationError("Impossible de refuser cette livraison")
+            
+            # Retirer l'assignation
+            old_driver = delivery.driver
+            delivery.driver = None
+            delivery.status = 'pending_assignment'
+            delivery.assigned_at = None
+            delivery.save()
+            
+            # Notifier l'admin
+            from apps.authentication.models import User
+            admins = User.objects.filter(user_type='admin')
+            for admin in admins:
+                Notification.objects.create(
+                    user=admin,
+                    notification_type='delivery_update',
+                    title='Livraison refusée par livreur',
+                    message=f"{driver.user.full_name} a refusé la livraison {delivery.tracking_number}. Raison: {reason}",
+                    related_entity_type='delivery',
+                    related_entity_id=delivery.id
+                )
+            
+            self.logger.warning(
+                f"❌ Livraison refusée | {delivery.tracking_number} | "
+                f"Driver: {driver.user.full_name} | Raison: {reason}"
+            )
+            
+            return {
+                'success': True,
+                'message': 'Livraison refusée',
+                'new_status': 'pending_assignment'
+            }
+            
+        except Delivery.DoesNotExist:
+            raise ValidationError("Livraison introuvable")
+    
+    # =========================================================================
+    # MÉTHODES UTILITAIRES - NOTIFICATIONS
+    # =========================================================================
+    
+    def _create_assignment_notification(self, delivery, driver):
+        """Crée une notification pour le livreur nouvellement assigné"""
+        Notification.objects.create(
+            user=driver.user,
+            notification_type='delivery_assignment',
+            title='Nouvelle livraison assignée',
+            message=f"Vous avez été assigné à la livraison {delivery.tracking_number}. "
+                    f"Destination: {delivery.delivery_commune}, {delivery.delivery_quartier}",
+            related_entity_type='delivery',
+            related_entity_id=delivery.id
+        )
+    
+    def _create_reassignment_notification(self, delivery, old_driver, new_driver, reason):
+        """Crée des notifications lors d'une réassignation"""
+        # Notification à l'ancien livreur
+        Notification.objects.create(
+            user=old_driver.user,
+            notification_type='delivery_update',
+            title='Livraison réassignée',
+            message=f"La livraison {delivery.tracking_number} a été réassignée à un autre livreur. "
+                    f"Raison: {reason or 'Non spécifiée'}",
+            related_entity_type='delivery',
+            related_entity_id=delivery.id
+        )
+        
+        # Notification au nouveau livreur
+        self._create_assignment_notification(delivery, new_driver)
+
+
+# ==============================================================================
+# SERVICE D'OPTIMISATION DE TOURNÉES
+# ==============================================================================
+
+class RouteOptimizationService:
+    """
+    Service pour optimiser les tournées de livraison.
+    Utilise clustering géographique et calcul de distances.
+    """
+    
+    def __init__(self):
+        self.logger = logger
+    
+    def optimize_route_for_driver(self, driver_id, delivery_ids=None):
+        """
+        Optimise la route pour un livreur donné.
+        
+        Args:
+            driver_id: UUID du livreur
+            delivery_ids: Liste optionnelle de delivery IDs (sinon toutes les pending du driver)
+            
+        Returns:
+            dict: Route optimisée avec ordre de livraison et distances
+        """
+        try:
+            driver = Driver.objects.get(id=driver_id)
+            
+            # Récupérer les livraisons à optimiser
+            if delivery_ids:
+                deliveries = Delivery.objects.filter(
+                    id__in=delivery_ids,
+                    driver=driver,
+                    status__in=['assigned', 'picked_up']
+                )
+            else:
+                deliveries = Delivery.objects.filter(
+                    driver=driver,
+                    status__in=['assigned', 'picked_up']
+                ).order_by('created_at')
+            
+            if not deliveries.exists():
+                return {
+                    'success': False,
+                    'message': 'Aucune livraison à optimiser',
+                    'optimized_route': []
+                }
+            
+            # Point de départ (position actuelle du driver ou premier pickup)
+            start_point = self._get_driver_current_location(driver)
+            
+            # Optimiser avec algorithme nearest neighbor
+            optimized_route = self._nearest_neighbor_algorithm(
+                deliveries.values('id', 'pickup_latitude', 'pickup_longitude',
+                                 'delivery_latitude', 'delivery_longitude',
+                                 'tracking_number'),
+                start_point
+            )
+            
+            return {
+                'success': True,
+                'driver': {
+                    'id': str(driver.id),
+                    'name': driver.user.full_name
+                },
+                'total_deliveries': len(optimized_route),
+                'total_distance_km': sum(leg['distance_km'] for leg in optimized_route),
+                'estimated_duration_minutes': sum(leg['duration_minutes'] for leg in optimized_route),
+                'optimized_route': optimized_route
+            }
+            
+        except Driver.DoesNotExist:
+            return {
+                'success': False,
+                'message': 'Livreur introuvable'
+            }
+        except Exception as e:
+            self.logger.error(f"Erreur optimisation route: {str(e)}")
+            return {
+                'success': False,
+                'message': f'Erreur: {str(e)}'
+            }
+    
+    def suggest_delivery_assignment(self, delivery_id):
+        """
+        Suggère les meilleurs livreurs pour une livraison donnée.
+        
+        Args:
+            delivery_id: UUID de la livraison
+            
+        Returns:
+            dict: Liste des livreurs suggérés avec scores
+        """
+        try:
+            delivery = Delivery.objects.get(id=delivery_id)
+            
+            # Trouver les livreurs disponibles dans la zone
+            available_drivers = Driver.objects.filter(
+                is_available=True,
+                zones__commune=delivery.pickup_commune
+            ).distinct()
+            
+            if not available_drivers.exists():
+                return {
+                    'success': False,
+                    'message': 'Aucun livreur disponible dans cette zone',
+                    'suggestions': []
+                }
+            
+            # Calculer un score pour chaque livreur
+            suggestions = []
+            for driver in available_drivers:
+                score_data = self._calculate_driver_score(driver, delivery)
+                suggestions.append({
+                    'driver_id': str(driver.id),
+                    'driver_name': driver.user.full_name,
+                    'phone': driver.user.phone,
+                    'vehicle_type': driver.vehicle_type,
+                    'score': score_data['total_score'],
+                    'distance_km': score_data['distance_km'],
+                    'current_deliveries': score_data['current_deliveries'],
+                    'success_rate': score_data['success_rate'],
+                    'rating': score_data['rating']
+                })
+            
+            # Trier par score décroissant
+            suggestions.sort(key=lambda x: x['score'], reverse=True)
+            
+            return {
+                'success': True,
+                'delivery': {
+                    'id': str(delivery.id),
+                    'tracking_number': delivery.tracking_number,
+                    'pickup_commune': delivery.pickup_commune
+                },
+                'total_suggestions': len(suggestions),
+                'suggestions': suggestions[:10]  # Top 10
+            }
+            
+        except Delivery.DoesNotExist:
+            return {
+                'success': False,
+                'message': 'Livraison introuvable'
+            }
+    
+    def _get_driver_current_location(self, driver):
+        """Récupère la position actuelle du driver"""
+        # TODO: Intégrer avec système GPS en temps réel
+        # Pour l'instant, utilise la dernière livraison en cours
+        last_delivery = Delivery.objects.filter(
+            driver=driver,
+            status='picked_up'
+        ).order_by('-picked_up_at').first()
+        
+        if last_delivery:
+            return {
+                'latitude': last_delivery.pickup_latitude,
+                'longitude': last_delivery.pickup_longitude
+            }
+        
+        # Sinon, utilise la zone principale du driver
+        main_zone = driver.zones.first()
+        if main_zone:
+            # Coordonnées approximatives des communes (à améliorer)
+            return self._get_commune_center(main_zone.commune)
+        
+        # Par défaut: Centre d'Abidjan
+        return {'latitude': 5.3600, 'longitude': -4.0083}
+    
+    def _get_commune_center(self, commune):
+        """Retourne les coordonnées approximatives du centre d'une commune"""
+        # Coordonnées approximatives des communes d'Abidjan
+        COMMUNE_COORDS = {
+            'cocody': {'latitude': 5.3475, 'longitude': -3.9872},
+            'plateau': {'latitude': 5.3200, 'longitude': -4.0250},
+            'yopougon': {'latitude': 5.3364, 'longitude': -4.0881},
+            'abobo': {'latitude': 5.4236, 'longitude': -4.0208},
+            'adjame': {'latitude': 5.3569, 'longitude': -4.0205},
+            'marcory': {'latitude': 5.2850, 'longitude': -3.9875},
+            'treichville': {'latitude': 5.2950, 'longitude': -4.0050},
+            'koumassi': {'latitude': 5.2969, 'longitude': -3.9331},
+            'port_bouet': {'latitude': 5.2650, 'longitude': -3.9200},
+            'attécoubé': {'latitude': 5.3400, 'longitude': -4.0550}
+        }
+        return COMMUNE_COORDS.get(commune.lower(), {'latitude': 5.3600, 'longitude': -4.0083})
+    
+    def _nearest_neighbor_algorithm(self, deliveries, start_point):
+        """
+        Algorithme du plus proche voisin pour optimiser la route.
+        """
+        from geopy.distance import geodesic
+        
+        route = []
+        unvisited = list(deliveries)
+        current_location = start_point
+        
+        while unvisited:
+            # Trouver la livraison la plus proche (pickup)
+            nearest = min(
+                unvisited,
+                key=lambda d: geodesic(
+                    (current_location['latitude'], current_location['longitude']),
+                    (d['pickup_latitude'], d['pickup_longitude'])
+                ).km
+            )
+            
+            # Calculer les distances
+            pickup_distance = geodesic(
+                (current_location['latitude'], current_location['longitude']),
+                (nearest['pickup_latitude'], nearest['pickup_longitude'])
+            ).km
+            
+            delivery_distance = geodesic(
+                (nearest['pickup_latitude'], nearest['pickup_longitude']),
+                (nearest['delivery_latitude'], nearest['delivery_longitude'])
+            ).km
+            
+            total_distance = pickup_distance + delivery_distance
+            
+            # Ajouter à la route
+            route.append({
+                'delivery_id': str(nearest['id']),
+                'tracking_number': nearest['tracking_number'],
+                'order': len(route) + 1,
+                'pickup_distance_km': round(pickup_distance, 2),
+                'delivery_distance_km': round(delivery_distance, 2),
+                'distance_km': round(total_distance, 2),
+                'duration_minutes': int(total_distance * 3)  # ~20km/h moyenne en ville
+            })
+            
+            # Mettre à jour la position actuelle (point de livraison)
+            current_location = {
+                'latitude': nearest['delivery_latitude'],
+                'longitude': nearest['delivery_longitude']
+            }
+            
+            # Retirer de la liste
+            unvisited.remove(nearest)
+        
+        return route
+    
+    def _calculate_driver_score(self, driver, delivery):
+        """
+        Calcule un score pour un livreur basé sur plusieurs critères.
+        Score sur 100.
+        """
+        from geopy.distance import geodesic
+        
+        score = 0
+        
+        # 1. Distance (40 points max)
+        distance_km = geodesic(
+            (delivery.pickup_latitude, delivery.pickup_longitude),
+            self._get_driver_current_location(driver).values()
+        ).km
+        
+        if distance_km < 2:
+            distance_score = 40
+        elif distance_km < 5:
+            distance_score = 30
+        elif distance_km < 10:
+            distance_score = 20
+        else:
+            distance_score = 10
+        
+        score += distance_score
+        
+        # 2. Charge actuelle (30 points max)
+        current_deliveries = Delivery.objects.filter(
+            driver=driver,
+            status__in=['assigned', 'picked_up']
+        ).count()
+        
+        if current_deliveries == 0:
+            workload_score = 30
+        elif current_deliveries <= 2:
+            workload_score = 20
+        elif current_deliveries <= 5:
+            workload_score = 10
+        else:
+            workload_score = 5
+        
+        score += workload_score
+        
+        # 3. Taux de succès (20 points max)
+        total_deliveries = Delivery.objects.filter(driver=driver).count()
+        successful = Delivery.objects.filter(driver=driver, status='delivered').count()
+        
+        success_rate = (successful / total_deliveries * 100) if total_deliveries > 0 else 0
+        success_score = int(success_rate * 0.2)  # 0-20 points
+        
+        score += success_score
+        
+        # 4. Note moyenne (10 points max)
+        rating = driver.rating or Decimal('0')
+        rating_score = int(float(rating) * 2)  # 0-10 points
+        
+        score += rating_score
+        
+        return {
+            'total_score': score,
+            'distance_km': round(distance_km, 2),
+            'current_deliveries': current_deliveries,
+            'success_rate': round(success_rate, 1),
+            'rating': float(rating)
+        }
