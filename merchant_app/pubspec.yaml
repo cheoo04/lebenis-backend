@@ -1,0 +1,55 @@
+name: merchant_app
+description: LeBeni's Group - Application Commerçant
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # État
+  flutter_riverpod: ^2.4.0
+  
+  # HTTP & API
+  dio: ^5.3.3
+  
+  # Maps & Location
+  google_maps_flutter: ^2.5.0
+  geolocator: ^10.1.0
+  geocoding: ^2.1.1
+  
+  # Firebase
+  firebase_core: ^2.20.0
+  firebase_messaging: ^14.7.0
+  
+  # UI
+  cupertino_icons: ^1.0.2
+  
+  # Navigation
+  go_router: ^12.1.0
+  
+  # Utilities
+  intl: ^0.18.1
+  image_picker: ^1.0.4
+  
+  # Local Storage
+  shared_preferences: ^2.2.2
+  
+  # Environment
+  flutter_dotenv: ^5.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/icons/
+    - .env
