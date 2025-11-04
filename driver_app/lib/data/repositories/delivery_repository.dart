@@ -62,13 +62,54 @@ class DeliveryRepository {
     }
   }
 
-  /// Récupérer mes livraisons (alias pour getDeliveries)
+  /// Récupérer mes livraisons du driver connecté
   Future<List<DeliveryModel>> getMyDeliveries({
     String? status,
     int page = 1,
     int pageSize = 20,
   }) async {
-    return getDeliveries(status: status, page: page, pageSize: pageSize);
+    try {
+      final response = await _dioClient.get(
+        ApiConstants.myDeliveries, // Utilise l'endpoint spécifique driver
+        queryParameters: {
+          if (status != null) 'status': status,
+          'page': page,
+          'page_size': pageSize,
+        },
+      );
+      
+      final data = response.data;
+      
+      // Si la réponse est null ou vide, retourner une liste vide
+      if (data == null) {
+        return [];
+      }
+      
+      // Si c'est une Map avec 'results' (pagination Django REST)
+      if (data is Map && data.containsKey('results')) {
+        final results = data['results'];
+        if (results is List) {
+          return results
+              .map((json) => DeliveryModel.fromJson(json))
+              .toList();
+        }
+        return [];
+      }
+      
+      // Si c'est directement une liste
+      if (data is List) {
+        return data
+            .map((json) => DeliveryModel.fromJson(json))
+            .toList();
+      }
+      
+      // Sinon, retourner une liste vide
+      debugPrint('DEBUG: Unexpected delivery data format: ${data.runtimeType}');
+      return [];
+    } catch (e) {
+      debugPrint('DEBUG: Error loading my deliveries: $e');
+      rethrow;
+    }
   }
 
   /// Récupérer les détails d'une livraison
