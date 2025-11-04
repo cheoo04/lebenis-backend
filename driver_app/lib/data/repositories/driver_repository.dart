@@ -3,9 +3,10 @@
 import '../../core/network/dio_client.dart';
 import '../../core/constants/api_constants.dart';
 import '../models/driver_model.dart';
-import '../models/delivery_model.dart';
 
 /// Repository pour les opérations Driver
+/// Responsabilité: Gérer uniquement les données du DRIVER (profil, stats, disponibilité, position)
+/// Les livraisons sont gérées par DeliveryRepository
 class DriverRepository {
   final DioClient _dioClient;
 
@@ -44,27 +45,6 @@ class DriverRepository {
         'current_longitude': lng,
       },
     );
-  }
-
-  /// Récupérer mes livraisons (filtrées par statut optionnel)
-  Future<List<DeliveryModel>> getMyDeliveries({String? status}) async {
-    final response = await _dioClient.get(
-      ApiConstants.myDeliveries,
-      queryParameters: status != null ? {'status': status} : null,
-    );
-    
-    // Si le backend retourne une liste paginée
-    final data = response.data;
-    if (data is Map && data.containsKey('results')) {
-      return (data['results'] as List)
-          .map((json) => DeliveryModel.fromJson(json))
-          .toList();
-    }
-    
-    // Sinon retourne la liste directement
-    return (data as List)
-        .map((json) => DeliveryModel.fromJson(json))
-        .toList();
   }
 
   /// Récupérer mes statistiques (gains, courses, rating)

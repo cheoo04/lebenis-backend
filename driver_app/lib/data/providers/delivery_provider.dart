@@ -6,6 +6,7 @@ import '../repositories/delivery_repository.dart';
 import '../models/delivery_model.dart';
 import 'auth_provider.dart';
 import '../../core/services/upload_service.dart';
+import '../../core/constants/backend_constants.dart';
 
 // ========== REPOSITORY PROVIDERS ==========
 
@@ -69,7 +70,25 @@ class DeliveryNotifier extends StateNotifier<DeliveryState> {
     this._uploadService,
   ) : super(DeliveryState());
 
-  /// Charger mes livraisons (avec filtre status optionnel)
+  /// Charger les livraisons DISPONIBLES (pending_assignment)
+  /// Ces sont les livraisons que le driver peut accepter
+  Future<void> loadAvailableDeliveries() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final deliveries = await _deliveryRepository.getAvailableDeliveries();
+      state = state.copyWith(
+        isLoading: false,
+        deliveries: deliveries,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Charger MES livraisons assignées (avec filtre status optionnel)
   Future<void> loadMyDeliveries({String? status}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
@@ -319,4 +338,17 @@ final completedDeliveriesProvider = Provider<List<DeliveryModel>>((ref) {
 /// Nombre de livraisons actives
 final activeDeliveryCountProvider = Provider<int>((ref) {
   return ref.watch(activeDeliveriesProvider).length;
+});
+
+/// Livraisons disponibles (pending_assignment) uniquement
+final availableForAcceptanceProvider = Provider<List<DeliveryModel>>((ref) {
+  final deliveries = ref.watch(deliveryProvider).deliveries;
+  return deliveries.where((d) => 
+    d.status == BackendConstants.deliveryStatusPendingAssignment
+  ).toList();
+});
+
+/// Nombre de livraisons disponibles
+final availableDeliveryCountProvider = Provider<int>((ref) {
+  return ref.watch(availableForAcceptanceProvider).length;
 });
