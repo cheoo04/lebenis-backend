@@ -6,10 +6,10 @@ import '../../core/constants/app_colors.dart';
 
 /// Modèle représentant un livreur (Driver)
 class DriverModel {
-  final int id;
+  final String id; // UUID du backend
   final UserModel user;
   final String phone;
-  final String vehicleType; // 'moto', 'voiture', 'velo'
+  final String vehicleType; // 'moto', 'voiture', 'tricycle'
   final String vehicleRegistration;
   final String verificationStatus; // 'pending', 'verified', 'rejected'
   final String availabilityStatus; // 'available', 'busy', 'offline'
@@ -43,19 +43,25 @@ class DriverModel {
   /// Créer depuis JSON
   factory DriverModel.fromJson(Map<String, dynamic> json) {
     return DriverModel(
-      id: json['id'] as int,
+      id: json['id'].toString(), // UUID converti en string
       user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
-      phone: json['phone'] as String,
-      vehicleType: json['vehicle_type'] as String,
-      vehicleRegistration: json['vehicle_registration'] as String,
+      phone: json['phone'] as String? ?? json['user']?['phone'] as String? ?? '',
+      vehicleType: json['vehicle_type'] as String? ?? 'moto',
+      vehicleRegistration: json['vehicle_registration'] as String? ?? '',
       verificationStatus: json['verification_status'] as String? ?? 'pending',
       availabilityStatus: json['availability_status'] as String? ?? 'offline',
-      currentLatitude: json['current_latitude']?.toDouble(),
-      currentLongitude: json['current_longitude']?.toDouble(),
-      rating: (json['rating'] ?? 0.0).toDouble(),
-      totalDeliveries: json['total_deliveries'] ?? 0,
+      currentLatitude: json['current_latitude'] != null 
+          ? double.tryParse(json['current_latitude'].toString())
+          : null,
+      currentLongitude: json['current_longitude'] != null
+          ? double.tryParse(json['current_longitude'].toString())
+          : null,
+      rating: json['rating'] != null
+          ? double.tryParse(json['rating'].toString()) ?? 0.0
+          : 0.0,
+      totalDeliveries: json['total_deliveries'] as int? ?? 0,
       profilePhoto: json['profile_photo'] as String?,
-      driversLicense: json['drivers_license'] as String?,
+      driversLicense: json['driver_license'] as String?,
       vehicleRegistrationDocument: json['vehicle_registration_document'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
@@ -141,7 +147,7 @@ class DriverModel {
 
   /// Copier avec modifications
   DriverModel copyWith({
-    int? id,
+    String? id,
     UserModel? user,
     String? phone,
     String? vehicleType,
