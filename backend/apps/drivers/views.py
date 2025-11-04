@@ -142,10 +142,17 @@ class DriverViewSet(viewsets.ModelViewSet):
         
         Met à jour la position GPS du livreur.
         
-        Body JSON :
+        Body JSON (2 formats supportés):
+        Format 1:
         {
             "latitude": 5.3467,
             "longitude": -4.0305
+        }
+        
+        Format 2 (utilisé par l'app):
+        {
+            "current_latitude": 5.3467,
+            "current_longitude": -4.0305
         }
         """
         try:
@@ -156,8 +163,9 @@ class DriverViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         
-        latitude = request.data.get('latitude')
-        longitude = request.data.get('longitude')
+        # Support des 2 formats
+        latitude = request.data.get('latitude') or request.data.get('current_latitude')
+        longitude = request.data.get('longitude') or request.data.get('current_longitude')
         
         if latitude is None or longitude is None:
             return Response(
@@ -190,9 +198,15 @@ class DriverViewSet(viewsets.ModelViewSet):
         
         Active/désactive la disponibilité du livreur.
         
-        Body JSON :
+        Body JSON (2 formats supportés):
+        Format 1 (ancien):
         {
             "is_available": true
+        }
+        
+        Format 2 (nouveau - utilisé par l'app):
+        {
+            "availability_status": "available"  // available, busy, offline
         }
         """
         try:
@@ -203,22 +217,50 @@ class DriverViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         
+        # Support des 2 formats
         is_available = request.data.get('is_available')
+        availability_status = request.data.get('availability_status')
         
-        if is_available is None:
+        if availability_status is not None:
+            # Format nouveau : availability_status ("available", "busy", "offline")
+            if availability_status not in ['available', 'busy', 'offline']:
+                return Response(
+                    {'error': 'availability_status doit être: available, busy ou offline'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            driver.availability_status = availability_status
+            driver.is_available = (availability_status == 'available')
+            driver.save(update_fields=['availability_status', 'is_available', 'updated_at'])
+            
+            serializer = DriverSerializer(driver)
+            return Response({
+                'success': True,
+                'availability_status': driver.availability_status,
+                'is_available': driver.is_available,
+                'message': f"Statut changé en: {availability_status}",
+                'driver': serializer.data
+            })
+        
+        elif is_available is not None:
+            # Format ancien : is_available (boolean)
+            driver.is_available = bool(is_available)
+            driver.availability_status = 'available' if is_available else 'offline'
+            driver.save(update_fields=['is_available', 'availability_status', 'updated_at'])
+            
+            serializer = DriverSerializer(driver)
+            return Response({
+                'success': True,
+                'is_available': driver.is_available,
+                'message': f"Vous êtes maintenant {'disponible' if driver.is_available else 'indisponible'}",
+                'driver': serializer.data
+            })
+        
+        else:
             return Response(
-                {'error': 'Le champ is_available est requis'},
+                {'error': 'Le champ is_available ou availability_status est requis'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        driver.is_available = bool(is_available)
-        driver.save(update_fields=['is_available', 'updated_at'])
-        
-        return Response({
-            'success': True,
-            'is_available': driver.is_available,
-            'message': f"Vous êtes maintenant {'disponible' if driver.is_available else 'indisponible'}"
-        })
     
     # =========================================================================
     # ENDPOINT ADMIN : LIVREURS DISPONIBLES PAR ZONE
@@ -266,6 +308,24 @@ class DriverViewSet(viewsets.ModelViewSet):
                 'min_rating': min_rating
             }
         })
+    
+    @action(detail=False, methods=['GET'], permission_classes=[IsDriver])
+    def me(self, request):
+        """
+        GET /api/v1/drivers/me/
+        
+        Retourne le profil complet du driver connecté.
+        """
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil driver introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        serializer = DriverSerializer(driver)
+        return Response(serializer.data)
     
     @action(detail=False, methods=['GET'], permission_classes=[IsDriver])
     def my_stats(self, request):
@@ -347,6 +407,70 @@ class DriverViewSet(viewsets.ModelViewSet):
                 'total_deliveries': driver.total_deliveries,
                 'successful_deliveries': driver.successful_deliveries
             }
+        })
+    
+    @action(detail=False, methods=['GET'], permission_classes=[IsDriver], url_path='me/earnings')
+    def my_earnings(self, request):
+        """
+        GET /api/v1/drivers/me/earnings/?period=30
+        
+        Retourne les gains détaillés du driver connecté.
+        
+        Query params:
+        - period: nombre de jours (défaut: 30)
+        """
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil driver introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        period_days = int(request.query_params.get('period', 30))
+        period_start = timezone.now() - timedelta(days=period_days)
+        
+        # Récupérer les gains
+        earnings = DriverEarning.objects.filter(driver=driver)
+        period_earnings = earnings.filter(created_at__gte=period_start)
+        
+        # Agréger par statut
+        total_earned = period_earnings.aggregate(total=Sum('total_earning'))['total'] or Decimal('0')
+        pending_earnings = period_earnings.filter(status='pending').aggregate(
+            total=Sum('total_earning'))['total'] or Decimal('0')
+        approved_earnings = period_earnings.filter(status='approved').aggregate(
+            total=Sum('total_earning'))['total'] or Decimal('0')
+        paid_earnings = period_earnings.filter(status='paid').aggregate(
+            total=Sum('total_earning'))['total'] or Decimal('0')
+        
+        # Gains par jour (derniers 7 jours)
+        last_7_days = timezone.now() - timedelta(days=7)
+        daily_earnings = period_earnings.filter(created_at__gte=last_7_days).extra(
+            select={'day': 'date(created_at)'}
+        ).values('day').annotate(
+            total=Sum('total_earning')
+        ).order_by('day')
+        
+        return Response({
+            'driver': {
+                'id': str(driver.id),
+                'name': driver.user.full_name,
+                'is_available': driver.is_available
+            },
+            'period_days': period_days,
+            'summary': {
+                'total_earned': str(total_earned),
+                'pending': str(pending_earnings),
+                'approved': str(approved_earnings),
+                'paid': str(paid_earnings)
+            },
+            'daily_breakdown': [
+                {
+                    'date': item['day'],
+                    'amount': str(item['total'])
+                }
+                for item in daily_earnings
+            ]
         })
     
     @action(detail=True, methods=['GET'], permission_classes=[IsAdmin])
