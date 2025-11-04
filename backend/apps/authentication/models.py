@@ -40,6 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
+    profile_photo = models.URLField(max_length=500, blank=True, null=True)
     
     is_active = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)

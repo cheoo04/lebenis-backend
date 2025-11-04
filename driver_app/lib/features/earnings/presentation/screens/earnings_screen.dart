@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/providers/driver_provider.dart';
+import '../../../../data/models/driver_model.dart';
 import '../../../../shared/theme/app_colors.dart';
 import '../../../../shared/theme/dimensions.dart';
 import '../../../../shared/theme/text_styles.dart';
@@ -28,21 +29,55 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
   }
 
   Future<void> _loadEarnings() async {
-    // Load driver profile which includes earnings data
-    await ref.read(driverProvider.notifier).loadProfile();
+    // Charger le profil ET les stats ET les earnings
+    await Future.wait([
+      ref.read(driverProvider.notifier).loadProfile(),
+      ref.read(driverProvider.notifier).loadStats(),
+      ref.read(driverProvider.notifier).loadEarnings(period: _getPeriodDays()),
+    ]);
+  }
+
+  String _getPeriodDays() {
+    switch (_selectedPeriod) {
+      case 'week':
+        return '7';
+      case 'month':
+        return '30';
+      case 'year':
+        return '365';
+      default:
+        return '30';
+    }
   }
 
   List<EarningsData> _generateChartData() {
-    // Generate sample data for the chart
-    // In production, this would come from the API
-    final now = DateTime.now();
+    final earningsState = ref.read(driverProvider).earnings;
     
+    // Si on a des données du backend, les utiliser
+    if (earningsState != null && earningsState['daily_breakdown'] != null) {
+      final dailyData = earningsState['daily_breakdown'] as List;
+      
+      if (dailyData.isNotEmpty) {
+        return dailyData.map((item) {
+          final date = DateTime.parse(item['date']);
+          final amount = double.tryParse(item['amount'].toString()) ?? 0.0;
+          return EarningsData(
+            label: _formatDateLabel(date),
+            amount: amount,
+            date: date,
+          );
+        }).toList();
+      }
+    }
+    
+    // Sinon, retourner des données vides (pas de factices)
+    final now = DateTime.now();
     if (_selectedPeriod == 'week') {
       return List.generate(7, (index) {
         final date = now.subtract(Duration(days: 6 - index));
         return EarningsData(
           label: _getWeekdayLabel(date.weekday),
-          amount: (5000 + (index * 2000)).toDouble(),
+          amount: 0.0,
           date: date,
         );
       });
@@ -51,7 +86,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
         final weekStart = now.subtract(Duration(days: (3 - index) * 7));
         return EarningsData(
           label: 'S${index + 1}',
-          amount: (15000 + (index * 5000)).toDouble(),
+          amount: 0.0,
           date: weekStart,
         );
       });
@@ -60,10 +95,21 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
       return List.generate(12, (index) {
         return EarningsData(
           label: _getMonthLabel(index + 1),
-          amount: (50000 + (index * 10000)).toDouble(),
+          amount: 0.0,
           date: DateTime(now.year, index + 1),
         );
       });
+    }
+  }
+
+  String _formatDateLabel(DateTime date) {
+    if (_selectedPeriod == 'week') {
+      return _getWeekdayLabel(date.weekday);
+    } else if (_selectedPeriod == 'month') {
+      // Grouper par semaine
+      return '${date.day}';
+    } else {
+      return _getMonthLabel(date.month);
     }
   }
 
@@ -90,6 +136,19 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
     }
   }
 
+  String _getRatingValue(Map<String, dynamic>? stats, DriverModel? driver) {
+    // Essayer d'obtenir le rating depuis les stats du backend
+    if (stats != null) {
+      final performanceData = stats['performance'] as Map<String, dynamic>?;
+      if (performanceData != null && performanceData['rating'] != null) {
+        final rating = double.tryParse(performanceData['rating'].toString()) ?? 0.0;
+        return rating.toStringAsFixed(1);
+      }
+    }
+    // Sinon utiliser le rating du driver
+    return (driver?.rating ?? 0.0).toStringAsFixed(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     final driverState = ref.watch(driverProvider);
@@ -111,15 +170,15 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
       );
     }
 
-    final totalEarnings = stats != null && stats['totalEarnings'] != null
-        ? (stats['totalEarnings'] as num).toDouble()
+    // Extraire les données du backend
+    final deliveriesData = stats?['deliveries'] as Map<String, dynamic>?;
+    final earningsData = stats?['earnings'] as Map<String, dynamic>?;
+    
+    final totalEarnings = earningsData != null && earningsData['total_earned'] != null
+        ? double.tryParse(earningsData['total_earned'].toString()) ?? 0.0
         : 0.0;
-    final totalDeliveries = stats != null && stats['totalDeliveries'] != null
-        ? stats['totalDeliveries'] as int
-        : 0;
-    final completedDeliveries = stats != null && stats['completedDeliveries'] != null
-        ? stats['completedDeliveries'] as int
-        : 0;
+    final totalDeliveries = deliveriesData?['total_all_time'] as int? ?? 0;
+    final completedDeliveries = deliveriesData?['delivered'] as int? ?? 0;
     final averagePerDelivery = completedDeliveries > 0 
         ? totalEarnings / completedDeliveries 
         : 0.0;
@@ -156,6 +215,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                         isSelected: _selectedPeriod == 'week',
                         onTap: () {
                           setState(() => _selectedPeriod = 'week');
+                          _loadEarnings();
                         },
                       ),
                     ),
@@ -166,6 +226,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                         isSelected: _selectedPeriod == 'month',
                         onTap: () {
                           setState(() => _selectedPeriod = 'month');
+                          _loadEarnings();
                         },
                       ),
                     ),
@@ -176,6 +237,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                         isSelected: _selectedPeriod == 'year',
                         onTap: () {
                           setState(() => _selectedPeriod = 'year');
+                          _loadEarnings();
                         },
                       ),
                     ),
@@ -239,7 +301,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                 Expanded(
                   child: StatsCard(
                     title: 'Note',
-                    value: (stats?['rating'] ?? driver?.rating ?? 0.0).toStringAsFixed(1),
+                    value: _getRatingValue(stats, driver),
                     icon: Icons.star,
                     color: AppColors.warning,
                   ),

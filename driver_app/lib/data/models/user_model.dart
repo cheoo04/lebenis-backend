@@ -3,14 +3,18 @@
 /// Modèle représentant un utilisateur (User)
 /// Correspond à la réponse de l'API backend pour l'authentification
 class UserModel {
-  final String id; // Changed from int to String for UUID support
+  final String id; // UUID from backend
   final String email;
   final String userType; // 'driver', 'merchant', 'admin'
   final String? firstName;
   final String? lastName;
   final String? phone;
+  final String? profilePhoto;
   final bool isActive;
+  final bool isVerified;
+  final bool isStaff;
   final DateTime createdAt;
+  final DateTime? updatedAt;
 
   UserModel({
     required this.id,
@@ -19,8 +23,12 @@ class UserModel {
     this.firstName,
     this.lastName,
     this.phone,
+    this.profilePhoto,
     this.isActive = true,
+    this.isVerified = false,
+    this.isStaff = false,
     required this.createdAt,
+    this.updatedAt,
   });
 
   /// Créer un UserModel depuis JSON (API response)
@@ -32,10 +40,16 @@ class UserModel {
       firstName: json['first_name']?.toString(),
       lastName: json['last_name']?.toString(),
       phone: json['phone']?.toString(),
+      profilePhoto: json['profile_photo']?.toString(),
       isActive: json['is_active'] == true || json['is_active'] == 'true',
+      isVerified: json['is_verified'] == true || json['is_verified'] == 'true',
+      isStaff: json['is_staff'] == true || json['is_staff'] == 'true',
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at'].toString())
           : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'].toString())
+          : null,
     );
   }
 
@@ -48,8 +62,12 @@ class UserModel {
       'first_name': firstName,
       'last_name': lastName,
       'phone': phone,
+      'profile_photo': profilePhoto,
       'is_active': isActive,
+      'is_verified': isVerified,
+      'is_staff': isStaff,
       'created_at': createdAt.toIso8601String(),
+      if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
     };
   }
 
@@ -83,8 +101,12 @@ class UserModel {
     String? firstName,
     String? lastName,
     String? phone,
+    String? profilePhoto,
     bool? isActive,
+    bool? isVerified,
+    bool? isStaff,
     DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -93,8 +115,12 @@ class UserModel {
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       phone: phone ?? this.phone,
+      profilePhoto: profilePhoto ?? this.profilePhoto,
       isActive: isActive ?? this.isActive,
+      isVerified: isVerified ?? this.isVerified,
+      isStaff: isStaff ?? this.isStaff,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 

@@ -33,7 +33,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCurrentData();
+    // Charger le profil d'abord
+    Future.microtask(() async {
+      await ref.read(driverProvider.notifier).loadProfile();
+      _loadCurrentData();
+    });
   }
 
   void _loadCurrentData() {
@@ -148,6 +152,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Widget build(BuildContext context) {
     final driverState = ref.watch(driverProvider);
     final driver = driverState.driver;
+
+    if (driverState.isLoading && driver == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Modifier le profil'),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     if (driver == null) {
       return Scaffold(
