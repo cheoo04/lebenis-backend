@@ -57,16 +57,19 @@ class UserRegisterView(APIView):
 
 
 # ============================================================================
-# VUE POUR RÉCUPÉRER LE PROFIL DE L'UTILISATEUR CONNECTÉ
+# VUE POUR RÉCUPÉRER ET METTRE À JOUR LE PROFIL DE L'UTILISATEUR CONNECTÉ
 # ============================================================================
 
-class UserDetailView(generics.RetrieveAPIView):
+class UserDetailView(generics.RetrieveUpdateAPIView):
     """
     GET /api/v1/auth/me/
-    
     Retourne les informations de l'utilisateur actuellement connecté.
+    
+    PATCH /api/v1/auth/me/
+    Met à jour les informations de l'utilisateur connecté.
+    Champs modifiables: first_name, last_name, phone, profile_photo
+    
     Nécessite un token JWT valide dans le header Authorization.
-
     """
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]  # Authentification obligatoire
