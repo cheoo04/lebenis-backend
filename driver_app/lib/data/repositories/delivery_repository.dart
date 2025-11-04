@@ -7,22 +7,26 @@ import '../models/delivery_model.dart';
 import 'package:dio/dio.dart';
 
 /// Repository pour les livraisons
+/// Responsabilité: 
+/// - getAvailableDeliveries(): Livraisons disponibles à accepter (pending_assignment)
+/// - getMyDeliveries(): Mes livraisons assignées
+/// - Actions: accept, reject, confirm pickup/delivery, cancel
 class DeliveryRepository {
   final DioClient _dioClient;
 
   DeliveryRepository(this._dioClient);
 
-  /// Récupérer toutes les livraisons (avec filtres)
-  Future<List<DeliveryModel>> getDeliveries({
-    String? status,
+  /// Récupérer les livraisons DISPONIBLES à accepter (pending_assignment)
+  /// Endpoint: /api/v1/drivers/available-deliveries/
+  /// Retourne les livraisons dans les zones du driver, non encore assignées
+  Future<List<DeliveryModel>> getAvailableDeliveries({
     int page = 1,
     int pageSize = 20,
   }) async {
     try {
       final response = await _dioClient.get(
-        ApiConstants.deliveries,
+        ApiConstants.availableDeliveries, // Utilise le bon endpoint
         queryParameters: {
-          if (status != null) 'status': status,
           'page': page,
           'page_size': pageSize,
         },
@@ -35,7 +39,18 @@ class DeliveryRepository {
         return [];
       }
       
-      // Si c'est une Map avec 'results' (pagination Django REST)
+      // Le backend retourne {count: X, deliveries: [...], driver_zones: [...]}
+      if (data is Map && data.containsKey('deliveries')) {
+        final deliveries = data['deliveries'];
+        if (deliveries is List) {
+          return deliveries
+              .map((json) => DeliveryModel.fromJson(json))
+              .toList();
+        }
+        return [];
+      }
+      
+      // Si c'est une Map avec 'results' (pagination Django REST standard)
       if (data is Map && data.containsKey('results')) {
         final results = data['results'];
         if (results is List) {
@@ -54,10 +69,10 @@ class DeliveryRepository {
       }
       
       // Sinon, retourner une liste vide
-      debugPrint('DEBUG: Unexpected delivery data format: ${data.runtimeType}');
+      debugPrint('DEBUG: Unexpected available deliveries format: ${data.runtimeType}');
       return [];
     } catch (e) {
-      debugPrint('DEBUG: Error loading deliveries: $e');
+      debugPrint('DEBUG: Error loading available deliveries: $e');
       rethrow;
     }
   }
