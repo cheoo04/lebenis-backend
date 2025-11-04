@@ -101,23 +101,12 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
     setState(() => _isProcessing = true);
 
     try {
-      // Upload des fichiers (photo et signature)
-      String? photoUrl;
-      String? signatureUrl;
-
-      if (_photoFile != null) {
-        photoUrl = await ref.read(deliveryProvider.notifier).uploadDeliveryPhoto(_photoFile!);
-      }
-
-      if (_signatureFile != null) {
-        signatureUrl = await ref.read(deliveryProvider.notifier).uploadSignature(_signatureFile!);
-      }
-
-      // Confirmer la livraison
+      // ✅ CORRECTION: Passer les fichiers locaux directement
+      // Le repository gère l'upload dans confirmDelivery() via FormData
       await ref.read(deliveryProvider.notifier).confirmDelivery(
         id: widget.delivery.id,
-        deliveryPhoto: photoUrl,
-        recipientSignature: signatureUrl,
+        deliveryPhoto: _photoFile?.path, // Chemin du fichier local
+        recipientSignature: _signatureFile?.path, // Chemin du fichier local
         notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
       );
 
