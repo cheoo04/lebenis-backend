@@ -146,4 +146,13 @@ class AuthRepository {
     }
     await _authService.logout();
   }
+
+  /// Mettre à jour le profil utilisateur (y compris profile_photo)
+  Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> data) async {
+    final response = await _dioClient.patch(
+      ApiConstants.me,
+      data: data,
+    );
+    return response.data as Map<String, dynamic>;
+  }
 }

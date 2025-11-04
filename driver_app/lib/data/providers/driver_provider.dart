@@ -1,5 +1,6 @@
 // lib/data/providers/driver_provider.dart
 
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/driver_repository.dart';
 import '../models/driver_model.dart';
@@ -56,8 +57,9 @@ class DriverState {
 
 class DriverNotifier extends StateNotifier<DriverState> {
   final DriverRepository _repository;
+  final Ref _ref;
 
-  DriverNotifier(this._repository) : super(DriverState());
+  DriverNotifier(this._repository, this._ref) : super(DriverState());
 
   /// Charger le profil du driver
   Future<void> loadProfile() async {
@@ -147,6 +149,33 @@ class DriverNotifier extends StateNotifier<DriverState> {
     state = state.copyWith(clearError: true, clearSuccess: true);
   }
 
+  /// Upload une photo de profil
+  /// Upload vers /api/v1/auth/me/ avec multipart/form-data
+  Future<String> uploadProfilePhoto(File photoFile) async {
+    try {
+      final dioClient = _ref.read(dioClientProvider);
+      
+      // Upload via multipart/form-data vers l'endpoint auth
+      final response = await dioClient.uploadFile(
+        '/api/v1/auth/me/',
+        filePath: photoFile.path,
+        fieldName: 'profile_photo',
+      );
+      
+      // Le backend retourne l'utilisateur complet avec profile_photo mis à jour
+      final data = response.data as Map<String, dynamic>;
+      final photoUrl = data['profile_photo'] as String?;
+      
+      if (photoUrl == null || photoUrl.isEmpty) {
+        throw Exception('URL de photo non retournée par le serveur');
+      }
+      
+      return photoUrl;
+    } catch (e) {
+      throw Exception('Erreur lors de l\'upload de la photo: $e');
+    }
+  }
+
   /// Mettre à jour le profil du driver
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     state = state.copyWith(isLoading: true, clearError: true);
@@ -172,7 +201,7 @@ class DriverNotifier extends StateNotifier<DriverState> {
 
 final driverProvider = StateNotifierProvider<DriverNotifier, DriverState>((ref) {
   final repository = ref.read(driverRepositoryProvider);
-  return DriverNotifier(repository);
+  return DriverNotifier(repository, ref);
 });
 
 // ========== COMPUTED PROVIDERS ==========
