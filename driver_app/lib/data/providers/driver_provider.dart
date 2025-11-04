@@ -1,23 +1,15 @@
 // lib/data/providers/driver_provider.dart
 
-import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/driver_repository.dart';
 import '../models/driver_model.dart';
 import 'auth_provider.dart';
-import '../../core/services/upload_service.dart';
 
 // ========== REPOSITORY PROVIDER ==========
 
 final driverRepositoryProvider = Provider<DriverRepository>((ref) {
   final dioClient = ref.read(dioClientProvider);
   return DriverRepository(dioClient);
-});
-
-/// Upload Service Provider for Driver
-final driverUploadServiceProvider = Provider<UploadService>((ref) {
-  final dioClient = ref.read(dioClientProvider);
-  return UploadService(dioClient);
 });
 
 // ========== DRIVER STATE ==========
@@ -64,9 +56,8 @@ class DriverState {
 
 class DriverNotifier extends StateNotifier<DriverState> {
   final DriverRepository _repository;
-  final UploadService _uploadService;
 
-  DriverNotifier(this._repository, this._uploadService) : super(DriverState());
+  DriverNotifier(this._repository) : super(DriverState());
 
   /// Charger le profil du driver
   Future<void> loadProfile() async {
@@ -156,20 +147,6 @@ class DriverNotifier extends StateNotifier<DriverState> {
     state = state.copyWith(clearError: true, clearSuccess: true);
   }
 
-  /// Upload une photo de profil
-  Future<String> uploadProfilePhoto(File photoFile) async {
-    try {
-      final response = await _uploadService.uploadSingleFile(
-        endpoint: '/api/uploads/profile-photo/',
-        filePath: photoFile.path,
-        fieldName: 'photo',
-      );
-      return response['url'] as String;
-    } catch (e) {
-      throw Exception('Erreur lors de l\'upload de la photo: $e');
-    }
-  }
-
   /// Mettre à jour le profil du driver
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     state = state.copyWith(isLoading: true, clearError: true);
@@ -195,8 +172,7 @@ class DriverNotifier extends StateNotifier<DriverState> {
 
 final driverProvider = StateNotifierProvider<DriverNotifier, DriverState>((ref) {
   final repository = ref.read(driverRepositoryProvider);
-  final uploadService = ref.read(driverUploadServiceProvider);
-  return DriverNotifier(repository, uploadService);
+  return DriverNotifier(repository);
 });
 
 // ========== COMPUTED PROVIDERS ==========

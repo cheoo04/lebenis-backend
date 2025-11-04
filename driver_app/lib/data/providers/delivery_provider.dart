@@ -1,11 +1,9 @@
 // lib/data/providers/delivery_provider.dart
 
-import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/delivery_repository.dart';
 import '../models/delivery_model.dart';
 import 'auth_provider.dart';
-import '../../core/services/upload_service.dart';
 import '../../core/constants/backend_constants.dart';
 
 // ========== REPOSITORY PROVIDERS ==========
@@ -14,12 +12,6 @@ import '../../core/constants/backend_constants.dart';
 final deliveryRepositoryProvider = Provider<DeliveryRepository>((ref) {
   final dioClient = ref.read(dioClientProvider);
   return DeliveryRepository(dioClient);
-});
-
-/// Upload Service Provider
-final uploadServiceProvider = Provider<UploadService>((ref) {
-  final dioClient = ref.read(dioClientProvider);
-  return UploadService(dioClient);
 });
 
 // ========== DELIVERY STATE ==========
@@ -63,11 +55,9 @@ class DeliveryState {
 
 class DeliveryNotifier extends StateNotifier<DeliveryState> {
   final DeliveryRepository _deliveryRepository;
-  final UploadService _uploadService;
 
   DeliveryNotifier(
     this._deliveryRepository,
-    this._uploadService,
   ) : super(DeliveryState());
 
   /// Charger les livraisons DISPONIBLES (pending_assignment)
@@ -283,42 +273,13 @@ class DeliveryNotifier extends StateNotifier<DeliveryState> {
   Future<void> refresh() async {
     await loadMyDeliveries();
   }
-
-  /// Upload une photo de livraison
-  Future<String> uploadDeliveryPhoto(File photoFile) async {
-    try {
-      final response = await _uploadService.uploadSingleFile(
-        endpoint: '/api/uploads/delivery-photo/',
-        filePath: photoFile.path,
-        fieldName: 'photo',
-      );
-      return response['url'] as String;
-    } catch (e) {
-      throw Exception('Erreur lors de l\'upload de la photo: $e');
-    }
-  }
-
-  /// Upload une signature
-  Future<String> uploadSignature(File signatureFile) async {
-    try {
-      final response = await _uploadService.uploadSingleFile(
-        endpoint: '/api/uploads/signature/',
-        filePath: signatureFile.path,
-        fieldName: 'signature',
-      );
-      return response['url'] as String;
-    } catch (e) {
-      throw Exception('Erreur lors de l\'upload de la signature: $e');
-    }
-  }
 }
 
 // ========== PROVIDER ==========
 
 final deliveryProvider = StateNotifierProvider<DeliveryNotifier, DeliveryState>((ref) {
   final deliveryRepo = ref.read(deliveryRepositoryProvider);
-  final uploadService = ref.read(uploadServiceProvider);
-  return DeliveryNotifier(deliveryRepo, uploadService);
+  return DeliveryNotifier(deliveryRepo);
 });
 
 // ========== COMPUTED PROVIDERS ==========

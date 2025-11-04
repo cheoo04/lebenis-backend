@@ -126,10 +126,22 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         'vehicle_plate': _vehiclePlateController.text.trim(),
       };
 
-      // Upload de la photo de profil si changée
+      // TODO: Implémenter l'upload de photo de profil
+      // Actuellement, profile_photo est read_only dans le serializer
+      // Il faut créer un endpoint backend dédié pour l'upload
+      // Options possibles:
+      // 1. POST /api/v1/drivers/update-profile-photo/ (à créer dans backend)
+      // 2. PATCH /api/v1/auth/me/ avec profile_photo
+      // 3. Modifier DriverSerializer pour accepter profile_photo en écriture
       if (_newProfilePhoto != null) {
-        final photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(_newProfilePhoto!);
-        updateData['photo_url'] = photoUrl;
+        if (mounted) {
+          Helpers.showInfoSnackBar(
+            context, 
+            'L\'upload de photo de profil sera disponible prochainement'
+          );
+        }
+        // final photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(_newProfilePhoto!);
+        // updateData['profile_photo'] = photoUrl;
       }
 
       // Appel API pour mettre à jour le profil
