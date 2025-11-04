@@ -15,7 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ['id', 'email', 'phone', 'first_name', 'last_name', 'user_type', 'is_active', 'is_verified', 'is_staff', 'created_at', 'updated_at']
+        fields = ['id', 'email', 'phone', 'first_name', 'last_name', 'user_type', 'profile_photo', 'is_active', 'is_verified', 'is_staff', 'created_at', 'updated_at']
         # Ces champs ne peuvent PAS être modifiés via l'API        
         read_only_fields = ['id', 'is_active', 'is_verified', 'is_staff', 'created_at', 'updated_at']
 

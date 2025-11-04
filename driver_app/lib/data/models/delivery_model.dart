@@ -79,32 +79,66 @@ class DeliveryModel {
   /// Créer depuis JSON
   factory DeliveryModel.fromJson(Map<String, dynamic> json) {
     return DeliveryModel(
-      id: json['id']?.toString() ?? '', // Safe conversion to String (handles UUID, int, etc.)
+      id: json['id']?.toString() ?? '',
       trackingNumber: json['tracking_number']?.toString() ?? '',
-      status: json['status']?.toString() ?? 'pending',
-      pickupAddress: json['pickup_address']?.toString() ?? '',
-      pickupLatitude: (json['pickup_latitude'] ?? 0.0).toDouble(),
-      pickupLongitude: (json['pickup_longitude'] ?? 0.0).toDouble(),
+      status: json['status']?.toString() ?? 'pending_assignment',
+      // Pickup (fallback si vide)
+      pickupAddress: json['pickup_address']?.toString() ?? 
+                     json['pickup_commune']?.toString() ?? '',
+      pickupLatitude: json['pickup_latitude'] != null
+          ? double.tryParse(json['pickup_latitude'].toString()) ?? 0.0
+          : 0.0,
+      pickupLongitude: json['pickup_longitude'] != null
+          ? double.tryParse(json['pickup_longitude'].toString()) ?? 0.0
+          : 0.0,
+      // Delivery
       deliveryAddress: json['delivery_address']?.toString() ?? '',
-      deliveryLatitude: (json['delivery_latitude'] ?? 0.0).toDouble(),
-      deliveryLongitude: (json['delivery_longitude'] ?? 0.0).toDouble(),
+      deliveryLatitude: json['delivery_latitude'] != null
+          ? double.tryParse(json['delivery_latitude'].toString()) ?? 0.0
+          : 0.0,
+      deliveryLongitude: json['delivery_longitude'] != null
+          ? double.tryParse(json['delivery_longitude'].toString()) ?? 0.0
+          : 0.0,
+      // Recipient
       recipientName: json['recipient_name']?.toString() ?? '',
       recipientPhone: json['recipient_phone']?.toString() ?? '',
+      // Package
       packageDescription: json['package_description']?.toString() ?? '',
-      weight: (json['weight'] ?? 0.0).toDouble(),
-      price: (json['price'] ?? 0.0).toDouble(),
-      distanceKm: (json['distance_km'] ?? 0.0).toDouble(),
-      notes: json['notes']?.toString(),
+      weight: json['package_weight_kg'] != null
+          ? double.tryParse(json['package_weight_kg'].toString()) ?? 0.0
+          : 0.0,
+      price: json['calculated_price'] != null
+          ? double.tryParse(json['calculated_price'].toString()) ?? 0.0
+          : json['actual_price'] != null
+              ? double.tryParse(json['actual_price'].toString()) ?? 0.0
+              : 0.0,
+      distanceKm: json['distance_km'] != null
+          ? double.tryParse(json['distance_km'].toString()) ?? 0.0
+          : 0.0,
+      notes: json['delivery_notes']?.toString(),
+      // Relations
       merchant: json['merchant'] as Map<String, dynamic>?,
       driver: json['driver'] as Map<String, dynamic>?,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
-      assignedAt: json['assigned_at'] != null ? DateTime.parse(json['assigned_at']) : null,
-      pickupTime: json['pickup_time'] != null ? DateTime.parse(json['pickup_time']) : null,
-      deliveryTime: json['delivery_time'] != null ? DateTime.parse(json['delivery_time']) : null,
-      cancelledAt: json['cancelled_at'] != null ? DateTime.parse(json['cancelled_at']) : null,
+      // Timestamps
+      createdAt: json['created_at'] != null 
+          ? DateTime.parse(json['created_at']) 
+          : DateTime.now(),
+      assignedAt: json['assigned_at'] != null 
+          ? DateTime.parse(json['assigned_at']) 
+          : null,
+      pickupTime: json['picked_up_at'] != null 
+          ? DateTime.parse(json['picked_up_at']) 
+          : null,
+      deliveryTime: json['delivered_at'] != null 
+          ? DateTime.parse(json['delivered_at']) 
+          : null,
+      cancelledAt: json['cancelled_at'] != null 
+          ? DateTime.parse(json['cancelled_at']) 
+          : null,
+      // Proof of delivery
       pickupPhoto: json['pickup_photo']?.toString(),
-      deliveryPhoto: json['delivery_photo']?.toString(),
-      recipientSignature: json['recipient_signature']?.toString(),
+      deliveryPhoto: json['photo_url']?.toString(),
+      recipientSignature: json['signature_url']?.toString(),
       cancellationReason: json['cancellation_reason']?.toString(),
     );
   }
