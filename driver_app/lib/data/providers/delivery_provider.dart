@@ -3,10 +3,8 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/delivery_repository.dart';
-import '../repositories/driver_repository.dart';
 import '../models/delivery_model.dart';
 import 'auth_provider.dart';
-import 'driver_provider.dart'; // Import pour utiliser driverRepositoryProvider
 import '../../core/services/upload_service.dart';
 
 // ========== REPOSITORY PROVIDERS ==========
@@ -64,12 +62,10 @@ class DeliveryState {
 
 class DeliveryNotifier extends StateNotifier<DeliveryState> {
   final DeliveryRepository _deliveryRepository;
-  final DriverRepository _driverRepository;
   final UploadService _uploadService;
 
   DeliveryNotifier(
     this._deliveryRepository,
-    this._driverRepository,
     this._uploadService,
   ) : super(DeliveryState());
 
@@ -77,7 +73,7 @@ class DeliveryNotifier extends StateNotifier<DeliveryState> {
   Future<void> loadMyDeliveries({String? status}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final deliveries = await _driverRepository.getMyDeliveries(status: status);
+      final deliveries = await _deliveryRepository.getMyDeliveries(status: status);
       state = state.copyWith(
         isLoading: false,
         deliveries: deliveries,
@@ -302,9 +298,8 @@ class DeliveryNotifier extends StateNotifier<DeliveryState> {
 
 final deliveryProvider = StateNotifierProvider<DeliveryNotifier, DeliveryState>((ref) {
   final deliveryRepo = ref.read(deliveryRepositoryProvider);
-  final driverRepo = ref.read(driverRepositoryProvider);
   final uploadService = ref.read(uploadServiceProvider);
-  return DeliveryNotifier(deliveryRepo, driverRepo, uploadService);
+  return DeliveryNotifier(deliveryRepo, uploadService);
 });
 
 // ========== COMPUTED PROVIDERS ==========

@@ -13,11 +13,12 @@ class ApiConstants {
   // ========== DRIVER ==========
   static const String driverProfile = '/api/v1/drivers/me/';
   static const String driverMe = '/api/v1/drivers/me/';
-  static const String myDeliveries = '/api/v1/deliveries/'; // Changed: use general deliveries endpoint
+  static const String myDeliveries = '/api/v1/drivers/my-deliveries/';
+  static const String availableDeliveries = '/api/v1/drivers/available-deliveries/';
   static const String myEarnings = '/api/v1/drivers/me/earnings/';
-  static const String myStats = '/api/v1/drivers/me/stats/';
-  static const String updateLocation = '/api/v1/drivers/me/location/';
-  static const String toggleAvailability = '/api/v1/drivers/me/availability/';
+  static const String myStats = '/api/v1/drivers/my-stats/';
+  static const String updateLocation = '/api/v1/drivers/update-location/';
+  static const String toggleAvailability = '/api/v1/drivers/toggle-availability/';
 
   // ========== DELIVERIES ==========
   static const String deliveries = '/api/v1/deliveries/';
