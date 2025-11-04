@@ -20,14 +20,13 @@ class UserRegisterView(generics.CreateAPIView):
     Pas d'authentification requise (AllowAny).
     Retourne les tokens JWT après inscription réussie.
     """
-    serializer_class = UserRegisterSerializer
-    permission_classes = [AllowAny]  # Accessible sans authentification
+    permission_classes = [AllowAny]
     
-    def create(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         """
-        Surcharge pour retourner les tokens JWT après inscription
+        Créer un nouvel utilisateur et retourner les tokens JWT
         """
-        serializer = self.get_serializer(data=request.data)
+        serializer = UserRegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         
