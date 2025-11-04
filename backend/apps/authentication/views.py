@@ -12,7 +12,7 @@ from .models import User
 # VUE POUR L'INSCRIPTION (REGISTER)
 # ============================================================================
 
-class UserRegisterView(generics.CreateAPIView):
+class UserRegisterView(APIView):
     """
     POST /api/v1/auth/register/
     
