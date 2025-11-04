@@ -18,9 +18,43 @@ class UserRegisterView(generics.CreateAPIView):
     
     Permet à un nouvel utilisateur de s'inscrire.
     Pas d'authentification requise (AllowAny).
+    Retourne les tokens JWT après inscription réussie.
     """
     serializer_class = UserRegisterSerializer
     permission_classes = [AllowAny]  # Accessible sans authentification
+    
+    def create(self, request, *args, **kwargs):
+        """
+        Surcharge pour retourner les tokens JWT après inscription
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        
+        # Générer les tokens JWT pour l'utilisateur créé
+        refresh = RefreshToken.for_user(user)
+        
+        # Ajouter des claims personnalisés au token
+        refresh['email'] = user.email
+        refresh['user_type'] = user.user_type
+        refresh['full_name'] = f"{user.first_name} {user.last_name}"
+        refresh['is_verified'] = user.is_verified
+        
+        # Retourner les tokens + données utilisateur
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': {
+                'id': str(user.id),
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'phone': user.phone,
+                'user_type': user.user_type,
+                'is_verified': user.is_verified,
+                'is_active': user.is_active,
+            }
+        }, status=status.HTTP_201_CREATED)
 
 
 # ============================================================================
