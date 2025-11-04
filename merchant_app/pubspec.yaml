@@ -9,6 +9,41 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+    
+  # HTTP & Networking
+  dio: ^5.3.3
+  
+  # Storage sécurisé
+  flutter_secure_storage: ^9.0.0
+  
+  # State Management
+  riverpod: ^2.4.9                   # RECOMMANDÉ
+  
+  # Firebase
+  firebase_core: ^2.24.2
+  firebase_messaging: ^14.7.9
+  
+  # Géolocalisation
+  geolocator: ^10.1.0
+  geocoding: ^2.1.1
+  
+  # Cartes
+  google_maps_flutter: ^2.5.0
+  # OU
+  flutter_map: ^6.1.0
+  
+  # Images & Médias
+  image_picker: ^1.0.4
+  
+  # Signature
+  signature: ^5.4.1
+  
+  # Permissions
+  permission_handler: ^11.1.0
+  
+  # Utilitaires
+  device_info_plus: ^9.1.0           # Version Android
+  intl: ^0.18.1                       # Formatage i18n
   
   # État
   flutter_riverpod: ^2.4.0
