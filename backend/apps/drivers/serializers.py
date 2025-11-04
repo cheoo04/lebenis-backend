@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Driver, DriverZone
+from apps.authentication.serializers import UserSerializer
 
 class DriverZoneSerializer(serializers.ModelSerializer):
     class Meta:
@@ -8,13 +9,40 @@ class DriverZoneSerializer(serializers.ModelSerializer):
 
 class DriverSerializer(serializers.ModelSerializer):
     zones = DriverZoneSerializer(many=True, read_only=True)
-    user_email = serializers.EmailField(source='user.email', read_only=True)
-    user_full_name = serializers.SerializerMethodField()
+    user = UserSerializer(read_only=True)
+    phone = serializers.CharField(source='user.phone', read_only=True)
+    profile_photo = serializers.CharField(source='user.profile_photo', read_only=True)
 
     class Meta:
         model = Driver
-        fields = ['id', 'user', 'user_email', 'user_full_name', 'driver_license', 'license_expiry', 'vehicle_type', 'vehicle_registration', 'vehicle_capacity_kg', 'verification_status', 'is_available', 'rating', 'total_deliveries', 'successful_deliveries', 'zones', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'verification_status', 'rating', 'total_deliveries', 'successful_deliveries', 'created_at', 'updated_at']
-
-    def get_user_full_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.last_name}"
+        fields = [
+            'id',
+            'user',
+            'phone',
+            'driver_license',
+            'license_expiry',
+            'vehicle_type',
+            'vehicle_registration',
+            'vehicle_capacity_kg',
+            'verification_status',
+            'is_available',
+            'availability_status',
+            'current_latitude',
+            'current_longitude',
+            'rating',
+            'total_deliveries',
+            'successful_deliveries',
+            'zones',
+            'profile_photo',
+            'created_at',
+            'updated_at'
+        ]
+        read_only_fields = [
+            'id',
+            'verification_status',
+            'rating',
+            'total_deliveries',
+            'successful_deliveries',
+            'created_at',
+            'updated_at'
+        ]
