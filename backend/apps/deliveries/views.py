@@ -330,6 +330,174 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
     
+    @action(detail=True, methods=['POST'], permission_classes=[IsDriver], url_path='confirm-pickup')
+    def confirm_pickup(self, request, pk=None):
+        """
+        POST /api/v1/deliveries/{id}/confirm-pickup/
+        
+        Le livreur confirme qu'il a récupéré le colis chez le merchant.
+        Change le statut de 'assigned' à 'picked_up'.
+        """
+        delivery = self.get_object()
+        
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil livreur introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Vérifier que c'est bien le driver assigné
+        if delivery.driver != driver:
+            return Response(
+                {'error': 'Cette livraison n\'est pas assignée à vous'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Vérifier le statut actuel
+        if delivery.status != 'assigned':
+            return Response(
+                {'error': f'Impossible de confirmer la récupération. Statut actuel: {delivery.status}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Mettre à jour le statut
+        delivery.status = 'picked_up'
+        delivery.picked_up_at = timezone.now()
+        delivery.save(update_fields=['status', 'picked_up_at', 'updated_at'])
+        
+        logger.info(f"✅ Livraison {delivery.tracking_number} récupérée par driver {driver.user.email}")
+        
+        serializer = DeliverySerializer(delivery)
+        return Response({
+            'success': True,
+            'message': 'Colis récupéré avec succès',
+            'delivery': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['POST'], permission_classes=[IsDriver], url_path='confirm-delivery')
+    def confirm_delivery(self, request, pk=None):
+        """
+        POST /api/v1/deliveries/{id}/confirm-delivery/
+        
+        Le livreur confirme que la livraison a été effectuée.
+        
+        Body JSON :
+        {
+            "delivery_photo": "url-photo",  // optionnel
+            "recipient_signature": "url-signature",  // optionnel
+            "notes": "Notes de livraison"  // optionnel
+        }
+        """
+        delivery = self.get_object()
+        
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil livreur introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Vérifier que c'est bien le driver assigné
+        if delivery.driver != driver:
+            return Response(
+                {'error': 'Cette livraison n\'est pas assignée à vous'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Vérifier le statut actuel (doit être picked_up ou in_transit)
+        if delivery.status not in ['picked_up', 'in_transit']:
+            return Response(
+                {'error': f'Impossible de confirmer la livraison. Statut actuel: {delivery.status}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Récupérer les données optionnelles (support des 2 formats)
+        delivery_photo = request.data.get('delivery_photo') or request.data.get('photo_url')
+        recipient_signature = request.data.get('recipient_signature') or request.data.get('signature_url')
+        notes = request.data.get('notes') or request.data.get('delivery_notes')
+        
+        # Mettre à jour la livraison
+        delivery.status = 'delivered'
+        delivery.delivered_at = timezone.now()
+        
+        if delivery_photo:
+            delivery.photo_url = delivery_photo
+        if recipient_signature:
+            delivery.signature_url = recipient_signature
+        if notes:
+            delivery.delivery_notes = notes
+        
+        delivery.save()
+        
+        # Mettre à jour les stats du driver
+        driver.total_deliveries += 1
+        driver.successful_deliveries += 1
+        driver.save(update_fields=['total_deliveries', 'successful_deliveries', 'updated_at'])
+        
+        logger.info(f"✅ Livraison {delivery.tracking_number} confirmée par driver {driver.user.email}")
+        
+        serializer = DeliverySerializer(delivery)
+        return Response({
+            'success': True,
+            'message': 'Livraison confirmée avec succès',
+            'delivery': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['POST'], permission_classes=[IsDriver])
+    def cancel(self, request, pk=None):
+        """
+        POST /api/v1/deliveries/{id}/cancel/
+        
+        Le livreur annule une livraison.
+        
+        Body JSON :
+        {
+            "reason": "Raison de l'annulation"
+        }
+        """
+        delivery = self.get_object()
+        reason = request.data.get('reason', 'Annulé par le livreur')
+        
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil livreur introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Vérifier que c'est bien le driver assigné
+        if delivery.driver != driver:
+            return Response(
+                {'error': 'Cette livraison n\'est pas assignée à vous'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Vérifier qu'elle n'est pas déjà terminée
+        if delivery.status in ['delivered', 'cancelled', 'failed']:
+            return Response(
+                {'error': f'Impossible d\'annuler. Statut actuel: {delivery.status}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Annuler la livraison
+        delivery.status = 'cancelled'
+        delivery.cancellation_reason = reason
+        delivery.cancelled_at = timezone.now()
+        delivery.save()
+        
+        logger.warning(f"⚠️ Livraison {delivery.tracking_number} annulée par driver {driver.user.email}: {reason}")
+        
+        serializer = DeliverySerializer(delivery)
+        return Response({
+            'success': True,
+            'message': 'Livraison annulée',
+            'delivery': serializer.data
+        }, status=status.HTTP_200_OK)
+    
     # ==========================================================================
     # ENDPOINTS D'OPTIMISATION DE TOURNÉES
     # ==========================================================================

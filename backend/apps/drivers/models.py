@@ -16,6 +16,12 @@ class Driver(models.Model):
         ('rejected', 'Rejeté'),
     ]
     
+    AVAILABILITY_CHOICES = [
+        ('available', 'Disponible'),
+        ('busy', 'Occupé'),
+        ('offline', 'Hors ligne'),
+    ]
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='driver_profile')
     
@@ -27,6 +33,12 @@ class Driver(models.Model):
     
     verification_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     is_available = models.BooleanField(default=False)
+    availability_status = models.CharField(
+        max_length=20, 
+        choices=AVAILABILITY_CHOICES, 
+        default='offline',
+        help_text='Statut de disponibilité: available, busy, offline'
+    )
     
     current_latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
     current_longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)
