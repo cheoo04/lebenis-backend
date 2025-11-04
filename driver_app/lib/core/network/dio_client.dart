@@ -1,0 +1,177 @@
+// lib/core/network/dio_client.dart
+
+import 'package:dio/dio.dart';
+import '../constants/api_constants.dart';
+import '../services/auth_service.dart';
+import 'api_exception.dart';
+
+class DioClient {
+  late final Dio _dio;
+  final AuthService _authService;
+
+  DioClient(this._authService) {
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: ApiConstants.baseUrl,
+        connectTimeout: ApiConstants.connectTimeout,
+        receiveTimeout: ApiConstants.receiveTimeout,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        validateStatus: (status) => status != null && status < 500,
+      ),
+    );
+
+    // Intercepteur pour JWT
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: _onRequest,
+        onError: _onError,
+      ),
+    );
+  }
+
+  Future<void> _onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    // Ne pas envoyer le token pour les endpoints publics
+    final publicEndpoints = [
+      ApiConstants.login,
+      ApiConstants.register,
+      ApiConstants.refreshToken,
+    ];
+    
+    final isPublicEndpoint = publicEndpoints.any((endpoint) => 
+      options.path.contains(endpoint)
+    );
+    
+    if (!isPublicEndpoint) {
+      final token = await _authService.getAccessToken();
+      if (token != null && token.isNotEmpty) {
+        options.headers['Authorization'] = 'Bearer $token';
+      }
+    }
+    
+    return handler.next(options);
+  }
+
+  Future<void> _onError(
+    DioException error,
+    ErrorInterceptorHandler handler,
+  ) async {
+    if (error.response?.statusCode == 401) {
+      try {
+        final newToken = await _authService.refreshAccessToken();
+        if (newToken != null && newToken.isNotEmpty) {
+          error.requestOptions.headers['Authorization'] = 'Bearer $newToken';
+          final response = await _dio.fetch(error.requestOptions);
+          return handler.resolve(response);
+        } else {
+          await _authService.logout();
+          return handler.reject(error);
+        }
+      } catch (e) {
+        await _authService.logout();
+        return handler.reject(error);
+      }
+    }
+    return handler.next(error);
+  }
+
+  // HTTP Methods
+  Future<Response> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      return await _dio.get(
+        path,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
+    } on DioException catch (e) {
+      throw ApiException.fromDioError(e);
+    }
+  }
+
+  Future<Response> post(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      return await _dio.post(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
+    } on DioException catch (e) {
+      throw ApiException.fromDioError(e);
+    }
+  }
+
+  Future<Response> patch(
+    String path, {
+    dynamic data,
+    Options? options,
+  }) async {
+    try {
+      return await _dio.patch(path, data: data, options: options);
+    } on DioException catch (e) {
+      throw ApiException.fromDioError(e);
+    }
+  }
+
+  Future<Response> put(
+    String path, {
+    dynamic data,
+  }) async {
+    try {
+      return await _dio.put(path, data: data);
+    } on DioException catch (e) {
+      throw ApiException.fromDioError(e);
+    }
+  }
+
+  Future<Response> delete(
+    String path, {
+    dynamic data,
+  }) async {
+    try {
+      return await _dio.delete(path, data: data);
+    } on DioException catch (e) {
+      throw ApiException.fromDioError(e);
+    }
+  }
+
+  Future<Response> uploadFile(
+    String path, {
+    required String filePath,
+    required String fieldName,
+    Map<String, dynamic>? additionalData,
+    ProgressCallback? onSendProgress,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        fieldName: await MultipartFile.fromFile(filePath),
+        if (additionalData != null) ...additionalData,
+      });
+      return await _dio.post(
+        path,
+        data: formData,
+        onSendProgress: onSendProgress,
+      );
+    } on DioException catch (e) {
+      throw ApiException.fromDioError(e);
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "949402679677",
+    "project_id": "lebenis-project",
+    "storage_bucket": "lebenis-project.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:949402679677:android:2fa9f26f76d00a6b6af414",
+        "android_client_info": {
+          "package_name": "com.example.driver_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYDYurI5ka8cPM-HWTzV2wfUgRGOQVo6I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
