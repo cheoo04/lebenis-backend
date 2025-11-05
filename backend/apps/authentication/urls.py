@@ -8,6 +8,11 @@ from .views import (
     LogoutView
 )
 from .upload_views import upload_profile_photo, delete_profile_photo
+from .views_password import (
+    PasswordResetRequestView,
+    PasswordResetConfirmView,
+    ChangePasswordView
+)
 
 urlpatterns = [
     # Inscription d'un nouvel utilisateur
@@ -31,4 +36,9 @@ urlpatterns = [
     # Upload / Suppression photo de profil
     path('upload-profile-photo/', upload_profile_photo, name='upload_profile_photo'),
     path('delete-profile-photo/', delete_profile_photo, name='delete_profile_photo'),
+    
+    # Gestion des mots de passe
+    path('password-reset/request/', PasswordResetRequestView.as_view(), name='password_reset_request'),
+    path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('change-password/', ChangePasswordView.as_view(), name='change_password'),
 ]

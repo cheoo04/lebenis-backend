@@ -155,4 +155,43 @@ class AuthRepository {
     );
     return response.data as Map<String, dynamic>;
   }
+
+  /// Demander la réinitialisation du mot de passe
+  Future<void> requestPasswordReset(String email) async {
+    await _dioClient.post(
+      ApiConstants.passwordResetRequest,
+      data: {'email': email},
+    );
+  }
+
+  /// Confirmer la réinitialisation avec le code
+  Future<void> confirmPasswordReset({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    await _dioClient.post(
+      ApiConstants.passwordResetConfirm,
+      data: {
+        'email': email,
+        'code': code,
+        'new_password': newPassword,
+      },
+    );
+  }
+
+  /// Changer le mot de passe (utilisateur connecté)
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    await _dioClient.post(
+      ApiConstants.changePassword,
+      data: {
+        'old_password': oldPassword,
+        'new_password': newPassword,
+        'new_password_confirm': newPassword,
+      },
+    );
+  }
 }

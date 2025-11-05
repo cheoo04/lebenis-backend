@@ -9,8 +9,9 @@ class DriverModel {
   final String id; // UUID du backend
   final UserModel user;
   final String phone;
-  final String vehicleType; // 'moto', 'voiture', 'tricycle'
+  final String vehicleType; // 'moto', 'voiture', 'tricycle', 'camionnette'
   final String vehicleRegistration;
+  final double vehicleCapacityKg; // Capacité de charge en kg
   final String verificationStatus; // 'pending', 'verified', 'rejected'
   final String availabilityStatus; // 'available', 'busy', 'offline'
   final double? currentLatitude;
@@ -28,6 +29,7 @@ class DriverModel {
     required this.phone,
     required this.vehicleType,
     required this.vehicleRegistration,
+    this.vehicleCapacityKg = 30.0, // Valeur par défaut
     required this.verificationStatus,
     required this.availabilityStatus,
     this.currentLatitude,
@@ -48,6 +50,9 @@ class DriverModel {
       phone: json['phone'] as String? ?? json['user']?['phone'] as String? ?? '',
       vehicleType: json['vehicle_type'] as String? ?? 'moto',
       vehicleRegistration: json['vehicle_registration'] as String? ?? '',
+      vehicleCapacityKg: json['vehicle_capacity_kg'] != null
+          ? double.tryParse(json['vehicle_capacity_kg'].toString()) ?? 30.0
+          : 30.0,
       verificationStatus: json['verification_status'] as String? ?? 'pending',
       availabilityStatus: json['availability_status'] as String? ?? 'offline',
       currentLatitude: json['current_latitude'] != null 
@@ -75,6 +80,7 @@ class DriverModel {
       'phone': phone,
       'vehicle_type': vehicleType,
       'vehicle_registration': vehicleRegistration,
+      'vehicle_capacity_kg': vehicleCapacityKg,
       'verification_status': verificationStatus,
       'availability_status': availabilityStatus,
       'current_latitude': currentLatitude,
@@ -152,6 +158,7 @@ class DriverModel {
     String? phone,
     String? vehicleType,
     String? vehicleRegistration,
+    double? vehicleCapacityKg,
     String? verificationStatus,
     String? availabilityStatus,
     double? currentLatitude,
@@ -169,6 +176,7 @@ class DriverModel {
       phone: phone ?? this.phone,
       vehicleType: vehicleType ?? this.vehicleType,
       vehicleRegistration: vehicleRegistration ?? this.vehicleRegistration,
+      vehicleCapacityKg: vehicleCapacityKg ?? this.vehicleCapacityKg,
       verificationStatus: verificationStatus ?? this.verificationStatus,
       availabilityStatus: availabilityStatus ?? this.availabilityStatus,
       currentLatitude: currentLatitude ?? this.currentLatitude,

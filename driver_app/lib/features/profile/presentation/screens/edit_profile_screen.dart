@@ -25,6 +25,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _phoneController = TextEditingController();
   final _vehicleTypeController = TextEditingController();
   final _vehiclePlateController = TextEditingController();
+  final _vehicleCapacityController = TextEditingController();
   
   File? _newProfilePhoto;
   bool _isSubmitting = false;
@@ -47,6 +48,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       _selectedVehicleType = driver.vehicleType;
       _vehicleTypeController.text = driver.vehicleType;
       _vehiclePlateController.text = driver.vehicleRegistration;
+      _vehicleCapacityController.text = driver.vehicleCapacityKg.toString();
     }
   }
 
@@ -55,6 +57,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _phoneController.dispose();
     _vehicleTypeController.dispose();
     _vehiclePlateController.dispose();
+    _vehicleCapacityController.dispose();
     super.dispose();
   }
 
@@ -105,11 +108,49 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       ),
     );
 
-    if (selected != null) {
-      setState(() {
-        _selectedVehicleType = selected;
-        _vehicleTypeController.text = selected;
-      });
+    if (selected != null && selected != _selectedVehicleType) {
+      // Afficher dialogue de confirmation si changement de véhicule
+      if (!mounted) return;
+      
+      final confirmed = await Helpers.showConfirmDialog(
+        context,
+        title: 'Changer de véhicule',
+        message: 'Le changement de type de véhicule ajustera automatiquement la capacité de charge par défaut. Continuer ?',
+        confirmText: 'Confirmer',
+        cancelText: 'Annuler',
+      );
+
+      if (confirmed == true && mounted) {
+        setState(() {
+          _selectedVehicleType = selected;
+          _vehicleTypeController.text = selected;
+          
+          // Mettre à jour la capacité par défaut selon le type
+          final defaultCapacity = _getDefaultCapacity(selected);
+          _vehicleCapacityController.text = defaultCapacity.toString();
+        });
+
+        Helpers.showInfoSnackBar(
+          context,
+          'Capacité ajustée à ${ _getDefaultCapacity(selected)} kg pour ${BackendConstants.getVehicleTypeLabel(selected)}',
+        );
+      }
+    }
+  }
+
+  /// Retourne la capacité par défaut selon le type de véhicule
+  double _getDefaultCapacity(String vehicleType) {
+    switch (vehicleType) {
+      case 'moto':
+        return 15.0;
+      case 'tricycle':
+        return 100.0;
+      case 'voiture':
+        return 200.0;
+      case 'camionnette':
+        return 500.0;
+      default:
+        return 30.0;
     }
   }
 
@@ -134,6 +175,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         'phone': _phoneController.text.trim(),
         'vehicle_type': _selectedVehicleType,
         'vehicle_plate': _vehiclePlateController.text.trim(),
+        'vehicle_capacity_kg': double.parse(_vehicleCapacityController.text.trim()),
       };
 
       // Upload de la photo de profil si changée
@@ -323,6 +365,26 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               controller: _vehiclePlateController,
               prefixIcon: Icons.confirmation_number_outlined,
               validator: (value) => BackendValidators.validateVehicleRegistration(value),
+              enabled: !_isSubmitting,
+            ),
+
+            const SizedBox(height: Dimensions.spacingM),
+
+            CustomTextField(
+              label: 'Capacité de charge (kg)',
+              controller: _vehicleCapacityController,
+              prefixIcon: Icons.scale,
+              keyboardType: TextInputType.number,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Capacité requise';
+                }
+                final capacity = double.tryParse(value.trim());
+                if (capacity == null) {
+                  return 'Valeur numérique requise';
+                }
+                return BackendValidators.validateVehicleCapacity(value);
+              },
               enabled: !_isSubmitting,
             ),
 

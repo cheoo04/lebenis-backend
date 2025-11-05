@@ -291,21 +291,43 @@ class BackendValidators {
     return null;
   }
 
-  /// Valider l'immatriculation du véhicule
+  /// Valider la plaque d'immatriculation
+  /// Formats acceptés:
+  /// - CEDEAO: SN 1234 AB, CI 5678 CD
+  /// - Sénégal ancien: DK 1234 A
+  /// - Côte d'Ivoire ancien: 01 AA 1234
   static String? validateVehicleRegistration(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Immatriculation requise';
     }
 
-    if (value.trim().length < 4) {
-      return 'Immatriculation trop courte';
+    // Normaliser: supprimer espaces multiples et mettre en majuscules
+    final plate = value.trim().toUpperCase().replaceAll(RegExp(r'\s+'), ' ');
+    
+    // Vérifier longueur globale
+    if (plate.length < 6 || plate.length > 20) {
+      return 'Longueur invalide';
     }
-
-    if (value.trim().length > 20) {
-      return 'Immatriculation trop longue (maximum 20 caractères)';
+    
+    // Patterns acceptés
+    final cedeaoPattern = RegExp(r'^[A-Z]{2}\s\d{4}\s[A-Z]{2}$');  // SN 1234 AB
+    final senegalPattern = RegExp(r'^[A-Z]{2}\s\d{4}\s[A-Z]$');    // DK 1234 A
+    final ivoirePattern = RegExp(r'^\d{2}\s[A-Z]{2}\s\d{4}$');     // 01 AA 1234
+    
+    final isValid = cedeaoPattern.hasMatch(plate) || 
+                    senegalPattern.hasMatch(plate) || 
+                    ivoirePattern.hasMatch(plate);
+    
+    if (!isValid) {
+      return 'Format invalide. Ex: SN 1234 AB, DK 1234 A ou 01 AA 1234';
     }
 
     return null;
+  }
+
+  /// Normaliser une plaque d'immatriculation pour stockage
+  static String normalizePlate(String plate) {
+    return plate.trim().toUpperCase().replaceAll(RegExp(r'\s+'), ' ');
   }
 
   /// Valider la capacité du véhicule

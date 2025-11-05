@@ -149,7 +149,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: isLoading ? null : () {
-                      Helpers.showSnackBar(context, 'Fonctionnalité à venir');
+                      Navigator.of(context).pushNamed('/forgot-password');
                     },
                     child: Text(
                       'Mot de passe oublié?',

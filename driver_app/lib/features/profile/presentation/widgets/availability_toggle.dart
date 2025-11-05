@@ -16,11 +16,26 @@ class AvailabilityToggle extends ConsumerWidget {
 
     if (driver == null) return const SizedBox.shrink();
 
-    final isAvailable = driver.isAvailable;
     final availabilityStatus = driver.availabilityStatus;
+    final isOnline = availabilityStatus != 'offline';
+
+    // Couleur selon le statut
+    Color statusColor;
+    switch (availabilityStatus) {
+      case 'available':
+        statusColor = AppColors.success;
+        break;
+      case 'busy':
+        statusColor = AppColors.warning;
+        break;
+      default:
+        statusColor = Colors.grey;
+    }
 
     return Card(
-      color: isAvailable ? AppColors.success.withValues(alpha: 0.1) : Colors.grey.shade100,
+      color: isOnline 
+          ? statusColor.withValues(alpha: 0.1) 
+          : Colors.grey.shade100,
       child: Padding(
         padding: const EdgeInsets.all(Dimensions.cardPadding),
         child: Column(
@@ -32,75 +47,85 @@ class AvailabilityToggle extends ConsumerWidget {
                   width: 12,
                   height: 12,
                   decoration: BoxDecoration(
-                    color: isAvailable ? AppColors.success : Colors.grey,
+                    color: statusColor,
                     shape: BoxShape.circle,
                   ),
                 ),
                 const SizedBox(width: Dimensions.spacingS),
-                Text(
-                  'Disponibilité',
-                  style: TextStyles.labelLarge,
-                ),
-                const Spacer(),
-                Switch(
-                  value: isAvailable,
-                  onChanged: isLoading
-                      ? null
-                      : (value) {
-                          if (value) {
-                            ref.read(driverProvider.notifier).goOnline();
-                          } else {
-                            ref.read(driverProvider.notifier).goOffline();
-                          }
-                        },
-                  activeTrackColor: AppColors.success,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Statut de disponibilité',
+                        style: TextStyles.labelMedium,
+                      ),
+                      const SizedBox(height: Dimensions.spacingXS),
+                      Text(
+                        _getStatusMessage(availabilityStatus),
+                        style: TextStyles.bodySmall.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: Dimensions.spacingS),
-            Text(
-              _getStatusMessage(availabilityStatus),
-              style: TextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            if (isAvailable) ...[
-              const SizedBox(height: Dimensions.spacingM),
-              const Divider(),
-              const SizedBox(height: Dimensions.spacingM),
-              Text(
-                'Mode de disponibilité',
-                style: TextStyles.labelMedium,
-              ),
-              const SizedBox(height: Dimensions.spacingS),
-              Wrap(
-                spacing: Dimensions.spacingS,
-                children: [
-                  _StatusChip(
+            const SizedBox(height: Dimensions.spacingM),
+            const Divider(),
+            const SizedBox(height: Dimensions.spacingM),
+            
+            // Boutons de statut
+            Row(
+              children: [
+                Expanded(
+                  child: _StatusButton(
                     label: 'Disponible',
                     icon: Icons.check_circle,
                     isSelected: availabilityStatus == 'available',
                     color: AppColors.success,
-                    onTap: isLoading
-                        ? null
-                        : () {
-                            ref.read(driverProvider.notifier).goOnline();
-                          },
+                    isLoading: isLoading,
+                    onTap: () {
+                      if (availabilityStatus != 'available') {
+                        ref.read(driverProvider.notifier).goOnline();
+                      }
+                    },
                   ),
-                  _StatusChip(
+                ),
+                const SizedBox(width: Dimensions.spacingS),
+                Expanded(
+                  child: _StatusButton(
                     label: 'Occupé',
                     icon: Icons.timelapse,
                     isSelected: availabilityStatus == 'busy',
                     color: AppColors.warning,
-                    onTap: isLoading
-                        ? null
-                        : () {
-                            ref.read(driverProvider.notifier).goBusy();
-                          },
+                    isLoading: isLoading,
+                    onTap: () {
+                      if (availabilityStatus != 'busy') {
+                        ref.read(driverProvider.notifier).goBusy();
+                      }
+                    },
                   ),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: Dimensions.spacingS),
+            SizedBox(
+              width: double.infinity,
+              child: _StatusButton(
+                label: 'Hors ligne',
+                icon: Icons.power_settings_new,
+                isSelected: availabilityStatus == 'offline',
+                color: Colors.grey.shade700,
+                isLoading: isLoading,
+                onTap: () {
+                  if (availabilityStatus != 'offline') {
+                    ref.read(driverProvider.notifier).goOffline();
+                  }
+                },
               ),
-            ],
+            ),
           ],
         ),
       ),
@@ -110,56 +135,76 @@ class AvailabilityToggle extends ConsumerWidget {
   String _getStatusMessage(String status) {
     switch (status) {
       case 'available':
-        return 'Vous êtes disponible pour recevoir des livraisons';
+        return 'Vous recevez toutes les nouvelles livraisons';
       case 'busy':
-        return 'Vous apparaissez comme occupé, nouvelles livraisons limitées';
+        return 'Vous apparaissez comme occupé';
       case 'offline':
-        return 'Vous n\'êtes pas disponible pour les livraisons';
+        return 'Vous ne recevez aucune livraison';
       default:
         return 'Statut inconnu';
     }
   }
 }
 
-class _StatusChip extends StatelessWidget {
+/// Bouton de statut
+class _StatusButton extends StatelessWidget {
   final String label;
   final IconData icon;
   final bool isSelected;
   final Color color;
+  final bool isLoading;
   final VoidCallback? onTap;
 
-  const _StatusChip({
+  const _StatusButton({
     required this.label,
     required this.icon,
     required this.isSelected,
     required this.color,
+    this.isLoading = false,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return FilterChip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: Dimensions.iconS,
-            color: isSelected ? Colors.white : color,
+    return Material(
+      color: isSelected ? color : Colors.white,
+      borderRadius: BorderRadius.circular(Dimensions.radiusM),
+      elevation: isSelected ? 2 : 0,
+      child: InkWell(
+        onTap: isLoading || isSelected ? null : onTap,
+        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: Dimensions.spacingM,
+            vertical: Dimensions.spacingS,
           ),
-          const SizedBox(width: Dimensions.spacingXS),
-          Text(label),
-        ],
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isSelected ? color : AppColors.border,
+              width: isSelected ? 2 : 1,
+            ),
+            borderRadius: BorderRadius.circular(Dimensions.radiusM),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: Dimensions.iconS,
+                color: isSelected ? Colors.white : color,
+              ),
+              const SizedBox(width: Dimensions.spacingS),
+              Text(
+                label,
+                style: TextStyles.labelMedium.copyWith(
+                  color: isSelected ? Colors.white : color,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      selected: isSelected,
-      onSelected: onTap == null ? null : (_) => onTap!(),
-      selectedColor: color,
-      checkmarkColor: Colors.white,
-      labelStyle: TextStyles.labelSmall.copyWith(
-        color: isSelected ? Colors.white : color,
-      ),
-      backgroundColor: color.withValues(alpha: 0.1),
-      side: BorderSide(color: color),
     );
   }
 }
