@@ -111,8 +111,16 @@ class DriverViewSet(viewsets.ModelViewSet):
         """
         GET /api/v1/drivers/available-deliveries/
         
-        Retourne les livraisons disponibles pour le livreur dans ses zones de travail.
-        Affiche uniquement les livraisons en pending_assignment.
+        Retourne les livraisons compatibles avec le véhicule du livreur.
+        
+        Critères de filtrage intelligents:
+        1. Statut: pending_assignment uniquement
+        2. Zone: Dans les zones de travail du livreur (si définies)
+        3. Poids: <= capacité du véhicule
+        4. Dimensions: Compatible avec le type de véhicule
+        
+        Query params:
+        - show_all: Si true, ignore le filtre de zone (pour debug)
         """
         try:
             driver = Driver.objects.get(user=request.user)
@@ -124,26 +132,46 @@ class DriverViewSet(viewsets.ModelViewSet):
         
         # Récupérer les zones du livreur
         driver_zones = DriverZone.objects.filter(driver=driver).values_list('commune', flat=True)
+        show_all = request.query_params.get('show_all', 'false').lower() == 'true'
         
-        # Livraisons disponibles dans les zones du livreur
-        deliveries = Delivery.objects.filter(
-            status='pending_assignment',
-            delivery_commune__in=driver_zones,
-            package_weight_kg__lte=driver.vehicle_capacity_kg  # Capacité suffisante
-        ).select_related('merchant').order_by('-created_at')
+        # Base query: livraisons non assignées
+        deliveries = Delivery.objects.filter(status='pending_assignment')
         
-        # Si le livreur n'a pas de zones définies, afficher toutes les livraisons disponibles
-        if not driver_zones:
-            deliveries = Delivery.objects.filter(
-                status='pending_assignment',
-                package_weight_kg__lte=driver.vehicle_capacity_kg
-            ).select_related('merchant').order_by('-created_at')
+        # Filtre zone (sauf si show_all)
+        if driver_zones and not show_all:
+            deliveries = deliveries.filter(delivery_commune__in=driver_zones)
+        
+        # Filtre poids (toujours appliqué)
+        deliveries = deliveries.filter(package_weight_kg__lte=driver.vehicle_capacity_kg)
+        
+        # Filtre dimensions (si spécifiées dans le colis)
+        max_dims = driver.max_package_dimensions
+        deliveries = deliveries.filter(
+            Q(package_length_cm__isnull=True) | Q(package_length_cm__lte=max_dims['length']),
+            Q(package_width_cm__isnull=True) | Q(package_width_cm__lte=max_dims['width']),
+        )
+        
+        # Sélectionner les champs liés et trier
+        deliveries = deliveries.select_related('merchant').order_by('-created_at')
+        
+        # Informations de capacité du véhicule
+        vehicle_info = {
+            'vehicle_type': driver.vehicle_type,
+            'vehicle_capacity_kg': float(driver.vehicle_capacity_kg),
+            'max_dimensions_cm': max_dims,
+        }
         
         serializer = DeliverySerializer(deliveries, many=True)
         return Response({
             'count': deliveries.count(),
             'deliveries': serializer.data,
-            'driver_zones': list(driver_zones) if driver_zones else []
+            'driver_zones': list(driver_zones) if driver_zones else [],
+            'vehicle_info': vehicle_info,
+            'filters_applied': {
+                'zone_filter': bool(driver_zones) and not show_all,
+                'weight_limit_kg': float(driver.vehicle_capacity_kg),
+                'dimension_limits_cm': max_dims,
+            }
         })
     
     @action(detail=False, methods=['POST'])
