@@ -58,6 +58,63 @@ class Driver(models.Model):
     
     def __str__(self):
         return f"{self.user.full_name} - {self.vehicle_type}"
+    
+    @property
+    def max_package_dimensions(self):
+        """
+        Retourne les dimensions maximales (L x l x h en cm) que ce véhicule peut transporter
+        Format: {'length': cm, 'width': cm, 'height': cm}
+        """
+        dimensions = {
+            'moto': {'length': 50, 'width': 40, 'height': 50},  # Petit coffre ou sac à dos
+            'tricycle': {'length': 120, 'width': 80, 'height': 80},  # Caisse arrière
+            'voiture': {'length': 150, 'width': 100, 'height': 100},  # Coffre standard
+            'camionnette': {'length': 300, 'width': 150, 'height': 150},  # Benne/caisse
+        }
+        return dimensions.get(self.vehicle_type, dimensions['moto'])
+    
+    @property
+    def default_capacity_kg(self):
+        """
+        Retourne la capacité par défaut selon le type de véhicule
+        """
+        capacities = {
+            'moto': 15.0,  # 15kg max
+            'tricycle': 100.0,  # 100kg
+            'voiture': 200.0,  # 200kg (coffre + banquette)
+            'camionnette': 500.0,  # 500kg
+        }
+        return capacities.get(self.vehicle_type, 30.0)
+    
+    def can_handle_package(self, package_weight, package_length=None, package_width=None, package_height=None):
+        """
+        Vérifie si ce véhicule peut transporter un colis donné
+        
+        Args:
+            package_weight: Poids en kg
+            package_length: Longueur en cm (optionnel)
+            package_width: Largeur en cm (optionnel)
+            package_height: Hauteur en cm (optionnel)
+        
+        Returns:
+            bool: True si le véhicule peut transporter le colis
+        """
+        # Vérifier le poids
+        if package_weight > self.vehicle_capacity_kg:
+            return False
+        
+        # Si dimensions fournies, vérifier qu'elles rentrent
+        if package_length or package_width or package_height:
+            max_dims = self.max_package_dimensions
+            
+            if package_length and package_length > max_dims['length']:
+                return False
+            if package_width and package_width > max_dims['width']:
+                return False
+            if package_height and package_height > max_dims['height']:
+                return False
+        
+        return True
 
 class DriverZone(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
