@@ -31,6 +31,7 @@ class DriverViewSet(viewsets.ModelViewSet):
         """
         Permissions adaptées :
         - Actions driver: my_deliveries, available_deliveries, me, my_stats, my_earnings, update_location, toggle_availability
+        - Actions admin: available, stats
         - list/retrieve : Authentifié
         - create/update/delete : Admin uniquement
         """
@@ -44,6 +45,8 @@ class DriverViewSet(viewsets.ModelViewSet):
             'toggle_availability'
         ]:
             permission_classes = [IsDriver]
+        elif self.action in ['available', 'stats']:
+            permission_classes = [IsAdmin]
         elif self.action in ['list', 'retrieve']:
             permission_classes = [permissions.IsAuthenticated]
         else:
@@ -54,7 +57,7 @@ class DriverViewSet(viewsets.ModelViewSet):
     # ENDPOINTS POUR LIVREURS
     # =========================================================================
     
-    @action(detail=False, methods=['GET'], permission_classes=[IsDriver])
+    @action(detail=False, methods=['GET'])
     def my_deliveries(self, request):
         """
         GET /api/v1/drivers/my-deliveries/
@@ -103,7 +106,7 @@ class DriverViewSet(viewsets.ModelViewSet):
         serializer = DeliverySerializer(deliveries, many=True)
         return Response(serializer.data)
     
-    @action(detail=False, methods=['GET'], permission_classes=[IsDriver])
+    @action(detail=False, methods=['GET'])
     def available_deliveries(self, request):
         """
         GET /api/v1/drivers/available-deliveries/
@@ -143,7 +146,7 @@ class DriverViewSet(viewsets.ModelViewSet):
             'driver_zones': list(driver_zones) if driver_zones else []
         })
     
-    @action(detail=False, methods=['POST'], permission_classes=[IsDriver])
+    @action(detail=False, methods=['POST'])
     def update_location(self, request):
         """
         POST /api/v1/drivers/update-location/
@@ -199,7 +202,7 @@ class DriverViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
     
-    @action(detail=False, methods=['POST'], permission_classes=[IsDriver])
+    @action(detail=False, methods=['POST'])
     def toggle_availability(self, request):
         """
         POST /api/v1/drivers/toggle-availability/
@@ -274,7 +277,7 @@ class DriverViewSet(viewsets.ModelViewSet):
     # ENDPOINT ADMIN : LIVREURS DISPONIBLES PAR ZONE
     # =========================================================================
     
-    @action(detail=False, methods=['GET'], permission_classes=[IsAdmin])
+    @action(detail=False, methods=['GET'])
     def available(self, request):
         """
         GET /api/v1/drivers/available/?commune=Cocody
@@ -317,7 +320,7 @@ class DriverViewSet(viewsets.ModelViewSet):
             }
         })
     
-    @action(detail=False, methods=['GET'], permission_classes=[IsDriver])
+    @action(detail=False, methods=['GET'])
     def me(self, request):
         """
         GET /api/v1/drivers/me/
@@ -335,7 +338,7 @@ class DriverViewSet(viewsets.ModelViewSet):
         serializer = DriverSerializer(driver)
         return Response(serializer.data)
     
-    @action(detail=False, methods=['GET'], permission_classes=[IsDriver])
+    @action(detail=False, methods=['GET'])
     def my_stats(self, request):
         """
         GET /api/v1/drivers/my-stats/?period=30
@@ -417,7 +420,7 @@ class DriverViewSet(viewsets.ModelViewSet):
             }
         })
     
-    @action(detail=False, methods=['GET'], permission_classes=[IsDriver], url_path='me/earnings')
+    @action(detail=False, methods=['GET'], url_path='me/earnings')
     def my_earnings(self, request):
         """
         GET /api/v1/drivers/me/earnings/?period=30
@@ -481,7 +484,7 @@ class DriverViewSet(viewsets.ModelViewSet):
             ]
         })
     
-    @action(detail=True, methods=['GET'], permission_classes=[IsAdmin])
+    @action(detail=True, methods=['GET'])
     def stats(self, request, pk=None):
         """
         GET /api/v1/drivers/{id}/stats/?period=30
