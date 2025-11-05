@@ -21,7 +21,7 @@ urlpatterns = [
     # Actions pour drivers (nécessitent IsDriver permission)
     path('my-deliveries/', DriverViewSet.as_view({'get': 'my_deliveries'}), name='driver-my-deliveries'),
     path('available-deliveries/', DriverViewSet.as_view({'get': 'available_deliveries'}), name='driver-available-deliveries'),
-    path('me/', DriverViewSet.as_view({'get': 'me'}), name='driver-me'),
+    path('me/', DriverViewSet.as_view({'get': 'me', 'patch': 'me'}), name='driver-me'),
     path('my-stats/', DriverViewSet.as_view({'get': 'my_stats'}), name='driver-my-stats'),
     path('me/earnings/', DriverViewSet.as_view({'get': 'my_earnings'}), name='driver-my-earnings'),
     path('update-location/', DriverViewSet.as_view({'post': 'update_location'}), name='driver-update-location'),
