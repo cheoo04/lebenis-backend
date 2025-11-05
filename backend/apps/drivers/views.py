@@ -30,11 +30,19 @@ class DriverViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Permissions adaptées :
-        - my_deliveries/available_deliveries/update_location : Driver uniquement
+        - Actions driver: my_deliveries, available_deliveries, me, my_stats, my_earnings, update_location, toggle_availability
         - list/retrieve : Authentifié
         - create/update/delete : Admin uniquement
         """
-        if self.action in ['my_deliveries', 'available_deliveries', 'update_location', 'toggle_availability']:
+        if self.action in [
+            'my_deliveries', 
+            'available_deliveries', 
+            'me', 
+            'my_stats', 
+            'my_earnings',
+            'update_location', 
+            'toggle_availability'
+        ]:
             permission_classes = [IsDriver]
         elif self.action in ['list', 'retrieve']:
             permission_classes = [permissions.IsAuthenticated]
