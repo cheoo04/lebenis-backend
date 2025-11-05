@@ -76,15 +76,25 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: BackendConstants.vehicleTypeChoices.map((type) {
+            final isSelected = _selectedVehicleType == type;
             return ListTile(
-              title: Text(BackendConstants.getVehicleTypeLabel(type)),
               leading: Icon(
-                _selectedVehicleType == type
-                    ? Icons.radio_button_checked
+                BackendConstants.getVehicleTypeIcon(type),
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                size: 28,
+              ),
+              title: Text(
+                BackendConstants.getVehicleTypeLabel(type),
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? AppColors.primary : null,
+                ),
+              ),
+              trailing: Icon(
+                isSelected
+                    ? Icons.check_circle
                     : Icons.radio_button_unchecked,
-                color: _selectedVehicleType == type
-                    ? AppColors.primary
-                    : null,
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
               ),
               onTap: () {
                 Navigator.of(context).pop(type);
