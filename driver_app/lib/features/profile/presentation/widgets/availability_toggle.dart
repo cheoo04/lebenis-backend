@@ -79,7 +79,7 @@ class AvailabilityToggle extends ConsumerWidget {
                   _StatusChip(
                     label: 'Disponible',
                     icon: Icons.check_circle,
-                    isSelected: availabilityStatus == 'online',
+                    isSelected: availabilityStatus == 'available',
                     color: AppColors.success,
                     onTap: isLoading
                         ? null
@@ -109,14 +109,14 @@ class AvailabilityToggle extends ConsumerWidget {
 
   String _getStatusMessage(String status) {
     switch (status) {
-      case 'online':
+      case 'available':
         return 'Vous êtes disponible pour recevoir des livraisons';
       case 'busy':
         return 'Vous apparaissez comme occupé, nouvelles livraisons limitées';
       case 'offline':
         return 'Vous n\'êtes pas disponible pour les livraisons';
       default:
-        return '';
+        return 'Statut inconnu';
     }
   }
 }
