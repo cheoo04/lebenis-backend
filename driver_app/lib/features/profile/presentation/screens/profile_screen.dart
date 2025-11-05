@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/constants/backend_constants.dart';
 import '../../../../data/providers/auth_provider.dart';
 import '../../../../data/providers/driver_provider.dart';
 import '../../../../shared/theme/app_colors.dart';
@@ -231,7 +232,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: Column(
                     children: [
                       _InfoRow(
-                        icon: Icons.two_wheeler,
+                        icon: driver?.vehicleType != null 
+                          ? BackendConstants.getVehicleTypeIcon(driver!.vehicleType)
+                          : Icons.local_shipping,
                         label: 'Type',
                         value: driver?.vehicleTypeLabel ?? 'Non défini',
                       ),

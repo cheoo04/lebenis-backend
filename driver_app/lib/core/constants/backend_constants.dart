@@ -1,5 +1,7 @@
 // lib/core/constants/backend_constants.dart
 
+import 'package:flutter/material.dart';
+
 /// Constantes qui reflètent exactement les choix du backend Django
 /// 
 /// Ces constantes doivent TOUJOURS rester synchronisées avec le backend
@@ -68,16 +70,19 @@ class BackendConstants {
   
   static const String vehicleTypeMoto = 'moto';
   static const String vehicleTypeVoiture = 'voiture';
+  static const String vehicleTypeTricycle = 'tricycle';
   static const String vehicleTypeCamionnette = 'camionnette';
 
   static const List<String> vehicleTypeChoices = [
     vehicleTypeMoto,
+    vehicleTypeTricycle,
     vehicleTypeVoiture,
     vehicleTypeCamionnette,
   ];
 
   static const Map<String, String> vehicleTypeLabels = {
     vehicleTypeMoto: 'Moto',
+    vehicleTypeTricycle: 'Tricycle',
     vehicleTypeVoiture: 'Voiture',
     vehicleTypeCamionnette: 'Camionnette',
   };
@@ -224,6 +229,22 @@ class BackendConstants {
   /// Obtenir le label d'un type de véhicule
   static String getVehicleTypeLabel(String type) {
     return vehicleTypeLabels[type] ?? type;
+  }
+
+  /// Obtenir l'icône pour un type de véhicule
+  static IconData getVehicleTypeIcon(String type) {
+    switch (type) {
+      case vehicleTypeMoto:
+        return Icons.two_wheeler;
+      case vehicleTypeTricycle:
+        return Icons.electric_rickshaw;
+      case vehicleTypeVoiture:
+        return Icons.directions_car;
+      case vehicleTypeCamionnette:
+        return Icons.local_shipping;
+      default:
+        return Icons.local_shipping;
+    }
   }
 
   /// Obtenir le label d'une commune
