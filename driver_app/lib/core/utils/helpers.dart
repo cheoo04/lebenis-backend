@@ -162,6 +162,16 @@ class Helpers {
 
   /// Choisir image avec dialog (galerie ou caméra)
   static Future<File?> pickImageWithDialog(BuildContext context) async {
+    // Sur Linux Desktop, la caméra ne fonctionne pas avec image_picker
+    // On propose uniquement la galerie pour éviter les erreurs
+    final isLinux = Theme.of(context).platform == TargetPlatform.linux;
+    
+    if (isLinux) {
+      // Directement la galerie sur Linux
+      return await pickImageFromGallery();
+    }
+    
+    // Dialog avec choix caméra/galerie sur mobile
     final source = await showDialog<ImageSource>(
       context: context,
       builder: (context) => AlertDialog(

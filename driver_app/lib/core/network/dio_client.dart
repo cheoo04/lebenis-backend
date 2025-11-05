@@ -159,17 +159,24 @@ class DioClient {
     required String fieldName,
     Map<String, dynamic>? additionalData,
     ProgressCallback? onSendProgress,
+    String method = 'POST', // Méthode HTTP (POST, PUT, PATCH)
   }) async {
     try {
       final formData = FormData.fromMap({
         fieldName: await MultipartFile.fromFile(filePath),
         if (additionalData != null) ...additionalData,
       });
-      return await _dio.post(
-        path,
-        data: formData,
-        onSendProgress: onSendProgress,
-      );
+      
+      // Utiliser la méthode HTTP spécifiée
+      switch (method.toUpperCase()) {
+        case 'PATCH':
+          return await _dio.patch(path, data: formData, onSendProgress: onSendProgress);
+        case 'PUT':
+          return await _dio.put(path, data: formData, onSendProgress: onSendProgress);
+        case 'POST':
+        default:
+          return await _dio.post(path, data: formData, onSendProgress: onSendProgress);
+      }
     } on DioException catch (e) {
       throw ApiException.fromDioError(e);
     }

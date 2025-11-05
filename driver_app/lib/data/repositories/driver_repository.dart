@@ -20,11 +20,11 @@ class DriverRepository {
 
   /// Mettre à jour disponibilité (available/busy/offline)
   Future<DriverModel> updateAvailability(String status) async {
-    final response = await _dioClient.patch(
+    final response = await _dioClient.post(
       ApiConstants.toggleAvailability,
       data: {'availability_status': status},
     );
-    return DriverModel.fromJson(response.data);
+    return DriverModel.fromJson(response.data['driver']);
   }
 
   /// Mettre à jour le profil du driver
@@ -38,7 +38,7 @@ class DriverRepository {
 
   /// Mettre à jour position GPS
   Future<void> updateLocation(double lat, double lng) async {
-    await _dioClient.patch(
+    await _dioClient.post(
       ApiConstants.updateLocation,
       data: {
         'current_latitude': lat,
