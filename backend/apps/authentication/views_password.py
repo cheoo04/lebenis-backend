@@ -36,22 +36,23 @@ class PasswordResetRequestView(APIView):
         # Créer un code de réinitialisation
         reset_code = PasswordResetCode.create_for_email(email)
         
-        # Envoyer l'email avec le code
+        # Envoyer l'email avec le code (seulement si EMAIL configuré)
+        email_sent = False
         try:
-            self._send_reset_email(email, reset_code.code)
-            logger.info(f"✅ Code de réinitialisation envoyé à {email}: {reset_code.code}")
+            # Vérifier que l'email est configuré
+            if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
+                self._send_reset_email(email, reset_code.code)
+                email_sent = True
+                logger.info(f"✅ Code de réinitialisation envoyé à {email}: {reset_code.code}")
+            else:
+                logger.warning(f"⚠️ Email non configuré. Code généré: {reset_code.code}")
         except Exception as e:
             logger.error(f"❌ Erreur envoi email: {e}")
             # En développement, on continue quand même
-            if not settings.DEBUG:
-                return Response(
-                    {"error": "Erreur lors de l'envoi de l'email"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
         
         return Response({
             "success": True,
-            "message": "Un code de réinitialisation a été envoyé à votre email.",
+            "message": "Un code de réinitialisation a été généré." + (" Il a été envoyé à votre email." if email_sent else " Consultez les logs."),
             "email": email,
             # En développement, retourner le code pour tester
             **({"code": reset_code.code} if settings.DEBUG else {})
