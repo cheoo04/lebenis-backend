@@ -21,6 +21,10 @@ openrouteservice==2.3.3
 # Image processing
 Pillow>=12.0.0
 
+# Cloud Storage (Cloudinary)
+cloudinary==1.41.0
+django-cloudinary-storage==0.3.0
+
 # Firebase notifications
 fcm-django==2.0.0
 firebase-admin==6.9.0

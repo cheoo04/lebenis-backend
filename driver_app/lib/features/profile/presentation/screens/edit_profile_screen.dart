@@ -126,10 +126,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         'vehicle_plate': _vehiclePlateController.text.trim(),
       };
 
-      // TODO: Upload de photo désactivé - nécessite configuration stockage fichiers (Cloudinary/S3)
-      // Le backend profile_photo est URLField, pas ImageField
-      // Il faut d'abord uploader vers service externe puis envoyer URL
-      /*
+      // Upload de la photo de profil si changée
       if (_newProfilePhoto != null) {
         try {
           final photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(_newProfilePhoto!);
@@ -138,9 +135,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           if (mounted) {
             Helpers.showErrorSnackBar(context, 'Erreur upload photo: $e');
           }
+          // Continue même si l'upload échoue
         }
       }
-      */
 
       // Appel API pour mettre à jour le profil
       await ref.read(driverProvider.notifier).updateProfile(updateData);
