@@ -353,18 +353,25 @@ class DriverViewSet(viewsets.ModelViewSet):
         user = request.user
         data = request.data.copy()
         
+        print(f"[DEBUG] PATCH /drivers/me/ - Raw data: {data}")
+        
         # Mettre à jour les champs User
+        user_updated = False
         if 'phone' in data:
             user.phone = data.pop('phone')
+            user_updated = True
         if 'profile_photo' in data:
             user.profile_photo = data.pop('profile_photo')
+            user_updated = True
         
-        if user._state.fields_cache:  # Si des champs User ont changé
+        if user_updated:
             user.save()
         
         # Mapper vehicle_plate → vehicle_registration
         if 'vehicle_plate' in data:
             data['vehicle_registration'] = data.pop('vehicle_plate')
+        
+        print(f"[DEBUG] Data for Driver serializer: {data}")
         
         # Mettre à jour Driver
         serializer = DriverSerializer(driver, data=data, partial=True)
@@ -376,6 +383,7 @@ class DriverViewSet(viewsets.ModelViewSet):
                 'driver': serializer.data
             })
         
+        print(f"[DEBUG] Serializer errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['GET'])
@@ -422,14 +430,6 @@ class DriverViewSet(viewsets.ModelViewSet):
         
         # Taux de succès
         success_rate = (delivered_count / period_count * 100) if period_count > 0 else 0
-        
-        # Performance
-        avg_delivery_time = period_deliveries.filter(
-            status='delivered',
-            delivered_at__isnull=False
-        ).aggregate(
-            avg=Avg('delivered_at')
-        )
         
         return Response({
             'driver': {
