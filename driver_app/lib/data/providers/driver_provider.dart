@@ -149,22 +149,27 @@ class DriverNotifier extends StateNotifier<DriverState> {
     state = state.copyWith(clearError: true, clearSuccess: true);
   }
 
-  /// Upload une photo de profil
-  /// Upload vers /api/v1/auth/me/ avec multipart/form-data via PATCH
+  /// Upload une photo de profil vers Cloudinary
+  /// Endpoint: POST /api/v1/auth/upload-profile-photo/
   Future<String> uploadProfilePhoto(File photoFile) async {
     try {
       final dioClient = _ref.read(dioClientProvider);
       
-      // Upload via multipart/form-data vers l'endpoint auth avec PATCH
+      // Upload vers le nouvel endpoint dédié
       final response = await dioClient.uploadFile(
-        '/api/v1/auth/me/',
+        '/api/v1/auth/upload-profile-photo/',
         filePath: photoFile.path,
-        fieldName: 'profile_photo',
-        method: 'PATCH', // Utiliser PATCH au lieu de POST
+        fieldName: 'photo',  // Backend attend 'photo', pas 'profile_photo'
+        method: 'POST',  // Endpoint dédié utilise POST
       );
       
-      // Le backend retourne l'utilisateur complet avec profile_photo mis à jour
+      // Backend retourne: { success: true, profile_photo: "url", user: {...} }
       final data = response.data as Map<String, dynamic>;
+      
+      if (data['success'] != true) {
+        throw Exception(data['error'] ?? 'Upload échoué');
+      }
+      
       final photoUrl = data['profile_photo'] as String?;
       
       if (photoUrl == null || photoUrl.isEmpty) {

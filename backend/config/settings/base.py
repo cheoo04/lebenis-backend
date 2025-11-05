@@ -68,6 +68,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',  # Pour l'authentification JWT
     'rest_framework_simplejwt.token_blacklist',  # AJOUTÉ : Pour gérer la blacklist des tokens (logout)
     'corsheaders',  # Pour gérer les requêtes cross-origin (depuis Flutter)
+    'cloudinary_storage',  # Cloudinary pour stockage images (DOIT être AVANT django.contrib.staticfiles)
+    'cloudinary',  # Cloudinary SDK
     'fcm_django',   # Pour les notifications push
     'drf_yasg',     # Pour la documentation Swagger
     
@@ -252,6 +254,54 @@ SENTRY_DSN = config('SENTRY_DSN', default='')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ============================================================================
+# CLOUDINARY CONFIGURATION (Image Storage)
+# ============================================================================
+# Configuration sécurisée via variables d'environnement
+# Créer compte gratuit: https://cloudinary.com/users/register/free
+# Limites gratuites: 25 crédits/mois, 25GB stockage, 25GB bande passante
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
+    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
+    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+    'SECURE': True,  # Toujours utiliser HTTPS
+}
+
+# Validation des uploads
+CLOUDINARY_UPLOAD_OPTIONS = {
+    'folder': 'lebenis',  # Dossier dans Cloudinary
+    'resource_type': 'image',  # Type de ressource
+    'allowed_formats': ['jpg', 'jpeg', 'png', 'webp'],  # Formats autorisés
+    'transformation': [
+        {'width': 1024, 'height': 1024, 'crop': 'limit'},  # Max dimensions
+        {'quality': 'auto:good'},  # Compression automatique
+        {'fetch_format': 'auto'},  # Format optimal (WebP si supporté)
+    ],
+}
+
+# Configuration pour les différents types d'images
+CLOUDINARY_PROFILE_PHOTO_OPTIONS = {
+    'folder': 'lebenis/profiles',
+    'resource_type': 'image',
+    'allowed_formats': ['jpg', 'jpeg', 'png', 'webp'],
+    'transformation': [
+        {'width': 512, 'height': 512, 'crop': 'fill', 'gravity': 'face'},  # Avatar carré centré sur visage
+        {'quality': 'auto:good'},
+        {'fetch_format': 'auto'},
+    ],
+}
+
+CLOUDINARY_DOCUMENT_OPTIONS = {
+    'folder': 'lebenis/documents',
+    'resource_type': 'image',
+    'allowed_formats': ['jpg', 'jpeg', 'png', 'pdf'],
+    'transformation': [
+        {'width': 2048, 'height': 2048, 'crop': 'limit'},
+        {'quality': 'auto:best'},  # Meilleure qualité pour documents
+    ],
+}
 
 # Swagger Settings
 SWAGGER_SETTINGS = {

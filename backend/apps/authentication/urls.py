@@ -5,8 +5,9 @@ from .views import (
     UserDetailView, 
     CustomTokenObtainPairView, 
     CustomTokenRefreshView,
-    LogoutView  # AJOUTÉ
+    LogoutView
 )
+from .upload_views import upload_profile_photo, delete_profile_photo
 
 urlpatterns = [
     # Inscription d'un nouvel utilisateur
@@ -26,4 +27,8 @@ urlpatterns = [
 
     # Profil de l'utilisateur connecté
     path('me/', UserDetailView.as_view(), name='user_detail'),
+    
+    # Upload / Suppression photo de profil
+    path('upload-profile-photo/', upload_profile_photo, name='upload_profile_photo'),
+    path('delete-profile-photo/', delete_profile_photo, name='delete_profile_photo'),
 ]
