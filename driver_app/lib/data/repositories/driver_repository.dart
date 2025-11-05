@@ -33,7 +33,8 @@ class DriverRepository {
       ApiConstants.driverMe,
       data: data,
     );
-    return DriverModel.fromJson(response.data);
+    // Backend retourne: { success: true, message: "...", driver: {...} }
+    return DriverModel.fromJson(response.data['driver']);
   }
 
   /// Mettre à jour position GPS

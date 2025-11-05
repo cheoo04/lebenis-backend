@@ -320,12 +320,22 @@ class DriverViewSet(viewsets.ModelViewSet):
             }
         })
     
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET', 'PATCH'])
     def me(self, request):
         """
         GET /api/v1/drivers/me/
-        
         Retourne le profil complet du driver connecté.
+        
+        PATCH /api/v1/drivers/me/
+        Met à jour le profil driver et user.
+        
+        Body JSON accepté:
+        {
+            "phone": "0150171387",           # Champ User
+            "profile_photo": "url",          # Champ User
+            "vehicle_type": "moto",          # Champ Driver
+            "vehicle_plate": "AB-1234-CD"    # Champ Driver (vehicle_registration)
+        }
         """
         try:
             driver = Driver.objects.get(user=request.user)
@@ -335,8 +345,38 @@ class DriverViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         
-        serializer = DriverSerializer(driver)
-        return Response(serializer.data)
+        if request.method == 'GET':
+            serializer = DriverSerializer(driver)
+            return Response(serializer.data)
+        
+        # PATCH - Mise à jour
+        user = request.user
+        data = request.data.copy()
+        
+        # Mettre à jour les champs User
+        if 'phone' in data:
+            user.phone = data.pop('phone')
+        if 'profile_photo' in data:
+            user.profile_photo = data.pop('profile_photo')
+        
+        if user._state.fields_cache:  # Si des champs User ont changé
+            user.save()
+        
+        # Mapper vehicle_plate → vehicle_registration
+        if 'vehicle_plate' in data:
+            data['vehicle_registration'] = data.pop('vehicle_plate')
+        
+        # Mettre à jour Driver
+        serializer = DriverSerializer(driver, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'success': True,
+                'message': 'Profil mis à jour avec succès',
+                'driver': serializer.data
+            })
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['GET'])
     def my_stats(self, request):
