@@ -34,6 +34,31 @@ class DriverSerializer(serializers.ModelSerializer):
             'successful_deliveries',
             'zones',
             'profile_photo',
+            # Identity Information
+            'identity_card_number',
+            'identity_card_front',
+            'identity_card_back',
+            'date_of_birth',
+            # Vehicle Documents
+            'vehicle_insurance',
+            'vehicle_insurance_expiry',
+            'vehicle_technical_inspection',
+            'vehicle_inspection_expiry',
+            'vehicle_gray_card',
+            # Banking Information
+            'bank_account_name',
+            'bank_account_number',
+            'bank_name',
+            'mobile_money_number',
+            'mobile_money_provider',
+            # Emergency Contact
+            'emergency_contact_name',
+            'emergency_contact_phone',
+            'emergency_contact_relationship',
+            # Professional Information
+            'years_of_experience',
+            'previous_employer',
+            'languages_spoken',
             'created_at',
             'updated_at'
         ]

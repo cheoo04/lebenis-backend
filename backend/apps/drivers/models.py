@@ -1,5 +1,6 @@
 # backend/drivers/models.py
 from django.db import models
+from django.core.validators import RegexValidator
 from apps.authentication.models import User
 import uuid
 
@@ -23,14 +24,71 @@ class Driver(models.Model):
         ('offline', 'Hors ligne'),
     ]
     
+    # Validation pour les plaques d'immatriculation
+    VEHICLE_PLATE_VALIDATOR = RegexValidator(
+        regex=r'^([A-Z]{2}\s\d{4}\s[A-Z]{2}|[A-Z]{2}\s\d{4}\s[A-Z]|\d{2}\s[A-Z]{2}\s\d{4})$',
+        message=(
+            "Format invalide. Formats acceptés: "
+            "CEDEAO (AB 1234 CD), Sénégal (DK 1234 A), "
+            "Côte d'Ivoire (12 AB 3456)"
+        ),
+        code='invalid_plate'
+    )
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='driver_profile')
     
     driver_license = models.CharField(max_length=100, blank=True)
     license_expiry = models.DateField(null=True, blank=True)
+    
+    # Documents d'identité (SÉCURITÉ)
+    identity_card_number = models.CharField(max_length=50, blank=True, help_text="Numéro CNI/Passeport")
+    identity_card_front = models.URLField(max_length=500, blank=True, null=True, help_text="Photo recto CNI")
+    identity_card_back = models.URLField(max_length=500, blank=True, null=True, help_text="Photo verso CNI")
+    date_of_birth = models.DateField(null=True, blank=True)
+    
+    # Véhicule
     vehicle_type = models.CharField(max_length=50, choices=VEHICLE_CHOICES)
-    vehicle_registration = models.CharField(max_length=50, blank=True)
+    vehicle_registration = models.CharField(
+        max_length=50, 
+        blank=True,
+        validators=[VEHICLE_PLATE_VALIDATOR],
+        help_text="Plaque d'immatriculation (ex: AB 1234 CD)"
+    )
     vehicle_capacity_kg = models.DecimalField(max_digits=5, decimal_places=2, default=30.00)
+    
+    # Documents véhicule (CONFORMITÉ)
+    vehicle_insurance = models.URLField(max_length=500, blank=True, null=True, help_text="Document assurance")
+    vehicle_insurance_expiry = models.DateField(null=True, blank=True)
+    vehicle_technical_inspection = models.URLField(max_length=500, blank=True, null=True, help_text="Visite technique")
+    vehicle_inspection_expiry = models.DateField(null=True, blank=True)
+    vehicle_gray_card = models.URLField(max_length=500, blank=True, null=True, help_text="Carte grise")
+    
+    # Informations bancaires (PAIEMENTS)
+    bank_account_name = models.CharField(max_length=200, blank=True)
+    bank_account_number = models.CharField(max_length=50, blank=True)
+    bank_name = models.CharField(max_length=100, blank=True)
+    mobile_money_number = models.CharField(max_length=20, blank=True)
+    mobile_money_provider = models.CharField(
+        max_length=50,
+        choices=[
+            ('orange', 'Orange Money'),
+            ('mtn', 'MTN Money'),
+            ('moov', 'Moov Money'),
+            ('wave', 'Wave'),
+        ],
+        blank=True
+    )
+    
+    # Contact d'urgence (SÉCURITÉ)
+    emergency_contact_name = models.CharField(max_length=200, blank=True)
+    emergency_contact_phone = models.CharField(max_length=20, blank=True)
+    emergency_contact_relationship = models.CharField(max_length=100, blank=True)
+    
+    # Professionnel
+    years_of_experience = models.IntegerField(default=0, help_text="Années d'expérience en livraison")
+    previous_employer = models.CharField(max_length=200, blank=True)
+    languages_spoken = models.JSONField(default=list, blank=True, help_text="Liste des langues parlées")
     
     verification_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     is_available = models.BooleanField(default=False)

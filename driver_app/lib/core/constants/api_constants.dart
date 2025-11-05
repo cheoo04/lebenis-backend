@@ -9,6 +9,9 @@ class ApiConstants {
   static const String register = '/api/v1/auth/register/';
   static const String me = '/api/v1/auth/me/';
   static const String refreshToken = '/api/v1/auth/token/refresh/';
+  static const String passwordResetRequest = '/api/v1/auth/password-reset/request/';
+  static const String passwordResetConfirm = '/api/v1/auth/password-reset/confirm/';
+  static const String changePassword = '/api/v1/auth/change-password/';
 
   // ========== DRIVER ==========
   static const String driverProfile = '/api/v1/drivers/me/';

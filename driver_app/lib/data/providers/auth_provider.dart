@@ -146,6 +146,74 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoggedIn: isLoggedIn);
   }
 
+  /// Demander la réinitialisation du mot de passe
+  Future<bool> requestPasswordReset(String email) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _repository.requestPasswordReset(email);
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      debugPrint('DEBUG PASSWORD RESET REQUEST ERROR: $e');
+      final errorMessage = _getErrorMessage(e);
+      state = state.copyWith(
+        isLoading: false,
+        error: errorMessage,
+      );
+      return false;
+    }
+  }
+
+  /// Confirmer la réinitialisation du mot de passe avec le code
+  Future<bool> confirmPasswordReset({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _repository.confirmPasswordReset(
+        email: email,
+        code: code,
+        newPassword: newPassword,
+      );
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      debugPrint('DEBUG PASSWORD RESET CONFIRM ERROR: $e');
+      final errorMessage = _getErrorMessage(e);
+      state = state.copyWith(
+        isLoading: false,
+        error: errorMessage,
+      );
+      return false;
+    }
+  }
+
+  /// Changer le mot de passe (utilisateur connecté)
+  Future<bool> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _repository.changePassword(
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      );
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      debugPrint('DEBUG CHANGE PASSWORD ERROR: $e');
+      final errorMessage = _getErrorMessage(e);
+      state = state.copyWith(
+        isLoading: false,
+        error: errorMessage,
+      );
+      return false;
+    }
+  }
+
   /// Convertir les erreurs en messages compréhensibles
   String _getErrorMessage(dynamic error) {
     // Si c'est une ApiException, utiliser directement son message
