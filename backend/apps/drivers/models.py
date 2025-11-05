@@ -8,6 +8,7 @@ class Driver(models.Model):
         ('moto', 'Moto'),
         ('voiture', 'Voiture'),
         ('tricycle', 'Tricycle'),
+        ('camionnette', 'Camionnette'),
     ]
     
     STATUS_CHOICES = [
