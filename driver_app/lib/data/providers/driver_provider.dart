@@ -150,16 +150,17 @@ class DriverNotifier extends StateNotifier<DriverState> {
   }
 
   /// Upload une photo de profil
-  /// Upload vers /api/v1/auth/me/ avec multipart/form-data
+  /// Upload vers /api/v1/auth/me/ avec multipart/form-data via PATCH
   Future<String> uploadProfilePhoto(File photoFile) async {
     try {
       final dioClient = _ref.read(dioClientProvider);
       
-      // Upload via multipart/form-data vers l'endpoint auth
+      // Upload via multipart/form-data vers l'endpoint auth avec PATCH
       final response = await dioClient.uploadFile(
         '/api/v1/auth/me/',
         filePath: photoFile.path,
         fieldName: 'profile_photo',
+        method: 'PATCH', // Utiliser PATCH au lieu de POST
       );
       
       // Le backend retourne l'utilisateur complet avec profile_photo mis à jour
