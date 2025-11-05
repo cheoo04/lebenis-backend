@@ -28,19 +28,33 @@ class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
     
     def post(self, request):
+        logger.info(f"📥 Requête de réinitialisation reçue")
+        
         serializer = PasswordResetRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
         email = serializer.validated_data['email']
+        logger.info(f"📧 Email validé: {email}")
         
         # Créer un code de réinitialisation
-        reset_code = PasswordResetCode.create_for_email(email)
+        try:
+            logger.info(f"🔄 Création du code...")
+            reset_code = PasswordResetCode.create_for_email(email)
+            logger.info(f"✅ Code créé: {reset_code.code}")
+        except Exception as e:
+            logger.error(f"❌ Erreur création code: {e}")
+            return Response(
+                {"error": f"Erreur lors de la création du code: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         
         # Envoyer l'email avec le code (seulement si EMAIL configuré)
         email_sent = False
         try:
+            logger.info(f"📮 Vérification config email...")
             # Vérifier que l'email est configuré
             if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
+                logger.info(f"📮 Envoi email...")
                 self._send_reset_email(email, reset_code.code)
                 email_sent = True
                 logger.info(f"✅ Code de réinitialisation envoyé à {email}: {reset_code.code}")
@@ -50,6 +64,7 @@ class PasswordResetRequestView(APIView):
             logger.error(f"❌ Erreur envoi email: {e}")
             # En développement, on continue quand même
         
+        logger.info(f"📤 Préparation réponse...")
         return Response({
             "success": True,
             "message": "Un code de réinitialisation a été généré." + (" Il a été envoyé à votre email." if email_sent else " Consultez les logs."),
