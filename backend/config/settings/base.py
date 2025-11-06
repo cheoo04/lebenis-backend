@@ -72,6 +72,8 @@ INSTALLED_APPS = [
     'cloudinary',  # Cloudinary SDK
     'fcm_django',   # Pour les notifications push
     'drf_yasg',     # Pour la documentation Swagger
+    'django_celery_beat',  # Pour les tâches planifiées (cron jobs)
+    'django_celery_results',  # Pour stocker les résultats des tâches
     
     # Local apps
     'apps.authentication',
@@ -81,6 +83,7 @@ INSTALLED_APPS = [
     'apps.pricing',
     'apps.notifications',
     'apps.payments',
+    'apps.chat',  # Phase 3 - Chat temps réel
 ]
 
 MIDDLEWARE = [
@@ -244,6 +247,9 @@ FCM_DJANGO_SETTINGS = {
 # Firebase Admin SDK V1 (Recommandé)
 FIREBASE_CREDENTIALS_PATH = config('FIREBASE_CREDENTIALS_PATH', default='config/firebase/service-account.json')
 
+# Firebase Realtime Database (Phase 3 - Chat)
+FIREBASE_DATABASE_URL = config('FIREBASE_DATABASE_URL', default='')
+
 # Google Maps
 GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
 
@@ -321,3 +327,83 @@ SWAGGER_SETTINGS = {
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # ou autre
 EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@lebenis.com')
+SERVER_EMAIL = config('SERVER_EMAIL', default='noreply@lebenis.com')
+
+
+# ==============================================================================
+# MOBILE MONEY CONFIGURATION (Phase 2)
+# ==============================================================================
+
+# Orange Money API (Côte d'Ivoire)
+ORANGE_MONEY_CLIENT_ID = config('ORANGE_MONEY_CLIENT_ID', default='')
+ORANGE_MONEY_CLIENT_SECRET = config('ORANGE_MONEY_CLIENT_SECRET', default='')
+ORANGE_MONEY_MERCHANT_CODE = config('ORANGE_MONEY_MERCHANT_CODE', default='')
+ORANGE_MONEY_ENVIRONMENT = config('ORANGE_MONEY_ENVIRONMENT', default='sandbox')
+
+# MTN Mobile Money API (Côte d'Ivoire)
+MTN_MOMO_API_USER = config('MTN_MOMO_API_USER', default='')
+MTN_MOMO_API_KEY = config('MTN_MOMO_API_KEY', default='')
+MTN_MOMO_SUBSCRIPTION_KEY = config('MTN_MOMO_SUBSCRIPTION_KEY', default='')
+MTN_MOMO_ENVIRONMENT = config('MTN_MOMO_ENVIRONMENT', default='sandbox')
+
+
+# ==============================================================================
+# CELERY CONFIGURATION (Phase 2 - Automated Daily Payouts)
+# ==============================================================================
+
+# Celery Broker (Redis)
+CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
+
+# Celery Settings
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Africa/Abidjan'  # UTC+0 (Côte d'Ivoire)
+CELERY_ENABLE_UTC = False
+
+# Task Configuration
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes max par tâche
+CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # Warning à 25 minutes
+
+# Celery Beat Schedule (Tâches planifiées)
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    # Paiements quotidiens des drivers à 23h59
+    'daily-driver-payouts': {
+        'task': 'apps.payments.tasks.process_daily_payouts',
+        'schedule': crontab(hour=23, minute=59),  # Chaque jour à 23h59
+        'options': {
+            'expires': 60 * 60,  # Expire après 1h si non exécutée
+        }
+    },
+    
+    # Vérification des payouts en attente toutes les heures
+    'check-pending-payouts': {
+        'task': 'apps.payments.tasks.check_pending_payouts',
+        'schedule': crontab(minute=0),  # Toutes les heures à :00
+        'options': {
+            'expires': 50 * 60,  # Expire après 50 min
+        }
+    },
+    
+    # Reset des durées de pause à minuit
+    'reset-daily-break-durations': {
+        'task': 'apps.payments.tasks.reset_daily_break_durations',
+        'schedule': crontab(hour=0, minute=0),  # Chaque jour à 00h00
+        'options': {
+            'expires': 30 * 60,  # Expire après 30 min
+        }
+    },
+}
+
+# Logging Celery
+CELERY_WORKER_HIJACK_ROOT_LOGGER = False
+CELERY_WORKER_LOG_FORMAT = '[%(asctime)s: %(levelname)s/%(processName)s] %(message)s'
+CELERY_WORKER_TASK_LOG_FORMAT = '[%(asctime)s: %(levelname)s/%(processName)s][%(task_name)s(%(task_id)s)] %(message)s'
