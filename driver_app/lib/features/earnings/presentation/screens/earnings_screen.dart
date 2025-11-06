@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../data/providers/driver_provider.dart';
-import '../../../../data/models/driver_model.dart';
+import '../../../../data/providers/payment_provider.dart';
 import '../../../../shared/theme/app_colors.dart';
 import '../../../../shared/theme/dimensions.dart';
 import '../../../../shared/theme/text_styles.dart';
@@ -10,6 +9,8 @@ import '../../../../shared/widgets/error_widget.dart';
 import '../../../../shared/utils/formatters.dart';
 import '../widgets/stats_card.dart';
 import '../widgets/earnings_chart.dart';
+import 'payouts_screen.dart';
+import 'transactions_screen.dart';
 
 class EarningsScreen extends ConsumerStatefulWidget {
   const EarningsScreen({super.key});
@@ -29,87 +30,59 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
   }
 
   Future<void> _loadEarnings() async {
-    // Charger le profil ET les stats ET les earnings
-    await Future.wait([
-      ref.read(driverProvider.notifier).loadProfile(),
-      ref.read(driverProvider.notifier).loadStats(),
-      ref.read(driverProvider.notifier).loadEarnings(period: _getPeriodDays()),
-    ]);
+    // Charger earnings, stats et payouts
+    await ref.read(paymentProvider.notifier).loadAll(period: _selectedPeriod);
   }
 
-  String _getPeriodDays() {
+  String _getPeriodLabel() {
     switch (_selectedPeriod) {
+      case 'today':
+        return 'Aujourd\'hui';
       case 'week':
-        return '7';
+        return 'Derniers 7 jours';
       case 'month':
-        return '30';
-      case 'year':
-        return '365';
+        return 'Ce mois';
       default:
-        return '30';
+        return '';
     }
   }
 
   List<EarningsData> _generateChartData() {
-    final earningsState = ref.read(driverProvider).earnings;
+    final paymentState = ref.read(paymentProvider);
+    final payments = paymentState.earningsPayments ?? [];
     
-    // Si on a des données du backend, les utiliser
-    if (earningsState != null && earningsState['daily_breakdown'] != null) {
-      final dailyData = earningsState['daily_breakdown'] as List;
-      
-      if (dailyData.isNotEmpty) {
-        return dailyData.map((item) {
-          final date = DateTime.parse(item['date']);
-          final amount = double.tryParse(item['amount'].toString()) ?? 0.0;
-          return EarningsData(
-            label: _formatDateLabel(date),
-            amount: amount,
-            date: date,
-          );
-        }).toList();
-      }
+    if (payments.isEmpty) {
+      // Retourner des données vides (pas de factices)
+      return [];
     }
     
-    // Sinon, retourner des données vides (pas de factices)
-    final now = DateTime.now();
-    if (_selectedPeriod == 'week') {
-      return List.generate(7, (index) {
-        final date = now.subtract(Duration(days: 6 - index));
-        return EarningsData(
-          label: _getWeekdayLabel(date.weekday),
-          amount: 0.0,
-          date: date,
-        );
-      });
-    } else if (_selectedPeriod == 'month') {
-      return List.generate(4, (index) {
-        final weekStart = now.subtract(Duration(days: (3 - index) * 7));
-        return EarningsData(
-          label: 'S${index + 1}',
-          amount: 0.0,
-          date: weekStart,
-        );
-      });
-    } else {
-      // year
-      return List.generate(12, (index) {
-        return EarningsData(
-          label: _getMonthLabel(index + 1),
-          amount: 0.0,
-          date: DateTime(now.year, index + 1),
-        );
-      });
+    // Grouper par jour pour le graphique
+    final Map<String, double> dailyAmounts = {};
+    
+    for (final payment in payments) {
+      final dateKey = '${payment.createdAt.year}-${payment.createdAt.month.toString().padLeft(2, '0')}-${payment.createdAt.day.toString().padLeft(2, '0')}';
+      dailyAmounts[dateKey] = (dailyAmounts[dateKey] ?? 0) + payment.driverAmount;
     }
+    
+    // Convertir en liste triée
+    final sortedEntries = dailyAmounts.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    
+    return sortedEntries.map((entry) {
+      final date = DateTime.parse(entry.key);
+      return EarningsData(
+        label: _formatDateLabel(date),
+        amount: entry.value,
+        date: date,
+      );
+    }).toList();
   }
 
   String _formatDateLabel(DateTime date) {
-    if (_selectedPeriod == 'week') {
+    if (_selectedPeriod == 'week' || _selectedPeriod == 'today') {
       return _getWeekdayLabel(date.weekday);
-    } else if (_selectedPeriod == 'month') {
-      // Grouper par semaine
-      return '${date.day}';
     } else {
-      return _getMonthLabel(date.month);
+      return '${date.day}';
     }
   }
 
@@ -118,75 +91,124 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
     return days[weekday - 1];
   }
 
-  String _getMonthLabel(int month) {
-    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-    return months[month - 1];
-  }
-
-  String _getPeriodLabel() {
-    switch (_selectedPeriod) {
-      case 'week':
-        return 'Derniers 7 jours';
-      case 'month':
-        return 'Ce mois';
-      case 'year':
-        return 'Cette année';
+  Color _getPayoutStatusColor(String status) {
+    switch (status) {
+      case 'completed':
+        return AppColors.success;
+      case 'processing':
+        return AppColors.warning;
+      case 'failed':
+        return AppColors.error;
+      case 'pending':
+        return AppColors.info;
       default:
-        return '';
+        return AppColors.textSecondary;
     }
   }
 
-  String _getRatingValue(Map<String, dynamic>? stats, DriverModel? driver) {
-    // Essayer d'obtenir le rating depuis les stats du backend
-    if (stats != null) {
-      final performanceData = stats['performance'] as Map<String, dynamic>?;
-      if (performanceData != null && performanceData['rating'] != null) {
-        final rating = double.tryParse(performanceData['rating'].toString()) ?? 0.0;
-        return rating.toStringAsFixed(1);
+  IconData _getPayoutStatusIcon(String status) {
+    switch (status) {
+      case 'completed':
+        return Icons.check_circle;
+      case 'processing':
+        return Icons.hourglass_empty;
+      case 'failed':
+        return Icons.error;
+      case 'pending':
+        return Icons.pending;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  String _formatPayoutDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final payoutDay = DateTime(date.year, date.month, date.day);
+
+    if (payoutDay == today) {
+      return 'Aujourd\'hui';
+    } else if (payoutDay == yesterday) {
+      return 'Hier';
+    } else {
+      final diff = today.difference(payoutDay).inDays;
+      if (diff < 7) {
+        return 'Il y a $diff jours';
+      } else {
+        return '${date.day}/${date.month}/${date.year}';
       }
     }
-    // Sinon utiliser le rating du driver
-    return (driver?.rating ?? 0.0).toStringAsFixed(1);
   }
 
   @override
   Widget build(BuildContext context) {
-    final driverState = ref.watch(driverProvider);
-    final driver = driverState.driver;
-    final stats = driverState.stats;
+    final paymentState = ref.watch(paymentProvider);
+    final earnings = paymentState.earnings;
+    final stats = paymentState.stats;
 
-    if (driverState.isLoading && driver == null) {
+    if (paymentState.isLoading && earnings == null) {
       return const Scaffold(
         body: LoadingWidget(message: 'Chargement des données...'),
       );
     }
 
-    if (driverState.error != null && driver == null) {
+    if (paymentState.error != null && earnings == null) {
       return Scaffold(
         body: ErrorDisplayWidget(
-          message: driverState.error!,
+          message: paymentState.error!,
           onRetry: _loadEarnings,
         ),
       );
     }
 
-    // Extraire les données du backend
-    final deliveriesData = stats?['deliveries'] as Map<String, dynamic>?;
-    final earningsData = stats?['earnings'] as Map<String, dynamic>?;
+    // Extraire les données Phase 2
+    final totalEarnings = double.tryParse(earnings?['total_driver_amount']?.toString() ?? '0') ?? 0.0;
+    final paymentCount = int.tryParse(earnings?['payment_count']?.toString() ?? '0') ?? 0;
     
-    final totalEarnings = earningsData != null && earningsData['total_earned'] != null
-        ? double.tryParse(earningsData['total_earned'].toString()) ?? 0.0
-        : 0.0;
-    final totalDeliveries = deliveriesData?['total_all_time'] as int? ?? 0;
-    final completedDeliveries = deliveriesData?['delivered'] as int? ?? 0;
-    final averagePerDelivery = completedDeliveries > 0 
-        ? totalEarnings / completedDeliveries 
-        : 0.0;
+    // Stats lifetime depuis le nouveau endpoint
+    final lifetimeData = stats?['lifetime'] as Map<String, dynamic>?;
+    final totalLifetime = double.tryParse(lifetimeData?['total_earned']?.toString() ?? '0') ?? 0.0;
+    final totalPayments = int.tryParse(lifetimeData?['total_payments']?.toString() ?? '0') ?? 0;
+    final averagePerPayment = double.tryParse(lifetimeData?['average_per_payment']?.toString() ?? '0') ?? 0.0;
+    
+    // Payment methods breakdown
+    final paymentMethods = stats?['payment_methods'] as Map<String, dynamic>?;
+    final orangeCount = int.tryParse(paymentMethods?['orange_money']?.toString() ?? '0') ?? 0;
+    final mtnCount = int.tryParse(paymentMethods?['mtn_momo']?.toString() ?? '0') ?? 0;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mes Gains'),
         centerTitle: true,
+        actions: [
+          // Bouton transactions
+          IconButton(
+            icon: const Icon(Icons.receipt_long),
+            tooltip: 'Transactions',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TransactionsScreen(),
+                ),
+              );
+            },
+          ),
+          // Bouton historique des versements
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Historique versements',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PayoutsScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _loadEarnings,
@@ -196,8 +218,8 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
             // Summary Card
             EarningsSummaryCard(
               totalEarnings: totalEarnings,
-              totalDeliveries: completedDeliveries,
-              averagePerDelivery: averagePerDelivery,
+              totalDeliveries: paymentCount,
+              averagePerDelivery: paymentCount > 0 ? totalEarnings / paymentCount : 0.0,
               period: _getPeriodLabel(),
             ),
 
@@ -209,6 +231,17 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                 padding: const EdgeInsets.all(Dimensions.spacingS),
                 child: Row(
                   children: [
+                    Expanded(
+                      child: _PeriodChip(
+                        label: 'Aujourd\'hui',
+                        isSelected: _selectedPeriod == 'today',
+                        onTap: () {
+                          setState(() => _selectedPeriod = 'today');
+                          _loadEarnings();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: Dimensions.spacingS),
                     Expanded(
                       child: _PeriodChip(
                         label: 'Semaine',
@@ -230,17 +263,6 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(width: Dimensions.spacingS),
-                    Expanded(
-                      child: _PeriodChip(
-                        label: 'Année',
-                        isSelected: _selectedPeriod == 'year',
-                        onTap: () {
-                          setState(() => _selectedPeriod = 'year');
-                          _loadEarnings();
-                        },
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -258,7 +280,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
 
             // Stats Grid
             Text(
-              'Statistiques',
+              'Statistiques (Lifetime)',
               style: TextStyles.h3,
             ),
             const SizedBox(height: Dimensions.spacingM),
@@ -267,19 +289,19 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
               children: [
                 Expanded(
                   child: StatsCard(
-                    title: 'Total livraisons',
-                    value: '$totalDeliveries',
-                    icon: Icons.local_shipping,
-                    color: AppColors.info,
+                    title: 'Total gagné',
+                    value: Formatters.formatPrice(totalLifetime),
+                    icon: Icons.monetization_on,
+                    color: AppColors.success,
                   ),
                 ),
                 const SizedBox(width: Dimensions.spacingM),
                 Expanded(
                   child: StatsCard(
-                    title: 'Terminées',
-                    value: '$completedDeliveries',
-                    icon: Icons.check_circle,
-                    color: AppColors.success,
+                    title: 'Paiements',
+                    value: '$totalPayments',
+                    icon: Icons.payment,
+                    color: AppColors.info,
                   ),
                 ),
               ],
@@ -291,8 +313,8 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
               children: [
                 Expanded(
                   child: StatsCard(
-                    title: 'Gain moyen',
-                    value: Formatters.formatPrice(averagePerDelivery),
+                    title: 'Moyenne',
+                    value: Formatters.formatPrice(averagePerPayment),
                     icon: Icons.analytics,
                     color: AppColors.primary,
                   ),
@@ -300,14 +322,138 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                 const SizedBox(width: Dimensions.spacingM),
                 Expanded(
                   child: StatsCard(
-                    title: 'Note',
-                    value: _getRatingValue(stats, driver),
-                    icon: Icons.star,
-                    color: AppColors.warning,
+                    title: 'Orange Money',
+                    value: '$orangeCount',
+                    subtitle: 'paiements',
+                    icon: Icons.smartphone,
+                    color: const Color(0xFFFF7900), // Orange color
                   ),
                 ),
               ],
             ),
+
+            const SizedBox(height: Dimensions.spacingM),
+
+            Row(
+              children: [
+                Expanded(
+                  child: StatsCard(
+                    title: 'MTN MoMo',
+                    value: '$mtnCount',
+                    subtitle: 'paiements',
+                    icon: Icons.phone_android,
+                    color: const Color(0xFFFFCC00), // MTN yellow
+                  ),
+                ),
+                const SizedBox(width: Dimensions.spacingM),
+                // Espace pour un futur stat
+                const Expanded(
+                  child: SizedBox(),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: Dimensions.spacingXL),
+
+            // Derniers versements
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Derniers versements',
+                  style: TextStyles.h3,
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PayoutsScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.arrow_forward, size: 18),
+                  label: const Text('Voir tout'),
+                ),
+              ],
+            ),
+            const SizedBox(height: Dimensions.spacingM),
+
+            // Afficher les 3 derniers payouts
+            if (paymentState.payouts != null && paymentState.payouts!.isNotEmpty) ...[
+              ...paymentState.payouts!.take(3).map((payout) => Card(
+                margin: const EdgeInsets.only(bottom: Dimensions.spacingM),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: _getPayoutStatusColor(payout.status).withValues(alpha: 0.1),
+                    child: Icon(
+                      _getPayoutStatusIcon(payout.status),
+                      color: _getPayoutStatusColor(payout.status),
+                      size: 20,
+                    ),
+                  ),
+                  title: Text(
+                    Formatters.formatPrice(payout.totalAmount),
+                    style: TextStyles.labelLarge.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '${payout.paymentCount} paiements • ${_formatPayoutDate(payout.payoutDate)}',
+                    style: TextStyles.caption,
+                  ),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getPayoutStatusColor(payout.status).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      payout.statusLabel,
+                      style: TextStyles.caption.copyWith(
+                        color: _getPayoutStatusColor(payout.status),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PayoutsScreen(),
+                      ),
+                    );
+                  },
+                ),
+              )),
+            ] else ...[
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(Dimensions.cardPadding),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.account_balance_wallet_outlined,
+                          size: 48,
+                          color: AppColors.textSecondary.withValues(alpha: 0.5),
+                        ),
+                        const SizedBox(height: Dimensions.spacingM),
+                        Text(
+                          'Aucun versement pour le moment',
+                          style: TextStyles.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
 
             const SizedBox(height: Dimensions.spacingXL),
 
@@ -329,7 +475,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                   const SizedBox(width: Dimensions.spacingM),
                   Expanded(
                     child: Text(
-                      'Les paiements sont effectués automatiquement chaque semaine sur votre compte bancaire.',
+                      'Les paiements sont regroupés et versés automatiquement chaque jour à 23h59.',
                       style: TextStyles.bodySmall.copyWith(
                         color: AppColors.info,
                       ),

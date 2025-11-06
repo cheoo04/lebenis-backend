@@ -59,7 +59,7 @@ class DriverRepository {
     String? period, // 'today', 'week', 'month'
   }) async {
     final response = await _dioClient.get(
-      ApiConstants.myEarnings,
+      ApiConstants.paymentMyEarnings,
       queryParameters: period != null ? {'period': period} : null,
     );
     return response.data;
