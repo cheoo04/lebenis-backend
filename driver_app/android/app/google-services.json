@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "949402679677",
+    "firebase_url": "https://lebenis-project-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "lebenis-project",
     "storage_bucket": "lebenis-project.firebasestorage.app"
   },
