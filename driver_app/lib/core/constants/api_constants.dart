@@ -40,10 +40,10 @@ class ApiConstants {
   static const String unreadNotificationsCount = '/api/v1/notifications/unread-count/';
 
   // ========== PAYMENTS (Phase 2) ==========
-  static const String paymentMyEarnings = '/api/v1/payments/payments/my-earnings/';
-  static const String paymentMyPayouts = '/api/v1/payments/payments/my-payouts/';
-  static const String paymentStats = '/api/v1/payments/payments/stats/';
-  static const String paymentTransactions = '/api/v1/payments/payments/transactions/';
+  static const String paymentMyEarnings = '/api/v1/payments/my-earnings/';
+  static const String paymentMyPayouts = '/api/v1/payments/my-payouts/';
+  static const String paymentStats = '/api/v1/payments/stats/';
+  static const String paymentTransactions = '/api/v1/payments/transactions/';
 
   // ========== BREAK MANAGEMENT ==========
   static const String startBreak = '/api/v1/drivers/start-break/';
