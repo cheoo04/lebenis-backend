@@ -1,10 +1,15 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import DeliveryViewSet
+from .analytics_views import AnalyticsViewSet
+from .pdf_views import generate_analytics_pdf, test_pdf_generation
 
 router = DefaultRouter()
-router.register(r'', DeliveryViewSet, basename='delivery')
+router.register(r'deliveries', DeliveryViewSet, basename='delivery')
+router.register(r'analytics', AnalyticsViewSet, basename='analytics')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('reports/analytics-pdf/', generate_analytics_pdf, name='analytics-pdf'),
+    path('reports/test-pdf/', test_pdf_generation, name='test-pdf'),
 ]

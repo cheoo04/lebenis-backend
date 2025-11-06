@@ -1,6 +1,8 @@
 # deliveries/admin.py
 from django.contrib import admin
 from .models import Delivery
+from .models_rating import DeliveryRating
+
 
 @admin.register(Delivery)
 class DeliveryAdmin(admin.ModelAdmin):
@@ -17,4 +19,26 @@ class DeliveryAdmin(admin.ModelAdmin):
         ('Tarif et Paiement', {'fields': ('calculated_price', 'actual_price', 'payment_status', 'cod_amount')}),
         ('Preuve de Livraison', {'fields': ('signature_url', 'photo_url', 'delivery_confirmation_code')}),
         ('Dates', {'fields': ('assigned_at', 'picked_up_at', 'delivered_at', 'cancelled_at')}),
+    )
+
+
+@admin.register(DeliveryRating)
+class DeliveryRatingAdmin(admin.ModelAdmin):
+    list_display = ('delivery', 'driver', 'merchant', 'rating', 'created_at')
+    list_filter = ('rating', 'created_at')
+    search_fields = ('delivery__tracking_number', 'driver__user__first_name', 'driver__user__last_name', 'merchant__business_name')
+    readonly_fields = ('created_at', 'updated_at')
+    
+    fieldsets = (
+        ('Évaluation', {
+            'fields': ('delivery', 'merchant', 'driver', 'rating', 'comment')
+        }),
+        ('Critères détaillés', {
+            'fields': ('punctuality_rating', 'professionalism_rating', 'care_rating'),
+            'classes': ('collapse',)
+        }),
+        ('Métadonnées', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
     )

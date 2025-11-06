@@ -4,10 +4,11 @@ from rest_framework.response import Response
 from django.utils import timezone
 import logging
 
-from .models import Notification, DeviceToken
+from .models import Notification, DeviceToken, NotificationHistory
 from .serializers import (
     NotificationSerializer, DeviceTokenSerializer,
-    SendNotificationSerializer, BroadcastNotificationSerializer
+    SendNotificationSerializer, BroadcastNotificationSerializer,
+    NotificationHistorySerializer
 )
 from .firebase_service import FirebaseService
 from apps.authentication.models import User
@@ -269,4 +270,85 @@ class NotificationViewSet(viewsets.ModelViewSet):
             'push_sent': result['success_count'],
             'push_failed': result['failure_count']
         })
+
+
+class NotificationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet pour l'historique des notifications (Phase 2).
+    
+    Endpoints:
+    - GET /notification-history/ - Liste toutes les notifications
+    - GET /notification-history/{id}/ - Détails d'une notification
+    - POST /notification-history/{id}/mark_as_read/ - Marquer comme lue
+    - POST /notification-history/mark_all_as_read/ - Marquer toutes comme lues
+    - DELETE /notification-history/{id}/ - Supprimer une notification
+    - GET /notification-history/unread_count/ - Nombre de non lues
+    """
+    
+    serializer_class = NotificationHistorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """Retourne seulement les notifications de l'utilisateur connecté"""
+        return NotificationHistory.objects.filter(user=self.request.user)
+    
+    @action(detail=True, methods=['post'])
+    def mark_as_read(self, request, pk=None):
+        """
+        Marque une notification comme lue.
+        
+        POST /notification-history/{id}/mark_as_read/
+        """
+        notification = self.get_object()
+        notification.mark_as_read()
+        
+        serializer = self.get_serializer(notification)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['post'])
+    def mark_all_as_read(self, request):
+        """
+        Marque toutes les notifications comme lues.
+        
+        POST /notification-history/mark_all_as_read/
+        """
+        count = NotificationHistory.objects.filter(
+            user=request.user,
+            is_read=False
+        ).update(
+            is_read=True,
+            read_at=timezone.now()
+        )
+        
+        return Response({
+            'message': f'{count} notification(s) marquée(s) comme lue(s)',
+            'count': count
+        })
+    
+    @action(detail=False, methods=['get'])
+    def unread_count(self, request):
+        """
+        Retourne le nombre de notifications non lues.
+        
+        GET /notification-history/unread_count/
+        """
+        count = NotificationHistory.get_unread_count(request.user)
+        
+        return Response({
+            'unread_count': count
+        })
+    
+    def destroy(self, request, *args, **kwargs):
+        """
+        Supprime une notification.
+        
+        DELETE /notification-history/{id}/
+        """
+        notification = self.get_object()
+        notification.delete()
+        
+        return Response(
+            {'message': 'Notification supprimée'},
+            status=status.HTTP_204_NO_CONTENT
+        )
 

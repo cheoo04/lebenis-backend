@@ -149,3 +149,40 @@ class LogoutView(APIView):
                 {"error": f"Erreur lors de la déconnexion: {str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+# ============================================================================
+# VUE POUR ENREGISTRER LE FCM TOKEN
+# ============================================================================
+
+class RegisterFCMTokenView(APIView):
+    """
+    POST /api/v1/auth/register-fcm-token/
+    
+    Enregistre le token FCM pour recevoir les notifications push.
+    
+    Body:
+    {
+        "fcm_token": "eBdKf7..."
+    }
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        fcm_token = request.data.get('fcm_token')
+        
+        if not fcm_token:
+            return Response(
+                {'error': 'Le champ fcm_token est requis'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Mettre à jour le token FCM
+        user = request.user
+        user.fcm_token = fcm_token
+        user.save(update_fields=['fcm_token'])
+        
+        return Response({
+            'success': True,
+            'message': 'Token FCM enregistré avec succès'
+        }, status=status.HTTP_200_OK)
