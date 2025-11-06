@@ -18,7 +18,7 @@ class ApiConstants {
   static const String driverMe = '/api/v1/drivers/me/';
   static const String myDeliveries = '/api/v1/drivers/my-deliveries/';
   static const String availableDeliveries = '/api/v1/drivers/available-deliveries/';
-  static const String myEarnings = '/api/v1/drivers/me/earnings/';
+  static const String driverEarnings = '/api/v1/drivers/me/earnings/'; // OLD - à remplacer par paymentMyEarnings
   static const String myStats = '/api/v1/drivers/my-stats/';
   static const String updateLocation = '/api/v1/drivers/update-location/';
   static const String toggleAvailability = '/api/v1/drivers/toggle-availability/';
@@ -35,6 +35,20 @@ class ApiConstants {
   // ========== NOTIFICATIONS ==========
   static const String registerFcmToken = '/api/v1/notifications/register-token/';
   static const String unregisterFcmToken = '/api/v1/notifications/delete-token/';
+  static const String notificationHistory = '/api/v1/notifications/history/';
+  static const String markNotificationAsRead = '/api/v1/notifications/mark-as-read/';
+  static const String unreadNotificationsCount = '/api/v1/notifications/unread-count/';
+
+  // ========== PAYMENTS (Phase 2) ==========
+  static const String paymentMyEarnings = '/api/v1/payments/payments/my-earnings/';
+  static const String paymentMyPayouts = '/api/v1/payments/payments/my-payouts/';
+  static const String paymentStats = '/api/v1/payments/payments/stats/';
+  static const String paymentTransactions = '/api/v1/payments/payments/transactions/';
+
+  // ========== BREAK MANAGEMENT ==========
+  static const String startBreak = '/api/v1/drivers/start-break/';
+  static const String endBreak = '/api/v1/drivers/end-break/';
+  static const String breakStatus = '/api/v1/drivers/break-status/';
 
   // ========== HEALTH CHECK ==========
   static const String healthCheck = '/health/';
