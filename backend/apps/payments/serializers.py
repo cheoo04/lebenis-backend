@@ -1,7 +1,10 @@
 # apps/payments/serializers.py
 
 from rest_framework import serializers
-from .models import Invoice, InvoiceItem, DriverEarning, DriverPayment
+from .models import (
+    Invoice, InvoiceItem, DriverEarning, DriverPayment,
+    Payment, DailyPayout, TransactionHistory
+)
 from apps.merchants.serializers import MerchantSerializer
 from apps.drivers.serializers import DriverSerializer
 from apps.deliveries.serializers import DeliverySerializer
@@ -143,3 +146,111 @@ class DriverPaymentCreateSerializer(serializers.ModelSerializer):
             'driver', 'period_start', 'period_end',
             'payment_method', 'payment_reference', 'notes'
         ]
+
+
+# ==============================================================================
+# SERIALIZERS POUR PAIEMENTS MOBILE MONEY (PHASE 2)
+# ==============================================================================
+
+class PaymentSerializer(serializers.ModelSerializer):
+    """Serializer pour les paiements Mobile Money individuels"""
+    driver = DriverSerializer(read_only=True)
+    delivery = DeliverySerializer(read_only=True)
+    
+    # Champs calculés
+    commission_percentage = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Payment
+        fields = [
+            'id', 'driver', 'delivery',
+            'amount', 'driver_amount', 'commission_amount',
+            'commission_percentage',
+            'payment_method', 'phone_number',
+            'status', 'provider_reference',
+            'paid_at', 'created_at', 'updated_at'
+        ]
+        read_only_fields = [
+            'id', 'driver_amount', 'commission_amount',
+            'paid_at', 'created_at', 'updated_at'
+        ]
+    
+    def get_commission_percentage(self, obj):
+        """Retourne le pourcentage de commission (20%)"""
+        return "20%"
+
+
+class DailyPayoutSerializer(serializers.ModelSerializer):
+    """Serializer pour les paiements journaliers groupés"""
+    driver = DriverSerializer(read_only=True)
+    
+    # Champs calculés
+    payment_count = serializers.SerializerMethodField()
+    status_display = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = DailyPayout
+        fields = [
+            'id', 'driver', 'payout_date',
+            'total_amount', 'payment_count',
+            'payment_method', 'phone_number',
+            'status', 'status_display',
+            'provider_reference', 'paid_at',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = [
+            'id', 'total_amount', 'payment_count',
+            'paid_at', 'created_at', 'updated_at'
+        ]
+    
+    def get_payment_count(self, obj):
+        """Nombre de paiements dans ce payout"""
+        return obj.payments.count()
+    
+    def get_status_display(self, obj):
+        """Affichage du statut en français"""
+        status_map = {
+            'pending': 'En attente',
+            'processing': 'En traitement',
+            'completed': 'Complété',
+            'failed': 'Échoué'
+        }
+        return status_map.get(obj.status, obj.status)
+
+
+class TransactionHistorySerializer(serializers.ModelSerializer):
+    """Serializer pour l'historique des transactions"""
+    payment = PaymentSerializer(read_only=True)
+    
+    # Champs calculés
+    transaction_type_display = serializers.SerializerMethodField()
+    status_display = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = TransactionHistory
+        fields = [
+            'id', 'payment', 'transaction_type',
+            'transaction_type_display',
+            'amount', 'status', 'status_display',
+            'provider_reference', 'error_message',
+            'created_at'
+        ]
+        read_only_fields = ['id', 'created_at']
+    
+    def get_transaction_type_display(self, obj):
+        """Affichage du type en français"""
+        type_map = {
+            'collection': 'Collecte client',
+            'disbursement': 'Transfert driver',
+            'refund': 'Remboursement'
+        }
+        return type_map.get(obj.transaction_type, obj.transaction_type)
+    
+    def get_status_display(self, obj):
+        """Affichage du statut en français"""
+        status_map = {
+            'pending': 'En attente',
+            'success': 'Succès',
+            'failed': 'Échoué'
+        }
+        return status_map.get(obj.status, obj.status)

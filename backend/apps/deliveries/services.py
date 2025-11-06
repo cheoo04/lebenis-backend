@@ -1,15 +1,23 @@
-# apps/deliveries/services.py
+# deliveries/services.py
 
 import logging
 from decimal import Decimal
-from datetime import datetime
+from typing import Optional, List
+from datetime import timedelta
 from django.db import transaction
-from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+from geopy.distance import geodesic
 
 from .models import Delivery
 from apps.drivers.models import Driver, DriverZone
 from apps.notifications.models import Notification
+from apps.notifications.services import (
+    notify_new_delivery_assignment,
+    notify_delivery_accepted,
+    notify_delivery_rejected,
+    notify_delivery_status_change
+)
 
 logger = logging.getLogger(__name__)
 
@@ -342,7 +350,7 @@ class DeliveryAssignmentService:
             delivery.status = 'pickup_in_progress'
             delivery.save()
             
-            # Notifier le merchant
+            # Notifier le merchant (DB)
             Notification.objects.create(
                 user=delivery.merchant.user,
                 notification_type='delivery_update',
@@ -351,6 +359,9 @@ class DeliveryAssignmentService:
                 related_entity_type='delivery',
                 related_entity_id=delivery.id
             )
+            
+            # 🔔 Notification push FCM au merchant
+            notify_delivery_accepted(delivery.merchant, delivery)
             
             self.logger.info(
                 f"✅ Livraison acceptée | {delivery.tracking_number} | "
@@ -391,10 +402,24 @@ class DeliveryAssignmentService:
             
             # Retirer l'assignation
             old_driver = delivery.driver
+            merchant = delivery.merchant
             delivery.driver = None
             delivery.status = 'pending_assignment'
             delivery.assigned_at = None
             delivery.save()
+            
+            # Notifier le merchant (DB)
+            Notification.objects.create(
+                user=merchant.user,
+                notification_type='delivery_update',
+                title='Livraison refusée',
+                message=f"Le livreur a refusé la livraison {delivery.tracking_number}. Recherche d'un autre livreur...",
+                related_entity_type='delivery',
+                related_entity_id=delivery.id
+            )
+            
+            # 🔔 Notification push FCM au merchant
+            notify_delivery_rejected(merchant, delivery)
             
             # Notifier l'admin
             from apps.authentication.models import User
@@ -429,6 +454,7 @@ class DeliveryAssignmentService:
     
     def _create_assignment_notification(self, delivery, driver):
         """Crée une notification pour le livreur nouvellement assigné"""
+        # Notification dans la DB
         Notification.objects.create(
             user=driver.user,
             notification_type='delivery_assignment',
@@ -438,6 +464,9 @@ class DeliveryAssignmentService:
             related_entity_type='delivery',
             related_entity_id=delivery.id
         )
+        
+        # 🔔 Notification push FCM
+        notify_new_delivery_assignment(driver, delivery)
     
     def _create_reassignment_notification(self, delivery, old_driver, new_driver, reason):
         """Crée des notifications lors d'une réassignation"""

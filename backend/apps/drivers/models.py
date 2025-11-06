@@ -21,6 +21,7 @@ class Driver(models.Model):
     AVAILABILITY_CHOICES = [
         ('available', 'Disponible'),
         ('busy', 'Occupé'),
+        ('on_break', 'En pause'),
         ('offline', 'Hors ligne'),
     ]
     
@@ -105,6 +106,27 @@ class Driver(models.Model):
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=5.00)
     total_deliveries = models.IntegerField(default=0)
     successful_deliveries = models.IntegerField(default=0)
+    
+    # Gestion des pauses (Phase 2)
+    is_on_break = models.BooleanField(
+        default=False,
+        help_text='Indique si le livreur est en pause'
+    )
+    break_started_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='Heure de début de la pause'
+    )
+    total_break_duration_today = models.DurationField(
+        null=True,
+        blank=True,
+        help_text='Durée totale des pauses aujourd\'hui'
+    )
+    last_break_reset = models.DateField(
+        null=True,
+        blank=True,
+        help_text='Dernière réinitialisation du compteur de pauses'
+    )
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

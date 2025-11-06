@@ -42,6 +42,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=100)
     profile_photo = models.URLField(max_length=500, blank=True, null=True)
     
+    # FCM Token pour notifications push
+    fcm_token = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    
     is_active = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)

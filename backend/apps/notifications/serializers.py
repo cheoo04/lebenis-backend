@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Notification, DeviceToken
+from .models import Notification, DeviceToken, NotificationHistory
 
 
 class NotificationSerializer(serializers.ModelSerializer):
@@ -67,4 +67,24 @@ class BroadcastNotificationSerializer(serializers.Serializer):
         default='all'
     )
     data = serializers.JSONField(required=False, default=dict)
+
+
+class NotificationHistorySerializer(serializers.ModelSerializer):
+    """Serializer pour l'historique des notifications (Phase 2)"""
+    
+    user_name = serializers.CharField(source='user.full_name', read_only=True)
+    
+    class Meta:
+        model = NotificationHistory
+        fields = [
+            'id', 'user', 'user_name', 'notification_type', 'title', 'body',
+            'data', 'action', 'action_url',
+            'is_read', 'read_at', 'sent_via_fcm', 'fcm_message_id',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = [
+            'id', 'user', 'sent_via_fcm', 'fcm_message_id',
+            'created_at', 'updated_at', 'read_at'
+        ]
+
 

@@ -12,12 +12,15 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 
 from .models import Delivery
+from .models_rating import DeliveryRating
 from .serializers import DeliverySerializer, DeliveryCreateSerializer
+from .serializers_rating import DeliveryRatingSerializer
 from .services import DeliveryAssignmentService, RouteOptimizationService
 from apps.pricing.calculator import PricingCalculator
 from apps.merchants.models import Merchant
 from apps.drivers.models import Driver
 from core.permissions import IsMerchant, IsDriver, IsAdmin
+from apps.notifications.services import notify_delivery_status_change
 
 logger = logging.getLogger(__name__)
 
@@ -367,6 +370,9 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         delivery.picked_up_at = timezone.now()
         delivery.save(update_fields=['status', 'picked_up_at', 'updated_at'])
         
+        # 🔔 Notifier le merchant
+        notify_delivery_status_change(delivery.merchant.user, delivery, 'picked_up')
+        
         logger.info(f"✅ Livraison {delivery.tracking_number} récupérée par driver {driver.user.email}")
         
         serializer = DeliverySerializer(delivery)
@@ -437,6 +443,9 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         driver.successful_deliveries += 1
         driver.save(update_fields=['total_deliveries', 'successful_deliveries', 'updated_at'])
         
+        # 🔔 Notifier le merchant
+        notify_delivery_status_change(delivery.merchant.user, delivery, 'delivered')
+        
         logger.info(f"✅ Livraison {delivery.tracking_number} confirmée par driver {driver.user.email}")
         
         serializer = DeliverySerializer(delivery)
@@ -497,6 +506,93 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             'message': 'Livraison annulée',
             'delivery': serializer.data
         }, status=status.HTTP_200_OK)
+    
+    # ==========================================================================
+    # ENDPOINT NOTATION : MERCHANT NOTE LE DRIVER
+    # ==========================================================================
+    
+    @action(detail=True, methods=['POST'], permission_classes=[IsMerchant], url_path='rate-driver')
+    def rate_driver(self, request, pk=None):
+        """
+        POST /api/v1/deliveries/{id}/rate-driver/
+        
+        Le marchand note le livreur après une livraison terminée.
+        
+        Body JSON :
+        {
+            "rating": 4.5,  // Note de 1 à 5
+            "comment": "Excellent service !",  // Optionnel
+            "punctuality_rating": 5,  // Optionnel (1-5)
+            "professionalism_rating": 4,  // Optionnel (1-5)
+            "care_rating": 5  // Optionnel (1-5)
+        }
+        """
+        from .models_rating import DeliveryRating
+        from .serializers_rating import DeliveryRatingCreateSerializer
+        
+        delivery = self.get_object()
+        
+        try:
+            merchant = Merchant.objects.get(user=request.user)
+        except Merchant.DoesNotExist:
+            return Response(
+                {'error': 'Profil marchand introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Vérifications
+        if delivery.merchant != merchant:
+            return Response(
+                {'error': 'Cette livraison ne vous appartient pas'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        if delivery.status != 'delivered':
+            return Response(
+                {'error': f'Vous ne pouvez noter qu\'une livraison terminée. Statut actuel: {delivery.status}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not delivery.driver:
+            return Response(
+                {'error': 'Aucun livreur assigné à cette livraison'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Vérifier si déjà noté
+        if hasattr(delivery, 'rating'):
+            return Response(
+                {'error': 'Vous avez déjà noté cette livraison'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Créer l'évaluation
+        serializer = DeliveryRatingCreateSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            serializer.save(
+                delivery=delivery,
+                merchant=merchant,
+                driver=delivery.driver
+            )
+            
+            logger.info(
+                f"⭐ Nouvelle évaluation | "
+                f"Livraison: {delivery.tracking_number} | "
+                f"Driver: {delivery.driver.user.full_name} | "
+                f"Note: {serializer.data['rating']}"
+            )
+            
+            return Response({
+                'success': True,
+                'message': 'Merci pour votre évaluation !',
+                'rating': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        
+        return Response(
+            {'error': serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     
     # ==========================================================================
     # ENDPOINTS D'OPTIMISATION DE TOURNÉES
@@ -664,3 +760,48 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 ]
             }
         })
+    
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def rate_driver(self, request, pk=None):
+        """
+        Permet à un merchant de noter un livreur après une livraison.
+        
+        POST /deliveries/{id}/rate-driver/
+        Body: {
+            "rating": 4.5,
+            "comment": "Très professionnel",
+            "punctuality_rating": 5,
+            "professionalism_rating": 5,
+            "care_rating": 4
+        }
+        """
+        delivery = self.get_object()
+        
+        # Vérifications
+        if delivery.status != 'delivered':
+            return Response(
+                {'detail': 'Vous ne pouvez noter que les livraisons terminées'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Vérifier que l'utilisateur est le merchant de cette livraison
+        if not hasattr(request.user, 'merchant_profile') or \
+           delivery.merchant.id != request.user.merchant_profile.id:
+            return Response(
+                {'detail': 'Vous ne pouvez noter que vos propres livraisons'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Vérifier si une notation existe déjà
+        if hasattr(delivery, 'rating'):
+            return Response(
+                {'detail': 'Cette livraison a déjà été notée'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Créer la notation
+        serializer = DeliveryRatingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(delivery=delivery)
+        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

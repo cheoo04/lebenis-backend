@@ -5,7 +5,8 @@ from .views import (
     UserDetailView, 
     CustomTokenObtainPairView, 
     CustomTokenRefreshView,
-    LogoutView
+    LogoutView,
+    RegisterFCMTokenView
 )
 from .upload_views import upload_profile_photo, delete_profile_photo
 from .views_password import (
@@ -32,6 +33,9 @@ urlpatterns = [
 
     # Profil de l'utilisateur connecté
     path('me/', UserDetailView.as_view(), name='user_detail'),
+    
+    # Enregistrer token FCM pour notifications push
+    path('register-fcm-token/', RegisterFCMTokenView.as_view(), name='register_fcm_token'),
     
     # Upload / Suppression photo de profil
     path('upload-profile-photo/', upload_profile_photo, name='upload_profile_photo'),

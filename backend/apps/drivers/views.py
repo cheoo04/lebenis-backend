@@ -1,5 +1,6 @@
 # apps/drivers/views.py
 
+import logging
 from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -10,10 +11,13 @@ from decimal import Decimal
 
 from .models import Driver, DriverZone
 from .serializers import DriverSerializer
+from .serializers_mobile_money import MobileMoneySerializer, DriverMobileMoneyReadSerializer
 from apps.deliveries.models import Delivery
 from apps.deliveries.serializers import DeliverySerializer
 from apps.payments.models import DriverEarning
 from core.permissions import IsDriver, IsAdmin
+
+logger = logging.getLogger(__name__)
 
 
 class DriverViewSet(viewsets.ModelViewSet):
@@ -298,6 +302,58 @@ class DriverViewSet(viewsets.ModelViewSet):
         else:
             return Response(
                 {'error': 'Le champ is_available ou availability_status est requis'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    # =========================================================================
+    # ENDPOINT : GESTION MOBILE MONEY
+    # =========================================================================
+    
+    @action(detail=False, methods=['GET', 'PATCH'], url_path='me/mobile-money')
+    def mobile_money(self, request):
+        """
+        GET /api/v1/drivers/me/mobile-money/
+        Récupère les informations Mobile Money du driver.
+        
+        PATCH /api/v1/drivers/me/mobile-money/
+        Met à jour les informations Mobile Money.
+        
+        Body JSON :
+        {
+            "mobile_money_number": "+225 07 12 34 56 78",
+            "mobile_money_provider": "orange"  // orange, mtn, moov, wave
+        }
+        """
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil livreur introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        if request.method == 'GET':
+            # Lecture : afficher les infos (avec masquage du numéro)
+            serializer = DriverMobileMoneyReadSerializer(driver)
+            return Response(serializer.data)
+        
+        elif request.method == 'PATCH':
+            # Mise à jour
+            serializer = MobileMoneySerializer(driver, data=request.data, partial=True)
+            
+            if serializer.is_valid():
+                serializer.save()
+                
+                # Retourner les infos mises à jour (masquées)
+                read_serializer = DriverMobileMoneyReadSerializer(driver)
+                return Response({
+                    'success': True,
+                    'message': 'Informations Mobile Money mises à jour',
+                    'data': read_serializer.data
+                }, status=status.HTTP_200_OK)
+            
+            return Response(
+                {'error': serializer.errors},
                 status=status.HTTP_400_BAD_REQUEST
             )
     
@@ -597,3 +653,142 @@ class DriverViewSet(viewsets.ModelViewSet):
                     total=Sum('total_earning'))['total'] or 0)
             }
         })
+    
+    # =========================================================================
+    # ENDPOINTS : GESTION DES PAUSES (Phase 2)
+    # =========================================================================
+    
+    @action(detail=False, methods=['POST'])
+    def start_break(self, request):
+        """
+        POST /api/v1/drivers/start-break/
+        
+        Démarre une pause pour le livreur connecté.
+        Change le statut en 'on_break'.
+        """
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil livreur introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Vérifier si déjà en pause
+        if driver.is_on_break:
+            return Response(
+                {'error': 'Vous êtes déjà en pause'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Démarrer la pause
+        from django.utils import timezone
+        from datetime import timedelta, date
+        
+        now = timezone.now()
+        
+        # Réinitialiser le compteur si nouveau jour
+        if driver.last_break_reset != date.today():
+            driver.total_break_duration_today = timedelta(0)
+            driver.last_break_reset = date.today()
+        
+        driver.is_on_break = True
+        driver.break_started_at = now
+        driver.availability_status = 'on_break'
+        driver.save()
+        
+        logger.info(f"☕ Pause démarrée: {driver.user.full_name}")
+        
+        return Response({
+            'success': True,
+            'message': 'Pause démarrée',
+            'break_started_at': driver.break_started_at,
+            'total_break_today': str(driver.total_break_duration_today or timedelta(0))
+        })
+    
+    @action(detail=False, methods=['POST'])
+    def end_break(self, request):
+        """
+        POST /api/v1/drivers/end-break/
+        
+        Termine la pause en cours.
+        Calcule et ajoute la durée au total journalier.
+        """
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil livreur introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Vérifier si en pause
+        if not driver.is_on_break or not driver.break_started_at:
+            return Response(
+                {'error': 'Vous n\'êtes pas en pause'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Calculer la durée de la pause
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        now = timezone.now()
+        break_duration = now - driver.break_started_at
+        
+        # Ajouter au total journalier
+        if driver.total_break_duration_today:
+            driver.total_break_duration_today += break_duration
+        else:
+            driver.total_break_duration_today = break_duration
+        
+        # Terminer la pause
+        driver.is_on_break = False
+        driver.break_started_at = None
+        driver.availability_status = 'available'  # Retour en disponible
+        driver.save()
+        
+        logger.info(
+            f"✅ Pause terminée: {driver.user.full_name} - "
+            f"Durée: {break_duration}, Total aujourd'hui: {driver.total_break_duration_today}"
+        )
+        
+        return Response({
+            'success': True,
+            'message': 'Pause terminée',
+            'break_duration': str(break_duration),
+            'total_break_today': str(driver.total_break_duration_today)
+        })
+    
+    @action(detail=False, methods=['GET'])
+    def break_status(self, request):
+        """
+        GET /api/v1/drivers/break-status/
+        
+        Récupère le statut actuel de pause du livreur.
+        """
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil livreur introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        response_data = {
+            'is_on_break': driver.is_on_break,
+            'break_started_at': driver.break_started_at,
+            'total_break_today': str(driver.total_break_duration_today or timedelta(0)),
+            'current_break_duration': None
+        }
+        
+        # Si en pause, calculer la durée actuelle
+        if driver.is_on_break and driver.break_started_at:
+            current_duration = timezone.now() - driver.break_started_at
+            response_data['current_break_duration'] = str(current_duration)
+        
+        return Response(response_data)
+

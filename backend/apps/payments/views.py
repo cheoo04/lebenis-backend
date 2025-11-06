@@ -525,3 +525,279 @@ class DriverPaymentViewSet(viewsets.ModelViewSet):
             'paid_at': payment.paid_at
         })
 
+
+# ==============================================================================
+# VIEWSETS POUR PAIEMENTS MOBILE MONEY (PHASE 2)
+# ==============================================================================
+
+class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet pour les paiements Mobile Money des drivers.
+    Endpoints pour voir les gains, paiements, et statistiques.
+    """
+    permission_classes = [IsDriver]
+    
+    def get_queryset(self):
+        """Filtre les paiements du driver connecté"""
+        if getattr(self, 'swagger_fake_view', False):
+            from .models import Payment
+            return Payment.objects.none()
+        
+        user = self.request.user
+        
+        if not user.is_authenticated or user.user_type != 'driver':
+            from .models import Payment
+            return Payment.objects.none()
+        
+        try:
+            driver = Driver.objects.get(user=user)
+            from .models import Payment
+            return Payment.objects.filter(driver=driver)
+        except Driver.DoesNotExist:
+            from .models import Payment
+            return Payment.objects.none()
+    
+    @action(detail=False, methods=['GET'])
+    def my_earnings(self, request):
+        """
+        GET /api/v1/payments/my-earnings/?period=today|week|month
+        
+        Affiche les gains du driver pour la période demandée.
+        
+        Réponse: {
+            "period": "today",
+            "total_amount": 15000.00,
+            "driver_amount": 12000.00,
+            "commission_amount": 3000.00,
+            "payment_count": 5,
+            "payments": [...]
+        }
+        """
+        from .models import Payment
+        
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil driver introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Période demandée (par défaut: today)
+        period = request.query_params.get('period', 'today')
+        now = timezone.now()
+        
+        if period == 'today':
+            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            period_label = "Aujourd'hui"
+        elif period == 'week':
+            start_date = now - timedelta(days=7)
+            period_label = "Cette semaine"
+        elif period == 'month':
+            start_date = now - timedelta(days=30)
+            period_label = "Ce mois"
+        else:
+            return Response(
+                {'error': 'Période invalide. Utilisez: today, week, ou month'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Récupérer les paiements complétés
+        payments = Payment.objects.filter(
+            driver=driver,
+            status='completed',
+            created_at__gte=start_date
+        ).order_by('-created_at')
+        
+        # Calculer les totaux
+        total_amount = payments.aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+        driver_amount = payments.aggregate(Sum('driver_amount'))['driver_amount__sum'] or Decimal('0')
+        commission_amount = payments.aggregate(Sum('commission_amount'))['commission_amount__sum'] or Decimal('0')
+        
+        from .serializers import PaymentSerializer
+        serializer = PaymentSerializer(payments, many=True)
+        
+        return Response({
+            'period': period,
+            'period_label': period_label,
+            'total_amount': str(total_amount),
+            'driver_amount': str(driver_amount),
+            'commission_amount': str(commission_amount),
+            'payment_count': payments.count(),
+            'payments': serializer.data
+        })
+    
+    @action(detail=False, methods=['GET'])
+    def my_payouts(self, request):
+        """
+        GET /api/v1/payments/my-payouts/?limit=30
+        
+        Affiche les paiements journaliers du driver.
+        
+        Réponse: {
+            "payouts": [
+                {
+                    "date": "2025-01-24",
+                    "total_amount": 25000.00,
+                    "payment_count": 10,
+                    "status": "pending"
+                }
+            ]
+        }
+        """
+        from .models import DailyPayout
+        
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil driver introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        limit = int(request.query_params.get('limit', 30))
+        
+        payouts = DailyPayout.objects.filter(
+            driver=driver
+        ).order_by('-payout_date')[:limit]
+        
+        from .serializers import DailyPayoutSerializer
+        serializer = DailyPayoutSerializer(payouts, many=True)
+        
+        return Response({
+            'payouts': serializer.data,
+            'count': payouts.count()
+        })
+    
+    @action(detail=False, methods=['GET'])
+    def stats(self, request):
+        """
+        GET /api/v1/payments/stats/
+        
+        Statistiques globales des paiements du driver.
+        
+        Réponse: {
+            "lifetime": {
+                "total_earnings": 500000.00,
+                "total_deliveries": 150
+            },
+            "this_month": {
+                "earnings": 85000.00,
+                "deliveries": 28
+            },
+            "last_month": {
+                "earnings": 120000.00,
+                "deliveries": 35
+            },
+            "payment_methods": {
+                "orange_money": 250000.00,
+                "mtn_money": 150000.00,
+                "cash": 100000.00
+            }
+        }
+        """
+        from .models import Payment
+        
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil driver introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        now = timezone.now()
+        
+        # Lifetime stats
+        all_payments = Payment.objects.filter(driver=driver, status='completed')
+        lifetime_earnings = all_payments.aggregate(Sum('driver_amount'))['driver_amount__sum'] or Decimal('0')
+        lifetime_deliveries = all_payments.count()
+        
+        # This month
+        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        this_month = all_payments.filter(created_at__gte=month_start)
+        month_earnings = this_month.aggregate(Sum('driver_amount'))['driver_amount__sum'] or Decimal('0')
+        month_deliveries = this_month.count()
+        
+        # Last month
+        if now.month == 1:
+            last_month_start = now.replace(year=now.year - 1, month=12, day=1, hour=0, minute=0, second=0, microsecond=0)
+        else:
+            last_month_start = now.replace(month=now.month - 1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+        last_month = all_payments.filter(
+            created_at__gte=last_month_start,
+            created_at__lt=month_start
+        )
+        last_month_earnings = last_month.aggregate(Sum('driver_amount'))['driver_amount__sum'] or Decimal('0')
+        last_month_deliveries = last_month.count()
+        
+        # By payment method
+        payment_methods = {}
+        for method in ['orange_money', 'mtn_money', 'moov_money', 'wave', 'cash']:
+            method_total = all_payments.filter(
+                payment_method=method
+            ).aggregate(Sum('driver_amount'))['driver_amount__sum'] or Decimal('0')
+            payment_methods[method] = str(method_total)
+        
+        return Response({
+            'lifetime': {
+                'total_earnings': str(lifetime_earnings),
+                'total_deliveries': lifetime_deliveries
+            },
+            'this_month': {
+                'earnings': str(month_earnings),
+                'deliveries': month_deliveries
+            },
+            'last_month': {
+                'earnings': str(last_month_earnings),
+                'deliveries': last_month_deliveries
+            },
+            'payment_methods': payment_methods
+        })
+    
+    @action(detail=False, methods=['GET'])
+    def transactions(self, request):
+        """
+        GET /api/v1/payments/transactions/?limit=50
+        
+        Historique des transactions (audit trail).
+        
+        Réponse: {
+            "transactions": [
+                {
+                    "id": "uuid",
+                    "payment_id": "uuid",
+                    "transaction_type": "collection",
+                    "amount": 10000.00,
+                    "status": "success",
+                    "provider_reference": "TRX123",
+                    "created_at": "2025-01-24T10:30:00Z"
+                }
+            ]
+        }
+        """
+        from .models import TransactionHistory
+        
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil driver introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        limit = int(request.query_params.get('limit', 50))
+        
+        transactions = TransactionHistory.objects.filter(
+            payment__driver=driver
+        ).select_related('payment').order_by('-created_at')[:limit]
+        
+        from .serializers import TransactionHistorySerializer
+        serializer = TransactionHistorySerializer(transactions, many=True)
+        
+        return Response({
+            'transactions': serializer.data,
+            'count': transactions.count()
+        })
+
