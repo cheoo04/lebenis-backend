@@ -536,6 +536,13 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
     Endpoints pour voir les gains, paiements, et statistiques.
     """
     permission_classes = [IsDriver]
+    serializer_class = None  # Défini dynamiquement dans get_serializer_class
+    
+    def get_serializer_class(self):
+        """Retourne le serializer approprié selon l'action"""
+        # Pour Swagger: retourner un serializer par défaut
+        from .serializers import PaymentSerializer
+        return PaymentSerializer
     
     def get_queryset(self):
         """Filtre les paiements du driver connecté"""
