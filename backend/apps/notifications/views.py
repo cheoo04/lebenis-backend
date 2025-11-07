@@ -290,6 +290,9 @@ class NotificationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     
     def get_queryset(self):
         """Retourne seulement les notifications de l'utilisateur connecté"""
+        # Protection Swagger: retourne un queryset vide si génération de doc
+        if getattr(self, 'swagger_fake_view', False):
+            return NotificationHistory.objects.none()
         return NotificationHistory.objects.filter(user=self.request.user)
     
     @action(detail=True, methods=['post'])
