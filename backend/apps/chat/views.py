@@ -39,6 +39,10 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Retourne les conversations de l'utilisateur connecté"""
+        # Protection Swagger: retourne un queryset vide si génération de doc
+        if getattr(self, 'swagger_fake_view', False):
+            return ChatRoom.objects.none()
+        
         user = self.request.user
         
         # Filtrer selon le type d'utilisateur
@@ -266,6 +270,10 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Retourne les messages des conversations de l'utilisateur"""
+        # Protection Swagger: retourne un queryset vide si génération de doc
+        if getattr(self, 'swagger_fake_view', False):
+            return ChatMessage.objects.none()
+        
         user = self.request.user
         chat_room_id = self.request.query_params.get('chat_room_id')
         
