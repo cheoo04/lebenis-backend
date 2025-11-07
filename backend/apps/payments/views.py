@@ -341,7 +341,7 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
         
         logger.info(f"💵 Gain créé: {earning.driver.user.full_name} | Livraison: {earning.delivery.tracking_number} | {earning.total_earning} CFA")
     
-    @action(detail=False, methods=['GET'], permission_classes=[IsDriver])
+    @action(detail=False, methods=['GET'])
     def my_earnings(self, request):
         """
         GET /api/v1/payments/earnings/my-earnings/?period=week|month
@@ -413,46 +413,16 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
         
         serializer = DriverEarningSummarySerializer(summary)
         return Response(serializer.data)
-    
-    @action(detail=True, methods=['POST'], permission_classes=[IsAdmin])
-    def approve(self, request, pk=None):
-        """
-        POST /api/v1/payments/earnings/{id}/approve/
-        
-        Approuver un gain (admin).
-        """
-        earning = self.get_object()
-        
-        if earning.status != 'pending':
-            return Response(
-                {'error': f"Le gain est déjà {earning.status}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        earning.approve()
-        
-        logger.info(f"✅ Gain approuvé: {earning.driver.user.full_name} | {earning.total_earning} CFA")
-        
-        return Response({
-            'success': True,
-            'earning_id': str(earning.id),
-            'status': earning.status,
-            'approved_at': earning.approved_at
-        })
-    
+
     @action(detail=False, methods=['POST'], permission_classes=[IsAdmin])
     def bulk_approve(self, request):
         """
         POST /api/v1/payments/earnings/bulk-approve/
         
-        Approuver plusieurs gains en masse.
-        
-        Body: {
-            "earning_ids": ["uuid1", "uuid2", ...]
-        }
+        Approuve en masse les gains sélectionnés (admin uniquement).
+        Body: { "earning_ids": [1,2,3] }
         """
-        earning_ids = request.data.get('earning_ids', [])
-        
+        earning_ids = request.data.get('earning_ids')
         if not earning_ids:
             return Response(
                 {'error': 'Le champ earning_ids est requis'},
@@ -482,7 +452,13 @@ class DriverPaymentViewSet(viewsets.ModelViewSet):
     ViewSet pour gérer les paiements groupés aux livreurs.
     """
     queryset = DriverPayment.objects.all()
-    permission_classes = [IsAdmin]
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'mark_as_paid']:
+            return [IsAdmin()]
+        elif self.action in ['my_payouts']:
+            return [IsDriver()]
+        return [IsAdmin()]
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -539,7 +515,7 @@ class DriverPaymentViewSet(viewsets.ModelViewSet):
             'paid_at': payment.paid_at
         })
     
-    @action(detail=False, methods=['GET'], permission_classes=[IsDriver])
+    @action(detail=False, methods=['GET'])
     def my_payouts(self, request):
         """
         GET /api/v1/payments/driver-payments/my-payouts/?page=1&page_size=20
@@ -693,7 +669,7 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
             'payments': serializer.data
         })
     
-    @action(detail=False, methods=['GET'], permission_classes=[IsDriver])
+    @action(detail=False, methods=['GET'])
     def my_payouts(self, request):
         """
         GET /api/v1/payments/my-payouts/?limit=30
