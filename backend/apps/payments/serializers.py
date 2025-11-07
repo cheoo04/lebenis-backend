@@ -164,15 +164,15 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = Payment
         fields = [
             'id', 'driver', 'delivery',
-            'amount', 'driver_amount', 'commission_amount',
+            'total_amount', 'driver_amount', 'platform_commission',
             'commission_percentage',
-            'payment_method', 'phone_number',
-            'status', 'provider_reference',
-            'paid_at', 'created_at', 'updated_at'
+            'payment_method',
+            'status',
+            'created_at', 'updated_at'
         ]
         read_only_fields = [
-            'id', 'driver_amount', 'commission_amount',
-            'paid_at', 'created_at', 'updated_at'
+            'id', 'driver_amount', 'platform_commission',
+            'created_at', 'updated_at'
         ]
     
     def get_commission_percentage(self, obj):
