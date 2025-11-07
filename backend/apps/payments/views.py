@@ -344,8 +344,7 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], permission_classes=[IsDriver])
     def my_earnings(self, request):
         """
-        GET /api/v1/payments/earnings/my-earnings/
-        
+        GET /api/v1/payments/earnings/my-earnings/?period=week|month
         Mes gains (driver uniquement).
         """
         try:
@@ -355,19 +354,34 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
                 {'error': 'Profil driver introuvable'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
+
         earnings = DriverEarning.objects.filter(driver=driver).order_by('-created_at')
-        
-        # Filtres
+
+        # Filtre par période
+        period = request.query_params.get('period')
+        if period:
+            now = datetime.now()
+            if period == 'week':
+                start = now - timedelta(days=now.weekday())  # début de la semaine
+                end = start + timedelta(days=6)
+                earnings = earnings.filter(created_at__date__gte=start.date(), created_at__date__lte=end.date())
+            elif period == 'month':
+                start = now.replace(day=1)
+                next_month = (start.replace(day=28) + timedelta(days=4)).replace(day=1)
+                end = next_month - timedelta(days=1)
+                earnings = earnings.filter(created_at__date__gte=start.date(), created_at__date__lte=end.date())
+            # Ajoute d'autres périodes si besoin
+
+        # Filtres supplémentaires
         status_filter = request.query_params.get('status')
         if status_filter:
             earnings = earnings.filter(status=status_filter)
-        
+
         page = self.paginate_queryset(earnings)
         if page is not None:
             serializer = DriverEarningSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        
+
         serializer = DriverEarningSerializer(earnings, many=True)
         return Response(serializer.data)
     
