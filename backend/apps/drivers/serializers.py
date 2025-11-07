@@ -13,6 +13,14 @@ class DriverSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(source='user.phone', read_only=True)
     profile_photo = serializers.CharField(source='user.profile_photo', read_only=True)
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Patch: if user.is_verified, force verification_status to 'verified'
+        user = instance.user
+        if hasattr(user, 'is_verified') and user.is_verified:
+            data['verification_status'] = 'verified'
+        return data
+
     class Meta:
         model = Driver
         fields = [

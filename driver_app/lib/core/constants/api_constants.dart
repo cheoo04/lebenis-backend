@@ -1,7 +1,7 @@
 // lib/core/constants/api_constants.dart
 
 class ApiConstants {
-  static const String baseUrl = 'https://lebenis-backend.onrender.com';
+  static const String baseUrl = 'http://localhost:8000/';
 
   // ========== AUTH ==========
   static const String login = '/api/v1/auth/login/';
@@ -40,7 +40,7 @@ class ApiConstants {
   static const String unreadNotificationsCount = '/api/v1/notifications/unread-count/';
 
   // ========== PAYMENTS (Phase 2) ==========
-  static const String paymentMyEarnings = '/api/v1/payments/earnings/my-earnings/';
+  static const String paymentMyEarnings = '/api/v1/payments/my-earnings/';
   static const String paymentEarningsSummary = '/api/v1/payments/earnings/summary/';
   static const String paymentMyEarningsMobile = '/api/v1/payments/my-earnings/';
   static const String paymentMyPayouts = '/api/v1/payments/my-payouts/';
