@@ -1,7 +1,7 @@
 // lib/core/constants/api_constants.dart
 
 class ApiConstants {
-  static const String baseUrl = 'http://localhost:8000/';
+  static const String baseUrl = 'https://lebenis-backend.onrender.com';
 
   // ========== AUTH ==========
   static const String login = '/api/v1/auth/login/';
