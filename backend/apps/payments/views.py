@@ -524,6 +524,51 @@ class DriverPaymentViewSet(viewsets.ModelViewSet):
             'payment_number': payment.payment_number,
             'paid_at': payment.paid_at
         })
+    
+    @action(detail=False, methods=['GET'], permission_classes=[IsDriver])
+    def my_payouts(self, request):
+        """
+        GET /api/v1/payments/driver-payments/my-payouts/?page=1&page_size=20
+        
+        Affiche les versements journaliers du driver connecté.
+        """
+        from .models import DailyPayout
+        
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil driver introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Pagination optionnelle
+        page = request.query_params.get('page')
+        page_size = request.query_params.get('page_size', 20)
+        
+        payouts = DailyPayout.objects.filter(
+            driver=driver
+        ).order_by('-payout_date')
+        
+        # Si pagination demandée
+        if page:
+            paginated = self.paginate_queryset(payouts)
+            if paginated is not None:
+                from .serializers import DailyPayoutSerializer
+                serializer = DailyPayoutSerializer(paginated, many=True)
+                return self.get_paginated_response(serializer.data)
+        
+        # Sinon limiter à 30 par défaut
+        limit = int(request.query_params.get('limit', 30))
+        payouts = payouts[:limit]
+        
+        from .serializers import DailyPayoutSerializer
+        serializer = DailyPayoutSerializer(payouts, many=True)
+        
+        return Response({
+            'payouts': serializer.data if serializer.data is not None else [],
+            'count': payouts.count()
+        })
 
 
 # ==============================================================================
@@ -634,7 +679,7 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
             'payments': serializer.data
         })
     
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET'], permission_classes=[IsDriver])
     def my_payouts(self, request):
         """
         GET /api/v1/payments/my-payouts/?limit=30
