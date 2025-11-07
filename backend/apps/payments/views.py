@@ -672,7 +672,7 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = DailyPayoutSerializer(payouts, many=True)
         
         return Response({
-            'payouts': serializer.data,
+            'payouts': serializer.data if serializer.data is not None else [],
             'count': payouts.count()
         })
     
@@ -804,7 +804,7 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = TransactionHistorySerializer(transactions, many=True)
         
         return Response({
-            'transactions': serializer.data,
+            'transactions': serializer.data if serializer.data is not None else [],
             'count': transactions.count()
         })
 

@@ -11,7 +11,7 @@ router = DefaultRouter()
 router.register('invoices', InvoiceViewSet, basename='invoice')
 router.register('earnings', DriverEarningViewSet, basename='earning')
 router.register('driver-payments', DriverPaymentViewSet, basename='driver-payment')
-router.register('payments', PaymentViewSet, basename='payment')
+router.register('', PaymentViewSet, basename='payment')
 
 urlpatterns = [
     path('', include(router.urls)),

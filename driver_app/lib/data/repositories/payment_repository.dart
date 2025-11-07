@@ -39,15 +39,13 @@ class PaymentRepository {
 
       debugPrint('✅ [PaymentRepository] My Earnings: ${response.data}');
       
-      // Parse les payments dans la réponse
-      final data = response.data as Map<String, dynamic>;
-      if (data['payments'] != null) {
-        data['payments'] = (data['payments'] as List)
-            .map((p) => PaymentModel.fromJson(p as Map<String, dynamic>))
-            .toList();
-      }
-      
-      return data;
+    // Parse les payments dans la réponse
+    final data = response.data as Map<String, dynamic>;
+    final payments = data['payments'] ?? [];
+    data['payments'] = (payments as List)
+      .map((p) => PaymentModel.fromJson(p as Map<String, dynamic>))
+      .toList();
+    return data;
     } catch (e) {
       debugPrint('❌ [PaymentRepository] getMyEarnings error: $e');
       rethrow;
@@ -81,10 +79,10 @@ class PaymentRepository {
 
       debugPrint('✅ [PaymentRepository] My Payouts count: ${response.data['count']}');
       
-      final results = response.data['results'] as List;
-      return results
-          .map((p) => DailyPayoutModel.fromJson(p as Map<String, dynamic>))
-          .toList();
+    final results = response.data['results'] ?? [];
+    return (results as List)
+      .map((p) => DailyPayoutModel.fromJson(p as Map<String, dynamic>))
+      .toList();
     } catch (e) {
       debugPrint('❌ [PaymentRepository] getMyPayouts error: $e');
       rethrow;
@@ -162,10 +160,10 @@ class PaymentRepository {
 
       debugPrint('✅ [PaymentRepository] Transactions count: ${response.data['count']}');
       
-      final results = response.data['results'] as List;
-      return results
-          .map((t) => TransactionHistoryModel.fromJson(t as Map<String, dynamic>))
-          .toList();
+    final results = response.data['results'] ?? [];
+    return (results as List)
+      .map((t) => TransactionHistoryModel.fromJson(t as Map<String, dynamic>))
+      .toList();
     } catch (e) {
       debugPrint('❌ [PaymentRepository] getTransactions error: $e');
       rethrow;
