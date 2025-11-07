@@ -61,7 +61,7 @@ urlpatterns = [
     path('api/v1/deliveries/', include('apps.deliveries.urls')),
     path('api/v1/pricing/', include('apps.pricing.urls')),
     path('api/v1/notifications/', include('apps.notifications.urls')),
-    path('api/v1/payments/', include('apps.payments.urls')),
+    path('api/v1/payments/', include('apps.payments.urls', namespace= 'payments')),
     path('api/v1/chat/', include('apps.chat.urls')),  # Phase 3 - Chat temps réel
     path('api/v1/cloudinary/', include('core.urls')),  # Upload Cloudinary
 ]
