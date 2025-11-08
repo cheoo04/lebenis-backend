@@ -40,11 +40,15 @@ class ApiConstants {
   static const String unreadNotificationsCount = '/api/v1/notifications/unread-count/';
 
   // ========== PAYMENTS (Phase 2) ==========
-  static const String paymentMyEarnings = '/api/v1/payments/earnings/my-earnings/';
-  static const String paymentEarningsSummary = '/api/v1/payments/earnings/summary/';
-  static const String paymentMyEarningsMobile = '/api/v1/payments/my-earnings/';
-  static const String paymentMyPayouts = '/api/v1/payments/driver-payments/my-payouts/';
+  // Détail des gains par livraison (DriverEarning)
+  static const String paymentMyEarnings = '/api/v1/payments/earnings/my_earnings/';
+  // Résumé des paiements Mobile Money (PaymentViewSet)
+  static const String paymentEarningsSummary = '/api/v1/payments/earnings_summary/';
+  // Versements groupés (DriverPayment)
+  static const String paymentMyPayouts = '/api/v1/payments/driver-payments/my_payouts/';
+  // Statistiques globales
   static const String paymentStats = '/api/v1/payments/stats/';
+  // Historique des transactions
   static const String paymentTransactions = '/api/v1/payments/transactions/';
 
   // ========== BREAK MANAGEMENT ==========
