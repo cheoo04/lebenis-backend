@@ -1,4 +1,4 @@
-#!/var/home/cheoo/lebenis_project/venv/bin/python3.13
+#!/var/home/cheoo/lebenis_project/venv/bin/python3
 import sys
 from rsa.cli import sign
 if __name__ == '__main__':

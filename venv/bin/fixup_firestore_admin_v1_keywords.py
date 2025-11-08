@@ -1,4 +1,4 @@
-#!/var/home/cheoo/lebenis_project/venv/bin/python3.13
+#!/var/home/cheoo/lebenis_project/venv/bin/python3
 # -*- coding: utf-8 -*-
 # Copyright 2025 Google LLC
 #
