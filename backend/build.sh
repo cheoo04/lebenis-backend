@@ -13,11 +13,5 @@ python manage.py collectstatic --no-input
 python manage.py migrate --no-input
 
 # Démarrer Gunicorn (le serveur WSGI de production)
-gunicorn config.wsgi:application \
-    --bind 0.0.0.0:$PORT \
-    --workers 2 \         # Nombre de workers (à ajuster selon RAM)
-    --threads 2 \         # Nombre de threads par worker
-    --timeout 120 \       # Timeout en secondes
-    --access-logfile - \  # Logs d'accès sur la console
-    --error-logfile - \   # Logs d'erreur sur la console
-    --log-level info      # Niveau de log
+gunicorn config.wsgi:application  --bind 0.0.0.0:$PORT --workers 2  --threads 2  --timeout 120  --access-logfile -  --error-logfile -  --log-level info
+   
