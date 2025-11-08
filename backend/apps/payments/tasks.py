@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 @shared_task(bind=True, max_retries=3)
 def process_daily_payouts(self):
+    import os
+    disable_sms = os.environ.get('DISABLE_SMS', 'false').lower() == 'true'
     """
     Tâche Celery exécutée chaque jour à 23h59.
     
@@ -85,13 +87,16 @@ def process_daily_payouts(self):
                 f"{total_driver_amount} CFA ({today_payments.count()} paiements)"
             )
             
-            # Tenter le transfert via Orange Money
+            # Désactiver le transfert Orange Money si DISABLE_SMS=true
+            if disable_sms:
+                logger.info(f"🚫 Transfert Orange Money désactivé (DISABLE_SMS=true) pour {driver.user.full_name}")
+                payout.status = 'skipped'
+                payout.save()
+                continue
             try:
                 orange_service = OrangeMoneyService()
-                
                 # Générer order_id unique pour le transfert
                 order_id = f"PAYOUT_{today.strftime('%Y%m%d')}_{driver.id}"
-                
                 # Effectuer le transfert (disbursement)
                 transfer_result = orange_service.transfer_to_driver(
                     order_id=order_id,
@@ -99,12 +104,10 @@ def process_daily_payouts(self):
                     receiver_phone=driver.phone_number,
                     reference=f"Paiement journalier {today.strftime('%d/%m/%Y')}"
                 )
-                
                 # Mettre à jour le payout
                 payout.status = 'processing'
                 payout.provider_reference = transfer_result.get('reference', order_id)
                 payout.save()
-                
                 # Créer entrée TransactionHistory
                 TransactionHistory.objects.create(
                     payment=today_payments.first(),  # Lien avec le premier paiement
@@ -113,7 +116,6 @@ def process_daily_payouts(self):
                     status='pending',
                     provider_reference=transfer_result.get('reference', order_id)
                 )
-                
                 logger.info(
                     f"✅ Transfert Orange Money initié pour {driver.user.full_name}: "
                     f"{total_driver_amount} CFA"

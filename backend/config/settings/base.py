@@ -46,10 +46,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-l8z@#hj0iqu%+e@n(u(%qu(&wzi=tu%j()^j7ahfmlm5lnjd%a')
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
@@ -325,15 +325,14 @@ SWAGGER_SETTINGS = {
 
 # Email Configuration (pour production)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # ou autre
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@lebenis.com')
-SERVER_EMAIL = config('SERVER_EMAIL', default='noreply@lebenis.com')
-
-
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 465  # Port SSL
+EMAIL_USE_SSL = True  # SSL activé
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')  # ✅ Variable d'environnement
+DEFAULT_FROM_EMAIL = 'yah.kouakou24@inphb.ci'
+SERVER_EMAIL = 'yah.kouakou24@inphb.ci'
 # ==============================================================================
 # MOBILE MONEY CONFIGURATION (Phase 2)
 # ==============================================================================

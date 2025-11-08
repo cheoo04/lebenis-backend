@@ -27,7 +27,7 @@ SECURE_HSTS_PRELOAD = True
 # CORS - Limiter aux domaines autorisés
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='',
+    default='https://lebenis.com',
     cast=lambda v: [s.strip() for s in v.split(',')] if v else []
 )
 CORS_ALLOW_CREDENTIALS = True
@@ -95,13 +95,6 @@ LOGGING = {
 #         }
 #     }
 
-# Email - Configuration production
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 # Rate limiting (protection DDoS)
 REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = [
@@ -123,5 +116,6 @@ if SENTRY_DSN:
         dsn=SENTRY_DSN,
         integrations=[DjangoIntegration()],
         traces_sample_rate=0.1,  # 10% des transactions trackées
-        send_default_pii=False  # Ne pas envoyer d'infos personnelles
+        send_default_pii=False,  # Ne pas envoyer d'infos personnelles
+        environment='production',
     )
