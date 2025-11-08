@@ -141,9 +141,7 @@ class PasswordResetConfirmView(APIView):
             email=email,
             user_name=user_name
         )
-        
         logger.info(f"✅ Mot de passe réinitialisé pour {email}")
-        
         return Response({
             "success": True,
             "message": "Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter."
@@ -178,9 +176,7 @@ class ChangePasswordView(APIView):
             email=user.email,
             user_name=user_name
         )
-        
         logger.info(f"✅ Mot de passe changé pour {user.email}")
-        
         return Response({
             "success": True,
             "message": "Mot de passe modifié avec succès."
