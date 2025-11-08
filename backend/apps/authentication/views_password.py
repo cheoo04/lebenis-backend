@@ -51,7 +51,7 @@ class PasswordResetRequestView(APIView):
         # Récupérer le nom de l'utilisateur pour personnaliser l'email
         try:
             user = User.objects.get(email=email)
-            user_name = user.get_full_name() or user.email.split('@')[0]
+            user_name = user.full_name or user.email.split('@')[0]
         except User.DoesNotExist:
             # Ne devrait pas arriver car le serializer vérifie l'existence
             user_name = email.split('@')[0]
@@ -136,7 +136,7 @@ class PasswordResetConfirmView(APIView):
         reset_code.mark_as_used()
         
         # Envoyer une notification de changement de mot de passe
-        user_name = user.get_full_name() or user.email.split('@')[0]
+        user_name = user.full_name or user.email.split('@')[0]
         EmailService.send_password_changed_notification(
             email=email,
             user_name=user_name
@@ -173,7 +173,7 @@ class ChangePasswordView(APIView):
         user.save()
         
         # Envoyer une notification de changement
-        user_name = user.get_full_name() or user.email.split('@')[0]
+        user_name = user.full_name or user.email.split('@')[0]
         EmailService.send_password_changed_notification(
             email=user.email,
             user_name=user_name
