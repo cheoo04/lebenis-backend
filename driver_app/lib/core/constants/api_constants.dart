@@ -42,7 +42,7 @@ class ApiConstants {
   // ========== PAYMENTS (Phase 2) ==========
   static const String paymentMyEarnings = '/api/v1/payments/earnings/my-earnings/';
   static const String paymentEarningsSummary = '/api/v1/payments/earnings/summary/';
-  static const String paymentMyEarningsMobile = '/api/v1/payments/earnings/my-earnings/';
+  static const String paymentMyEarningsMobile = '/api/v1/payments/my-earnings/';
   static const String paymentMyPayouts = '/api/v1/payments/driver-payments/my-payouts/';
   static const String paymentStats = '/api/v1/payments/stats/';
   static const String paymentTransactions = '/api/v1/payments/transactions/';

@@ -599,12 +599,12 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
             from .models import Payment
             return Payment.objects.none()
     
-    @action(detail=False, methods=['GET'])
-    def my_earnings(self, request):
+    @action(detail=False, methods=['GET'], url_path='earnings-summary')
+    def earnings_summary(self, request):
         """
-        GET /api/v1/payments/my-earnings/?period=today|week|month
+        GET /api/v1/payments/earnings-summary/?period=today|week|month
         
-        Affiche les gains du driver pour la période demandée.
+        Affiche le résumé des paiements Mobile Money du driver pour la période demandée.
         
         Réponse: {
             "period": "today",
