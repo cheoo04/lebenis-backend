@@ -450,8 +450,6 @@ class DriverViewSet(viewsets.ModelViewSet):
         
         if user_updated:
             user.save()
-            # Recharge l'instance user pour garantir la cohérence
-            driver.user.refresh_from_db()
         
         # Mapper vehicle_plate → vehicle_registration
         if 'vehicle_plate' in data:
