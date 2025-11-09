@@ -15,6 +15,3 @@ python manage.py makemigrations --no-input
 # Appliquer les migrations à la base de données
 python manage.py migrate --no-input
 
-# Démarrer Gunicorn (le serveur WSGI de production)
-gunicorn config.wsgi:application  --bind 0.0.0.0:$PORT --workers 2  --threads 2  --timeout 120
-   
