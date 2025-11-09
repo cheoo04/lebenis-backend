@@ -1,0 +1,937 @@
+api
+
+
+POST
+/api/v1/auth/change-password/
+POST /api/v1/auth/change-password/
+api_v1_auth_change-password_create
+
+
+DELETE
+/api/v1/auth/delete-profile-photo/
+DELETE /api/v1/auth/delete-profile-photo/
+api_v1_auth_delete-profile-photo_delete
+
+
+POST
+/api/v1/auth/login/
+POST /api/v1/auth/login/
+api_v1_auth_login_create
+
+
+POST
+/api/v1/auth/logout/
+POST /api/v1/auth/logout/
+api_v1_auth_logout_create
+
+
+GET
+/api/v1/auth/me/
+GET /api/v1/auth/me/ Retourne les informations de l'utilisateur actuellement connecté.
+api_v1_auth_me_read
+
+
+PUT
+/api/v1/auth/me/
+GET /api/v1/auth/me/ Retourne les informations de l'utilisateur actuellement connecté.
+api_v1_auth_me_update
+
+
+PATCH
+/api/v1/auth/me/
+GET /api/v1/auth/me/ Retourne les informations de l'utilisateur actuellement connecté.
+api_v1_auth_me_partial_update
+
+
+POST
+/api/v1/auth/password-reset/confirm/
+POST /api/v1/auth/password-reset/confirm/
+api_v1_auth_password-reset_confirm_create
+
+
+POST
+/api/v1/auth/password-reset/request/
+POST /api/v1/auth/password-reset/request/
+api_v1_auth_password-reset_request_create
+
+
+POST
+/api/v1/auth/register-fcm-token/
+POST /api/v1/auth/register-fcm-token/
+api_v1_auth_register-fcm-token_create
+
+
+POST
+/api/v1/auth/register/
+api_v1_auth_register_create
+
+
+POST
+/api/v1/auth/token/refresh/
+POST /api/v1/auth/token/refresh/
+api_v1_auth_token_refresh_create
+
+
+POST
+/api/v1/auth/token/verify/
+api_v1_auth_token_verify_create
+
+
+POST
+/api/v1/auth/upload-profile-photo/
+POST /api/v1/auth/upload-profile-photo/
+api_v1_auth_upload-profile-photo_create
+
+
+GET
+/api/v1/chat/messages/
+api_v1_chat_messages_list
+
+
+POST
+/api/v1/chat/messages/
+Envoie un message (sync Firebase + DB).
+api_v1_chat_messages_create
+
+
+POST
+/api/v1/chat/messages/mark_as_read/
+Marque des messages comme lus.
+api_v1_chat_messages_mark_as_read
+
+
+GET
+/api/v1/chat/messages/{id}/
+api_v1_chat_messages_read
+
+
+PUT
+/api/v1/chat/messages/{id}/
+api_v1_chat_messages_update
+
+
+PATCH
+/api/v1/chat/messages/{id}/
+api_v1_chat_messages_partial_update
+
+
+DELETE
+/api/v1/chat/messages/{id}/
+api_v1_chat_messages_delete
+
+
+GET
+/api/v1/chat/rooms/
+api_v1_chat_rooms_list
+
+
+POST
+/api/v1/chat/rooms/
+Crée une nouvelle conversation (ou retourne une existante).
+api_v1_chat_rooms_create
+
+
+GET
+/api/v1/chat/rooms/unread_count/
+Retourne le nombre total de messages non lus.
+api_v1_chat_rooms_unread_count
+
+
+GET
+/api/v1/chat/rooms/{id}/
+api_v1_chat_rooms_read
+
+
+PUT
+/api/v1/chat/rooms/{id}/
+api_v1_chat_rooms_update
+
+
+PATCH
+/api/v1/chat/rooms/{id}/
+api_v1_chat_rooms_partial_update
+
+
+DELETE
+/api/v1/chat/rooms/{id}/
+api_v1_chat_rooms_delete
+
+
+POST
+/api/v1/chat/rooms/{id}/archive/
+Archive ou désarchive une conversation.
+api_v1_chat_rooms_archive
+
+
+POST
+/api/v1/chat/rooms/{id}/mark_as_read/
+Marque tous les messages d'une conversation comme lus.
+api_v1_chat_rooms_mark_as_read
+
+
+POST
+/api/v1/cloudinary/delete/
+Supprime une image de Cloudinary
+api_v1_cloudinary_delete_create
+
+
+POST
+/api/v1/cloudinary/upload/
+Upload un fichier vers Cloudinary
+api_v1_cloudinary_upload_create
+
+
+GET
+/api/v1/deliveries/analytics/commune_stats/
+GET /analytics/commune-stats/
+api_v1_deliveries_analytics_commune_stats
+
+
+GET
+/api/v1/deliveries/analytics/distance_distribution/
+GET /analytics/distance-distribution/
+api_v1_deliveries_analytics_distance_distribution
+
+
+GET
+/api/v1/deliveries/analytics/earnings_breakdown/
+GET /analytics/earnings-breakdown/
+api_v1_deliveries_analytics_earnings_breakdown
+
+
+GET
+/api/v1/deliveries/analytics/heatmap/
+GET /analytics/heatmap/
+api_v1_deliveries_analytics_heatmap
+
+
+GET
+/api/v1/deliveries/analytics/peak_hours/
+GET /analytics/peak-hours/
+api_v1_deliveries_analytics_peak_hours
+
+
+GET
+/api/v1/deliveries/analytics/status_distribution/
+GET /analytics/status-distribution/
+api_v1_deliveries_analytics_status_distribution
+
+
+GET
+/api/v1/deliveries/analytics/summary/
+GET /analytics/summary/
+api_v1_deliveries_analytics_summary
+
+
+GET
+/api/v1/deliveries/analytics/timeline/
+GET /analytics/timeline/
+api_v1_deliveries_analytics_timeline
+
+
+GET
+/api/v1/deliveries/deliveries/
+api_v1_deliveries_deliveries_list
+
+
+POST
+/api/v1/deliveries/deliveries/
+api_v1_deliveries_deliveries_create
+
+
+GET
+/api/v1/deliveries/deliveries/dashboard/
+GET /api/v1/deliveries/dashboard/?period=30
+api_v1_deliveries_deliveries_dashboard
+
+
+POST
+/api/v1/deliveries/deliveries/optimize_route/
+POST /api/v1/deliveries/optimize-route/
+api_v1_deliveries_deliveries_optimize_route
+
+
+GET
+/api/v1/deliveries/deliveries/{id}/
+api_v1_deliveries_deliveries_read
+
+
+PUT
+/api/v1/deliveries/deliveries/{id}/
+api_v1_deliveries_deliveries_update
+
+
+PATCH
+/api/v1/deliveries/deliveries/{id}/
+api_v1_deliveries_deliveries_partial_update
+
+
+DELETE
+/api/v1/deliveries/deliveries/{id}/
+api_v1_deliveries_deliveries_delete
+
+
+POST
+/api/v1/deliveries/deliveries/{id}/accept/
+POST /api/v1/deliveries/{id}/accept/
+api_v1_deliveries_deliveries_accept
+
+
+POST
+/api/v1/deliveries/deliveries/{id}/assign/
+POST /api/v1/deliveries/{id}/assign/
+api_v1_deliveries_deliveries_assign
+
+
+POST
+/api/v1/deliveries/deliveries/{id}/auto_assign/
+POST /api/v1/deliveries/{id}/auto-assign/
+api_v1_deliveries_deliveries_auto_assign
+
+
+POST
+/api/v1/deliveries/deliveries/{id}/cancel/
+POST /api/v1/deliveries/{id}/cancel/
+api_v1_deliveries_deliveries_cancel
+
+
+POST
+/api/v1/deliveries/deliveries/{id}/confirm-delivery/
+POST /api/v1/deliveries/{id}/confirm-delivery/
+api_v1_deliveries_deliveries_confirm_delivery
+
+
+POST
+/api/v1/deliveries/deliveries/{id}/confirm-pickup/
+POST /api/v1/deliveries/{id}/confirm-pickup/
+api_v1_deliveries_deliveries_confirm_pickup
+
+
+POST
+/api/v1/deliveries/deliveries/{id}/rate_driver/
+Permet à un merchant de noter un livreur après une livraison.
+api_v1_deliveries_deliveries_rate_driver
+
+
+POST
+/api/v1/deliveries/deliveries/{id}/reassign/
+POST /api/v1/deliveries/{id}/reassign/
+api_v1_deliveries_deliveries_reassign
+
+
+POST
+/api/v1/deliveries/deliveries/{id}/reject/
+POST /api/v1/deliveries/{id}/reject/
+api_v1_deliveries_deliveries_reject
+
+
+GET
+/api/v1/deliveries/deliveries/{id}/suggest_drivers/
+GET /api/v1/deliveries/{id}/suggest-drivers/
+api_v1_deliveries_deliveries_suggest_drivers
+
+
+POST
+/api/v1/deliveries/reports/analytics-pdf/
+Generate and download analytics PDF report
+api_v1_deliveries_reports_analytics-pdf_create
+
+
+GET
+/api/v1/deliveries/reports/test-pdf/
+Test endpoint to verify PDF generation works
+api_v1_deliveries_reports_test-pdf_list
+
+
+GET
+/api/v1/drivers/
+api_v1_drivers_list
+
+
+POST
+/api/v1/drivers/
+api_v1_drivers_create
+
+
+GET
+/api/v1/drivers/available-deliveries/
+GET /api/v1/drivers/available-deliveries/
+api_v1_drivers_available_deliveries
+
+
+GET
+/api/v1/drivers/available/
+GET /api/v1/drivers/available/?commune=Cocody
+api_v1_drivers_available
+
+
+POST
+/api/v1/drivers/gps/end-session/
+End current tracking session
+api_v1_drivers_gps_end_session
+
+
+GET
+/api/v1/drivers/gps/history/
+Get location history
+api_v1_drivers_gps_history
+
+
+GET
+/api/v1/drivers/gps/interval/
+Get recommended tracking interval based on driver status
+api_v1_drivers_gps_get_interval
+
+
+GET
+/api/v1/drivers/gps/sessions/
+Get tracking sessions
+api_v1_drivers_gps_sessions
+
+
+GET
+/api/v1/drivers/gps/statistics/
+Get tracking statistics
+api_v1_drivers_gps_statistics
+
+
+POST
+/api/v1/drivers/gps/update-location/
+Update driver's current location
+api_v1_drivers_gps_update_location
+
+
+GET
+/api/v1/drivers/me/
+GET /api/v1/drivers/me/ Retourne le profil complet du driver connecté.
+api_v1_drivers_me_read
+
+
+PATCH
+/api/v1/drivers/me/
+GET /api/v1/drivers/me/ Retourne le profil complet du driver connecté.
+api_v1_drivers_me_partial_update
+
+
+GET
+/api/v1/drivers/me/earnings/
+GET /api/v1/drivers/me/earnings/?period=30
+api_v1_drivers_me_my_earnings
+
+
+GET
+/api/v1/drivers/me/mobile-money/
+GET /api/v1/drivers/me/mobile-money/ Récupère les informations Mobile Money du driver.
+api_v1_drivers_me_mobile-money_read
+
+
+PATCH
+/api/v1/drivers/me/mobile-money/
+GET /api/v1/drivers/me/mobile-money/ Récupère les informations Mobile Money du driver.
+api_v1_drivers_me_mobile-money_partial_update
+
+
+GET
+/api/v1/drivers/my-deliveries/
+GET /api/v1/drivers/my-deliveries/
+api_v1_drivers_my_deliveries
+
+
+GET
+/api/v1/drivers/my-stats/
+GET /api/v1/drivers/my-stats/?period=30
+api_v1_drivers_my_stats
+
+
+POST
+/api/v1/drivers/toggle-availability/
+POST /api/v1/drivers/toggle-availability/
+api_v1_drivers_toggle_availability
+
+
+POST
+/api/v1/drivers/update-location/
+POST /api/v1/drivers/update-location/
+api_v1_drivers_update_location
+
+
+GET
+/api/v1/drivers/{id}/
+api_v1_drivers_read
+
+
+PUT
+/api/v1/drivers/{id}/
+api_v1_drivers_update
+
+
+PATCH
+/api/v1/drivers/{id}/
+api_v1_drivers_partial_update
+
+
+DELETE
+/api/v1/drivers/{id}/
+api_v1_drivers_delete
+
+
+GET
+/api/v1/drivers/{id}/stats/
+GET /api/v1/drivers/{id}/stats/?period=30
+api_v1_drivers_stats
+
+
+GET
+/api/v1/merchants/
+api_v1_merchants_list
+
+
+POST
+/api/v1/merchants/
+api_v1_merchants_create
+
+
+GET
+/api/v1/merchants/my_stats/
+GET /api/v1/merchants/my-stats/?period=30
+api_v1_merchants_my_stats
+
+
+GET
+/api/v1/merchants/pending_verification/
+GET /api/v1/merchants/pending-verification/
+api_v1_merchants_pending_verification
+
+
+GET
+/api/v1/merchants/{id}/
+api_v1_merchants_read
+
+
+PUT
+/api/v1/merchants/{id}/
+api_v1_merchants_update
+
+
+PATCH
+/api/v1/merchants/{id}/
+api_v1_merchants_partial_update
+
+
+DELETE
+/api/v1/merchants/{id}/
+api_v1_merchants_delete
+
+
+POST
+/api/v1/merchants/{id}/approve/
+POST /api/v1/merchants/{id}/approve/
+api_v1_merchants_approve
+
+
+POST
+/api/v1/merchants/{id}/reject/
+POST /api/v1/merchants/{id}/reject/
+api_v1_merchants_reject
+
+
+GET
+/api/v1/merchants/{id}/stats/
+GET /api/v1/merchants/{id}/stats/?period=30
+api_v1_merchants_stats
+
+
+GET
+/api/v1/notifications/
+api_v1_notifications_list
+
+
+POST
+/api/v1/notifications/
+api_v1_notifications_create
+
+
+POST
+/api/v1/notifications/broadcast/
+POST /api/v1/notifications/broadcast/
+api_v1_notifications_broadcast
+
+
+POST
+/api/v1/notifications/delete_token/
+POST /api/v1/notifications/delete-token/
+api_v1_notifications_delete_token
+
+
+GET
+/api/v1/notifications/history/
+api_v1_notifications_history_list
+
+
+POST
+/api/v1/notifications/history/mark_all_as_read/
+Marque toutes les notifications comme lues.
+api_v1_notifications_history_mark_all_as_read
+
+
+GET
+/api/v1/notifications/history/unread_count/
+Retourne le nombre de notifications non lues.
+api_v1_notifications_history_unread_count
+
+
+GET
+/api/v1/notifications/history/{id}/
+api_v1_notifications_history_read
+
+
+DELETE
+/api/v1/notifications/history/{id}/
+Supprime une notification.
+api_v1_notifications_history_delete
+
+
+POST
+/api/v1/notifications/history/{id}/mark_as_read/
+Marque une notification comme lue.
+api_v1_notifications_history_mark_as_read
+
+
+GET
+/api/v1/notifications/my_tokens/
+GET /api/v1/notifications/my-tokens/
+api_v1_notifications_my_tokens
+
+
+POST
+/api/v1/notifications/register_token/
+POST /api/v1/notifications/register-token/
+api_v1_notifications_register_token
+
+
+POST
+/api/v1/notifications/send_to_user/
+POST /api/v1/notifications/send-to-user/
+api_v1_notifications_send_to_user
+
+
+GET
+/api/v1/notifications/{id}/
+api_v1_notifications_read
+
+
+PUT
+/api/v1/notifications/{id}/
+api_v1_notifications_update
+
+
+PATCH
+/api/v1/notifications/{id}/
+api_v1_notifications_partial_update
+
+
+DELETE
+/api/v1/notifications/{id}/
+api_v1_notifications_delete
+
+
+POST
+/api/v1/notifications/{id}/mark_as_read/
+POST /api/v1/notifications/{id}/mark-as-read/
+api_v1_notifications_mark_as_read
+
+
+GET
+/api/v1/payments/
+api_v1_payments_list
+
+
+GET
+/api/v1/payments/driver-payments/
+api_v1_payments_driver-payments_list
+
+
+POST
+/api/v1/payments/driver-payments/
+api_v1_payments_driver-payments_create
+
+
+GET
+/api/v1/payments/driver-payments/my_payouts/
+GET /api/v1/payments/driver-payments/my-payouts/?page=1&page_size=20
+api_v1_payments_driver-payments_my_payouts
+
+
+GET
+/api/v1/payments/driver-payments/{id}/
+api_v1_payments_driver-payments_read
+
+
+PUT
+/api/v1/payments/driver-payments/{id}/
+api_v1_payments_driver-payments_update
+
+
+PATCH
+/api/v1/payments/driver-payments/{id}/
+api_v1_payments_driver-payments_partial_update
+
+
+DELETE
+/api/v1/payments/driver-payments/{id}/
+api_v1_payments_driver-payments_delete
+
+
+POST
+/api/v1/payments/driver-payments/{id}/mark_as_paid/
+POST /api/v1/payments/driver-payments/{id}/mark-as-paid/
+api_v1_payments_driver-payments_mark_as_paid
+
+
+GET
+/api/v1/payments/earnings-summary/
+GET /api/v1/payments/earnings-summary/?period=today|week|month
+api_v1_payments_earnings_summary
+
+
+GET
+/api/v1/payments/earnings/
+api_v1_payments_earnings_list
+
+
+POST
+/api/v1/payments/earnings/
+api_v1_payments_earnings_create
+
+
+POST
+/api/v1/payments/earnings/bulk_approve/
+POST /api/v1/payments/earnings/bulk-approve/
+api_v1_payments_earnings_bulk_approve
+
+
+GET
+/api/v1/payments/earnings/my_earnings/
+api_v1_payments_earnings_my_earnings
+
+
+GET
+/api/v1/payments/earnings/summary/
+GET /api/v1/payments/earnings/summary/
+api_v1_payments_earnings_summary
+
+
+GET
+/api/v1/payments/earnings/{id}/
+api_v1_payments_earnings_read
+
+
+PUT
+/api/v1/payments/earnings/{id}/
+api_v1_payments_earnings_update
+
+
+PATCH
+/api/v1/payments/earnings/{id}/
+api_v1_payments_earnings_partial_update
+
+
+DELETE
+/api/v1/payments/earnings/{id}/
+api_v1_payments_earnings_delete
+
+
+GET
+/api/v1/payments/invoices/
+api_v1_payments_invoices_list
+
+
+POST
+/api/v1/payments/invoices/
+api_v1_payments_invoices_create
+
+
+POST
+/api/v1/payments/invoices/generate_monthly/
+POST /api/v1/payments/invoices/generate-monthly/
+api_v1_payments_invoices_generate_monthly
+
+
+GET
+/api/v1/payments/invoices/my_invoices/
+GET /api/v1/payments/invoices/my-invoices/
+api_v1_payments_invoices_my_invoices
+
+
+GET
+/api/v1/payments/invoices/{id}/
+api_v1_payments_invoices_read
+
+
+PUT
+/api/v1/payments/invoices/{id}/
+api_v1_payments_invoices_update
+
+
+PATCH
+/api/v1/payments/invoices/{id}/
+api_v1_payments_invoices_partial_update
+
+
+DELETE
+/api/v1/payments/invoices/{id}/
+api_v1_payments_invoices_delete
+
+
+POST
+/api/v1/payments/invoices/{id}/mark_as_paid/
+POST /api/v1/payments/invoices/{id}/mark-as-paid/
+api_v1_payments_invoices_mark_as_paid
+
+
+GET
+/api/v1/payments/my_payouts/
+GET /api/v1/payments/my-payouts/?limit=30
+api_v1_payments_my_payouts
+
+
+GET
+/api/v1/payments/stats/
+GET /api/v1/payments/stats/
+api_v1_payments_stats
+
+
+GET
+/api/v1/payments/transactions/
+GET /api/v1/payments/transactions/?limit=50
+api_v1_payments_transactions
+
+
+POST
+/api/v1/payments/webhooks/orange-money/
+Webhook pour recevoir les notifications de paiement Orange Money.
+api_v1_payments_webhooks_orange-money_create
+
+
+GET
+/api/v1/payments/{id}/
+api_v1_payments_read
+
+
+POST
+/api/v1/pricing/calculate/
+POST /api/v1/pricing/calculate/
+api_v1_pricing_calculate_create
+
+
+GET
+/api/v1/pricing/matrix/
+ViewSet pour gérer la matrice tarifaire (paires de zones).
+api_v1_pricing_matrix_list
+
+
+POST
+/api/v1/pricing/matrix/
+ViewSet pour gérer la matrice tarifaire (paires de zones).
+api_v1_pricing_matrix_create
+
+
+GET
+/api/v1/pricing/matrix/{id}/
+ViewSet pour gérer la matrice tarifaire (paires de zones).
+api_v1_pricing_matrix_read
+
+
+PUT
+/api/v1/pricing/matrix/{id}/
+ViewSet pour gérer la matrice tarifaire (paires de zones).
+api_v1_pricing_matrix_update
+
+
+PATCH
+/api/v1/pricing/matrix/{id}/
+ViewSet pour gérer la matrice tarifaire (paires de zones).
+api_v1_pricing_matrix_partial_update
+
+
+DELETE
+/api/v1/pricing/matrix/{id}/
+ViewSet pour gérer la matrice tarifaire (paires de zones).
+api_v1_pricing_matrix_delete
+
+
+GET
+/api/v1/pricing/zones/
+ViewSet pour gérer les zones tarifaires.
+api_v1_pricing_zones_list
+
+
+POST
+/api/v1/pricing/zones/
+ViewSet pour gérer les zones tarifaires.
+api_v1_pricing_zones_create
+
+
+GET
+/api/v1/pricing/zones/{id}/
+ViewSet pour gérer les zones tarifaires.
+api_v1_pricing_zones_read
+
+
+PUT
+/api/v1/pricing/zones/{id}/
+ViewSet pour gérer les zones tarifaires.
+api_v1_pricing_zones_update
+
+
+PATCH
+/api/v1/pricing/zones/{id}/
+ViewSet pour gérer les zones tarifaires.
+api_v1_pricing_zones_partial_update
+
+
+DELETE
+/api/v1/pricing/zones/{id}/
+ViewSet pour gérer les zones tarifaires.
+api_v1_pricing_zones_delete
+
+health
+
+
+GET
+/health/
+Endpoint de santé pour monitoring (Load Balancer, Uptime Robot, etc.)
+health_list
+
+
+Models
+CustomTokenObtainPair
+User
+TokenRefresh
+TokenVerify
+ChatParticipant
+ChatMessage
+ChatRoomList
+CreateChatRoom
+ChatRoomDetail
+MerchantAddress
+Merchant
+DriverZone
+Driver
+Delivery
+DeliveryCreate
+Notification
+NotificationHistory
+Payment
+DriverPayment
+DriverPaymentCreate
+DriverEarning
+DriverEarningCreate
+DriverEarningSummary
+InvoiceItem
+Invoice
+InvoiceCreate
+InvoicePayment
+CalculatePrice
+ZonePricingMatrix
+PricingZone
