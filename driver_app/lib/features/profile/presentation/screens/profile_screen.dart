@@ -70,8 +70,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.of(context).pushNamed('/edit-profile');
+            onPressed: () async {
+              final result = await Navigator.of(context).pushNamed('/edit-profile');
+              if (result == true && mounted) {
+                // Rafraîchir le profil si modifié
+                await ref.read(driverProvider.notifier).loadProfile();
+              }
             },
           ),
         ],
@@ -94,16 +98,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     CircleAvatar(
                       radius: 60,
-                      backgroundImage: driver?.profilePhoto != null
-                          ? NetworkImage(driver!.profilePhoto!)
-                          : null,
-                      child: driver?.profilePhoto == null
-                          ? Icon(
+                      backgroundColor: Colors.grey[200],
+                      child: driver?.profilePhoto != null
+                          ? ClipOval(
+                              child: Image.network(
+                                driver!.profilePhoto!,
+                                width: 120,
+                                height: 120,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            )
+                          : Icon(
                               Icons.person,
                               size: 60,
                               color: AppColors.textSecondary,
-                            )
-                          : null,
+                            ),
                     ),
                     Positioned(
                       bottom: 0,
