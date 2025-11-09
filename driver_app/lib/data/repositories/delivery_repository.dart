@@ -194,12 +194,14 @@ class DeliveryRepository {
   /// Confirmer livraison au destinataire (delivery)
   Future<DeliveryModel> confirmDelivery({
     required String id,
+    required String confirmationCode,
     String? deliveryPhoto,
     String? recipientSignature,
     String? notes,
   }) async {
-    final data = <String, dynamic>{};
-    
+    final data = <String, dynamic>{
+      'confirmation_code': confirmationCode,
+    };
     if (notes != null) {
       data['notes'] = notes;
     }
@@ -207,33 +209,28 @@ class DeliveryRepository {
     // Upload photo et signature si fournis
     if (deliveryPhoto != null || recipientSignature != null) {
       final formData = FormData();
-      
       if (deliveryPhoto != null) {
         formData.files.add(MapEntry(
           'delivery_photo',
           await MultipartFile.fromFile(deliveryPhoto),
         ));
       }
-      
       if (recipientSignature != null) {
         formData.files.add(MapEntry(
           'recipient_signature',
           await MultipartFile.fromFile(recipientSignature),
         ));
       }
-      
       // Ajouter les autres données
       data.forEach((key, value) {
         formData.fields.add(MapEntry(key, value.toString()));
       });
-
       final response = await _dioClient.post(
         ApiConstants.confirmDelivery(id),
         data: formData,
       );
       return DeliveryModel.fromJson(response.data);
     }
-
     // Sinon, simple POST
     final response = await _dioClient.post(
       ApiConstants.confirmDelivery(id),
