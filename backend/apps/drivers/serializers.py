@@ -11,7 +11,12 @@ class DriverSerializer(serializers.ModelSerializer):
     zones = DriverZoneSerializer(many=True, read_only=True)
     user = UserSerializer(read_only=True)
     phone = serializers.CharField(source='user.phone', read_only=True)
-    profile_photo = serializers.CharField(source='user.profile_photo', read_only=True)
+    profile_photo = serializers.CharField(
+        source='user.profile_photo',
+        required=False,
+        allow_blank=True,
+        allow_null=True
+    )
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
