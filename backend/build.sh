@@ -7,14 +7,14 @@ set -o errexit   # Arrêter le script en cas d'erreur
 pip install -r requirements.txt
 
 # Collecter les fichiers statiques (CSS, JS, images)
-python manage.py collectstatic --noinput
+python manage.py collectstatic --no-input
 
-# Créer les migrations de la base de données
-python manage.py makemigrations --noinput
+# Créer les migrations de la base de données (si nécessaire)
+python manage.py makemigrations --no-input
 
 # Appliquer les migrations à la base de données
-python manage.py migrate --noinput
+python manage.py migrate --no-input
 
 # Démarrer Gunicorn (le serveur WSGI de production)
-gunicorn config.wsgi:application  --bind 0.0.0.0:$PORT --workers 2  --threads 2  --timeout 120
+gunicorn config.wsgi:application  --bind 0.0.0.0:$PORT --workers 2  --threads 2  --timeout 120  --access-logfile -  --error-logfile -  --log-level info
    
