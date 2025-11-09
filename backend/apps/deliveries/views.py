@@ -92,10 +92,13 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             if calculated_price <= 0:
                 raise ValidationError("Le prix calculé est invalide")
             
+            # Génère un code PIN à 4 chiffres
+            delivery_confirmation_code = Delivery().generate_confirmation_code()
             # Sauvegarde la livraison
             serializer.save(
                 merchant=merchant,
-                calculated_price=calculated_price
+                calculated_price=calculated_price,
+                delivery_confirmation_code=delivery_confirmation_code
             )
             
         except ValidationError as e:
@@ -419,35 +422,43 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 {'error': f'Impossible de confirmer la livraison. Statut actuel: {delivery.status}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
+        # Vérifier le code PIN fourni
+        pin = request.data.get('confirmation_code')
+        if not pin or pin != delivery.delivery_confirmation_code:
+            return Response(
+                {'error': 'Code de confirmation invalide'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         # Récupérer les données optionnelles (support des 2 formats)
         delivery_photo = request.data.get('delivery_photo') or request.data.get('photo_url')
         recipient_signature = request.data.get('recipient_signature') or request.data.get('signature_url')
         notes = request.data.get('notes') or request.data.get('delivery_notes')
-        
+
         # Mettre à jour la livraison
         delivery.status = 'delivered'
         delivery.delivered_at = timezone.now()
-        
+
         if delivery_photo:
             delivery.photo_url = delivery_photo
         if recipient_signature:
             delivery.signature_url = recipient_signature
         if notes:
             delivery.delivery_notes = notes
-        
+
         delivery.save()
-        
+
         # Mettre à jour les stats du driver
         driver.total_deliveries += 1
         driver.successful_deliveries += 1
         driver.save(update_fields=['total_deliveries', 'successful_deliveries', 'updated_at'])
-        
+
         # 🔔 Notifier le merchant
         notify_delivery_status_change(delivery.merchant.user, delivery, 'delivered')
-        
+
         logger.info(f"✅ Livraison {delivery.tracking_number} confirmée par driver {driver.user.email}")
-        
+
         serializer = DeliverySerializer(delivery)
         return Response({
             'success': True,

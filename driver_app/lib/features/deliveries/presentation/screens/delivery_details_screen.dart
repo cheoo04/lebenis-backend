@@ -9,6 +9,7 @@ import '../../../../shared/theme/text_styles.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/utils/formatters.dart';
 import '../../../../shared/utils/helpers.dart';
+import '../../../../core/utils/navigation_utils.dart';
 
 class DeliveryDetailsScreen extends ConsumerStatefulWidget {
   final DeliveryModel delivery;
@@ -23,6 +24,19 @@ class DeliveryDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
+
+  Future<void> _openNavigation() async {
+    try {
+      await openNavigationApp(
+        latitude: widget.delivery.deliveryLatitude,
+        longitude: widget.delivery.deliveryLongitude,
+        label: widget.delivery.deliveryAddress,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Helpers.showErrorSnackBar(context, 'Impossible d\'ouvrir la navigation.');
+    }
+  }
   bool _isProcessing = false;
 
   Future<void> _acceptDelivery() async {
@@ -185,7 +199,6 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                   // Addresses Section
                   _SectionTitle(title: 'Itinéraire'),
                   const SizedBox(height: Dimensions.spacingM),
-                  
                   _AddressCard(
                     icon: Icons.circle_outlined,
                     iconColor: AppColors.success,
@@ -194,9 +207,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     contactName: delivery.merchantName,
                     contactPhone: null,
                   ),
-                  
                   const SizedBox(height: Dimensions.spacingM),
-                  
                   _AddressCard(
                     icon: Icons.location_on,
                     iconColor: AppColors.error,
@@ -205,7 +216,12 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     contactName: delivery.recipientName,
                     contactPhone: delivery.recipientPhone,
                   ),
-
+                  const SizedBox(height: Dimensions.spacingM),
+                  CustomButton(
+                    text: 'Naviguer',
+                    icon: Icons.navigation,
+                    onPressed: _openNavigation,
+                  ),
                   const SizedBox(height: Dimensions.spacingXL),
 
                   // Delivery Details Section

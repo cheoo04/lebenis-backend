@@ -80,7 +80,7 @@ dependencies:
   permission_handler: ^12.0.1
   
   # URL Launcher (pour appels téléphoniques, SMS, emails, etc.)
-  url_launcher: ^6.2.2
+  url_launcher: ^6.3.2
   
   # Utilitaires
   device_info_plus: ^12.2.0           # Info appareil

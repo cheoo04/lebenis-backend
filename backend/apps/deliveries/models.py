@@ -94,6 +94,11 @@ class Delivery(models.Model):
     photo_url = models.CharField(max_length=500, blank=True)
     delivery_notes = models.TextField(blank=True)
     delivery_confirmation_code = models.CharField(max_length=10, blank=True)
+
+    def generate_confirmation_code(self):
+        """Génère un code PIN à 4 chiffres"""
+        import random
+        return f"{random.randint(1000, 9999)}"
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
