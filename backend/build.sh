@@ -6,6 +6,11 @@ set -o errexit   # Arrêter le script en cas d'erreur
 # Installer les dépendances Python
 pip install -r requirements.txt
 
+# Mettre à jour pip
+pip install --upgrade pip
+# Installer ou mettre à jour ortools
+pip install --upgrade --user ortools
+
 # Collecter les fichiers statiques (CSS, JS, images)
 python manage.py collectstatic --no-input
 
