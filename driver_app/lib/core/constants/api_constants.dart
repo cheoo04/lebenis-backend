@@ -15,7 +15,6 @@ class ApiConstants {
 
   // ========== DRIVER ==========
   static const String driverProfile = '/api/v1/drivers/me/';
-  static const String deleteProfilePhoto = '/api/v1/auth/delete-profile-photo/';
   static const String driverMe = '/api/v1/drivers/me/';
   static const String myDeliveries = '/api/v1/drivers/my-deliveries/';
   static const String availableDeliveries = '/api/v1/drivers/available-deliveries/';
