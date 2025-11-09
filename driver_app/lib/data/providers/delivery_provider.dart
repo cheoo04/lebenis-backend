@@ -195,6 +195,7 @@ class DeliveryNotifier extends StateNotifier<DeliveryState> {
   /// Confirmer la livraison au destinataire
   Future<bool> confirmDelivery({
     required String id,
+    required String confirmationCode,
     String? deliveryPhoto,
     String? recipientSignature,
     String? notes,
@@ -203,6 +204,7 @@ class DeliveryNotifier extends StateNotifier<DeliveryState> {
     try {
       final delivery = await _deliveryRepository.confirmDelivery(
         id: id,
+        confirmationCode: confirmationCode,
         deliveryPhoto: deliveryPhoto,
         recipientSignature: recipientSignature,
         notes: notes,

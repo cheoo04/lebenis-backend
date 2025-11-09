@@ -500,19 +500,13 @@ class RouteOptimizationService:
     
     def optimize_route_for_driver(self, driver_id, delivery_ids=None):
         """
-        Optimise la route pour un livreur donné.
-        
-        Args:
-            driver_id: UUID du livreur
-            delivery_ids: Liste optionnelle de delivery IDs (sinon toutes les pending du driver)
-            
-        Returns:
-            dict: Route optimisée avec ordre de livraison et distances
+        Optimise la route pour un livreur donné avec OR-Tools (VRP).
         """
         try:
+            from ortools.constraint_solver import routing_enums_pb2
+            from ortools.constraint_solver import pywrapcp
+            import numpy as np
             driver = Driver.objects.get(id=driver_id)
-            
-            # Récupérer les livraisons à optimiser
             if delivery_ids:
                 deliveries = Delivery.objects.filter(
                     id__in=delivery_ids,
@@ -524,25 +518,15 @@ class RouteOptimizationService:
                     driver=driver,
                     status__in=['assigned', 'picked_up']
                 ).order_by('created_at')
-            
             if not deliveries.exists():
                 return {
                     'success': False,
                     'message': 'Aucune livraison à optimiser',
                     'optimized_route': []
                 }
-            
-            # Point de départ (position actuelle du driver ou premier pickup)
             start_point = self._get_driver_current_location(driver)
-            
-            # Optimiser avec algorithme nearest neighbor
-            optimized_route = self._nearest_neighbor_algorithm(
-                deliveries.values('id', 'pickup_latitude', 'pickup_longitude',
-                                 'delivery_latitude', 'delivery_longitude',
-                                 'tracking_number'),
-                start_point
-            )
-            
+            deliveries_list = list(deliveries.values('id', 'pickup_latitude', 'pickup_longitude', 'delivery_latitude', 'delivery_longitude', 'tracking_number'))
+            optimized_route = self._vrp_ortools_algorithm(deliveries_list, start_point)
             return {
                 'success': True,
                 'driver': {
@@ -554,7 +538,6 @@ class RouteOptimizationService:
                 'estimated_duration_minutes': sum(leg['duration_minutes'] for leg in optimized_route),
                 'optimized_route': optimized_route
             }
-            
         except Driver.DoesNotExist:
             return {
                 'success': False,
@@ -566,6 +549,68 @@ class RouteOptimizationService:
                 'success': False,
                 'message': f'Erreur: {str(e)}'
             }
+
+    def _vrp_ortools_algorithm(self, deliveries, start_point):
+        """
+        Utilise OR-Tools pour résoudre le VRP (1 livreur, plusieurs livraisons).
+        """
+        from ortools.constraint_solver import routing_enums_pb2
+        from ortools.constraint_solver import pywrapcp
+        import numpy as np
+        # Points: start + pickups
+        points = [(start_point['latitude'], start_point['longitude'])]
+        for d in deliveries:
+            points.append((d['pickup_latitude'], d['pickup_longitude']))
+        # Distance matrix
+        def compute_euclidean_distance_matrix(locations):
+            n = len(locations)
+            matrix = np.zeros((n, n))
+            for i in range(n):
+                for j in range(n):
+                    if i == j:
+                        matrix[i][j] = 0
+                    else:
+                        matrix[i][j] = geodesic(locations[i], locations[j]).km
+            return matrix
+        distance_matrix = compute_euclidean_distance_matrix(points)
+        manager = pywrapcp.RoutingIndexManager(len(distance_matrix), 1, 0)
+        routing = pywrapcp.RoutingModel(manager)
+        def distance_callback(from_index, to_index):
+            from_node = manager.IndexToNode(from_index)
+            to_node = manager.IndexToNode(to_index)
+            return int(distance_matrix[from_node][to_node] * 1000)
+        transit_callback_index = routing.RegisterTransitCallback(distance_callback)
+        routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
+        search_parameters = pywrapcp.DefaultRoutingSearchParameters()
+        search_parameters.first_solution_strategy = (
+            routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
+        solution = routing.SolveWithParameters(search_parameters)
+        route = []
+        if solution:
+            index = routing.Start(0)
+            order = 1
+            while not routing.IsEnd(index):
+                node = manager.IndexToNode(index)
+                if node != 0:
+                    d = deliveries[node-1]
+                    pickup_distance = distance_matrix[0][node]
+                    delivery_distance = geodesic(
+                        (d['pickup_latitude'], d['pickup_longitude']),
+                        (d['delivery_latitude'], d['delivery_longitude'])
+                    ).km
+                    total_distance = pickup_distance + delivery_distance
+                    route.append({
+                        'delivery_id': str(d['id']),
+                        'tracking_number': d['tracking_number'],
+                        'order': order,
+                        'pickup_distance_km': round(pickup_distance, 2),
+                        'delivery_distance_km': round(delivery_distance, 2),
+                        'distance_km': round(total_distance, 2),
+                        'duration_minutes': int(total_distance * 3)
+                    })
+                    order += 1
+                index = solution.Value(routing.NextVar(index))
+        return route
     
     def suggest_delivery_assignment(self, delivery_id):
         """

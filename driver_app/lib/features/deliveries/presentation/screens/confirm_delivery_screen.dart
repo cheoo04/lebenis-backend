@@ -26,6 +26,7 @@ class ConfirmDeliveryScreen extends ConsumerStatefulWidget {
 }
 
 class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
+  final TextEditingController _pinController = TextEditingController();
   final _notesController = TextEditingController();
   final SignatureController _signatureController = SignatureController(
     penStrokeWidth: 3,
@@ -100,11 +101,16 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
 
     setState(() => _isProcessing = true);
 
+    final pin = _pinController.text.trim();
+    if (pin.length != 4) {
+      Helpers.showErrorSnackBar(context, 'Le code PIN doit contenir 4 chiffres.');
+      setState(() => _isProcessing = false);
+      return;
+    }
     try {
-      // ✅ CORRECTION: Passer les fichiers locaux directement
-      // Le repository gère l'upload dans confirmDelivery() via FormData
       await ref.read(deliveryProvider.notifier).confirmDelivery(
         id: widget.delivery.id,
+        confirmationCode: pin,
         deliveryPhoto: _photoFile?.path, // Chemin du fichier local
         recipientSignature: _signatureFile?.path, // Chemin du fichier local
         notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
@@ -112,10 +118,8 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
 
       if (!mounted) return;
 
-      Helpers.showSuccessSnackBar(context, 'Livraison confirmée avec succès!');
-      
-      // Return to home/delivery list
-      Navigator.of(context).popUntil((route) => route.isFirst);
+  Helpers.showSuccessSnackBar(context, 'Livraison confirmée avec succès!');
+  Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
       if (!mounted) return;
       Helpers.showErrorSnackBar(context, 'Erreur: $e');

@@ -24,6 +24,31 @@ class DeliveryDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
+  final TextEditingController _pinController = TextEditingController();
+  bool _isConfirmingDelivery = false;
+
+  Future<void> _confirmDelivery() async {
+    final pin = _pinController.text.trim();
+    if (pin.length != 4) {
+      Helpers.showErrorSnackBar(context, 'Le code PIN doit contenir 4 chiffres.');
+      return;
+    }
+    setState(() => _isConfirmingDelivery = true);
+      try {
+        await ref.read(deliveryProvider.notifier).confirmDelivery(
+          id: widget.delivery.id,
+          confirmationCode: pin,
+        );
+        if (!mounted) return;
+        Helpers.showSuccessSnackBar(context, 'Livraison confirmée avec succès!');
+        Navigator.of(context).pop();
+      } catch (e) {
+        if (!mounted) return;
+        Helpers.showErrorSnackBar(context, 'Erreur: $e');
+      } finally {
+        if (mounted) setState(() => _isConfirmingDelivery = false);
+      }
+  }
 
   Future<void> _openNavigation() async {
     try {
@@ -297,6 +322,26 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                       onPressed: _isProcessing ? null : _startDelivery,
                       isLoading: _isProcessing,
                       icon: Icons.play_arrow,
+                    ),
+                  ] else if (delivery.status == BackendConstants.deliveryStatusInTransit || delivery.status == BackendConstants.deliveryStatusPickedUp) ...[
+                    const SizedBox(height: Dimensions.spacingM),
+                    TextField(
+                      controller: _pinController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 4,
+                      decoration: const InputDecoration(
+                        labelText: 'Code PIN de confirmation',
+                        border: OutlineInputBorder(),
+                        counterText: '',
+                      ),
+                    ),
+                    const SizedBox(height: Dimensions.spacingM),
+                    CustomButton(
+                      text: 'Confirmer la livraison',
+                      onPressed: _isConfirmingDelivery ? null : _confirmDelivery,
+                      isLoading: _isConfirmingDelivery,
+                      icon: Icons.verified,
+                      type: ButtonType.success,
                     ),
                   ],
                 ],
