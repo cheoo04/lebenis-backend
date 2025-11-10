@@ -9,7 +9,7 @@ SECRET_KEY = config('SECRET_KEY')  # Ne JAMAIS utiliser de valeur par défaut en
 
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
-    default='lebenis-backend.onrender.com,localhost',
+    default='lebenis-backend.onrender.com, localhost',
     cast=lambda v: [s.strip() for s in v.split(',')]
 )
 
@@ -27,7 +27,7 @@ SECURE_HSTS_PRELOAD = True
 # CORS - Limiter aux domaines autorisés
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='https://lebenis.com',
+    default='https://lebenis.com, localhost',
     cast=lambda v: [s.strip() for s in v.split(',')] if v else []
 )
 CORS_ALLOW_CREDENTIALS = True
