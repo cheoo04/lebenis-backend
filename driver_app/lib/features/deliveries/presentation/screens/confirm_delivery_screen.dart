@@ -59,6 +59,8 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
       builder: (context) => _SignatureDialog(controller: _signatureController),
     );
 
+    if (!mounted) return;
+
     if (result == true && _signatureController.isNotEmpty) {
       // Sauvegarder la signature en tant que fichier
       final signature = await _signatureController.toPngBytes();
@@ -66,12 +68,9 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
         final tempDir = await getTemporaryDirectory();
         final file = File('${tempDir.path}/signature_${DateTime.now().millisecondsSinceEpoch}.png');
         await file.writeAsBytes(signature);
-        
         setState(() {
           _signatureFile = file;
         });
-        
-        if (!mounted) return;
         Helpers.showSuccessSnackBar(context, 'Signature capturée avec succès');
       }
     }
@@ -103,8 +102,12 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
 
     final pin = _pinController.text.trim();
     if (pin.length != 4) {
-      Helpers.showErrorSnackBar(context, 'Le code PIN doit contenir 4 chiffres.');
       setState(() => _isProcessing = false);
+      Future.microtask(() {
+        if (mounted) {
+          Helpers.showErrorSnackBar(context, 'Le code PIN doit contenir 4 chiffres.');
+        }
+      });
       return;
     }
     try {

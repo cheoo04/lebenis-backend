@@ -110,7 +110,7 @@ class CloudinaryService:
         )
         
         # Nom unique du fichier
-        public_id = f"lebenis/profiles/user_{user_id}"
+        public_id = f"user_{user_id}"
         
         try:
             # Upload avec transformations

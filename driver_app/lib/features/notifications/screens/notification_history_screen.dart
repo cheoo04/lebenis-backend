@@ -501,18 +501,27 @@ class _TypeFilterSheetState extends State<_TypeFilterSheet> {
         children: [
           Text('Filtrer par type', style: TextStyles.h3),
           const SizedBox(height: 16),
-          ...types.map((type) => RadioListTile<String>(
-                title: Row(
-                  children: [
-                    Text(type['icon']!, style: const TextStyle(fontSize: 20)),
-                    const SizedBox(width: 12),
-                    Text(type['label']!),
-                  ],
-                ),
-                value: type['value']!,
-                groupValue: _tempSelectedType,
-                onChanged: (value) => setState(() => _tempSelectedType = value),
-              )),
+          // Custom radio group to avoid deprecated groupValue/onChanged
+          ...types.map((type) {
+            final selected = _tempSelectedType == type['value'];
+            return GestureDetector(
+              onTap: () => setState(() => _tempSelectedType = type['value']),
+              child: Row(
+                children: [
+                  Icon(
+                    selected
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_unchecked,
+                    color: selected ? AppColors.primary : AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(type['icon']!, style: const TextStyle(fontSize: 20)),
+                  const SizedBox(width: 12),
+                  Text(type['label']!),
+                ],
+              ),
+            );
+          }),
           const SizedBox(height: 16),
           Row(
             children: [
