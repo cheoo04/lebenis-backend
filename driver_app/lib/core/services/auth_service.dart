@@ -1,12 +1,36 @@
 // lib/core/services/auth_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/storage_keys.dart';
+// ignore: avoid_web_libraries_in_flutter
+import 'package:web/web.dart' as web;
 
 /// Service de gestion de l'authentification locale
 /// Gère le stockage sécurisé des tokens JWT et des données utilisateur
 class AuthService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  bool get _isWeb => kIsWeb;
+
+  // Helpers pour le web
+  String? _getFromWebStorage(String key) {
+    if (!_isWeb) return null;
+    return web.window.localStorage.getItem(key);
+  }
+
+  Future<void> _setToWebStorage(String key, String? value) async {
+    if (!_isWeb) return;
+    if (value == null) {
+      web.window.localStorage.removeItem(key);
+    } else {
+      web.window.localStorage.setItem(key, value);
+    }
+  }
+
+  Future<void> _clearWebStorage() async {
+    if (!_isWeb) return;
+    web.window.localStorage.clear();
+  }
 
   // ========== TOKENS JWT ==========
 
@@ -16,26 +40,42 @@ class AuthService {
     required String refreshToken,
     required String userType,
   }) async {
-    await Future.wait([
-      _storage.write(key: StorageKeys.accessToken, value: accessToken),
-      _storage.write(key: StorageKeys.refreshToken, value: refreshToken),
-      _storage.write(key: StorageKeys.userType, value: userType),
-    ]);
+    if (_isWeb) {
+      await _setToWebStorage(StorageKeys.accessToken, accessToken);
+      await _setToWebStorage(StorageKeys.refreshToken, refreshToken);
+      await _setToWebStorage(StorageKeys.userType, userType);
+    } else {
+      await Future.wait([
+        _storage.write(key: StorageKeys.accessToken, value: accessToken),
+        _storage.write(key: StorageKeys.refreshToken, value: refreshToken),
+        _storage.write(key: StorageKeys.userType, value: userType),
+      ]);
+    }
   }
 
   /// Récupérer l'access token
   Future<String?> getAccessToken() async {
+    if (_isWeb) {
+      return _getFromWebStorage(StorageKeys.accessToken);
+    }
     return await _storage.read(key: StorageKeys.accessToken);
   }
 
   /// Récupérer le refresh token
   Future<String?> getRefreshToken() async {
+    if (_isWeb) {
+      return _getFromWebStorage(StorageKeys.refreshToken);
+    }
     return await _storage.read(key: StorageKeys.refreshToken);
   }
 
   /// Mettre à jour uniquement l'access token (après refresh)
   Future<void> updateAccessToken(String newAccessToken) async {
-    await _storage.write(key: StorageKeys.accessToken, value: newAccessToken);
+    if (_isWeb) {
+      await _setToWebStorage(StorageKeys.accessToken, newAccessToken);
+    } else {
+      await _storage.write(key: StorageKeys.accessToken, value: newAccessToken);
+    }
   }
 
   /// Rafraîchir l'access token avec le refresh token
@@ -47,10 +87,6 @@ class AuthService {
       if (refreshToken == null || refreshToken.isEmpty) {
         return null;
       }
-
-      // Import dynamique pour éviter la circularité
-      // DioClient appellera cette méthode, mais elle ne peut pas importer DioClient
-      // Solution: Cette méthode retourne le refresh token, et DioClient fait l'appel API
       return refreshToken;
     } catch (e) {
       return null;
@@ -66,27 +102,45 @@ class AuthService {
     required String userType,
     String? userName,
   }) async {
-    await Future.wait([
-      _storage.write(key: StorageKeys.userId, value: userId),
-      _storage.write(key: StorageKeys.userEmail, value: email),
-      _storage.write(key: StorageKeys.userType, value: userType),
-      if (userName != null)
-        _storage.write(key: StorageKeys.userName, value: userName),
-    ]);
+    if (_isWeb) {
+      await _setToWebStorage(StorageKeys.userId, userId);
+      await _setToWebStorage(StorageKeys.userEmail, email);
+      await _setToWebStorage(StorageKeys.userType, userType);
+      if (userName != null) {
+        await _setToWebStorage(StorageKeys.userName, userName);
+      }
+    } else {
+      await Future.wait([
+        _storage.write(key: StorageKeys.userId, value: userId),
+        _storage.write(key: StorageKeys.userEmail, value: email),
+        _storage.write(key: StorageKeys.userType, value: userType),
+        if (userName != null)
+          _storage.write(key: StorageKeys.userName, value: userName),
+      ]);
+    }
   }
 
   /// Récupérer l'ID utilisateur
   Future<String?> getUserId() async {
+    if (_isWeb) {
+      return _getFromWebStorage(StorageKeys.userId);
+    }
     return await _storage.read(key: StorageKeys.userId);
   }
 
   /// Récupérer l'email utilisateur
   Future<String?> getUserEmail() async {
+    if (_isWeb) {
+      return _getFromWebStorage(StorageKeys.userEmail);
+    }
     return await _storage.read(key: StorageKeys.userEmail);
   }
 
   /// Récupérer le type d'utilisateur
   Future<String?> getUserType() async {
+    if (_isWeb) {
+      return _getFromWebStorage(StorageKeys.userType);
+    }
     return await _storage.read(key: StorageKeys.userType);
   }
 
@@ -98,27 +152,43 @@ class AuthService {
     String? phone,
     String? vehicleType,
   }) async {
-    await Future.wait([
-      _storage.write(key: StorageKeys.driverId, value: driverId),
-      if (phone != null)
-        _storage.write(key: StorageKeys.driverPhone, value: phone),
-      if (vehicleType != null)
-        _storage.write(key: StorageKeys.vehicleType, value: vehicleType),
-    ]);
+    if (_isWeb) {
+      await _setToWebStorage(StorageKeys.driverId, driverId);
+      if (phone != null) await _setToWebStorage(StorageKeys.driverPhone, phone);
+      if (vehicleType != null) await _setToWebStorage(StorageKeys.vehicleType, vehicleType);
+    } else {
+      await Future.wait([
+        _storage.write(key: StorageKeys.driverId, value: driverId),
+        if (phone != null)
+          _storage.write(key: StorageKeys.driverPhone, value: phone),
+        if (vehicleType != null)
+          _storage.write(key: StorageKeys.vehicleType, value: vehicleType),
+      ]);
+    }
   }
 
   /// Récupérer l'ID du driver
   Future<String?> getDriverId() async {
+    if (_isWeb) {
+      return _getFromWebStorage(StorageKeys.driverId);
+    }
     return await _storage.read(key: StorageKeys.driverId);
   }
 
   /// Sauvegarder le statut de disponibilité
   Future<void> saveAvailabilityStatus(String status) async {
-    await _storage.write(key: StorageKeys.availabilityStatus, value: status);
+    if (_isWeb) {
+      await _setToWebStorage(StorageKeys.availabilityStatus, status);
+    } else {
+      await _storage.write(key: StorageKeys.availabilityStatus, value: status);
+    }
   }
 
   /// Récupérer le statut de disponibilité
   Future<String?> getAvailabilityStatus() async {
+    if (_isWeb) {
+      return _getFromWebStorage(StorageKeys.availabilityStatus);
+    }
     return await _storage.read(key: StorageKeys.availabilityStatus);
   }
 
@@ -126,11 +196,18 @@ class AuthService {
 
   /// Sauvegarder le token FCM
   Future<void> saveFcmToken(String token) async {
-    await _storage.write(key: StorageKeys.fcmToken, value: token);
+    if (_isWeb) {
+      await _setToWebStorage(StorageKeys.fcmToken, token);
+    } else {
+      await _storage.write(key: StorageKeys.fcmToken, value: token);
+    }
   }
 
   /// Récupérer le token FCM
   Future<String?> getFcmToken() async {
+    if (_isWeb) {
+      return _getFromWebStorage(StorageKeys.fcmToken);
+    }
     return await _storage.read(key: StorageKeys.fcmToken);
   }
 
@@ -148,37 +225,53 @@ class AuthService {
 
   /// Vérifier si c'est la première utilisation
   Future<bool> isFirstLaunch() async {
+    if (_isWeb) {
+      final value = _getFromWebStorage(StorageKeys.isFirstLaunch);
+      return value == null || value == 'true';
+    }
     final value = await _storage.read(key: StorageKeys.isFirstLaunch);
     return value == null || value == 'true';
   }
 
   /// Marquer l'app comme déjà lancée
   Future<void> markAsLaunched() async {
-    await _storage.write(key: StorageKeys.isFirstLaunch, value: 'false');
+    if (_isWeb) {
+      await _setToWebStorage(StorageKeys.isFirstLaunch, 'false');
+    } else {
+      await _storage.write(key: StorageKeys.isFirstLaunch, value: 'false');
+    }
   }
 
   // ========== DÉCONNEXION ==========
 
   /// Déconnexion complète (supprime tout sauf les préférences)
   Future<void> logout() async {
-    // Sauvegarder certaines préférences avant suppression
-    final language = await _storage.read(key: StorageKeys.language);
-    final hasSeenOnboarding = await _storage.read(key: StorageKeys.hasSeenOnboarding);
+    if (_isWeb) {
+      await _clearWebStorage();
+    } else {
+      // Sauvegarder certaines préférences avant suppression
+      final language = await _storage.read(key: StorageKeys.language);
+      final hasSeenOnboarding = await _storage.read(key: StorageKeys.hasSeenOnboarding);
 
-    // Tout supprimer
-    await _storage.deleteAll();
+      // Tout supprimer
+      await _storage.deleteAll();
 
-    // Restaurer les préférences
-    if (language != null) {
-      await _storage.write(key: StorageKeys.language, value: language);
-    }
-    if (hasSeenOnboarding != null) {
-      await _storage.write(key: StorageKeys.hasSeenOnboarding, value: hasSeenOnboarding);
+      // Restaurer les préférences
+      if (language != null) {
+        await _storage.write(key: StorageKeys.language, value: language);
+      }
+      if (hasSeenOnboarding != null) {
+        await _storage.write(key: StorageKeys.hasSeenOnboarding, value: hasSeenOnboarding);
+      }
     }
   }
 
   /// Supprimer TOUTES les données (reset complet)
   Future<void> clearAll() async {
-    await _storage.deleteAll();
+    if (_isWeb) {
+      await _clearWebStorage();
+    } else {
+      await _storage.deleteAll();
+    }
   }
 }
