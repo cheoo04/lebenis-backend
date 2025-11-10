@@ -94,16 +94,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     CircleAvatar(
                       radius: 60,
-                      backgroundImage: driver?.profilePhoto != null
-                          ? NetworkImage(driver!.profilePhoto!)
-                          : null,
-                      child: driver?.profilePhoto == null
-                          ? Icon(
-                              Icons.person,
-                              size: 60,
-                              color: AppColors.textSecondary,
-                            )
-                          : null,
+                      backgroundColor: Colors.grey[200],
+                      child: ClipOval(
+                        child: driver?.profilePhoto != null
+                            ? Image.network(
+                                // Use string interpolation for cache-busting query param
+                                '${driver!.profilePhoto!}?cb=${DateTime.now().millisecondsSinceEpoch}',
+                                width: 120,
+                                height: 120,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(
+                                    Icons.person,
+                                    size: 60,
+                                    color: AppColors.textSecondary,
+                                  );
+                                },
+                              )
+                            : Icon(
+                                Icons.person,
+                                size: 60,
+                                color: AppColors.textSecondary,
+                              ),
+                      ),
                     ),
                     Positioned(
                       bottom: 0,
