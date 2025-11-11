@@ -168,7 +168,7 @@ class CloudinaryService:
                 public_id=public_id,
                 resource_type='auto',  # Détection auto (image/pdf)
                 folder=f'lebenis/documents/{document_type}',
-                transformation=settings.CLOUDINARY_DOCUMENT_OPTIONS.get('transformation', []),
+                transformation=getattr(settings, 'CLOUDINARY_DOCUMENT_OPTIONS', {}).get('transformation', []),
             )
             
             return result.get('secure_url')
