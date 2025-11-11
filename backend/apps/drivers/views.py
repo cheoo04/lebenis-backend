@@ -440,33 +440,35 @@ class DriverViewSet(viewsets.ModelViewSet):
         print(f"[DEBUG] PATCH /drivers/me/ - Raw data: {data}")
         
         # Mettre à jour les champs User
-        user_updated = False
+        # 🔥 IMPORTANT : Garder profile_photo dans data pour le serializer
+        # Mais le mettre aussi à jour directement sur l'User
+        if 'profile_photo' in data:
+            user.profile_photo = data['profile_photo']  # ← Pas de pop() !
+            user.save()
+
+        # Mettre à jour les autres champs User
         if 'phone' in data:
             user.phone = data.pop('phone')
-            user_updated = True
-        if 'profile_photo' in data:
-            user.profile_photo = data.pop('profile_photo')
-            user_updated = True
-        
-        if user_updated:
             user.save()
-        
+
         # Mapper vehicle_plate → vehicle_registration
         if 'vehicle_plate' in data:
             data['vehicle_registration'] = data.pop('vehicle_plate')
-        
+
         print(f"[DEBUG] Data for Driver serializer: {data}")
-        
+
         # Mettre à jour Driver
         serializer = DriverSerializer(driver, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            # Retourner le profil mis à jour avec la nouvelle photo
+            updated_driver = Driver.objects.get(user=request.user)
             return Response({
                 'success': True,
                 'message': 'Profil mis à jour avec succès',
-                'driver': serializer.data
+                'driver': DriverSerializer(updated_driver).data
             })
-        
+
         print(f"[DEBUG] Serializer errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
