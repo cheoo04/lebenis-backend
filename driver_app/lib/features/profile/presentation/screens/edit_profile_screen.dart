@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
+import '../../../../core/utils/helpers.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/providers/driver_provider.dart';
@@ -21,35 +24,29 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
+  // ========== CONTROLLERS & STATE ==========
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _vehicleTypeController = TextEditingController();
   final _vehiclePlateController = TextEditingController();
   final _vehicleCapacityController = TextEditingController();
-  
-  File? _newProfilePhoto;
+
+  dynamic _newProfilePhoto; // File (mobile) ou WebPickedFile (web)
+  Uint8List? _newProfilePhotoBytes;
   bool _isSubmitting = false;
   String? _selectedVehicleType;
 
+  // ========== LIFECYCLE ==========
   @override
   void initState() {
     super.initState();
     // Charger le profil d'abord
     Future.microtask(() async {
-      await ref.read(driverProvider.notifier).loadProfile();
-      _loadCurrentData();
+      if (mounted) {
+        await ref.read(driverProvider.notifier).loadProfile();
+        _loadCurrentData();
+      }
     });
-  }
-
-  void _loadCurrentData() {
-    final driver = ref.read(driverProvider).driver;
-    if (driver != null) {
-      _phoneController.text = driver.phone;
-      _selectedVehicleType = driver.vehicleType;
-      _vehicleTypeController.text = driver.vehicleType;
-      _vehiclePlateController.text = driver.vehicleRegistration;
-      _vehicleCapacityController.text = driver.vehicleCapacityKg.toString();
-    }
   }
 
   @override
@@ -61,13 +58,78 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     super.dispose();
   }
 
+  // ========== PRIVATE METHODS ==========
+  void _loadCurrentData() {
+    final driver = ref.read(driverProvider).driver;
+    if (driver != null) {
+      _phoneController.text = driver.phone;
+      _selectedVehicleType = driver.vehicleType;
+      _vehicleTypeController.text = driver.vehicleType;
+      _vehiclePlateController.text = driver.vehicleRegistration;
+      _vehicleCapacityController.text = driver.vehicleCapacityKg.toString();
+    }
+  }
+
+  void _resetPhotoState() {
+    debugPrint('[DEBUG] Reset de l\'état local de la photo');
+    setState(() {
+      _newProfilePhoto = null;
+      _newProfilePhotoBytes = null;
+    });
+  }
+
   Future<void> _pickProfilePhoto() async {
-    final file = await Helpers.pickImageWithDialog(context);
-    
-    if (file != null) {
-      setState(() {
-        _newProfilePhoto = file;
-      });
+    try {
+      debugPrint('📸 [DEBUG] _pickProfilePhoto lancé');
+
+      final file = await Helpers.pickImageWithDialog(context);
+
+      if (!mounted) return;
+
+      if (file != null) {
+        debugPrint('📸 [DEBUG] Fichier reçu: ${file.runtimeType}');
+
+        if (kIsWeb && file is WebPickedFile) {
+          final bytes = await file.readAsBytes();
+          debugPrint('📸 [DEBUG] Web - taille: ${bytes.length} bytes');
+
+          if (mounted) {
+            setState(() {
+              _newProfilePhoto = file;
+              _newProfilePhotoBytes = bytes;
+            });
+            Helpers.showSuccessSnackBar(
+              context,
+              'Image sélectionnée (${bytes.length} bytes)',
+            );
+          }
+        } else if (file is File) {
+          debugPrint('📸 [DEBUG] Mobile - path: ${file.path}');
+
+          if (mounted) {
+            setState(() {
+              _newProfilePhoto = file;
+              _newProfilePhotoBytes = null;
+            });
+            Helpers.showSuccessSnackBar(context, 'Image sélectionnée');
+          }
+        } else {
+          debugPrint('⚠️ [DEBUG] Type inconnu: ${file.runtimeType}');
+          if (mounted) {
+            Helpers.showErrorSnackBar(context, 'Type de fichier non supporté');
+          }
+        }
+      } else {
+        debugPrint('📸 [DEBUG] Aucune image sélectionnée');
+        if (mounted) {
+          Helpers.showInfoSnackBar(context, 'Sélection annulée');
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ [DEBUG] Erreur _pickProfilePhoto: $e');
+      if (mounted) {
+        Helpers.showErrorSnackBar(context, 'Erreur sélection image: $e');
+      }
     }
   }
 
@@ -76,69 +138,64 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Type de véhicule'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: BackendConstants.vehicleTypeChoices.map((type) {
-            final isSelected = _selectedVehicleType == type;
-            return ListTile(
-              leading: Icon(
-                BackendConstants.getVehicleTypeIcon(type),
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                size: 28,
-              ),
-              title: Text(
-                BackendConstants.getVehicleTypeLabel(type),
-                style: TextStyle(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? AppColors.primary : null,
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: BackendConstants.vehicleTypeChoices.map((type) {
+              final isSelected = _selectedVehicleType == type;
+              return ListTile(
+                leading: Icon(
+                  BackendConstants.getVehicleTypeIcon(type),
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                  size: 28,
                 ),
-              ),
-              trailing: Icon(
-                isSelected
-                    ? Icons.check_circle
-                    : Icons.radio_button_unchecked,
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
-              ),
-              onTap: () {
-                Navigator.of(context).pop(type);
-              },
-            );
-          }).toList(),
+                title: Text(
+                  BackendConstants.getVehicleTypeLabel(type),
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? AppColors.primary : null,
+                  ),
+                ),
+                trailing: Icon(
+                  isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                ),
+                onTap: () => Navigator.of(context).pop(type),
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
 
     if (selected != null && selected != _selectedVehicleType) {
-      // Afficher dialogue de confirmation si changement de véhicule
       if (!mounted) return;
-      
+
       final confirmed = await Helpers.showConfirmDialog(
         context,
         title: 'Changer de véhicule',
-        message: 'Le changement de type de véhicule ajustera automatiquement la capacité de charge par défaut. Continuer ?',
+        message:
+            'Le changement de type de véhicule ajustera automatiquement la capacité. Continuer ?',
         confirmText: 'Confirmer',
         cancelText: 'Annuler',
       );
 
-      if (confirmed == true && mounted) {
+      if (confirmed && mounted) {
         setState(() {
           _selectedVehicleType = selected;
           _vehicleTypeController.text = selected;
-          
-          // Mettre à jour la capacité par défaut selon le type
           final defaultCapacity = _getDefaultCapacity(selected);
           _vehicleCapacityController.text = defaultCapacity.toString();
         });
 
-        Helpers.showInfoSnackBar(
+        Helpers.showSuccessSnackBar(
           context,
-          'Capacité ajustée à ${ _getDefaultCapacity(selected)} kg pour ${BackendConstants.getVehicleTypeLabel(selected)}',
+          'Capacité ajustée à ${_getDefaultCapacity(selected)} kg',
         );
       }
     }
   }
 
-  /// Retourne la capacité par défaut selon le type de véhicule
   double _getDefaultCapacity(String vehicleType) {
     switch (vehicleType) {
       case 'moto':
@@ -155,7 +212,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _saveChanges() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      Helpers.showErrorSnackBar(context, 'Veuillez corriger les erreurs');
+      return;
+    }
 
     final confirmed = await Helpers.showConfirmDialog(
       context,
@@ -167,9 +227,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     if (confirmed != true) return;
 
+    if (!mounted) return;
+
     setState(() => _isSubmitting = true);
 
     try {
+      debugPrint('💾 [DEBUG] _saveChanges lancé');
+
       // Préparer les données de mise à jour
       final updateData = <String, dynamic>{
         'phone': _phoneController.text.trim(),
@@ -179,27 +243,73 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       };
 
       // Upload de la photo de profil si changée
-      if (_newProfilePhoto != null) {
+      if (_newProfilePhoto != null && _newProfilePhotoBytes != null) {
         try {
-          final photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(_newProfilePhoto!);
+          debugPrint('📤 [DEBUG] Upload photo lancé');
+
+          String photoUrl;
+          if (kIsWeb && _newProfilePhoto is WebPickedFile) {
+            // Web : passer les bytes et le nom du fichier
+            debugPrint(
+                '📤 [DEBUG] Web upload - bytes: ${_newProfilePhotoBytes!.length}');
+            photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(
+              _newProfilePhotoBytes!,
+              (_newProfilePhoto as WebPickedFile).name,
+            );
+          } else if (_newProfilePhoto is File) {
+            // Mobile : passer le File
+            debugPrint(
+                '📤 [DEBUG] Mobile upload - path: ${(_newProfilePhoto as File).path}');
+            photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(
+              _newProfilePhoto,
+            );
+          } else {
+            throw Exception(
+                'Type de fichier non supporté: ${_newProfilePhoto.runtimeType}');
+          }
+
+          debugPrint('✅ [DEBUG] Photo uploadée: $photoUrl');
           updateData['profile_photo'] = photoUrl;
         } catch (e) {
+          debugPrint('❌ [DEBUG] Erreur upload photo: $e');
           if (mounted) {
             Helpers.showErrorSnackBar(context, 'Erreur upload photo: $e');
           }
-          // Continue même si l'upload échoue
+          // Continuer sans la photo (elle peut être optionnelle)
         }
+      } else {
+        debugPrint('⚠️ [DEBUG] Pas de photo à uploader');
       }
 
       // Appel API pour mettre à jour le profil
-      await ref.read(driverProvider.notifier).updateProfile(updateData);
+      debugPrint('💾 [DEBUG] Mise à jour du profil');
+      final success =
+          await ref.read(driverProvider.notifier).updateProfile(updateData);
 
       if (!mounted) return;
-      Helpers.showSuccessSnackBar(context, 'Profil mis à jour avec succès!');
-      Navigator.of(context).pop(true);
+
+      if (success) {
+        // Reset de l'état local après succès
+        _resetPhotoState();
+
+        debugPrint('✅ [DEBUG] Profil mis à jour avec succès');
+        Helpers.showSuccessSnackBar(context, 'Profil mis à jour avec succès!');
+
+        // Attendre un peu avant de fermer pour que le snackbar soit visible
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (mounted) {
+          Navigator.of(context).pop(true);
+        }
+      } else {
+        debugPrint('❌ [DEBUG] Echec de la mise à jour');
+        Helpers.showErrorSnackBar(context, 'Échec de la mise à jour du profil');
+      }
     } catch (e) {
-      if (!mounted) return;
-      Helpers.showErrorSnackBar(context, 'Erreur: $e');
+      debugPrint('❌ [DEBUG] Erreur _saveChanges: $e');
+      if (mounted) {
+        Helpers.showErrorSnackBar(context, 'Erreur: $e');
+      }
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -207,6 +317,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
   }
 
+  // ========== BUILD ==========
   @override
   Widget build(BuildContext context) {
     final driverState = ref.watch(driverProvider);
@@ -214,23 +325,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     if (driverState.isLoading && driver == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Modifier le profil'),
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        appBar: AppBar(title: const Text('Modifier le profil')),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (driver == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Modifier le profil'),
-        ),
-        body: const Center(
-          child: Text('Aucune donnée de profil'),
-        ),
+        appBar: AppBar(title: const Text('Modifier le profil')),
+        body: const Center(child: Text('Aucune donnée de profil')),
       );
     }
 
@@ -253,12 +356,21 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                     child: _newProfilePhoto != null
                         ? ClipOval(
-                            child: Image.file(
-                              _newProfilePhoto!,
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
-                            ),
+                            child: kIsWeb && _newProfilePhotoBytes != null
+                                ? Image.memory(
+                                    _newProfilePhotoBytes!,
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                  )
+                                : (_newProfilePhoto is File)
+                                    ? Image.file(
+                                        _newProfilePhoto as File,
+                                        width: 120,
+                                        height: 120,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : const Icon(Icons.person, size: 60),
                           )
                         : driver.profilePhoto != null
                             ? ClipOval(
@@ -282,10 +394,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.primary,
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 2,
-                        ),
+                        border: Border.all(color: Colors.white, width: 2),
                       ),
                       child: IconButton(
                         icon: const Icon(
@@ -300,14 +409,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: Dimensions.spacingXL),
 
-            // Name (read-only)
-            Text(
-              'Informations personnelles',
-              style: TextStyles.h3,
-            ),
+            // Informations personnelles
+            Text('Informations personnelles', style: TextStyles.h3),
             const SizedBox(height: Dimensions.spacingM),
 
             CustomTextField(
@@ -316,20 +421,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               enabled: false,
               prefixIcon: Icons.person_outline,
             ),
-
             const SizedBox(height: Dimensions.spacingM),
 
-            // Email (read-only)
             CustomTextField(
               label: 'Email',
               initialValue: driver.user.email,
               enabled: false,
               prefixIcon: Icons.email_outlined,
             ),
-
             const SizedBox(height: Dimensions.spacingM),
 
-            // Phone (editable)
             CustomTextField(
               label: 'Téléphone',
               controller: _phoneController,
@@ -338,14 +439,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               validator: (value) => Validators.validatePhone(value ?? ''),
               enabled: !_isSubmitting,
             ),
-
             const SizedBox(height: Dimensions.spacingXL),
 
-            // Vehicle Information
-            Text(
-              'Informations du véhicule',
-              style: TextStyles.h3,
-            ),
+            // Informations du véhicule
+            Text('Informations du véhicule', style: TextStyles.h3),
             const SizedBox(height: Dimensions.spacingM),
 
             CustomTextField(
@@ -357,17 +454,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               suffixIcon: Icons.arrow_drop_down,
               validator: (value) => BackendValidators.validateVehicleType(value),
             ),
-
             const SizedBox(height: Dimensions.spacingM),
 
             CustomTextField(
               label: 'Plaque d\'immatriculation',
               controller: _vehiclePlateController,
               prefixIcon: Icons.confirmation_number_outlined,
-              validator: (value) => BackendValidators.validateVehicleRegistration(value),
+              validator: (value) =>
+                  BackendValidators.validateVehicleRegistration(value),
               enabled: !_isSubmitting,
             ),
-
             const SizedBox(height: Dimensions.spacingM),
 
             CustomTextField(
@@ -387,17 +483,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               },
               enabled: !_isSubmitting,
             ),
-
             const SizedBox(height: Dimensions.spacingXXL),
 
-            // Save Button
+            // Buttons
             CustomButton(
               text: 'Enregistrer les modifications',
               onPressed: _isSubmitting ? null : _saveChanges,
               isLoading: _isSubmitting,
               icon: Icons.save,
             ),
-
             const SizedBox(height: Dimensions.spacingM),
 
             OutlineButton(
@@ -405,11 +499,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               onPressed: _isSubmitting
                   ? null
                   : () {
+                      _resetPhotoState();
                       Navigator.of(context).pop();
                     },
               icon: Icons.close,
             ),
-
             const SizedBox(height: Dimensions.spacingL),
           ],
         ),

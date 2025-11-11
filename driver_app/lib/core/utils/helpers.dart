@@ -1,5 +1,4 @@
-// lib/core/utils/helpers.dart
-
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
@@ -8,6 +7,18 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
+
+/// Classe pour représenter un fichier sélectionné sur le web
+class WebPickedFile {
+  final String name;
+  final Uint8List? bytes;
+
+  WebPickedFile(this.name, this.bytes);
+
+  Future<Uint8List> readAsBytes() async => bytes ?? Uint8List(0);
+
+  String get path => name;
+}
 
 /// Classe utilitaire avec fonctions helpers génériques
 class Helpers {
@@ -118,8 +129,8 @@ class Helpers {
 
   // ========== IMAGES ==========
 
-  /// Choisir une image depuis la galerie
-  static Future<File?> pickImageFromGallery() async {
+  /// Choisir une image depuis la galerie (retourne File ou WebPickedFile)
+  static Future<dynamic> pickImageFromGallery() async {
     try {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(
@@ -130,8 +141,18 @@ class Helpers {
       );
 
       if (pickedFile != null) {
-        return File(pickedFile.path);
+        if (kIsWeb) {
+          // Sur le web, retourner WebPickedFile avec les bytes
+          final bytes = await pickedFile.readAsBytes();
+          debugPrint('🖼️ [DEBUG] pickImageFromGallery (web): name=${pickedFile.name}, bytes=${bytes.length}');
+          return WebPickedFile(pickedFile.name, bytes);
+        } else {
+          // Sur mobile, retourner File
+          debugPrint('🖼️ [DEBUG] pickImageFromGallery (mobile): path=${pickedFile.path}');
+          return File(pickedFile.path);
+        }
       }
+      debugPrint('🖼️ [DEBUG] pickImageFromGallery: aucun fichier sélectionné');
       return null;
     } catch (e) {
       if (kDebugMode) debugPrint('❌ Erreur sélection image: $e');
@@ -139,8 +160,8 @@ class Helpers {
     }
   }
 
-  /// Prendre une photo avec la caméra
-  static Future<File?> takePhoto() async {
+  /// Prendre une photo avec la caméra (retourne File ou WebPickedFile)
+  static Future<dynamic> takePhoto() async {
     try {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(
@@ -151,7 +172,16 @@ class Helpers {
       );
 
       if (pickedFile != null) {
-        return File(pickedFile.path);
+        if (kIsWeb) {
+          // Sur le web, retourner WebPickedFile
+          final bytes = await pickedFile.readAsBytes();
+          debugPrint('🖼️ [DEBUG] takePhoto (web): name=${pickedFile.name}, bytes=${bytes.length}');
+          return WebPickedFile(pickedFile.name, bytes);
+        } else {
+          // Sur mobile, retourner File
+          debugPrint('🖼️ [DEBUG] takePhoto (mobile): path=${pickedFile.path}');
+          return File(pickedFile.path);
+        }
       }
       return null;
     } catch (e) {
@@ -160,17 +190,18 @@ class Helpers {
     }
   }
 
-  /// Choisir image avec dialog (galerie ou caméra)
-  static Future<File?> pickImageWithDialog(BuildContext context) async {
-    // Sur Linux Desktop, la caméra ne fonctionne pas avec image_picker
+  /// Choisir image avec dialog (galerie ou caméra) - Support web et mobile
+  static Future<dynamic> pickImageWithDialog(BuildContext context) async {
+    // Sur Linux Desktop et Web, la caméra ne fonctionne pas toujours
     // On propose uniquement la galerie pour éviter les erreurs
     final isLinux = Theme.of(context).platform == TargetPlatform.linux;
-    
-    if (isLinux) {
-      // Directement la galerie sur Linux
+
+    if (isLinux || kIsWeb) {
+      // Directement la galerie sur Linux et Web
+      debugPrint('🖼️ [DEBUG] pickImageWithDialog: plateforme ${kIsWeb ? 'web' : 'linux'}, galerie uniquement');
       return await pickImageFromGallery();
     }
-    
+
     // Dialog avec choix caméra/galerie sur mobile
     final source = await showDialog<ImageSource>(
       context: context,
@@ -247,39 +278,18 @@ class Helpers {
     return data?.text;
   }
 
-  // ========== URL ==========
-
-  /// Ouvrir un lien (nécessite url_launcher)
-  // static Future<void> openUrl(String url) async {
-  //   if (await canLaunchUrl(Uri.parse(url))) {
-  //     await launchUrl(Uri.parse(url));
-  //   }
-  // }
-
-  /// Appeler un numéro de téléphone
-  // static Future<void> makePhoneCall(String phoneNumber) async {
-  //   final uri = Uri.parse('tel:$phoneNumber');
-  //   if (await canLaunchUrl(uri)) {
-  //     await launchUrl(uri);
-  //   }
-  // }
-
   // ========== DATES ==========
 
   /// Vérifier si une date est aujourd'hui
   static bool isToday(DateTime date) {
     final now = DateTime.now();
-    return date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
+    return date.year == now.year && date.month == now.month && date.day == now.day;
   }
 
   /// Vérifier si une date est hier
   static bool isYesterday(DateTime date) {
     final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    return date.year == yesterday.year &&
-        date.month == yesterday.month &&
-        date.day == yesterday.day;
+    return date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day;
   }
 
   /// Obtenir le début du jour
@@ -394,27 +404,11 @@ class Helpers {
     return color;
   }
 
-  // ========== VIBRATION ==========
-
-  /// Faire vibrer le téléphone (nécessite vibration package)
-  // static Future<void> vibrate({int duration = 100}) async {
-  //   if (await Vibration.hasVibrator() ?? false) {
-  //     Vibration.vibrate(duration: duration);
-  //   }
-  // }
-
-  // ========== CONNEXION ==========
-
-  /// Vérifier la connexion internet (nécessite connectivity_plus)
-  // static Future<bool> hasInternetConnection() async {
-  //   final result = await Connectivity().checkConnectivity();
-  //   return result != ConnectivityResult.none;
-  // }
-
   // ========== DEVICE INFO ==========
 
   /// Obtenir la plateforme
   static String getPlatform() {
+    if (kIsWeb) return 'web';
     if (Platform.isAndroid) return 'android';
     if (Platform.isIOS) return 'ios';
     if (Platform.isLinux) return 'linux';
@@ -424,10 +418,10 @@ class Helpers {
   }
 
   /// Vérifier si c'est Android
-  static bool isAndroid() => Platform.isAndroid;
+  static bool isAndroid() => !kIsWeb && Platform.isAndroid;
 
   /// Vérifier si c'est iOS
-  static bool isIOS() => Platform.isIOS;
+  static bool isIOS() => !kIsWeb && Platform.isIOS;
 
   // ========== FOCUS ==========
 
@@ -448,10 +442,10 @@ class Helpers {
     void Function() action, {
     Duration duration = const Duration(milliseconds: 500),
   }) {
-    Timer? timer;
+    _DebounceTimer? timer;
     return () {
       timer?.cancel();
-      timer = Timer(duration, action);
+      timer = _DebounceTimer(duration, action);
     };
   }
 
@@ -474,14 +468,16 @@ class Helpers {
   }
 }
 
-/// Timer pour debounce
-class Timer {
+/// Classe privée pour le debounce timer
+class _DebounceTimer {
   final Duration duration;
   final void Function() callback;
-  
+
   Timer? _timer;
 
-  Timer(this.duration, this.callback);
+  _DebounceTimer(this.duration, this.callback) {
+    _timer = Timer(duration, callback);
+  }
 
   void cancel() {
     _timer?.cancel();

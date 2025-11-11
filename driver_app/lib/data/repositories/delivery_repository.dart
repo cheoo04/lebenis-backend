@@ -196,7 +196,9 @@ class DeliveryRepository {
     required String id,
     required String confirmationCode,
     String? deliveryPhoto,
+    Uint8List? deliveryPhotoBytes,
     String? recipientSignature,
+    Uint8List? recipientSignatureBytes,
     String? notes,
   }) async {
     final data = <String, dynamic>{
@@ -207,15 +209,25 @@ class DeliveryRepository {
     }
 
     // Upload photo et signature si fournis
-    if (deliveryPhoto != null || recipientSignature != null) {
+    if (deliveryPhoto != null || deliveryPhotoBytes != null || recipientSignature != null || recipientSignatureBytes != null) {
       final formData = FormData();
-      if (deliveryPhoto != null) {
+      if (deliveryPhotoBytes != null) {
+        formData.files.add(MapEntry(
+          'delivery_photo',
+          MultipartFile.fromBytes(deliveryPhotoBytes, filename: 'delivery_photo.png'),
+        ));
+      } else if (deliveryPhoto != null) {
         formData.files.add(MapEntry(
           'delivery_photo',
           await MultipartFile.fromFile(deliveryPhoto),
         ));
       }
-      if (recipientSignature != null) {
+      if (recipientSignatureBytes != null) {
+        formData.files.add(MapEntry(
+          'recipient_signature',
+          MultipartFile.fromBytes(recipientSignatureBytes, filename: 'recipient_signature.png'),
+        ));
+      } else if (recipientSignature != null) {
         formData.files.add(MapEntry(
           'recipient_signature',
           await MultipartFile.fromFile(recipientSignature),

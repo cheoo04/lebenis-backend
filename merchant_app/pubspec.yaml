@@ -48,8 +48,6 @@ dependencies:
   # État
   flutter_riverpod: ^2.4.0
   
-  # HTTP & API
-  dio: ^5.3.3
   
   # Maps & Location
   google_maps_flutter: ^2.5.0

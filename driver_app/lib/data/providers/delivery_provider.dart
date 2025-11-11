@@ -1,5 +1,5 @@
 // lib/data/providers/delivery_provider.dart
-
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/delivery_repository.dart';
 import '../models/delivery_model.dart';
@@ -197,7 +197,9 @@ class DeliveryNotifier extends StateNotifier<DeliveryState> {
     required String id,
     required String confirmationCode,
     String? deliveryPhoto,
+    Uint8List? deliveryPhotoBytes,
     String? recipientSignature,
+    Uint8List? recipientSignatureBytes,
     String? notes,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
@@ -206,7 +208,9 @@ class DeliveryNotifier extends StateNotifier<DeliveryState> {
         id: id,
         confirmationCode: confirmationCode,
         deliveryPhoto: deliveryPhoto,
+        deliveryPhotoBytes: deliveryPhotoBytes,
         recipientSignature: recipientSignature,
+        recipientSignatureBytes: recipientSignatureBytes,
         notes: notes,
       );
 

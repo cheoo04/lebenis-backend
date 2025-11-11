@@ -1,6 +1,7 @@
 // lib/core/network/dio_client.dart
 
 import 'package:dio/dio.dart';
+import 'dart:typed_data';
 import '../constants/api_constants.dart';
 import '../services/auth_service.dart';
 import 'api_exception.dart';
@@ -159,15 +160,29 @@ class DioClient {
 
   Future<Response> uploadFile(
     String path, {
-    required String filePath,
+    String? filePath,
+    Uint8List? fileBytes,
+    String? filename,
     required String fieldName,
     Map<String, dynamic>? additionalData,
     ProgressCallback? onSendProgress,
     String method = 'POST', // Méthode HTTP (POST, PUT, PATCH)
   }) async {
     try {
+      MultipartFile multipartFile;
+      if (fileBytes != null) {
+        multipartFile = MultipartFile.fromBytes(
+          fileBytes,
+          filename: filename ?? 'upload_file.png',
+        );
+      } else if (filePath != null) {
+        multipartFile = await MultipartFile.fromFile(filePath);
+      } else {
+        throw Exception('No file data provided for uploadFile');
+      }
+
       final formData = FormData.fromMap({
-        fieldName: await MultipartFile.fromFile(filePath),
+        fieldName: multipartFile,
         if (additionalData != null) ...additionalData,
       });
       
