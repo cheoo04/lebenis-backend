@@ -20,11 +20,16 @@ class DriverSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """
         Permet de mettre à jour le Driver ET l'User (pour profile_photo)
+        Accepte profile_photo à la racine OU dans user.
         """
-        # Extrait profile_photo si fourni
+        # Accepte profile_photo à la racine OU dans user
         profile_photo = None
+        # 1. Si envoyé à la racine
+        if 'profile_photo' in validated_data:
+            profile_photo = validated_data.pop('profile_photo')
+        # 2. Si envoyé dans user
         user_data = validated_data.pop('user', None)
-        if user_data:
+        if user_data and 'profile_photo' in user_data:
             profile_photo = user_data.get('profile_photo')
 
         # Mise à jour du Driver (véhicule, etc.)
