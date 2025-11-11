@@ -124,7 +124,7 @@ class CloudinaryService:
                 overwrite=True,  # Remplacer si existe déjà
                 resource_type='image',
                 folder='lebenis/profiles',
-                transformation=settings.CLOUDINARY_PROFILE_PHOTO_OPTIONS.get('transformation', []),
+                transformation=getattr(settings, 'CLOUDINARY_PROFILE_PHOTO_OPTIONS', {}).get('transformation', []),
                 invalidate=True,  # Invalider cache CDN
             )
             
