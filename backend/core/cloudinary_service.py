@@ -25,25 +25,29 @@ class CloudinaryService:
         'image/jpeg', 'image/jpg', 'image/png', 'application/pdf'
     }
     
+    _cloudinary_configured = False
+
     @classmethod
     def _configure_cloudinary(cls):
-        """Configure Cloudinary avec les credentials depuis settings"""
-        if not all([
-            settings.CLOUDINARY_STORAGE.get('CLOUD_NAME'),
-            settings.CLOUDINARY_STORAGE.get('API_KEY'),
-            settings.CLOUDINARY_STORAGE.get('API_SECRET'),
-        ]):
+        """Configure Cloudinary avec les credentials depuis settings (une seule fois)"""
+        if cls._cloudinary_configured:
+            return
+        storage = getattr(settings, 'CLOUDINARY_STORAGE', {})
+        cloud_name = storage.get('CLOUD_NAME')
+        api_key = storage.get('API_KEY')
+        api_secret = storage.get('API_SECRET')
+        if not all([cloud_name, api_key, api_secret]):
             raise ValidationError(
-                'Cloudinary non configuré. Vérifiez les variables d\'environnement: '
-                'CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET'
+                "Cloudinary non configuré. Vérifiez les variables d'environnement: "
+                "CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET"
             )
-        
         cloudinary.config(
-            cloud_name=settings.CLOUDINARY_STORAGE['CLOUD_NAME'],
-            api_key=settings.CLOUDINARY_STORAGE['API_KEY'],
-            api_secret=settings.CLOUDINARY_STORAGE['API_SECRET'],
-            secure=settings.CLOUDINARY_STORAGE.get('SECURE', True)
+            cloud_name=cloud_name,
+            api_key=api_key,
+            api_secret=api_secret,
+            secure=storage.get('SECURE', True)
         )
+        cls._cloudinary_configured = True
     
     @classmethod
     def _validate_file(cls, file, max_size=None, allowed_types=None):
@@ -176,30 +180,26 @@ class CloudinaryService:
     def delete_image(cls, url):
         """
         Supprime une image de Cloudinary
-        
         Args:
             url: URL complète de l'image Cloudinary
-        
         Returns:
             bool: True si suppression réussie
         """
         try:
             cls._configure_cloudinary()
-            
-            # Extraire public_id de l'URL
-            # URL format: https://res.cloudinary.com/{cloud}/image/upload/v{version}/{public_id}.{format}
-            parts = url.split('/')
             if 'cloudinary.com' not in url:
                 return False
-            
-            # Trouver l'index de 'upload'
-            upload_idx = parts.index('upload')
-            # Public ID est tout après upload/ (sans l'extension)
-            public_id_with_ext = '/'.join(parts[upload_idx + 2:])  # Skip version
-            public_id = os.path.splitext(public_id_with_ext)[0]
-            
+            # Extraire le public_id Cloudinary de l'URL
+            # Ex: https://res.cloudinary.com/<cloud>/image/upload/v<version>/<folder>/<public_id>.<ext>
+            # On enlève le protocole et on split
+            path = url.split('upload/')[-1]
+            # Enlever la version si présente (commence par v et chiffres)
+            parts = path.split('/')
+            if parts[0].startswith('v') and parts[0][1:].isdigit():
+                parts = parts[1:]
+            public_id_with_ext = '/'.join(parts)
+            public_id, _ = os.path.splitext(public_id_with_ext)
             result = cloudinary.uploader.destroy(public_id)
             return result.get('result') == 'ok'
-        
         except Exception:
             return False
