@@ -18,7 +18,11 @@ def upload_profile_photo(request):
     Upload une photo de profil vers Cloudinary et met à jour le profil utilisateur.
     
     Request:
-        - Multipart/form-data
+        import logging
+        logger = logging.getLogger("django.request")
+        try:
+            logger.debug("[UPLOAD_PROFILE_PHOTO] request.FILES: %s", request.FILES)
+            logger.debug("[UPLOAD_PROFILE_PHOTO] request.POST: %s", request.POST)
         - Field: 'photo' (fichier image)
     
     Response Success (200):

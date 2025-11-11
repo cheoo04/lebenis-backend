@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 import '../repositories/driver_repository.dart';
 import '../models/driver_model.dart';
 import 'auth_provider.dart';
@@ -150,51 +151,44 @@ class DriverNotifier extends StateNotifier<DriverState> {
     state = state.copyWith(clearError: true, clearSuccess: true);
   }
 
-  /// Upload une photo de profil - Support Web et Mobile
-  /// Accepte File (mobile) ou Uint8List (web)
+  /// Upload une photo de profil - Support Web et Mobile via XFile
+  /// Accepte XFile (web/mobile)
   Future<String> uploadProfilePhoto(
-    dynamic photoFileOrBytes, [
+    XFile photoFile, [
     String? filename,
   ]) async {
     try {
       final dioClient = _ref.read(dioClientProvider);
       Response response;
 
-      if (kIsWeb && photoFileOrBytes is Uint8List) {
-        // Sur le web : utiliser les bytes
-        final multipartFile = MultipartFile.fromBytes(
-          photoFileOrBytes,
-          filename: filename ?? 'profile_photo.jpg',
-        );
-
-        final formData = FormData();
-        formData.files.add(MapEntry('photo', multipartFile));
-
-        response = await dioClient.post(
-          '/api/v1/auth/upload-profile-photo/',
-          data: formData,
-        );
-      } else if (photoFileOrBytes is File) {
-        // Sur mobile : utiliser le File
-        final multipartFile = await MultipartFile.fromFile(
-          photoFileOrBytes.path,
-          filename: filename ?? 'profile_photo.jpg',
-        );
-
-        final formData = FormData();
-        formData.files.add(MapEntry('photo', multipartFile));
-
-        response = await dioClient.post(
-          '/api/v1/auth/upload-profile-photo/',
-          data: formData,
+      MultipartFile multipartFile;
+      if (kIsWeb) {
+        // Sur le web : utiliser les bytes de XFile
+        final bytes = await photoFile.readAsBytes();
+        multipartFile = MultipartFile.fromBytes(
+          bytes,
+          filename: filename ?? photoFile.name,
         );
       } else {
-        throw Exception('Type de fichier non supporté: ${photoFileOrBytes.runtimeType}');
+        // Sur mobile : utiliser le path de XFile
+        multipartFile = await MultipartFile.fromFile(
+          photoFile.path,
+          filename: filename ?? photoFile.name,
+        );
       }
+
+      final formData = FormData();
+      formData.files.add(MapEntry('photo', multipartFile));
+
+      response = await dioClient.post(
+        '/api/v1/auth/upload-profile-photo/',
+        data: formData,
+      );
+
 
       // Vérifier la réponse
       if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Erreur serveur: ${response.statusCode}');
+        throw Exception('Erreur serveur: ${response.statusCode}');
       }
 
       final data = response.data as Map<String, dynamic>?;
@@ -218,18 +212,20 @@ class DriverNotifier extends StateNotifier<DriverState> {
     }
   }
 
-  /// Upload une photo de profil depuis le web (bytes + filename)
-  /// Alias pour uploadProfilePhoto avec signature spécifique au web
-  Future<String> uploadProfilePhotoWeb(Uint8List bytes, String filename) async {
-    return await uploadProfilePhoto(bytes, filename);
-  }
+
+  // Ancienne méthode web supprimée : uploadProfilePhotoWeb n'est plus nécessaire car tout passe par XFile
 
   /// Mettre à jour le profil du driver
   /// Accepte un Map avec les champs à mettre à jour
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
+      print('💾 [DEBUG] updateProfile called with: $data');
       final updatedDriver = await _repository.updateProfile(data);
+      // 🔄 Recharger le profil depuis le serveur pour obtenir la dernière URL Cloudinary
+      print('🔄 [DEBUG] Profile updated - reloading from server...');
+      await loadProfile();
+      print('✅ [DEBUG] Profile reloaded from server');
       state = state.copyWith(
         isLoading: false,
         driver: updatedDriver,
@@ -237,6 +233,7 @@ class DriverNotifier extends StateNotifier<DriverState> {
       );
       return true;
     } catch (e) {
+      print('❌ [DEBUG] updateProfile error: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
