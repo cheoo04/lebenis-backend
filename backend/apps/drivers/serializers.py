@@ -11,7 +11,33 @@ class DriverSerializer(serializers.ModelSerializer):
     zones = DriverZoneSerializer(many=True, read_only=True)
     user = UserSerializer(read_only=True)
     phone = serializers.CharField(source='user.phone', read_only=True)
-    profile_photo = serializers.CharField(source='user.profile_photo', read_only=True)
+    profile_photo = serializers.CharField(
+        source='user.profile_photo',
+        required=False,
+        allow_blank=True,
+        allow_null=True
+    )
+    def update(self, instance, validated_data):
+        """
+        Permet de mettre à jour le Driver ET l'User (pour profile_photo)
+        """
+        # Extrait profile_photo si fourni
+        profile_photo = None
+        user_data = validated_data.pop('user', None)
+        if user_data:
+            profile_photo = user_data.get('profile_photo')
+
+        # Mise à jour du Driver (véhicule, etc.)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Mise à jour du User (profile_photo)
+        if profile_photo is not None:
+            instance.user.profile_photo = profile_photo
+            instance.user.save()
+
+        return instance
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

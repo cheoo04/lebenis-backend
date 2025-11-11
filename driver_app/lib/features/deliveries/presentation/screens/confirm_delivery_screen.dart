@@ -1,4 +1,6 @@
 import 'dart:io';
+// import 'dart:typed_data'; // ← AJOUT pour Uint8List
+import 'package:flutter/foundation.dart'; // ← AJOUT pour kIsWeb
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signature/signature.dart';
@@ -33,8 +35,14 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
     penColor: Colors.black,
     exportBackgroundColor: Colors.white,
   );
+  
+  // ← MODIFICATION: Support web et mobile
   File? _photoFile;
+  Uint8List? _photoBytes; // Pour le web
+  
   File? _signatureFile;
+  Uint8List? _signatureBytes; // Pour le web
+  
   bool _isProcessing = false;
 
   @override
@@ -47,9 +55,18 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
   Future<void> _showPhotoOptions() async {
     final file = await Helpers.pickImageWithDialog(context);
     if (file != null) {
-      setState(() {
-        _photoFile = file;
-      });
+      // ← MODIFICATION: Lire les bytes pour le web
+      if (kIsWeb) {
+        final bytes = await file.readAsBytes();
+        setState(() {
+          _photoBytes = bytes;
+          _photoFile = file; // Garde la référence pour le path
+        });
+      } else {
+        setState(() {
+          _photoFile = file;
+        });
+      }
     }
   }
 
@@ -62,15 +79,22 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
     if (!mounted) return;
 
     if (result == true && _signatureController.isNotEmpty) {
-      // Sauvegarder la signature en tant que fichier
       final signature = await _signatureController.toPngBytes();
       if (signature != null) {
-        final tempDir = await getTemporaryDirectory();
-        final file = File('${tempDir.path}/signature_${DateTime.now().millisecondsSinceEpoch}.png');
-        await file.writeAsBytes(signature);
-        setState(() {
-          _signatureFile = file;
-        });
+        // ← MODIFICATION: Support web et mobile
+        if (kIsWeb) {
+          setState(() {
+            _signatureBytes = signature;
+          });
+        } else {
+          final tempDir = await getTemporaryDirectory();
+          final file = File('${tempDir.path}/signature_${DateTime.now().millisecondsSinceEpoch}.png');
+          await file.writeAsBytes(signature);
+          setState(() {
+            _signatureFile = file;
+            _signatureBytes = signature; // Garde les bytes aussi
+          });
+        }
         Helpers.showSuccessSnackBar(context, 'Signature capturée avec succès');
       }
     }
@@ -78,12 +102,12 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
 
   Future<void> _confirmDelivery() async {
     // Validate requirements
-    if (_photoFile == null) {
+    if (_photoFile == null && _photoBytes == null) {
       Helpers.showErrorSnackBar(context, 'Veuillez prendre une photo de la livraison');
       return;
     }
 
-    if (_signatureFile == null) {
+    if (_signatureFile == null && _signatureBytes == null) {
       Helpers.showErrorSnackBar(context, 'Veuillez capturer la signature du destinataire');
       return;
     }
@@ -110,19 +134,22 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
       });
       return;
     }
+    
     try {
       await ref.read(deliveryProvider.notifier).confirmDelivery(
         id: widget.delivery.id,
         confirmationCode: pin,
-        deliveryPhoto: _photoFile?.path, // Chemin du fichier local
-        recipientSignature: _signatureFile?.path, // Chemin du fichier local
+        deliveryPhoto: _photoFile?.path,
+        deliveryPhotoBytes: _photoBytes,
+        recipientSignature: _signatureFile?.path,
+        recipientSignatureBytes: _signatureBytes,
         notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
       );
 
       if (!mounted) return;
 
-  Helpers.showSuccessSnackBar(context, 'Livraison confirmée avec succès!');
-  Navigator.of(context).popUntil((route) => route.isFirst);
+      Helpers.showSuccessSnackBar(context, 'Livraison confirmée avec succès!');
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
       if (!mounted) return;
       Helpers.showErrorSnackBar(context, 'Erreur: $e');
@@ -191,23 +218,30 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
 
             const SizedBox(height: Dimensions.spacingL),
 
-            // Photo Section
+            // Photo Section ← MODIFICATION ICI
             _RequirementCard(
               icon: Icons.photo_camera,
               title: 'Photo de la livraison',
               subtitle: 'Prenez une photo du colis livré',
-              isCompleted: _photoFile != null,
+              isCompleted: _photoFile != null || _photoBytes != null,
               child: Column(
                 children: [
-                  if (_photoFile != null) ...[
+                  if (_photoFile != null || _photoBytes != null) ...[
                     ClipRRect(
                       borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                      child: Image.file(
-                        _photoFile!,
-                        height: 200,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
+                      child: kIsWeb && _photoBytes != null
+                          ? Image.memory(
+                              _photoBytes!,
+                              height: 200,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.file(
+                              _photoFile!,
+                              height: 200,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
                     ),
                     const SizedBox(height: Dimensions.spacingM),
                   ],
@@ -215,12 +249,12 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                     children: [
                       Expanded(
                         child: OutlineButton(
-                          text: _photoFile == null ? 'Prendre une photo' : 'Changer',
+                          text: _photoFile == null && _photoBytes == null ? 'Prendre une photo' : 'Changer',
                           onPressed: _isProcessing ? null : _showPhotoOptions,
                           icon: Icons.camera_alt,
                         ),
                       ),
-                      if (_photoFile != null) ...[
+                      if (_photoFile != null || _photoBytes != null) ...[
                         const SizedBox(width: Dimensions.spacingS),
                         IconButton(
                           icon: const Icon(Icons.delete, color: AppColors.error),
@@ -229,6 +263,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                               : () {
                                   setState(() {
                                     _photoFile = null;
+                                    _photoBytes = null;
                                   });
                                 },
                         ),
@@ -241,15 +276,15 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
 
             const SizedBox(height: Dimensions.spacingL),
 
-            // Signature Section
+            // Signature Section ← MODIFICATION ICI
             _RequirementCard(
               icon: Icons.draw,
               title: 'Signature du destinataire',
               subtitle: 'Faites signer le destinataire',
-              isCompleted: _signatureFile != null,
+              isCompleted: _signatureFile != null || _signatureBytes != null,
               child: Column(
                 children: [
-                  if (_signatureFile != null)
+                  if (_signatureFile != null || _signatureBytes != null)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(Dimensions.radiusM),
                       child: Container(
@@ -258,10 +293,15 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                           border: Border.all(color: AppColors.success, width: 2),
                           borderRadius: BorderRadius.circular(Dimensions.radiusM),
                         ),
-                        child: Image.file(
-                          _signatureFile!,
-                          fit: BoxFit.contain,
-                        ),
+                        child: kIsWeb && _signatureBytes != null
+                            ? Image.memory(
+                                _signatureBytes!,
+                                fit: BoxFit.contain,
+                              )
+                            : Image.file(
+                                _signatureFile!,
+                                fit: BoxFit.contain,
+                              ),
                       ),
                     )
                   else
@@ -295,12 +335,12 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                     children: [
                       Expanded(
                         child: OutlineButton(
-                          text: _signatureFile != null ? 'Capturer à nouveau' : 'Capturer signature',
+                          text: (_signatureFile != null || _signatureBytes != null) ? 'Capturer à nouveau' : 'Capturer signature',
                           onPressed: _isProcessing ? null : _captureSignature,
                           icon: Icons.edit,
                         ),
                       ),
-                      if (_signatureFile != null) ...[
+                      if (_signatureFile != null || _signatureBytes != null) ...[
                         const SizedBox(width: Dimensions.spacingS),
                         IconButton(
                           icon: const Icon(Icons.delete, color: AppColors.error),
@@ -309,6 +349,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                               : () {
                                   setState(() {
                                     _signatureFile = null;
+                                    _signatureBytes = null;
                                   });
                                 },
                         ),
@@ -368,6 +409,8 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
     );
   }
 }
+
+// Les autres classes (_RequirementCard et _SignatureDialog) restent identiques
 
 class _RequirementCard extends StatelessWidget {
   final IconData icon;

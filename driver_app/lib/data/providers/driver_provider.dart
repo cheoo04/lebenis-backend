@@ -1,7 +1,8 @@
-// lib/data/providers/driver_provider.dart
-
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import '../repositories/driver_repository.dart';
 import '../models/driver_model.dart';
 import 'auth_provider.dart';
@@ -149,40 +150,82 @@ class DriverNotifier extends StateNotifier<DriverState> {
     state = state.copyWith(clearError: true, clearSuccess: true);
   }
 
-  /// Upload une photo de profil vers Cloudinary
-  /// Endpoint: POST /api/v1/auth/upload-profile-photo/
-  Future<String> uploadProfilePhoto(File photoFile) async {
+  /// Upload une photo de profil - Support Web et Mobile
+  /// Accepte File (mobile) ou Uint8List (web)
+  Future<String> uploadProfilePhoto(
+    dynamic photoFileOrBytes, [
+    String? filename,
+  ]) async {
     try {
       final dioClient = _ref.read(dioClientProvider);
-      
-      // Upload vers le nouvel endpoint dédié
-      final response = await dioClient.uploadFile(
-        '/api/v1/auth/upload-profile-photo/',
-        filePath: photoFile.path,
-        fieldName: 'photo',  // Backend attend 'photo', pas 'profile_photo'
-        method: 'POST',  // Endpoint dédié utilise POST
-      );
-      
-      // Backend retourne: { success: true, profile_photo: "url", user: {...} }
-      final data = response.data as Map<String, dynamic>;
-      
-      if (data['success'] != true) {
-        throw Exception(data['error'] ?? 'Upload échoué');
+      Response response;
+
+      if (kIsWeb && photoFileOrBytes is Uint8List) {
+        // Sur le web : utiliser les bytes
+        final multipartFile = MultipartFile.fromBytes(
+          photoFileOrBytes,
+          filename: filename ?? 'profile_photo.jpg',
+        );
+
+        final formData = FormData();
+        formData.files.add(MapEntry('photo', multipartFile));
+
+        response = await dioClient.post(
+          '/api/v1/auth/upload-profile-photo/',
+          data: formData,
+        );
+      } else if (photoFileOrBytes is File) {
+        // Sur mobile : utiliser le File
+        final multipartFile = await MultipartFile.fromFile(
+          photoFileOrBytes.path,
+          filename: filename ?? 'profile_photo.jpg',
+        );
+
+        final formData = FormData();
+        formData.files.add(MapEntry('photo', multipartFile));
+
+        response = await dioClient.post(
+          '/api/v1/auth/upload-profile-photo/',
+          data: formData,
+        );
+      } else {
+        throw Exception('Type de fichier non supporté: ${photoFileOrBytes.runtimeType}');
       }
-      
+
+      // Vérifier la réponse
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Erreur serveur: ${response.statusCode}');
+      }
+
+      final data = response.data as Map<String, dynamic>?;
+      if (data == null) {
+        throw Exception('Réponse vide du serveur');
+      }
+
+      // Backend retourne: { success: true, profile_photo: "url", ... }
+      if (data['success'] != true) {
+        throw Exception(data['error'] ?? data['message'] ?? 'Upload échoué');
+      }
+
       final photoUrl = data['profile_photo'] as String?;
-      
       if (photoUrl == null || photoUrl.isEmpty) {
         throw Exception('URL de photo non retournée par le serveur');
       }
-      
+
       return photoUrl;
     } catch (e) {
       throw Exception('Erreur lors de l\'upload de la photo: $e');
     }
   }
 
+  /// Upload une photo de profil depuis le web (bytes + filename)
+  /// Alias pour uploadProfilePhoto avec signature spécifique au web
+  Future<String> uploadProfilePhotoWeb(Uint8List bytes, String filename) async {
+    return await uploadProfilePhoto(bytes, filename);
+  }
+
   /// Mettre à jour le profil du driver
+  /// Accepte un Map avec les champs à mettre à jour
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
