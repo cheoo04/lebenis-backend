@@ -89,22 +89,16 @@ class CloudinaryService:
     
     @classmethod
     def upload_profile_photo(cls, file, user_id):
-        """
-        Upload une photo de profil utilisateur
+        """Upload une photo de profil utilisateur (version avec logs et upload simple)"""
+        import logging
+        logger = logging.getLogger(__name__)
         
-        Args:
-            file: Fichier Django UploadedFile
-            user_id: ID de l'utilisateur (pour nommage unique)
+        logger.info(f"🔄 [CLOUDINARY] Starting upload for user {user_id}")
+        logger.info(f"   File: {file.name}, Size: {file.size} bytes")
         
-        Returns:
-            str: URL sécurisée de l'image uploadée
-        
-        Raises:
-            ValidationError: Si validation échoue
-            Exception: Si upload échoue
-        """
         # Configuration Cloudinary
         cls._configure_cloudinary()
+        logger.info("✅ [CLOUDINARY] Configuration OK")
         
         # Validation
         cls._validate_file(
@@ -112,26 +106,36 @@ class CloudinaryService:
             max_size=cls.MAX_PROFILE_PHOTO_SIZE,
             allowed_types=cls.ALLOWED_IMAGE_TYPES
         )
+        logger.info("✅ [CLOUDINARY] Validation OK")
         
         # Nom unique du fichier
         public_id = f"user_{user_id}"
         
         try:
-            # Upload avec transformations
+            logger.info(f"🚀 [CLOUDINARY] Uploading to folder: lebenis/profiles, public_id: {public_id}")
+            # Upload SIMPLE (sans transformations pour tester)
             result = cloudinary.uploader.upload(
                 file,
                 public_id=public_id,
-                overwrite=True,  # Remplacer si existe déjà
+                overwrite=True,
                 resource_type='image',
                 folder='lebenis/profiles',
-                transformation=getattr(settings, 'CLOUDINARY_PROFILE_PHOTO_OPTIONS', {}).get('transformation', []),
-                invalidate=True,  # Invalider cache CDN
+                invalidate=True,
             )
             
-            # Retourner URL sécurisée
-            return result.get('secure_url')
+            secure_url = result.get('secure_url')
+            logger.info(f"✅ [CLOUDINARY] Upload SUCCESS!")
+            logger.info(f"   URL: {secure_url}")
+            logger.info(f"   Public ID: {result.get('public_id')}")
+            logger.info(f"   Format: {result.get('format')}")
+            logger.info(f"   Width: {result.get('width')}, Height: {result.get('height')}")
+            
+            return secure_url
         
         except Exception as e:
+            logger.error(f"❌ [CLOUDINARY] Upload FAILED: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
             raise Exception(f'Erreur lors de l\'upload vers Cloudinary: {str(e)}')
     
     @classmethod

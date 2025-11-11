@@ -1,9 +1,12 @@
+// driver_app/lib/features/profile/presentation/screens/edit_profile_screen.dart
 import 'dart:io';
 import 'dart:typed_data';
 import '../../../../core/utils/helpers.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../../../data/models/driver_model.dart';
 import '../../../../data/providers/driver_provider.dart';
 import '../../../../core/utils/backend_validators.dart';
 import '../../../../core/constants/backend_constants.dart';
@@ -16,6 +19,7 @@ import '../../../../shared/widgets/network_image_cached.dart';
 import '../../../../shared/utils/helpers.dart';
 import '../../../../shared/utils/validators.dart';
 
+
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -23,30 +27,28 @@ class EditProfileScreen extends ConsumerStatefulWidget {
   ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
+
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   // ========== CONTROLLERS & STATE ==========
-  final _formKey = GlobalKey<FormState>();
-  final _phoneController = TextEditingController();
-  final _vehicleTypeController = TextEditingController();
-  final _vehiclePlateController = TextEditingController();
-  final _vehicleCapacityController = TextEditingController();
+  late GlobalKey<FormState> _formKey;
+  late TextEditingController _phoneController;
+  late TextEditingController _vehicleTypeController;
+  late TextEditingController _vehiclePlateController;
+  late TextEditingController _vehicleCapacityController;
 
-  dynamic _newProfilePhoto; // File (mobile) ou WebPickedFile (web)
+  late String _selectedVehicleType;
+  dynamic _newProfilePhoto;
   Uint8List? _newProfilePhotoBytes;
   bool _isSubmitting = false;
-  String? _selectedVehicleType;
 
-  // ========== LIFECYCLE ==========
   @override
   void initState() {
     super.initState();
-    // Charger le profil d'abord
-    Future.microtask(() async {
-      if (mounted) {
-        await ref.read(driverProvider.notifier).loadProfile();
-        _loadCurrentData();
-      }
-    });
+    _formKey = GlobalKey<FormState>();
+    _phoneController = TextEditingController();
+    _vehicleTypeController = TextEditingController();
+    _vehiclePlateController = TextEditingController();
+    _vehicleCapacityController = TextEditingController();
   }
 
   @override
@@ -58,77 +60,190 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     super.dispose();
   }
 
-  // ========== PRIVATE METHODS ==========
-  void _loadCurrentData() {
-    final driver = ref.read(driverProvider).driver;
-    if (driver != null) {
-      _phoneController.text = driver.phone;
-      _selectedVehicleType = driver.vehicleType;
-      _vehicleTypeController.text = driver.vehicleType;
-      _vehiclePlateController.text = driver.vehicleRegistration;
-      _vehicleCapacityController.text = driver.vehicleCapacityKg.toString();
-    }
+  void _initializeForm(DriverModel driver) {
+    _phoneController.text = driver.phone;
+    _selectedVehicleType = driver.vehicleType;
+    _vehicleTypeController.text = driver.vehicleTypeLabel;
+    _vehiclePlateController.text = driver.vehicleRegistration ?? '';
+    _vehicleCapacityController.text = driver.vehicleCapacityKg.toString();
   }
 
+Future<void> _pickProfilePhoto() async {
+  try {
+    final ImagePicker picker = ImagePicker();
+    // Sur web : galerie, sur mobile : choix
+    final ImageSource source = kIsWeb
+        ? ImageSource.gallery
+        : (await showDialog<ImageSource>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Sélectionner une photo'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.photo_library),
+                    title: const Text('Galerie'),
+                    onTap: () => Navigator.pop(context, ImageSource.gallery),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.photo_camera),
+                    title: const Text('Caméra'),
+                    onTap: () => Navigator.pop(context, ImageSource.camera),
+                  ),
+                ],
+              ),
+            ),
+          )) ?? ImageSource.gallery;
+
+    final XFile? pickedFile = await picker.pickImage(
+      source: source,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 80,
+    );
+    if (pickedFile == null) {
+      debugPrint('⚠️ [DEBUG] Aucune photo sélectionnée');
+      return;
+    }
+    if (!mounted) return;
+    final bytes = await pickedFile.readAsBytes();
+    if (bytes.length > 5 * 1024 * 1024) {
+      if (mounted) {
+        Helpers.showErrorSnackBar(context, 'Fichier trop volumineux (max 5MB)');
+      }
+      return;
+    }
+    setState(() {
+      _newProfilePhoto = pickedFile;
+      _newProfilePhotoBytes = bytes;
+    });
+    debugPrint('✅ [DEBUG] Photo sélectionnée:');
+    debugPrint('   - Nom: \\${pickedFile.name}');
+    debugPrint('   - Taille: \\${(bytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
+    debugPrint('   - Path: \\${pickedFile.path}');
+    if (mounted) {
+      Helpers.showSuccessSnackBar(context, 'Photo sélectionnée');
+    }
+  } catch (e) {
+    debugPrint('❌ [DEBUG] Erreur sélection photo: $e');
+    if (mounted) {
+      Helpers.showErrorSnackBar(context, 'Erreur: $e');
+    }
+  }
+}
+
   void _resetPhotoState() {
-    debugPrint('[DEBUG] Reset de l\'état local de la photo');
     setState(() {
       _newProfilePhoto = null;
       _newProfilePhotoBytes = null;
     });
   }
 
-  Future<void> _pickProfilePhoto() async {
+  // 🔥 UNE SEULE MÉTHODE _saveChanges (DUPLICATION SUPPRIMÉE)
+  Future<void> _saveChanges() async {
+    if (!_formKey.currentState!.validate()) {
+      Helpers.showErrorSnackBar(context, 'Veuillez corriger les erreurs');
+      return;
+    }
+
+    final confirmed = await Helpers.showConfirmDialog(
+      context,
+      title: 'Enregistrer les modifications',
+      message: 'Voulez-vous vraiment modifier votre profil?',
+      confirmText: 'Enregistrer',
+      cancelText: 'Annuler',
+    );
+
+    if (confirmed != true) return;
+    if (!mounted) return;
+
+    setState(() => _isSubmitting = true);
+
     try {
-      debugPrint('📸 [DEBUG] _pickProfilePhoto lancé');
+      debugPrint('💾 [DEBUG] _saveChanges lancé');
 
-      final file = await Helpers.pickImageWithDialog(context);
+      // Préparer les données de mise à jour
+      final updateData = <String, dynamic>{
+        'phone': _phoneController.text.trim(),
+        'vehicle_type': _selectedVehicleType,
+        'vehicle_plate': _vehiclePlateController.text.trim(),
+        'vehicle_capacity_kg': double.parse(_vehicleCapacityController.text.trim()),
+      };
 
-      if (!mounted) return;
-
-      if (file != null) {
-        debugPrint('📸 [DEBUG] Fichier reçu: ${file.runtimeType}');
-
-        if (kIsWeb && file is WebPickedFile) {
-          final bytes = await file.readAsBytes();
-          debugPrint('📸 [DEBUG] Web - taille: ${bytes.length} bytes');
-
-          if (mounted) {
-            setState(() {
-              _newProfilePhoto = file;
-              _newProfilePhotoBytes = bytes;
-            });
-            Helpers.showSuccessSnackBar(
-              context,
-              'Image sélectionnée (${bytes.length} bytes)',
+      // Upload de la photo de profil si changée
+      if (_newProfilePhoto != null && _newProfilePhotoBytes != null) {
+        try {
+          debugPrint('📤 [DEBUG] Upload photo lancé');
+          String photoUrl;
+          if (_newProfilePhoto is XFile) {
+            debugPrint('📤 [DEBUG] Upload XFile - path: \\${(_newProfilePhoto as XFile).path}');
+            photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(
+              _newProfilePhoto,
             );
+          } else if (_newProfilePhoto is File) {
+            debugPrint('📤 [DEBUG] Upload File - path: \\${(_newProfilePhoto as File).path}');
+            photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(
+              _newProfilePhoto,
+            );
+          } else {
+            throw Exception('Type de fichier non supporté: \\${_newProfilePhoto.runtimeType}');
           }
-        } else if (file is File) {
-          debugPrint('📸 [DEBUG] Mobile - path: ${file.path}');
-
+          debugPrint('✅ [DEBUG] Photo uploadée: \\${photoUrl}');
+          updateData['profile_photo'] = photoUrl;
+        } catch (e) {
+          debugPrint('❌ [DEBUG] Erreur upload photo: \\${e}');
           if (mounted) {
-            setState(() {
-              _newProfilePhoto = file;
-              _newProfilePhotoBytes = null;
-            });
-            Helpers.showSuccessSnackBar(context, 'Image sélectionnée');
-          }
-        } else {
-          debugPrint('⚠️ [DEBUG] Type inconnu: ${file.runtimeType}');
-          if (mounted) {
-            Helpers.showErrorSnackBar(context, 'Type de fichier non supporté');
+            Helpers.showErrorSnackBar(context, 'Erreur upload photo: \\${e}');
           }
         }
       } else {
-        debugPrint('📸 [DEBUG] Aucune image sélectionnée');
+        debugPrint('⚠️ [DEBUG] Pas de photo à uploader');
+      }
+
+      // Appel API pour mettre à jour le profil
+      debugPrint('💾 [DEBUG] Mise à jour du profil');
+      final success = await ref.read(driverProvider.notifier).updateProfile(updateData);
+
+      if (!mounted) return;
+
+      if (success) {
+        debugPrint('✅ [DEBUG] Profil mis à jour - refresh du provider');
+        
+        // 🔥 CRUCIAL : Reset local state
+        _resetPhotoState();
+        
+        // 🔥 CRUCIAL : Attendre que le serveur traite la requête
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // 🔥 CRUCIAL : Refresh du provider pour récupérer les données à jour
+        ref.refresh(driverProvider);
+        
+        // 🔥 CRUCIAL : Clear image cache
+        imageCache.clear();
+        imageCache.clearLiveImages();
+
+        debugPrint('✅ [DEBUG] Profil mis à jour avec succès');
+        Helpers.showSuccessSnackBar(context, 'Profil mis à jour avec succès!');
+
+        // Attendre un peu avant de fermer pour que le snackbar soit visible
+        await Future.delayed(const Duration(milliseconds: 500));
+
         if (mounted) {
-          Helpers.showInfoSnackBar(context, 'Sélection annulée');
+          Navigator.of(context).pop(true);
         }
+      } else {
+        debugPrint('❌ [DEBUG] Echec de la mise à jour');
+        Helpers.showErrorSnackBar(context, 'Échec de la mise à jour du profil');
       }
     } catch (e) {
-      debugPrint('❌ [DEBUG] Erreur _pickProfilePhoto: $e');
+      debugPrint('❌ [DEBUG] Erreur _saveChanges: $e');
       if (mounted) {
-        Helpers.showErrorSnackBar(context, 'Erreur sélection image: $e');
+        Helpers.showErrorSnackBar(context, 'Erreur: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
       }
     }
   }
@@ -211,112 +326,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
   }
 
-  Future<void> _saveChanges() async {
-    if (!_formKey.currentState!.validate()) {
-      Helpers.showErrorSnackBar(context, 'Veuillez corriger les erreurs');
-      return;
-    }
-
-    final confirmed = await Helpers.showConfirmDialog(
-      context,
-      title: 'Enregistrer les modifications',
-      message: 'Voulez-vous vraiment modifier votre profil?',
-      confirmText: 'Enregistrer',
-      cancelText: 'Annuler',
-    );
-
-    if (confirmed != true) return;
-
-    if (!mounted) return;
-
-    setState(() => _isSubmitting = true);
-
-    try {
-      debugPrint('💾 [DEBUG] _saveChanges lancé');
-
-      // Préparer les données de mise à jour
-      final updateData = <String, dynamic>{
-        'phone': _phoneController.text.trim(),
-        'vehicle_type': _selectedVehicleType,
-        'vehicle_plate': _vehiclePlateController.text.trim(),
-        'vehicle_capacity_kg': double.parse(_vehicleCapacityController.text.trim()),
-      };
-
-      // Upload de la photo de profil si changée
-      if (_newProfilePhoto != null && _newProfilePhotoBytes != null) {
-        try {
-          debugPrint('📤 [DEBUG] Upload photo lancé');
-
-          String photoUrl;
-          if (kIsWeb && _newProfilePhoto is WebPickedFile) {
-            // Web : passer les bytes et le nom du fichier
-            debugPrint(
-                '📤 [DEBUG] Web upload - bytes: ${_newProfilePhotoBytes!.length}');
-            photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(
-              _newProfilePhotoBytes!,
-              (_newProfilePhoto as WebPickedFile).name,
-            );
-          } else if (_newProfilePhoto is File) {
-            // Mobile : passer le File
-            debugPrint(
-                '📤 [DEBUG] Mobile upload - path: ${(_newProfilePhoto as File).path}');
-            photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(
-              _newProfilePhoto,
-            );
-          } else {
-            throw Exception(
-                'Type de fichier non supporté: ${_newProfilePhoto.runtimeType}');
-          }
-
-          debugPrint('✅ [DEBUG] Photo uploadée: $photoUrl');
-          updateData['profile_photo'] = photoUrl;
-        } catch (e) {
-          debugPrint('❌ [DEBUG] Erreur upload photo: $e');
-          if (mounted) {
-            Helpers.showErrorSnackBar(context, 'Erreur upload photo: $e');
-          }
-          // Continuer sans la photo (elle peut être optionnelle)
-        }
-      } else {
-        debugPrint('⚠️ [DEBUG] Pas de photo à uploader');
-      }
-
-      // Appel API pour mettre à jour le profil
-      debugPrint('💾 [DEBUG] Mise à jour du profil');
-      final success =
-          await ref.read(driverProvider.notifier).updateProfile(updateData);
-
-      if (!mounted) return;
-
-      if (success) {
-        // Reset de l'état local après succès
-        _resetPhotoState();
-
-        debugPrint('✅ [DEBUG] Profil mis à jour avec succès');
-        Helpers.showSuccessSnackBar(context, 'Profil mis à jour avec succès!');
-
-        // Attendre un peu avant de fermer pour que le snackbar soit visible
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        if (mounted) {
-          Navigator.of(context).pop(true);
-        }
-      } else {
-        debugPrint('❌ [DEBUG] Echec de la mise à jour');
-        Helpers.showErrorSnackBar(context, 'Échec de la mise à jour du profil');
-      }
-    } catch (e) {
-      debugPrint('❌ [DEBUG] Erreur _saveChanges: $e');
-      if (mounted) {
-        Helpers.showErrorSnackBar(context, 'Erreur: $e');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
-    }
-  }
-
   // ========== BUILD ==========
   @override
   Widget build(BuildContext context) {
@@ -335,6 +344,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         appBar: AppBar(title: const Text('Modifier le profil')),
         body: const Center(child: Text('Aucune donnée de profil')),
       );
+    }
+
+    // Initialize form si pas déjà fait
+    if (_phoneController.text.isEmpty) {
+      _initializeForm(driver);
     }
 
     return Scaffold(
