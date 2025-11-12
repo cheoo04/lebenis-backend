@@ -89,12 +89,16 @@ class CloudinaryService:
     
     @classmethod
     def upload_profile_photo(cls, file, user_id):
-        """Upload une photo de profil utilisateur (version avec logs et upload simple)"""
+        """Upload une photo de profil utilisateur"""
         import logging
         logger = logging.getLogger(__name__)
         
         logger.info(f"🔄 [CLOUDINARY] Starting upload for user {user_id}")
         logger.info(f"   File: {file.name}, Size: {file.size} bytes")
+        
+        # ✅ VÉRIFIER QUE LE FICHIER A DU CONTENU
+        if file.size == 0:
+            raise Exception("Le fichier est vide !")
         
         # Configuration Cloudinary
         cls._configure_cloudinary()
@@ -113,6 +117,17 @@ class CloudinaryService:
         
         try:
             logger.info(f"🚀 [CLOUDINARY] Uploading to folder: lebenis/profiles, public_id: {public_id}")
+            # 🔥 LIRE LE CONTENU DU FICHIER AVANT UPLOAD
+            file.seek(0)  # Remettre au début
+            file_content = file.read()
+            logger.info(f"📄 [CLOUDINARY] File content length: {len(file_content)} bytes")
+            
+            if len(file_content) == 0:
+                raise Exception("Le contenu du fichier est vide après lecture !")
+            
+            # Remettre au début pour Cloudinary
+            file.seek(0)
+            
             # Upload SIMPLE (sans transformations pour tester)
             result = cloudinary.uploader.upload(
                 file,
@@ -124,11 +139,18 @@ class CloudinaryService:
             )
             
             secure_url = result.get('secure_url')
+            
+            # 🔥 VÉRIFIER QUE CLOUDINARY A VRAIMENT RETOURNÉ UNE URL
+            if not secure_url:
+                logger.error(f"❌ [CLOUDINARY] No secure_url in response: {result}")
+                raise Exception("Cloudinary n'a pas retourné d'URL !")
+            
             logger.info(f"✅ [CLOUDINARY] Upload SUCCESS!")
             logger.info(f"   URL: {secure_url}")
             logger.info(f"   Public ID: {result.get('public_id')}")
             logger.info(f"   Format: {result.get('format')}")
             logger.info(f"   Width: {result.get('width')}, Height: {result.get('height')}")
+            logger.info(f"   Bytes: {result.get('bytes')}")  # ✅ NOUVEAU : Vérifier la taille uploadée
             
             return secure_url
         
