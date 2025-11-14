@@ -58,6 +58,26 @@ class DriverState {
 // ========== DRIVER NOTIFIER ==========
 
 class DriverNotifier extends StateNotifier<DriverState> {
+    /// Supprimer la photo de profil
+    Future<bool> deleteProfilePhoto() async {
+      state = state.copyWith(isLoading: true, clearError: true);
+      try {
+        await _repository.deleteProfilePhoto();
+        // Recharger le profil pour mettre à jour l'UI
+        await loadProfile();
+        state = state.copyWith(
+          isLoading: false,
+          successMessage: 'Photo de profil supprimée avec succès',
+        );
+        return true;
+      } catch (e) {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+        );
+        return false;
+      }
+    }
   final DriverRepository _repository;
   final Ref _ref;
 

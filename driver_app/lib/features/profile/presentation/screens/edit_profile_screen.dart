@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../data/models/driver_model.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../data/providers/driver_provider.dart';
 import '../../../../core/utils/backend_validators.dart';
 import '../../../../core/constants/backend_constants.dart';
@@ -29,6 +30,36 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 
 
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
+    Future<void> _deleteProfilePhoto() async {
+      final confirmed = await Helpers.showConfirmDialog(
+        context,
+        title: 'Supprimer la photo de profil',
+        message: 'Voulez-vous vraiment supprimer votre photo de profil ? Cette action est irréversible.',
+        confirmText: 'Supprimer',
+        cancelText: 'Annuler',
+      );
+      if (confirmed != true) return;
+      setState(() => _isSubmitting = true);
+      try {
+        final success = await ref.read(driverProvider.notifier).deleteProfilePhoto();
+        if (success) {
+          _resetPhotoState();
+          imageCache.clear();
+          imageCache.clearLiveImages();
+          final driver = ref.read(driverProvider).driver;
+          if (driver?.profilePhoto != null) {
+            await CachedNetworkImageProvider(driver!.profilePhoto!).evict();
+          }
+          Helpers.showSuccessSnackBar(context, 'Photo de profil supprimée avec succès');
+        } else {
+          Helpers.showErrorSnackBar(context, 'Échec de la suppression de la photo');
+        }
+      } catch (e) {
+        Helpers.showErrorSnackBar(context, 'Erreur: $e');
+      } finally {
+        if (mounted) setState(() => _isSubmitting = false);
+      }
+    }
   // ========== CONTROLLERS & STATE ==========
   late GlobalKey<FormState> _formKey;
   late TextEditingController _phoneController;
@@ -40,6 +71,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   dynamic _newProfilePhoto;
   Uint8List? _newProfilePhotoBytes;
   bool _isSubmitting = false;
+  String? _initialProfilePhotoUrl;
+  bool _photoMarkedForDeletion = false;
 
   @override
   void initState() {
@@ -66,6 +99,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _vehicleTypeController.text = driver.vehicleTypeLabel;
     _vehiclePlateController.text = driver.vehicleRegistration ?? '';
     _vehicleCapacityController.text = driver.vehicleCapacityKg.toString();
+    _initialProfilePhotoUrl = driver.profilePhoto;
+    _photoMarkedForDeletion = false;
+    _newProfilePhoto = null;
+    _newProfilePhotoBytes = null;
   }
 
 Future<void> _pickProfilePhoto() async {
@@ -137,6 +174,7 @@ Future<void> _pickProfilePhoto() async {
     setState(() {
       _newProfilePhoto = null;
       _newProfilePhotoBytes = null;
+      _photoMarkedForDeletion = false;
     });
   }
 
@@ -171,34 +209,51 @@ Future<void> _pickProfilePhoto() async {
         'vehicle_capacity_kg': double.parse(_vehicleCapacityController.text.trim()),
       };
 
-      // Upload de la photo de profil si changée
+      String? photoUrl;
+      bool photoChanged = false;
+
+      // 1. Suppression demandée
+      if (_photoMarkedForDeletion && _initialProfilePhotoUrl != null && _initialProfilePhotoUrl!.isNotEmpty) {
+        debugPrint('🗑 [DEBUG] Suppression de la photo demandée');
+        final success = await ref.read(driverProvider.notifier).deleteProfilePhoto();
+        if (success) {
+          photoUrl = null;
+          photoChanged = true;
+        } else {
+          Helpers.showErrorSnackBar(context, 'Erreur lors de la suppression de la photo');
+          setState(() => _isSubmitting = false);
+          return;
+        }
+      }
+
+      // 2. Nouvelle photo sélectionnée (remplace l’ancienne ou ajout)
       if (_newProfilePhoto != null && _newProfilePhotoBytes != null) {
         try {
           debugPrint('📤 [DEBUG] Upload photo lancé');
-          String photoUrl;
           if (_newProfilePhoto is XFile) {
             debugPrint('📤 [DEBUG] Upload XFile - path: \\${(_newProfilePhoto as XFile).path}');
-            photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(
-              _newProfilePhoto,
-            );
+            photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(_newProfilePhoto);
           } else if (_newProfilePhoto is File) {
             debugPrint('📤 [DEBUG] Upload File - path: \\${(_newProfilePhoto as File).path}');
-            photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(
-              _newProfilePhoto,
-            );
+            photoUrl = await ref.read(driverProvider.notifier).uploadProfilePhoto(_newProfilePhoto);
           } else {
             throw Exception('Type de fichier non supporté: \\${_newProfilePhoto.runtimeType}');
           }
           debugPrint('✅ [DEBUG] Photo uploadée: \\${photoUrl}');
-          updateData['profile_photo'] = photoUrl;
+          photoChanged = true;
         } catch (e) {
           debugPrint('❌ [DEBUG] Erreur upload photo: \\${e}');
           if (mounted) {
             Helpers.showErrorSnackBar(context, 'Erreur upload photo: \\${e}');
           }
+          setState(() => _isSubmitting = false);
+          return;
         }
-      } else {
-        debugPrint('⚠️ [DEBUG] Pas de photo à uploader');
+      }
+
+      // Si la photo a changé (supprimée ou ajoutée), mettre à jour le champ profile_photo
+      if (photoChanged) {
+        updateData['profile_photo'] = photoUrl ?? '';
       }
 
       // Appel API pour mettre à jour le profil
@@ -209,26 +264,21 @@ Future<void> _pickProfilePhoto() async {
 
       if (success) {
         debugPrint('✅ [DEBUG] Profil mis à jour - refresh du provider');
-        
-        // 🔥 CRUCIAL : Reset local state
         _resetPhotoState();
-        
-        // 🔥 CRUCIAL : Attendre que le serveur traite la requête
         await Future.delayed(const Duration(milliseconds: 500));
-        
-        // 🔥 CRUCIAL : Refresh du provider pour récupérer les données à jour
-        ref.refresh(driverProvider);
-        
-        // 🔥 CRUCIAL : Clear image cache
+        // Force refresh du provider
+        await ref.refresh(driverProvider);
+        // Vider le cache Flutter
         imageCache.clear();
         imageCache.clearLiveImages();
-
+        // Évict l’ancienne image du cache réseau
+        final driver = ref.read(driverProvider).driver;
+        if (driver?.profilePhoto != null) {
+          await CachedNetworkImageProvider(driver!.profilePhoto!).evict();
+        }
         debugPrint('✅ [DEBUG] Profil mis à jour avec succès');
         Helpers.showSuccessSnackBar(context, 'Profil mis à jour avec succès!');
-
-        // Attendre un peu avant de fermer pour que le snackbar soit visible
-        await Future.delayed(const Duration(milliseconds: 500));
-
+        await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) {
           Navigator.of(context).pop(true);
         }
@@ -368,38 +418,40 @@ Future<void> _pickProfilePhoto() async {
                   CircleAvatar(
                     radius: 60,
                     backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                    child: _newProfilePhoto != null
-                        ? ClipOval(
-                            child: kIsWeb && _newProfilePhotoBytes != null
-                                ? Image.memory(
-                                    _newProfilePhotoBytes!,
-                                    width: 120,
-                                    height: 120,
-                                    fit: BoxFit.cover,
-                                  )
-                                : (_newProfilePhoto is File)
-                                    ? Image.file(
-                                        _newProfilePhoto as File,
+                    child: _photoMarkedForDeletion
+                        ? const Icon(Icons.person, size: 60)
+                        : _newProfilePhoto != null
+                            ? ClipOval(
+                                child: kIsWeb && _newProfilePhotoBytes != null
+                                    ? Image.memory(
+                                        _newProfilePhotoBytes!,
                                         width: 120,
                                         height: 120,
                                         fit: BoxFit.cover,
                                       )
-                                    : const Icon(Icons.person, size: 60),
-                          )
-                        : driver.profilePhoto != null
-                            ? ClipOval(
-                                child: CachedNetworkImageWidget(
-                                  imageUrl: driver.profilePhoto!,
-                                  width: 120,
-                                  height: 120,
-                                  fit: BoxFit.cover,
-                                ),
+                                    : (_newProfilePhoto is File)
+                                        ? Image.file(
+                                            _newProfilePhoto as File,
+                                            width: 120,
+                                            height: 120,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : const Icon(Icons.person, size: 60),
                               )
-                            : Icon(
-                                Icons.person,
-                                size: 60,
-                                color: AppColors.primary,
-                              ),
+                            : (_initialProfilePhotoUrl != null && _initialProfilePhotoUrl!.isNotEmpty)
+                                ? ClipOval(
+                                    child: CachedNetworkImageWidget(
+                                      imageUrl: _initialProfilePhotoUrl!,
+                                      width: 120,
+                                      height: 120,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.person,
+                                    size: 60,
+                                    color: AppColors.primary,
+                                  ),
                   ),
                   Positioned(
                     bottom: 0,
@@ -420,6 +472,62 @@ Future<void> _pickProfilePhoto() async {
                       ),
                     ),
                   ),
+                  if (!_photoMarkedForDeletion && _initialProfilePhotoUrl != null && _initialProfilePhotoUrl!.isNotEmpty && _newProfilePhoto == null)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          tooltip: 'Supprimer la photo de profil',
+                          onPressed: _isSubmitting
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _photoMarkedForDeletion = true;
+                                    _newProfilePhoto = null;
+                                    _newProfilePhotoBytes = null;
+                                  });
+                                },
+                        ),
+                      ),
+                    ),
+                  if (_photoMarkedForDeletion)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.undo,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          tooltip: 'Annuler la suppression',
+                          onPressed: _isSubmitting
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _photoMarkedForDeletion = false;
+                                  });
+                                },
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -513,7 +621,12 @@ Future<void> _pickProfilePhoto() async {
               onPressed: _isSubmitting
                   ? null
                   : () {
-                      _resetPhotoState();
+                      setState(() {
+                        _newProfilePhoto = null;
+                        _newProfilePhotoBytes = null;
+                        _photoMarkedForDeletion = false;
+                        // Restaurer l’UI à la photo d’origine
+                      });
                       Navigator.of(context).pop();
                     },
               icon: Icons.close,

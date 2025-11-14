@@ -231,13 +231,41 @@ SIMPLE_JWT = {
 
 
 # CORS Settings - Updated 2025-11-04
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
+#CORS_ALLOWED_ORIGINS = [
+#    "http://localhost:3000",
+#    "http://127.0.0.1:3000",
+#    "http://localhost:8000",
+#    "http://127.0.0.1:8000",
+#    "http://127.0.0.1:8080",
+#    "http://localhost:8080",
+#]
 CORS_ALLOW_CREDENTIALS = True
+
+#pour debut test en production a enlever plus tard
+CORS_ALLOW_ALL_ORIGINS = True
+
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+#fin test
 
 # Firebase Cloud Messaging
 FCM_DJANGO_SETTINGS = {

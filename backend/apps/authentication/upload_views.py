@@ -71,12 +71,7 @@ def upload_profile_photo(request):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         
-        # Supprimer l'ancienne photo si elle existe (optionnel)
-        if user.profile_photo and 'cloudinary.com' in user.profile_photo:
-            try:
-                CloudinaryService.delete_image(user.profile_photo)
-            except Exception:
-                pass  # Ignorer les erreurs de suppression
+        # Ne pas supprimer l'ancienne photo Cloudinary (évite de supprimer la nouvelle si overwrite=True)
         
         # Mettre à jour le profil utilisateur
         user.profile_photo = photo_url

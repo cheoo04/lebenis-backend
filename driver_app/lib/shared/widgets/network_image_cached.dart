@@ -7,6 +7,7 @@ import '../../core/constants/app_colors.dart';
 /// Image réseau avec cache
 class CachedNetworkImageWidget extends StatelessWidget {
   final String? imageUrl;
+  // final String? cacheKey; // Désactivé car non utilisé dans l'appel
   final double? width;
   final double? height;
   final BoxFit fit;
@@ -31,16 +32,16 @@ class CachedNetworkImageWidget extends StatelessWidget {
       return _buildErrorWidget();
     }
 
-    Widget image = CachedNetworkImage(
-      imageUrl: imageUrl!,
-      width: width,
-      height: height,
-      fit: fit,
-      placeholder: (context, url) =>
-          placeholder ?? const Center(child: CircularProgressIndicator()),
-      errorWidget: (context, url, error) =>
-          errorWidget ?? _buildErrorWidget(),
-    );
+  Widget image = CachedNetworkImage(
+    imageUrl: imageUrl!,
+    width: width,
+    height: height,
+    fit: fit,
+    placeholder: (context, url) =>
+      placeholder ?? const Center(child: CircularProgressIndicator()),
+    errorWidget: (context, url, error) =>
+      errorWidget ?? _buildErrorWidget(),
+  );
 
     if (borderRadius != null) {
       return ClipRRect(

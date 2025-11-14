@@ -8,6 +8,10 @@ import '../models/driver_model.dart';
 /// Responsabilité: Gérer uniquement les données du DRIVER (profil, stats, disponibilité, position)
 /// Les livraisons sont gérées par DeliveryRepository
 class DriverRepository {
+    /// Supprimer la photo de profil du driver
+    Future<void> deleteProfilePhoto() async {
+      await _dioClient.delete('/api/v1/auth/delete-profile-photo/');
+    }
   final DioClient _dioClient;
 
   DriverRepository(this._dioClient);

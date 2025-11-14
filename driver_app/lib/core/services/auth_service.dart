@@ -4,7 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/storage_keys.dart';
 // ignore: avoid_web_libraries_in_flutter
-import 'package:web/web.dart' as web;
+// Import conditionnel : web = auth_service_web, autres = auth_service_stub
+import 'auth_service_stub.dart'
+  if (dart.library.html) 'auth_service_web.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// Service de gestion de l'authentification locale
 /// Gère le stockage sécurisé des tokens JWT et des données utilisateur
@@ -15,21 +18,17 @@ class AuthService {
   // Helpers pour le web
   String? _getFromWebStorage(String key) {
     if (!_isWeb) return null;
-    return web.window.localStorage.getItem(key);
+    return getFromWebStorage(key);
   }
 
   Future<void> _setToWebStorage(String key, String? value) async {
     if (!_isWeb) return;
-    if (value == null) {
-      web.window.localStorage.removeItem(key);
-    } else {
-      web.window.localStorage.setItem(key, value);
-    }
+    await setToWebStorage(key, value);
   }
 
   Future<void> _clearWebStorage() async {
     if (!_isWeb) return;
-    web.window.localStorage.clear();
+    await clearWebStorage();
   }
 
   // ========== TOKENS JWT ==========

@@ -30,6 +30,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     });
   }
 
+  Future<void> _goToEditProfile() async {
+    final result = await Navigator.of(context).pushNamed('/edit-profile');
+    if (result == true && mounted) {
+      ref.refresh(driverProvider);
+      await Future.wait([
+        ref.read(driverProvider.notifier).loadProfile(),
+        ref.read(driverProvider.notifier).loadStats(),
+      ]);
+      if (mounted) setState(() {});
+    }
+  }
+
   Future<void> _logout() async {
     final confirmed = await Helpers.showConfirmDialog(
       context,
@@ -71,9 +83,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.of(context).pushNamed('/edit-profile');
-            },
+            onPressed: _goToEditProfile,
           ),
         ],
       ),

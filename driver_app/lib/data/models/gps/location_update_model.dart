@@ -11,14 +11,14 @@ class LocationUpdateModel with _$LocationUpdateModel {
     required double latitude,
     required double longitude,
     required double accuracy,
-    @JsonKey(name: 'driver_status') required String driverStatus,
-    @JsonKey(name: 'is_moving') required bool isMoving,
+    required String driverStatus,
+    required bool isMoving,
     required DateTime timestamp,
     double? speed,
     double? heading,
     double? altitude,
-    @JsonKey(name: 'battery_level') int? batteryLevel,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
+    int? batteryLevel,
+    DateTime? createdAt,
   }) = _LocationUpdateModel;
 
   factory LocationUpdateModel.fromJson(Map<String, dynamic> json) =>
@@ -35,7 +35,7 @@ class LocationUpdateCreateDTO with _$LocationUpdateCreateDTO {
     double? speed,
     double? heading,
     double? altitude,
-    @JsonKey(name: 'battery_level') int? batteryLevel,
+    int? batteryLevel,
     DateTime? timestamp,
   }) = _LocationUpdateCreateDTO;
 
@@ -47,10 +47,10 @@ class LocationUpdateCreateDTO with _$LocationUpdateCreateDTO {
 @freezed
 class TrackingIntervalModel with _$TrackingIntervalModel {
   const factory TrackingIntervalModel({
-    @JsonKey(name: 'interval_seconds') required int intervalSeconds,
-    @JsonKey(name: 'driver_status') required String driverStatus,
-    @JsonKey(name: 'is_moving') required bool isMoving,
-    @JsonKey(name: 'recommended_accuracy') required String recommendedAccuracy,
+    required int intervalSeconds,
+    required String driverStatus,
+    required bool isMoving,
+    required String recommendedAccuracy,
   }) = _TrackingIntervalModel;
 
   factory TrackingIntervalModel.fromJson(Map<String, dynamic> json) =>
