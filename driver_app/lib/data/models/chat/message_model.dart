@@ -46,14 +46,15 @@ class MessageModel with _$MessageModel {
     @JsonKey(name: 'image_url') String? imageUrl,
     double? latitude,
     double? longitude,
-    @JsonKey(name: 'is_read') @Default(false) bool isRead,
-    @JsonKey(name: 'read_at') DateTime? readAt,
-    @JsonKey(name: 'created_at') required DateTime createdAt,
+    @Default(false) bool isRead,
+    DateTime? readAt,
+    required DateTime createdAt,
     // Champs locaux (non sérialisés)
     @JsonKey(includeFromJson: false, includeToJson: false)
     @Default(MessageStatus.sent)
     MessageStatus status,
-    @JsonKey(includeFromJson: false, includeToJson: false) @Default(false) bool isMine,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    @Default(false) bool isMine,
   }) = _MessageModel;
 
   factory MessageModel.fromJson(Map<String, dynamic> json) =>

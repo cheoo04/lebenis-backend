@@ -7,8 +7,8 @@ part 'peak_hours_model.g.dart';
 class PeakHourModel with _$PeakHourModel {
   const factory PeakHourModel({
     required int hour,
-    @JsonKey(name: 'deliveries_count') required int deliveriesCount,
-    @JsonKey(name: 'total_earnings') required double totalEarnings,
+    required int deliveriesCount,
+    required double totalEarnings,
   }) = _PeakHourModel;
 
   factory PeakHourModel.fromJson(Map<String, dynamic> json) =>
@@ -18,7 +18,7 @@ class PeakHourModel with _$PeakHourModel {
 @freezed
 class PeakHoursResponseModel with _$PeakHoursResponseModel {
   const factory PeakHoursResponseModel({
-    @JsonKey(name: 'peak_hours') required List<PeakHourModel> peakHours,
+    required List<PeakHourModel> peakHours,
   }) = _PeakHoursResponseModel;
 
   factory PeakHoursResponseModel.fromJson(Map<String, dynamic> json) =>

@@ -7,8 +7,8 @@ part 'timeline_data_model.g.dart';
 class TimelineDataModel with _$TimelineDataModel {
   const factory TimelineDataModel({
     required String date,
-    @JsonKey(name: 'deliveries_count') required int deliveriesCount,
-    @JsonKey(name: 'total_earnings') required double totalEarnings,
+    required int deliveriesCount,
+    required double totalEarnings,
   }) = _TimelineDataModel;
 
   factory TimelineDataModel.fromJson(Map<String, dynamic> json) =>
