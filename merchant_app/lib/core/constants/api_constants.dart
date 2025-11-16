@@ -6,5 +6,6 @@ class ApiConstants {
   static const String login = '/api/v1/auth/login/';
   static const String logout = '/api/v1/auth/logout/';
   static const String deliveries = '/api/v1/deliveries/';
+  static const String pricingEstimate = '/api/v1/pricing/estimate/';
   // ... autres endpoints
 }

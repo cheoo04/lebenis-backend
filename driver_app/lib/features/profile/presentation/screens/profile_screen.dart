@@ -1,3 +1,4 @@
+import '../../../zones/presentation/screens/zone_selection_screen.dart';
 // driver_app/lib/features/profile/presentation/screens/profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +22,12 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+
+    void _goToZones() {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ZoneSelectionScreen()),
+      );
+    }
   @override
   void initState() {
     super.initState();
@@ -288,6 +295,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ],
 
               const SizedBox(height: Dimensions.spacingXL),
+
+              // Bouton gestion des zones de travail
+              CustomButton(
+                text: 'Mes zones de travail',
+                onPressed: _goToZones,
+                icon: Icons.map,
+                type: ButtonType.secondary,
+              ),
 
               // Actions
               CustomButton(

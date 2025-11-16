@@ -49,6 +49,16 @@ class PricingZoneViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
+    @action(detail=False, methods=['get'], url_path='with-selection', permission_classes=[IsAuthenticated])
+    def with_selection(self, request):
+        """
+        Retourne toutes les zones avec un champ 'selected' indiquant si la zone est assignée au livreur courant.
+        """
+        queryset = self.get_queryset()
+        serializer = PricingZoneSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
 # ============================================================================
 # VIEWSET : GESTION DE LA MATRICE TARIFAIRE
 # ============================================================================

@@ -6,9 +6,22 @@ from .models import PricingZone, ZonePricingMatrix
 
 class PricingZoneSerializer(serializers.ModelSerializer):
     """Serializer pour les zones tarifaires"""
+    selected = serializers.SerializerMethodField(default=False)
+
     class Meta:
         model = PricingZone
-        fields = ['id', 'zone_name', 'commune', 'quartier', 'description', 'is_active']
+        fields = ['id', 'zone_name', 'commune', 'quartier', 'description', 'is_active', 'selected']
+
+    def get_selected(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return False
+        driver = getattr(request.user, 'driver_profile', None)
+        if not driver:
+            return False
+        # Vérifie si une DriverZone existe pour ce driver et cette commune
+        from apps.drivers.models import DriverZone
+        return DriverZone.objects.filter(driver=driver, commune=obj.commune).exists()
 
 
 class ZonePricingMatrixSerializer(serializers.ModelSerializer):
