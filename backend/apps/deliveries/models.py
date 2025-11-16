@@ -58,6 +58,19 @@ class Delivery(models.Model):
     package_description = models.TextField(blank=True)
     package_weight_kg = models.DecimalField(max_digits=5, decimal_places=2)
     package_length_cm = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    # Type de véhicule requis pour la livraison (optionnel)
+    required_vehicle_type = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Type de véhicule requis (moto, voiture, tricycle, camionnette)",
+        choices=[
+            ('', 'Indifférent'),
+            ('moto', 'Moto'),
+            ('voiture', 'Voiture'),
+            ('tricycle', 'Tricycle'),
+            ('camionnette', 'Camionnette'),
+        ]
+    )
     package_width_cm = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     package_height_cm = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     package_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
