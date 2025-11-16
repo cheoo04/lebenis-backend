@@ -11,12 +11,15 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 
+from apps.payments.models import DriverEarning
+from decimal import Decimal
+from apps.pricing.calculator import PricingCalculator
+
 from .models import Delivery
 from .models_rating import DeliveryRating
 from .serializers import DeliverySerializer, DeliveryCreateSerializer
 from .serializers_rating import DeliveryRatingSerializer
 from .services import DeliveryAssignmentService, RouteOptimizationService
-from apps.pricing.calculator import PricingCalculator
 from apps.merchants.models import Merchant
 from apps.drivers.models import Driver
 from core.permissions import IsMerchant, IsDriver, IsAdmin
@@ -447,7 +450,39 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         if notes:
             delivery.delivery_notes = notes
 
+
         delivery.save()
+
+        # --- Création automatique du gain du livreur (DriverEarning) ---
+        # Vérifie qu'aucun gain n'existe déjà pour cette livraison
+        if not hasattr(delivery, 'driver_earning'):
+            # Utilise le PricingCalculator pour recalculer le montant exact
+            calculator = PricingCalculator()
+            pricing_data = {
+                'pickup_commune': getattr(delivery, 'pickup_commune', ''),
+                'delivery_commune': delivery.delivery_commune,
+                'package_weight_kg': float(getattr(delivery, 'package_weight_kg', 0)),
+                'package_length_cm': float(getattr(delivery, 'package_length_cm', 0)) if hasattr(delivery, 'package_length_cm') else None,
+                'package_width_cm': float(getattr(delivery, 'package_width_cm', 0)) if hasattr(delivery, 'package_width_cm') else None,
+                'package_height_cm': float(getattr(delivery, 'package_height_cm', 0)) if hasattr(delivery, 'package_height_cm') else None,
+                'is_fragile': getattr(delivery, 'is_fragile', False),
+                'scheduling_type': getattr(delivery, 'scheduling_type', 'immediate'),
+                'scheduled_pickup_time': getattr(delivery, 'scheduled_pickup_time', None),
+                'pickup_coords': getattr(delivery, 'pickup_coords', None),
+                'delivery_coords': getattr(delivery, 'delivery_coords', None),
+            }
+            price_result = calculator.calculate_price(pricing_data)
+            base_earning = Decimal(str(price_result['total_price']))
+            earning = DriverEarning.objects.create(
+                driver=delivery.driver,
+                delivery=delivery,
+                base_earning=base_earning,
+                total_earning=base_earning,  # à ajuster si bonus/penalités
+                status='pending',
+                notes='Gain généré automatiquement à la validation de la livraison.'
+            )
+            earning.save()
+            logger.info(f"[AUTO] Gain créé: {earning.driver.user.full_name} | Livraison: {delivery.tracking_number} | {earning.total_earning} CFA (statut: pending)")
 
         # Mettre à jour les stats du driver
         driver.total_deliveries += 1

@@ -14,24 +14,40 @@ class AuthRepository {
   Future<UserModel> registerMerchant({
     required String email,
     required String password,
-    required String businessName,
+    required String password2,
+    required String firstName,
+    required String lastName,
     required String phone,
-    required String address,
-    String? registreCommercePath,
+    required String businessName,
+    required String businessType,
+    required String businessAddress,
+    String? rccmDocumentPath,
+    String? idDocumentPath,
   }) async {
-    final formData = FormData.fromMap({
-      'email': email,
-      'password': password,
-      'business_name': businessName,
-      'phone': phone,
-      'address': address,
-      'user_type': 'merchant',
-      if (registreCommercePath != null)
-        'registre_commerce': await MultipartFile.fromFile(
-          registreCommercePath,
-          filename: 'registre_commerce.pdf',
-        ),
-    });
+    final formData = FormData();
+    formData.fields
+      ..add(MapEntry('email', email))
+      ..add(MapEntry('password', password))
+      ..add(MapEntry('password2', password2))
+      ..add(MapEntry('first_name', firstName))
+      ..add(MapEntry('last_name', lastName))
+      ..add(MapEntry('phone', phone))
+      ..add(MapEntry('user_type', 'merchant'))
+      ..add(MapEntry('merchant_data[business_name]', businessName))
+      ..add(MapEntry('merchant_data[business_type]', businessType))
+      ..add(MapEntry('merchant_data[business_address]', businessAddress));
+    if (rccmDocumentPath != null) {
+      formData.files.add(MapEntry(
+        'merchant_data[rccm_document]',
+        await MultipartFile.fromFile(rccmDocumentPath, filename: 'rccm_document.pdf'),
+      ));
+    }
+    if (idDocumentPath != null) {
+      formData.files.add(MapEntry(
+        'merchant_data[id_document]',
+        await MultipartFile.fromFile(idDocumentPath, filename: 'id_document.pdf'),
+      ));
+    }
 
     final response = await dioClient.upload(
       ApiConstants.register,
@@ -79,7 +95,7 @@ class AuthRepository {
           data: {'refresh': refreshToken},
         );
       } catch (e) {
-        print('Erreur logout backend: $e');
+        // Optionally log error in production with a logger
       }
     }
     await authService.logout();
