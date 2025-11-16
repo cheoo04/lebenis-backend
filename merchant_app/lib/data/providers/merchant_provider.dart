@@ -2,39 +2,48 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/merchant_repository.dart';
 import '../models/merchant_model.dart';
 import '../models/merchant_stats_model.dart';
+import '../../core/providers.dart';
 
-final merchantRepositoryProvider = Provider((ref) {
-  throw UnimplementedError();
+final merchantRepositoryProvider = Provider<MerchantRepository>((ref) {
+  final dioClient = ref.watch(dioClientProvider);
+  return MerchantRepository(dioClient);
 });
 
-final merchantProfileProvider = FutureProvider((ref) async {
-  final repository = ref.watch(merchantRepositoryProvider);
-  return repository.getProfile();
-});
+class MerchantStatsNotifier extends Notifier<AsyncValue<MerchantStatsModel?>> {
+  late final MerchantRepository repository;
 
-final merchantStatsProvider = FutureProvider((ref) async {
-  final repository = ref.watch(merchantRepositoryProvider);
-  return repository.getStats();
-});
+  @override
+  AsyncValue<MerchantStatsModel?> build() {
+    repository = ref.watch(merchantRepositoryProvider);
+    return const AsyncValue.loading();
+  }
 
-final merchantNotifierProvider = StateNotifierProvider<MerchantNotifier, AsyncValue<MerchantModel?>>((ref) {
-  final repository = ref.watch(merchantRepositoryProvider);
-  return MerchantNotifier(repository);
-});
-
-class MerchantNotifier extends StateNotifier<AsyncValue<MerchantModel?>> {
-  final MerchantRepository repository;
-
-  MerchantNotifier(this.repository) : super(const AsyncValue.data(null));
-
-  Future<void> loadProfile() async {
+  Future<void> loadStats({int periodDays = 30}) async {
     state = const AsyncValue.loading();
     try {
-      final profile = await repository.getProfile();
-      state = AsyncValue.data(profile);
+      final stats = await repository.getStats(periodDays: periodDays);
+      state = AsyncValue.data(stats);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
+  }
+
+  Future<void> refresh({int periodDays = 30}) async {
+    await loadStats(periodDays: periodDays);
+  }
+}
+
+final merchantStatsProvider = NotifierProvider<MerchantStatsNotifier, AsyncValue<MerchantStatsModel?>>(
+  () => MerchantStatsNotifier(),
+);
+
+class MerchantNotifier extends Notifier<AsyncValue<MerchantModel?>> {
+  late final MerchantRepository repository;
+
+  @override
+  AsyncValue<MerchantModel?> build() {
+    repository = ref.watch(merchantRepositoryProvider);
+    return const AsyncValue.data(null);
   }
 
   Future<void> updateProfile({
@@ -55,7 +64,21 @@ class MerchantNotifier extends StateNotifier<AsyncValue<MerchantModel?>> {
     }
   }
 
+  Future<void> loadProfile() async {
+    state = const AsyncValue.loading();
+    try {
+      final merchant = await repository.getProfile();
+      state = AsyncValue.data(merchant);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
   Future<void> refresh() async {
     await loadProfile();
   }
 }
+
+final merchantProfileProvider = NotifierProvider<MerchantNotifier, AsyncValue<MerchantModel?>>(
+  () => MerchantNotifier(),
+);

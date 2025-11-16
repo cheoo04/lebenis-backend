@@ -1,29 +1,23 @@
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import '../repositories/auth_repository.dart';
 import '../models/user_model.dart';
+import '../../core/providers.dart';
 
-final authRepositoryProvider = Provider((ref) {
-  // À configurer dans main.dart
-  throw UnimplementedError();
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  final dioClient = ref.watch(dioClientProvider);
+  final authService = ref.watch(authServiceProvider);
+  return AuthRepository(dioClient, authService);
 });
 
-final authStateProvider = StateNotifierProvider<AuthStateNotifier, AsyncValue<UserModel?>>((ref) {
-  final repository = ref.watch(authRepositoryProvider);
-  return AuthStateNotifier(repository);
-});
+class AuthNotifier extends Notifier<AsyncValue<UserModel?>> {
+  late final AuthRepository repository;
 
-class AuthStateNotifier extends StateNotifier<AsyncValue<UserModel?>> {
-  final AuthRepository repository;
-
-  AuthStateNotifier(this.repository) : super(const AsyncValue.data(null)) {
-    checkAuthStatus();
-  }
-
-  Future<void> checkAuthStatus() async {
-    final isLoggedIn = await repository.isLoggedIn();
-    if (!isLoggedIn) {
-      state = const AsyncValue.data(null);
-    }
+  @override
+  AsyncValue<UserModel?> build() {
+    repository = ref.watch(authRepositoryProvider);
+    return const AsyncValue.data(null);
   }
 
   Future<void> login({
@@ -32,7 +26,10 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final user = await repository.login(email: email, password: password);
+      final user = await repository.login(
+        email: email,
+        password: password,
+      );
       state = AsyncValue.data(user);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -42,24 +39,50 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   Future<void> register({
     required String email,
     required String password,
-    required String businessName,
+    required String password2,
+    required String firstName,
+    required String lastName,
     required String phone,
-    required String address,
-    String? registreCommercePath,
+    required String businessName,
+    required String businessType,
+    required String businessAddress,
+    String? rccmDocumentPath,
+    String? idDocumentPath,
   }) async {
     state = const AsyncValue.loading();
     try {
       final user = await repository.registerMerchant(
         email: email,
         password: password,
-        businessName: businessName,
+        password2: password2,
+        firstName: firstName,
+        lastName: lastName,
         phone: phone,
-        address: address,
-        registreCommercePath: registreCommercePath,
+        businessName: businessName,
+        businessType: businessType,
+        businessAddress: businessAddress,
+        rccmDocumentPath: rccmDocumentPath,
+        idDocumentPath: idDocumentPath,
       );
       state = AsyncValue.data(user);
+    } on DioException catch (dioErr, st) {
+      if (dioErr.type == DioExceptionType.connectionTimeout || dioErr.type == DioExceptionType.receiveTimeout) {
+        state = AsyncValue.error('Le serveur ne répond pas. Veuillez vérifier votre connexion ou réessayer plus tard.', st);
+      } else if (dioErr.response != null && dioErr.response?.data != null) {
+        // Erreur backend avec message
+        final data = dioErr.response?.data;
+        String msg = 'Erreur inconnue';
+        if (data is Map && data.isNotEmpty) {
+          msg = data.values.first is List ? data.values.first.first.toString() : data.values.first.toString();
+        } else if (data is String) {
+          msg = data;
+        }
+        state = AsyncValue.error(msg, st);
+      } else {
+        state = AsyncValue.error('Erreur réseau ou serveur inattendue.', st);
+      }
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      state = AsyncValue.error('Erreur inattendue : $e', st);
     }
   }
 
@@ -68,3 +91,7 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     state = const AsyncValue.data(null);
   }
 }
+
+final authStateProvider = NotifierProvider<AuthNotifier, AsyncValue<UserModel?>>(
+  () => AuthNotifier(),
+);

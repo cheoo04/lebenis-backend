@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/providers/merchant_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
-
+  const DashboardScreen({super.key});
+  
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(merchantProfileProvider);
@@ -18,7 +18,9 @@ class DashboardScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
+              // ignore: unused_result
               ref.refresh(merchantProfileProvider);
+              // ignore: unused_result
               ref.refresh(merchantStatsProvider);
             },
           ),
@@ -26,7 +28,9 @@ class DashboardScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
+          // ignore: unused_result
           ref.refresh(merchantProfileProvider);
+          // ignore: unused_result
           ref.refresh(merchantStatsProvider);
         },
         child: SingleChildScrollView(
@@ -58,6 +62,14 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildProfileCard(BuildContext context, dynamic profile) {
+    if (profile == null) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('Aucun profil trouvé', style: TextStyle(color: Colors.red)),
+        ),
+      );
+    }
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -206,12 +218,12 @@ class _LoadingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return const Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: SizedBox(
           height: 100,
-          child: const Center(child: CircularProgressIndicator()),
+          child: Center(child: CircularProgressIndicator()),
         ),
       ),
     );

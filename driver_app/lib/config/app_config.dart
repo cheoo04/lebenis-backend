@@ -53,29 +53,23 @@ class AppConfig {
     'camionnette': 'Camionnette',
   };
 
-  // Communes de Dakar
+  // Communes principales d'Abidjan (Côte d'Ivoire)
   static const List<String> communes = [
+    'Abobo',
+    'Adjamé',
+    'Attécoubé',
+    'Cocody',
+    'Koumassi',
+    'Marcory',
     'Plateau',
-    'Médina',
-    'Gueule Tapée-Fass-Colobane',
-    'Sicap-Liberté',
-    'HLM',
-    'Grand Dakar',
-    'Biscuiterie',
-    'Dieuppeul-Derklé',
-    'Grand Yoff',
-    'Yoff',
-    'Ngor',
-    'Ouakam',
-    'Mermoz-Sacré-Cœur',
-    'Point E',
-    'Almadies',
-    'Parcelles Assainies',
-    'Cambérène',
-    'Hann Bel-Air',
-    'Pikine',
-    'Guédiawaye',
-    'Rufisque',
+    'Port-Bouët',
+    'Treichville',
+    'Yopougon',
+    'Bingerville',
+    'Songon',
+    'Anyama',
+    'Grand-Bassam',
+    'Dabou',
   ];
 
   // Status des livraisons
