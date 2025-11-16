@@ -8,7 +8,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from geopy.distance import geodesic
-
+from django.db.models import Count, Q
 from .models import Delivery
 from apps.drivers.models import Driver, DriverZone
 from apps.notifications.models import Notification
@@ -200,65 +200,6 @@ class DeliveryAssignmentService:
     # MÉTHODES PRIVÉES - ALGORITHME DE SÉLECTION
     # =========================================================================
     
-    def _find_best_driver(self, delivery):
-        """
-        Trouve le meilleur livreur pour une livraison donnée.
-        
-        Returns:
-            Driver: Meilleur livreur ou None
-        """
-        # 1. Livreurs de base (vérifiés + disponibles + capacité suffisante)
-        base_query = Driver.objects.filter(
-            verification_status='verified',
-            is_available=True,
-            vehicle_capacity_kg__gte=delivery.package_weight_kg
-        ).select_related('user')
-        
-        # 2. Filtrer par zone (prioritaire)
-        drivers_in_zone = base_query.filter(
-            zones__commune__iexact=delivery.delivery_commune
-        ).distinct()
-        
-        if not drivers_in_zone.exists():
-            # Fallback : Prendre tous les livreurs disponibles
-            self.logger.warning(
-                f"⚠️ Aucun livreur dans la zone '{delivery.delivery_commune}', "
-                f"recherche élargie"
-            )
-            drivers_in_zone = base_query
-        
-        # 3. Annoter avec le nombre de livraisons en cours
-        from django.db.models import Count, Q
-        
-        drivers_with_stats = drivers_in_zone.annotate(
-            active_deliveries_count=Count(
-                'deliveries',
-                filter=Q(
-                    deliveries__status__in=[
-                        'assigned', 'pickup_in_progress', 'picked_up', 'in_transit'
-                    ]
-                )
-            )
-        )
-        
-        # 4. Trier par critères multiples
-        sorted_drivers = drivers_with_stats.order_by(
-            'active_deliveries_count',  # Moins de livraisons en cours
-            '-rating',                   # Meilleur rating
-            '-successful_deliveries',    # Plus d'expérience
-        )
-        
-        # 5. Retourner le meilleur
-        best_driver = sorted_drivers.first()
-        
-        if best_driver:
-            self.logger.debug(
-                f"🎯 Meilleur driver trouvé: {best_driver.user.full_name} | "
-                f"Rating: {best_driver.rating} | "
-                f"Livraisons actives: {best_driver.active_deliveries_count}"
-            )
-        
-        return best_driver
     
     # =========================================================================
     # RÉASSIGNATION (CHANGEMENT DE LIVREUR)
@@ -322,6 +263,90 @@ class DeliveryAssignmentService:
     
     # =========================================================================
     # ACCEPTATION/REFUS PAR LE LIVREUR
+    def _find_best_driver(self, delivery):
+        """
+        Trouve le meilleur livreur pour une livraison donnée, en privilégiant la proximité GPS.
+        Returns:
+            Driver: Meilleur livreur ou None
+        """
+        # 1. Livreurs de base (vérifiés + disponibles + capacité suffisante)
+        base_query = Driver.objects.filter(
+            verification_status='verified',
+            is_available=True,
+            vehicle_capacity_kg__gte=delivery.package_weight_kg
+        ).select_related('user')
+        # 1b. Filtrer par type de véhicule si requis
+        if hasattr(delivery, 'required_vehicle_type') and delivery.required_vehicle_type:
+            base_query = base_query.filter(vehicle_type=delivery.required_vehicle_type)
+
+        # 2. Filtrer par zone (prioritaire)
+        drivers_in_zone = base_query.filter(
+            zones__commune__iexact=delivery.delivery_commune
+        ).distinct()
+
+        if not drivers_in_zone.exists():
+            # Fallback : Prendre tous les livreurs disponibles
+            self.logger.warning(
+                f"⚠️ Aucun livreur dans la zone '{delivery.delivery_commune}', "
+                f"recherche élargie"
+            )
+            drivers_in_zone = base_query
+
+        # 3. Annoter avec le nombre de livraisons en cours
+        drivers_with_stats = drivers_in_zone.annotate(
+            active_deliveries_count=Count(
+                'deliveries',
+                filter=Q(
+                    deliveries__status__in=[
+                        'assigned', 'pickup_in_progress', 'picked_up', 'in_transit'
+                    ]
+                )
+            )
+        )
+
+        # 4. Calculer la distance réelle pour chaque driver (si GPS dispo)
+        pickup_coords = None
+        if delivery.pickup_latitude is not None and delivery.pickup_longitude is not None:
+            pickup_coords = (float(delivery.pickup_latitude), float(delivery.pickup_longitude))
+
+        driver_distance_list = []
+        for driver in drivers_with_stats:
+            distance_km = None
+            if pickup_coords and driver.current_latitude is not None and driver.current_longitude is not None:
+                try:
+                    driver_coords = (float(driver.current_latitude), float(driver.current_longitude))
+                    distance_km = geodesic(driver_coords, pickup_coords).km
+                except Exception as e:
+                    self.logger.warning(f"Erreur calcul distance GPS pour {driver.user.full_name}: {e}")
+            driver_distance_list.append({
+                'driver': driver,
+                'distance_km': distance_km,
+                'active_deliveries_count': driver.active_deliveries_count,
+                'rating': driver.rating or 0,
+                'successful_deliveries': getattr(driver, 'successful_deliveries', 0)
+            })
+
+        # 5. Trier par distance (si dispo), puis par critères classiques
+        def sort_key(item):
+            # Priorité: distance (si connue), puis charge, rating, expérience
+            return (
+                item['distance_km'] if item['distance_km'] is not None else float('inf'),
+                item['active_deliveries_count'],
+                -float(item['rating']),
+                -int(item['successful_deliveries'])
+            )
+
+        driver_distance_list.sort(key=sort_key)
+
+        best = driver_distance_list[0]['driver'] if driver_distance_list else None
+        if best:
+            self.logger.debug(
+                f"🎯 Meilleur driver trouvé: {best.user.full_name} | "
+                f"Distance: {driver_distance_list[0]['distance_km']} km | "
+                f"Rating: {best.rating} | "
+                f"Livraisons actives: {driver_distance_list[0]['active_deliveries_count']}"
+            )
+        return best
     # =========================================================================
     
     @transaction.atomic

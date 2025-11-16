@@ -82,10 +82,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     
     def validate(self, attrs):
         """
-        Personnalise la réponse de login pour inclure les infos utilisateur.
+        Personnalise la réponse de login pour inclure les infos utilisateur et gère les cas d'utilisateur inactif ou d'identifiants invalides.
         """
-        # Validation de base (email + password)
-        data = super().validate(attrs)
+        try:
+            data = super().validate(attrs)
+        except Exception:
+            # Email ou mot de passe incorrect
+            raise serializers.ValidationError({"detail": "Email ou mot de passe incorrect."})
+
+        # Vérifie si l'utilisateur est actif
+        if not self.user.is_active:
+            raise serializers.ValidationError({"detail": "Votre compte a été désactivé. Veuillez contacter l’administrateur ou le propriétaire pour plus d’informations."})
 
         # Ajoute les informations utilisateur à la réponse JSON
         data['user'] = {
@@ -98,14 +105,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'is_verified': self.user.is_verified,
             'is_active': self.user.is_active,
         }
-    
-        # Réponse finale :
-        # {
-        #   "access": "eyJ0eXAi...",
-        #   "refresh": "eyJ0eXAi...",
-        #   "user": { ... }
-        # }
-        
         return data
 
 # ============================================================================
