@@ -64,18 +64,18 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     
     @transaction.atomic
     def perform_create(self, serializer):
-        """Calcule le prix automatiquement lors de la création"""
+        """Calcule le prix automatiquement lors de la création et envoie le code PIN par email."""
         try:
             # Récupère le merchant
             merchant = Merchant.objects.filter(user=self.request.user).first()
             if not merchant:
                 raise ValidationError("Vous n'avez pas de profil merchant")
-            
+
             # Récupère l'adresse principale
             pickup_address = merchant.addresses.filter(is_primary=True).first()
             if not pickup_address:
                 raise ValidationError("Vous devez avoir une adresse principale")
-            
+
             # Prépare les données pour le calcul
             delivery_data = serializer.validated_data
             pricing_data = {
@@ -85,16 +85,16 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 'is_fragile': delivery_data.get('is_fragile', False),
                 'scheduling_type': delivery_data.get('scheduling_type', 'immediate'),
             }
-            
+
             # Calcule le prix
             calculator = PricingCalculator()
             price_result = calculator.calculate_price(pricing_data)
             calculated_price = price_result['total_price']
-            
+
             # Valide le prix
             if calculated_price <= 0:
                 raise ValidationError("Le prix calculé est invalide")
-            
+
             # Génère un code PIN à 4 chiffres
             delivery_confirmation_code = Delivery().generate_confirmation_code()
             # Sauvegarde la livraison
@@ -103,11 +103,15 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 calculated_price=calculated_price,
                 delivery_confirmation_code=delivery_confirmation_code
             )
-            
+
+            # Envoie le code PIN par email (manuel pour test)
+            from .email_service import send_delivery_pin_email
+            send_delivery_pin_email(delivery_confirmation_code, "yahmardocheek@gmail.com", serializer.instance)
+
         except ValidationError as e:
             logger.warning(f"⚠️ Validation error: {str(e)}")
             raise
-        
+
         except Exception as e:
             logger.error(f"❌ Erreur création: {str(e)}", exc_info=True)
             raise ValidationError("Erreur lors du calcul du prix")
