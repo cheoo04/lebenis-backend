@@ -1,8 +1,7 @@
-
-
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../..//data/models/zone_model.dart';
-import '../../../..//data/providers/zone_provider.dart';
+import '../../../../data/models/zone_model.dart';
+import '../../../../data/providers/zone_provider.dart';
 import '../widgets/zone_list.dart';
 
 class ZoneSelectionScreen extends ConsumerWidget {

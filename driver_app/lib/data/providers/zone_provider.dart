@@ -2,7 +2,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/zone_model.dart';
 import '../repositories/zone_repository.dart';
 
-final zoneRepositoryProvider = Provider<ZoneRepository>((ref) => ZoneRepository());
+import '../../core/network/dio_client.dart';
+import '../../core/services/auth_service.dart';
+
+final authServiceProvider = Provider<AuthService>((ref) {
+  return AuthService();
+});
+
+final dioClientProvider = Provider<DioClient>((ref) {
+  final authService = ref.read(authServiceProvider);
+  return DioClient(authService);
+});
+
+final zoneRepositoryProvider = Provider<ZoneRepository>((ref) {
+  final dioClient = ref.read(dioClientProvider);
+  return ZoneRepository(dioClient);
+});
 
 class ZoneState {
   final List<ZoneModel> zones;
