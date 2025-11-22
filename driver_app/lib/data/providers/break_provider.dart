@@ -57,16 +57,15 @@ class BreakState {
 }
 
 // Notifier pour gérer la logique des pauses
-class BreakNotifier extends StateNotifier<BreakState> {
-  final BreakRepository _repository;
+
+class BreakNotifier extends Notifier<BreakState> {
+  late final BreakRepository _repository;
   Timer? _timer;
 
-  BreakNotifier(this._repository) : super(BreakState());
-
   @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
+  BreakState build() {
+    _repository = ref.read(breakRepositoryProvider);
+    return BreakState();
   }
 
   /// Charge le statut de pause
@@ -179,7 +178,4 @@ class BreakNotifier extends StateNotifier<BreakState> {
 }
 
 // Provider principal
-final breakProvider = StateNotifierProvider<BreakNotifier, BreakState>((ref) {
-  final repository = ref.watch(breakRepositoryProvider);
-  return BreakNotifier(repository);
-});
+final breakProvider = NotifierProvider<BreakNotifier, BreakState>(BreakNotifier.new);

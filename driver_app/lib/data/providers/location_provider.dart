@@ -54,16 +54,19 @@ class LocationState {
 
 // ========== LOCATION NOTIFIER ==========
 
-class LocationNotifier extends StateNotifier<LocationState> {
-  final LocationService _locationService;
-  final DriverRepository _driverRepository;
-  
+
+class LocationNotifier extends Notifier<LocationState> {
+  late final LocationService _locationService;
+  late final DriverRepository _driverRepository;
   Timer? _updateTimer;
   StreamSubscription<Position>? _positionStreamSubscription;
 
-  LocationNotifier(this._locationService, this._driverRepository)
-      : super(LocationState()) {
+  @override
+  LocationState build() {
+    _locationService = ref.read(locationServiceProvider);
+    _driverRepository = ref.read(driverRepositoryProvider);
     _checkPermissionsAndService();
+    return LocationState();
   }
 
   /// Vérifier les permissions et le service GPS
@@ -190,17 +193,12 @@ class LocationNotifier extends StateNotifier<LocationState> {
   void dispose() {
     stopTracking();
     _updateTimer?.cancel();
-    super.dispose();
   }
 }
 
 // ========== PROVIDER ==========
 
-final locationProvider = StateNotifierProvider<LocationNotifier, LocationState>((ref) {
-  final locationService = ref.read(locationServiceProvider);
-  final driverRepository = ref.read(driverRepositoryProvider);
-  return LocationNotifier(locationService, driverRepository);
-});
+final locationProvider = NotifierProvider<LocationNotifier, LocationState>(LocationNotifier.new);
 
 // ========== COMPUTED PROVIDERS ==========
 

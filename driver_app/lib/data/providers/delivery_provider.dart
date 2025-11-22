@@ -53,12 +53,15 @@ class DeliveryState {
 
 // ========== DELIVERY NOTIFIER ==========
 
-class DeliveryNotifier extends StateNotifier<DeliveryState> {
-  final DeliveryRepository _deliveryRepository;
 
-  DeliveryNotifier(
-    this._deliveryRepository,
-  ) : super(DeliveryState());
+class DeliveryNotifier extends Notifier<DeliveryState> {
+  late final DeliveryRepository _deliveryRepository;
+
+  @override
+  DeliveryState build() {
+    _deliveryRepository = ref.read(deliveryRepositoryProvider);
+    return DeliveryState();
+  }
 
   /// Charger les livraisons DISPONIBLES (pending_assignment)
   /// Ces sont les livraisons que le driver peut accepter
@@ -283,10 +286,7 @@ class DeliveryNotifier extends StateNotifier<DeliveryState> {
 
 // ========== PROVIDER ==========
 
-final deliveryProvider = StateNotifierProvider<DeliveryNotifier, DeliveryState>((ref) {
-  final deliveryRepo = ref.read(deliveryRepositoryProvider);
-  return DeliveryNotifier(deliveryRepo);
-});
+final deliveryProvider = NotifierProvider<DeliveryNotifier, DeliveryState>(DeliveryNotifier.new);
 
 // ========== COMPUTED PROVIDERS ==========
 
