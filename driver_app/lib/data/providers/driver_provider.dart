@@ -57,31 +57,35 @@ class DriverState {
 
 // ========== DRIVER NOTIFIER ==========
 
-class DriverNotifier extends StateNotifier<DriverState> {
-    /// Supprimer la photo de profil
-    Future<bool> deleteProfilePhoto() async {
-      state = state.copyWith(isLoading: true, clearError: true);
-      try {
-        await _repository.deleteProfilePhoto();
-        // Recharger le profil pour mettre à jour l'UI
-        await loadProfile();
-        state = state.copyWith(
-          isLoading: false,
-          successMessage: 'Photo de profil supprimée avec succès',
-        );
-        return true;
-      } catch (e) {
-        state = state.copyWith(
-          isLoading: false,
-          error: e.toString(),
-        );
-        return false;
-      }
-    }
-  final DriverRepository _repository;
-  final Ref _ref;
 
-  DriverNotifier(this._repository, this._ref) : super(DriverState());
+class DriverNotifier extends Notifier<DriverState> {
+  DriverRepository get _repository => ref.read(driverRepositoryProvider);
+
+  @override
+  DriverState build() {
+    return DriverState();
+  }
+
+  /// Supprimer la photo de profil
+  Future<bool> deleteProfilePhoto() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _repository.deleteProfilePhoto();
+      // Recharger le profil pour mettre à jour l'UI
+      await loadProfile();
+      state = state.copyWith(
+        isLoading: false,
+        successMessage: 'Photo de profil supprimée avec succès',
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+      return false;
+    }
+  }
 
   /// Charger le profil du driver
   Future<void> loadProfile() async {
@@ -178,7 +182,7 @@ class DriverNotifier extends StateNotifier<DriverState> {
     String? filename,
   ]) async {
     try {
-      final dioClient = _ref.read(dioClientProvider);
+      final dioClient = ref.read(dioClientProvider);
       Response response;
 
       MultipartFile multipartFile;
@@ -265,10 +269,7 @@ class DriverNotifier extends StateNotifier<DriverState> {
 
 // ========== PROVIDER ==========
 
-final driverProvider = StateNotifierProvider<DriverNotifier, DriverState>((ref) {
-  final repository = ref.read(driverRepositoryProvider);
-  return DriverNotifier(repository, ref);
-});
+final driverProvider = NotifierProvider<DriverNotifier, DriverState>(DriverNotifier.new);
 
 // ========== COMPUTED PROVIDERS ==========
 

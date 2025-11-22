@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart'; // ← AJOUT pour kIsWeb
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:signature/signature.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../../core/providers/delivery_provider.dart';
@@ -218,6 +219,25 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
 
             const SizedBox(height: Dimensions.spacingL),
 
+            // Champ de saisie du code PIN (4 chiffres)
+            Padding(
+              padding: const EdgeInsets.only(bottom: Dimensions.spacingL),
+              child: TextField(
+                controller: _pinController,
+                keyboardType: TextInputType.number,
+                maxLength: 4,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(4),
+                ],
+                decoration: const InputDecoration(
+                  labelText: 'Code PIN de confirmation',
+                  border: OutlineInputBorder(),
+                  counterText: '',
+                ),
+                enabled: !_isProcessing,
+              ),
+            ),
             // Photo Section ← MODIFICATION ICI
             _RequirementCard(
               icon: Icons.photo_camera,

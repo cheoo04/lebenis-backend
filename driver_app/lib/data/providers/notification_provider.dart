@@ -64,10 +64,15 @@ class NotificationState {
 }
 
 // Notifier pour gérer la logique
-class NotificationNotifier extends StateNotifier<NotificationState> {
-  final NotificationRepository _repository;
 
-  NotificationNotifier(this._repository) : super(NotificationState());
+class NotificationNotifier extends Notifier<NotificationState> {
+  late final NotificationRepository _repository;
+
+  @override
+  NotificationState build() {
+    _repository = ref.read(notificationRepositoryProvider);
+    return NotificationState();
+  }
 
   /// Charge les notifications (page 1)
   Future<void> loadNotifications({String? notificationType}) async {
@@ -236,7 +241,4 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
 }
 
 // Provider principal
-final notificationProvider = StateNotifierProvider<NotificationNotifier, NotificationState>((ref) {
-  final repository = ref.watch(notificationRepositoryProvider);
-  return NotificationNotifier(repository);
-});
+final notificationProvider = NotifierProvider<NotificationNotifier, NotificationState>(NotificationNotifier.new);

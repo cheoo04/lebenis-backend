@@ -43,9 +43,15 @@ class ZoneState {
   }
 }
 
-class ZoneNotifier extends StateNotifier<ZoneState> {
-  final ZoneRepository repository;
-  ZoneNotifier(this.repository) : super(ZoneState());
+
+class ZoneNotifier extends Notifier<ZoneState> {
+  late final ZoneRepository repository;
+
+  @override
+  ZoneState build() {
+    repository = ref.read(zoneRepositoryProvider);
+    return ZoneState();
+  }
 
   Future<void> loadZones() async {
     state = state.copyWith(isLoading: true, error: null);
@@ -70,7 +76,4 @@ class ZoneNotifier extends StateNotifier<ZoneState> {
   }
 }
 
-final zoneProvider = StateNotifierProvider<ZoneNotifier, ZoneState>((ref) {
-  final repo = ref.watch(zoneRepositoryProvider);
-  return ZoneNotifier(repo);
-});
+final zoneProvider = NotifierProvider<ZoneNotifier, ZoneState>(ZoneNotifier.new);

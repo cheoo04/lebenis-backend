@@ -1,5 +1,4 @@
 // lib/data/providers/auth_provider.dart
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/dio_client.dart';
@@ -60,12 +59,17 @@ class AuthState {
 
 // ========== AUTH NOTIFIER ==========
 
-class AuthNotifier extends StateNotifier<AuthState> {
-  final AuthRepository _repository;
-  final AuthService _authService;
 
-  AuthNotifier(this._repository, this._authService)
-      : super(AuthState());
+class AuthNotifier extends Notifier<AuthState> {
+  late final AuthRepository _repository;
+  late final AuthService _authService;
+
+  @override
+  AuthState build() {
+    _repository = ref.read(authRepositoryProvider);
+    _authService = ref.read(authServiceProvider);
+    return AuthState();
+  }
 
   /// Login
   Future<void> login(String email, String password) async {
@@ -259,8 +263,4 @@ class AuthNotifier extends StateNotifier<AuthState> {
 }
 
 /// Auth Provider
-final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  final repository = ref.read(authRepositoryProvider);
-  final authService = ref.read(authServiceProvider);
-  return AuthNotifier(repository, authService);
-});
+final authProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);

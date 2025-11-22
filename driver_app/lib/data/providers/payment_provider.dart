@@ -91,10 +91,15 @@ class PaymentState {
 
 // ========== PAYMENT NOTIFIER ==========
 
-class PaymentNotifier extends StateNotifier<PaymentState> {
-  final PaymentRepository _paymentRepository;
 
-  PaymentNotifier(this._paymentRepository) : super(PaymentState());
+class PaymentNotifier extends Notifier<PaymentState> {
+  late final PaymentRepository _paymentRepository;
+
+  @override
+  PaymentState build() {
+    _paymentRepository = ref.read(paymentRepositoryProvider);
+    return PaymentState();
+  }
 
   /// Charger les gains par période
   Future<void> loadEarnings({String period = 'week'}) async {
@@ -228,7 +233,4 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
 
 // ========== PAYMENT PROVIDER ==========
 
-final paymentProvider = StateNotifierProvider<PaymentNotifier, PaymentState>((ref) {
-  final repository = ref.read(paymentRepositoryProvider);
-  return PaymentNotifier(repository);
-});
+final paymentProvider = NotifierProvider<PaymentNotifier, PaymentState>(PaymentNotifier.new);

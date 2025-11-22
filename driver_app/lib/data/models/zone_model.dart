@@ -12,7 +12,7 @@ class ZoneModel {
   factory ZoneModel.fromJson(Map<String, dynamic> json) {
     return ZoneModel(
       id: json['id'] as String,
-      name: json['name'] as String,
+      name: json['zone_name'] as String, // Correction ici
       selected: json['selected'] ?? false,
     );
   }
