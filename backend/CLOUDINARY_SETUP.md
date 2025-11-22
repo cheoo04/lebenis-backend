@@ -1,4 +1,22 @@
 # 📸 Configuration Cloudinary pour Upload d'Images
+## 🗂️ Presets Cloudinary à créer (console Cloudinary)
+
+Pour garantir une organisation optimale et une sécurité adaptée, créez les presets suivants dans la console Cloudinary :
+
+| Nom du preset     | Dossier cible         | Overwrite | Usage principal                |
+|-------------------|----------------------|-----------|-------------------------------|
+| driver_photos     | lebenis/profiles     | Oui       | Photos de profil drivers       |
+| documents         | lebenis/documents    | Non       | Documents officiels (CNI, etc.)|
+| chat_images       | lebenis/chat         | Non       | Images envoyées dans le chat   |
+| signatures        | lebenis/signatures   | Non       | Signatures électroniques (opt.)|
+
+**Recommandations** :
+- Mode Signed pour tous les presets
+- Overwrite activé uniquement pour les photos de profil
+- Public ID auto-généré sauf si géré côté backend (ex : user_{id})
+- Display name : filename
+
+> ⚠️ Pour la photo de profil, le preset doit exister mais la logique d’upload (dossier, overwrite, nommage) est déjà gérée côté backend Python.
 
 ## 🎯 Objectif
 Permettre l'upload sécurisé de photos de profil vers Cloudinary avec validation, compression automatique et transformations optimisées.

@@ -20,6 +20,10 @@ class CloudinaryUploadView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
+        import logging
+        logger = logging.getLogger("django.request")
+        logger.info("[CLOUDINARY_UPLOAD] request.FILES: %s", request.FILES)
+        logger.info("[CLOUDINARY_UPLOAD] request.POST: %s", request.POST)
         """
         Upload un fichier vers Cloudinary
         
@@ -39,6 +43,7 @@ class CloudinaryUploadView(APIView):
         # Récupérer le fichier
         uploaded_file = request.FILES.get('file')
         if not uploaded_file:
+            logger.error("[CLOUDINARY_UPLOAD] Aucun fichier fourni dans la requête.")
             return Response(
                 {'error': 'Aucun fichier fourni'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -46,6 +51,7 @@ class CloudinaryUploadView(APIView):
 
         # Type d'upload
         upload_type = request.data.get('upload_type', 'chat_image')
+        logger.info(f"[CLOUDINARY_UPLOAD] upload_type: {upload_type}")
         
         try:
             # Router vers la bonne méthode selon le type
@@ -54,23 +60,21 @@ class CloudinaryUploadView(APIView):
                     uploaded_file,
                     user_id=request.user.id
                 )
-            
             elif upload_type == 'chat_image':
-                # Utiliser la méthode générique pour images
                 url = CloudinaryService.upload_profile_photo(
                     uploaded_file,
                     user_id=request.user.id
                 )
-            
             elif upload_type == 'document':
                 document_type = request.data.get('document_type', 'general')
+                logger.info(f"[CLOUDINARY_UPLOAD] document_type: {document_type}")
                 url = CloudinaryService.upload_document(
                     uploaded_file,
                     user_id=request.user.id,
                     document_type=document_type
                 )
-            
             else:
+                logger.error(f"[CLOUDINARY_UPLOAD] Type d'upload inconnu: {upload_type}")
                 return Response(
                     {'error': f'Type d\'upload inconnu: {upload_type}'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -82,12 +86,13 @@ class CloudinaryUploadView(APIView):
             }, status=status.HTTP_200_OK)
 
         except ValidationError as e:
+            logger.error(f"[CLOUDINARY_UPLOAD] ValidationError: {str(e)}")
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
         except Exception as e:
+            logger.error(f"[CLOUDINARY_UPLOAD] Exception: {str(e)}")
             return Response(
                 {'error': f'Erreur lors de l\'upload: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
