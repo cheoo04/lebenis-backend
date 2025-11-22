@@ -1,14 +1,16 @@
 # pricing/views.py
-
+from django.db import transaction
 from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from .assign_serializers import AssignZonesSerializer
 
 from .models import PricingZone, ZonePricingMatrix
 from .serializers import PricingZoneSerializer, ZonePricingMatrixSerializer, CalculatePriceSerializer
 from .calculator import PricingCalculator
+from apps.drivers.models import DriverZone
 
 
 # ============================================================================
@@ -183,3 +185,36 @@ class CalculatePriceView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+# ==========================================================================
+# ENDPOINT DÉDIÉ : ASSIGNATION DES ZONES PAR LE LIVREUR
+# ==========================================================================
+
+class AssignZonesView(APIView):
+    """
+    POST /api/v1/pricing/zones/assign/
+    Permet à un livreur authentifié de définir ses zones de travail.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = AssignZonesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        zone_ids = serializer.validated_data['zone_ids']
+        driver = getattr(request.user, 'driver_profile', None)
+        if not driver:
+            return Response({'detail': "Seuls les livreurs peuvent modifier leurs zones."}, status=403)
+        with transaction.atomic():
+            # Supprimer les anciennes zones
+            DriverZone.objects.filter(driver=driver).delete()
+            # Créer les nouvelles zones
+            for zone_id in zone_ids:
+                # On récupère la commune de la zone tarifaire
+                from apps.pricing.models import PricingZone
+                try:
+                    pricing_zone = PricingZone.objects.get(id=zone_id)
+                except PricingZone.DoesNotExist:
+                    return Response({'detail': f"Zone introuvable: {zone_id}"}, status=400)
+                DriverZone.objects.create(driver=driver, commune=pricing_zone.commune)
+        return Response({'success': True, 'assigned_zone_ids': zone_ids})
