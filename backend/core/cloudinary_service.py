@@ -89,7 +89,12 @@ class CloudinaryService:
     
     @classmethod
     def upload_profile_photo(cls, file, user_id):
-        """Upload une photo de profil utilisateur (production, sans logs)"""
+        """
+        Upload une photo de profil utilisateur (production, sans logs)
+        
+        ⚠️ Le preset Cloudinary 'driver_photos' doit exister côté console Cloudinary,
+        mais le dossier cible ('lebenis/profiles'), l'overwrite et le nommage sont gérés ici côté backend.
+        """
         if file.size == 0:
             raise Exception("Le fichier est vide !")
         cls._configure_cloudinary()
