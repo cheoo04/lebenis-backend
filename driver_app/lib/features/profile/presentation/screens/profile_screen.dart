@@ -1,10 +1,12 @@
-import '../../../zones/presentation/screens/zone_selection_screen.dart';
 // driver_app/lib/features/profile/presentation/screens/profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../../zones/presentation/screens/zone_selection_screen.dart';
 import '../../../../core/constants/backend_constants.dart';
 import '../../../../data/providers/auth_provider.dart';
 import '../../../../data/providers/driver_provider.dart';
+import '../../../../data/models/driver_model.dart';
 import '../../../../shared/theme/app_colors.dart';
 import '../../../../shared/theme/dimensions.dart';
 import '../../../../shared/theme/text_styles.dart';
@@ -22,6 +24,44 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  void _showFullInfoDialog(DriverModel? driver) {
+    if (driver == null) return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Informations supplémentaires'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Nom: ${driver.user.fullName}'),
+              Text('Email: ${driver.user.email}'),
+              Text('Téléphone: ${driver.phone}'),
+              Text('Date de naissance: ${driver.dateOfBirth != null ? DateFormat('dd/MM/yyyy').format(driver.dateOfBirth!) : '-'}'),
+              Text('Numéro de CNI: ${driver.identityCardNumber ?? '-'}'),
+              Text('CNI Recto: ${driver.identityCardFront ?? '-'}'),
+              Text('CNI Verso: ${driver.identityCardBack ?? '-'}'),
+              Text('Type véhicule: ${driver.vehicleTypeLabel}'),
+              Text('Immatriculation: ${driver.vehicleRegistration}'),
+              Text('Capacité: ${driver.vehicleCapacityKg} kg'),
+              Text('Statut: ${driver.verificationStatus}'),
+              Text('Banque: ${driver.bankName ?? '-'}'),
+              Text('Compte bancaire: ${driver.bankAccountNumber ?? '-'}'),
+              Text('Mobile Money: ${driver.mobileMoneyNumber ?? '-'}'),
+              Text('Contact urgence: ${driver.emergencyContactName ?? '-'} (${driver.emergencyContactPhone ?? '-'})'),
+              // Ajoutez d'autres champs si besoin
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fermer'),
+          ),
+        ],
+      ),
+    );
+  }
 
     void _goToZones() {
       Navigator.of(context).push(
@@ -91,6 +131,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: _goToEditProfile,
+          ),
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'Informations supplémentaires',
+            onPressed: () => _showFullInfoDialog(driver),
           ),
         ],
       ),

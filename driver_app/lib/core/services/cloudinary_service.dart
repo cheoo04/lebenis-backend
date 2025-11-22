@@ -51,7 +51,7 @@ class CloudinaryService {
 
       // Upload avec suivi de progression
       final response = await _dioClient.post(
-        '/cloudinary/upload/',
+        '/api/v1/cloudinary/upload/',
         data: formData,
         onSendProgress: (sent, total) {
           if (onProgress != null && total > 0) {
@@ -75,6 +75,9 @@ class CloudinaryService {
   }
 
   /// Upload une photo de profil
+  ///
+  /// ⚠️ Le preset/dossier Cloudinary pour la photo de profil est géré côté backend.
+  /// Ne pas spécifier de preset côté Flutter pour ce type d'upload.
   Future<String> uploadProfilePhoto(
     String imagePath, {
     Function(double)? onProgress,
@@ -105,7 +108,7 @@ class CloudinaryService {
       });
 
       final response = await _dioClient.post(
-        '/cloudinary/upload/',
+        '/api/v1/cloudinary/upload/',
         data: formData,
         onSendProgress: (sent, total) {
           if (onProgress != null && total > 0) {
@@ -160,7 +163,7 @@ class CloudinaryService {
       });
 
       final response = await _dioClient.post(
-        '/cloudinary/upload/',
+        '/api/v1/cloudinary/upload/',
         data: formData,
         onSendProgress: (sent, total) {
           if (onProgress != null && total > 0) {
@@ -169,12 +172,18 @@ class CloudinaryService {
         },
       );
 
-      final fileUrl = response.data['url'] as String?;
-      if (fileUrl == null || fileUrl.isEmpty) {
-        throw Exception('URL du fichier non retournée par le serveur');
+      // Correction : robustesse du parsing
+      final data = response.data;
+      if (data is Map && data['url'] is String) {
+        final fileUrl = data['url'] as String;
+        if (fileUrl.isEmpty) {
+          throw Exception('URL du fichier vide dans la réponse serveur');
+        }
+        return fileUrl;
+      } else {
+        // Log de debug pour comprendre la structure inattendue
+        throw Exception("Réponse inattendue du serveur lors de l'upload: ${data.toString()}");
       }
-
-      return fileUrl;
     } on DioException catch (e) {
       throw _handleError(e);
     } catch (e) {

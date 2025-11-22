@@ -6,28 +6,28 @@ part of 'peak_hours_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$PeakHourModelImpl _$$PeakHourModelImplFromJson(Map<String, dynamic> json) =>
-    _$PeakHourModelImpl(
+_PeakHourModel _$PeakHourModelFromJson(Map<String, dynamic> json) =>
+    _PeakHourModel(
       hour: (json['hour'] as num).toInt(),
-      deliveriesCount: (json['deliveries_count'] as num).toInt(),
-      totalEarnings: (json['total_earnings'] as num).toDouble(),
+      deliveriesCount: (json['deliveriesCount'] as num).toInt(),
+      totalEarnings: (json['totalEarnings'] as num).toDouble(),
     );
 
-Map<String, dynamic> _$$PeakHourModelImplToJson(_$PeakHourModelImpl instance) =>
+Map<String, dynamic> _$PeakHourModelToJson(_PeakHourModel instance) =>
     <String, dynamic>{
       'hour': instance.hour,
-      'deliveries_count': instance.deliveriesCount,
-      'total_earnings': instance.totalEarnings,
+      'deliveriesCount': instance.deliveriesCount,
+      'totalEarnings': instance.totalEarnings,
     };
 
-_$PeakHoursResponseModelImpl _$$PeakHoursResponseModelImplFromJson(
+_PeakHoursResponseModel _$PeakHoursResponseModelFromJson(
   Map<String, dynamic> json,
-) => _$PeakHoursResponseModelImpl(
-  peakHours: (json['peak_hours'] as List<dynamic>)
+) => _PeakHoursResponseModel(
+  peakHours: (json['peakHours'] as List<dynamic>)
       .map((e) => PeakHourModel.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
 
-Map<String, dynamic> _$$PeakHoursResponseModelImplToJson(
-  _$PeakHoursResponseModelImpl instance,
-) => <String, dynamic>{'peak_hours': instance.peakHours};
+Map<String, dynamic> _$PeakHoursResponseModelToJson(
+  _PeakHoursResponseModel instance,
+) => <String, dynamic>{'peakHours': instance.peakHours};

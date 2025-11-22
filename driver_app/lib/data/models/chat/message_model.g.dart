@@ -6,22 +6,22 @@ part of 'message_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$MessageSenderImpl _$$MessageSenderImplFromJson(Map<String, dynamic> json) =>
-    _$MessageSenderImpl(
+_MessageSender _$MessageSenderFromJson(Map<String, dynamic> json) =>
+    _MessageSender(
       id: json['id'] as String,
       fullName: json['full_name'] as String,
       profilePhotoUrl: json['profile_photo_url'] as String?,
     );
 
-Map<String, dynamic> _$$MessageSenderImplToJson(_$MessageSenderImpl instance) =>
+Map<String, dynamic> _$MessageSenderToJson(_MessageSender instance) =>
     <String, dynamic>{
       'id': instance.id,
       'full_name': instance.fullName,
       'profile_photo_url': instance.profilePhotoUrl,
     };
 
-_$MessageModelImpl _$$MessageModelImplFromJson(Map<String, dynamic> json) =>
-    _$MessageModelImpl(
+_MessageModel _$MessageModelFromJson(Map<String, dynamic> json) =>
+    _MessageModel(
       id: json['id'] as String,
       chatRoomId: json['chat_room'] as String,
       sender: MessageSender.fromJson(json['sender'] as Map<String, dynamic>),
@@ -30,14 +30,14 @@ _$MessageModelImpl _$$MessageModelImplFromJson(Map<String, dynamic> json) =>
       imageUrl: json['image_url'] as String?,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
-      isRead: json['is_read'] as bool? ?? false,
-      readAt: json['read_at'] == null
+      isRead: json['isRead'] as bool? ?? false,
+      readAt: json['readAt'] == null
           ? null
-          : DateTime.parse(json['read_at'] as String),
-      createdAt: DateTime.parse(json['created_at'] as String),
+          : DateTime.parse(json['readAt'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String),
     );
 
-Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
+Map<String, dynamic> _$MessageModelToJson(_MessageModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'chat_room': instance.chatRoomId,
@@ -47,9 +47,9 @@ Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
       'image_url': instance.imageUrl,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
-      'is_read': instance.isRead,
-      'read_at': instance.readAt?.toIso8601String(),
-      'created_at': instance.createdAt.toIso8601String(),
+      'isRead': instance.isRead,
+      'readAt': instance.readAt?.toIso8601String(),
+      'createdAt': instance.createdAt.toIso8601String(),
     };
 
 const _$MessageTypeEnumMap = {

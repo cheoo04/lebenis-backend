@@ -52,8 +52,9 @@ class DateRangeState {
 }
 
 // Date Range Notifier
-class DateRangeNotifier extends StateNotifier<DateRangeState> {
-  DateRangeNotifier() : super(DateRangeState());
+class DateRangeNotifier extends Notifier<DateRangeState> {
+  @override
+  DateRangeState build() => DateRangeState();
 
   void setPeriod(String period) {
     state = DateRangeState(period: period);
@@ -68,10 +69,7 @@ class DateRangeNotifier extends StateNotifier<DateRangeState> {
   }
 }
 
-final dateRangeProvider =
-    StateNotifierProvider<DateRangeNotifier, DateRangeState>((ref) {
-  return DateRangeNotifier();
-});
+final dateRangeProvider = NotifierProvider<DateRangeNotifier, DateRangeState>(DateRangeNotifier.new);
 
 // Analytics State
 class AnalyticsState {
@@ -119,10 +117,14 @@ class AnalyticsState {
 }
 
 // Analytics Notifier
-class AnalyticsNotifier extends StateNotifier<AnalyticsState> {
-  final AnalyticsRepository _repository;
+class AnalyticsNotifier extends Notifier<AnalyticsState> {
+  late final AnalyticsRepository _repository;
 
-  AnalyticsNotifier(this._repository) : super(AnalyticsState());
+  @override
+  AnalyticsState build() {
+    _repository = ref.read(analyticsRepositoryProvider);
+    return AnalyticsState();
+  }
 
   Future<void> loadAllAnalytics({
     String period = 'week',
@@ -199,8 +201,4 @@ class AnalyticsNotifier extends StateNotifier<AnalyticsState> {
   }
 }
 
-final analyticsProvider =
-    StateNotifierProvider<AnalyticsNotifier, AnalyticsState>((ref) {
-  final repository = ref.watch(analyticsRepositoryProvider);
-  return AnalyticsNotifier(repository);
-});
+final analyticsProvider = NotifierProvider<AnalyticsNotifier, AnalyticsState>(AnalyticsNotifier.new);

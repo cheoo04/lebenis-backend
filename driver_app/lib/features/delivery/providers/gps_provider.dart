@@ -41,10 +41,14 @@ class GPSState {
 }
 
 /// GPS State Notifier
-class GPSStateNotifier extends StateNotifier<GPSState> {
-  final AdaptiveGPSService _gpsService;
-  
-  GPSStateNotifier(this._gpsService) : super(GPSState());
+class GPSStateNotifier extends Notifier<GPSState> {
+  late final AdaptiveGPSService _gpsService;
+
+  @override
+  GPSState build() {
+    _gpsService = ref.read(gpsServiceProvider);
+    return GPSState();
+  }
   
   /// Start GPS tracking
   Future<void> startTracking(String driverStatus) async {
@@ -107,7 +111,4 @@ final gpsServiceProvider = Provider<AdaptiveGPSService>((ref) {
 });
 
 /// Provider for GPS State
-final gpsStateProvider = StateNotifierProvider<GPSStateNotifier, GPSState>((ref) {
-  final gpsService = ref.watch(gpsServiceProvider);
-  return GPSStateNotifier(gpsService);
-});
+final gpsStateProvider = NotifierProvider<GPSStateNotifier, GPSState>(GPSStateNotifier.new);

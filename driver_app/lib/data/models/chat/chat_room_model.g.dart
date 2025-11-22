@@ -6,76 +6,72 @@ part of 'chat_room_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ChatParticipantImpl _$$ChatParticipantImplFromJson(
-  Map<String, dynamic> json,
-) => _$ChatParticipantImpl(
-  id: json['id'] as String,
-  fullName: json['full_name'] as String,
-  phoneNumber: json['phone_number'] as String,
-  userType: json['user_type'] as String,
-  profilePhotoUrl: json['profile_photo_url'] as String?,
-);
-
-Map<String, dynamic> _$$ChatParticipantImplToJson(
-  _$ChatParticipantImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'full_name': instance.fullName,
-  'phone_number': instance.phoneNumber,
-  'user_type': instance.userType,
-  'profile_photo_url': instance.profilePhotoUrl,
-};
-
-_$DeliveryInfoImpl _$$DeliveryInfoImplFromJson(Map<String, dynamic> json) =>
-    _$DeliveryInfoImpl(
+_ChatParticipant _$ChatParticipantFromJson(Map<String, dynamic> json) =>
+    _ChatParticipant(
       id: json['id'] as String,
-      trackingNumber: json['tracking_number'] as String,
-      pickupAddress: json['pickup_address'] as String?,
-      deliveryAddress: json['delivery_address'] as String?,
+      fullName: json['fullName'] as String,
+      phoneNumber: json['phoneNumber'] as String,
+      userType: json['userType'] as String,
+      profilePhotoUrl: json['profilePhotoUrl'] as String?,
     );
 
-Map<String, dynamic> _$$DeliveryInfoImplToJson(_$DeliveryInfoImpl instance) =>
+Map<String, dynamic> _$ChatParticipantToJson(_ChatParticipant instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'tracking_number': instance.trackingNumber,
-      'pickup_address': instance.pickupAddress,
-      'delivery_address': instance.deliveryAddress,
+      'fullName': instance.fullName,
+      'phoneNumber': instance.phoneNumber,
+      'userType': instance.userType,
+      'profilePhotoUrl': instance.profilePhotoUrl,
     };
 
-_$ChatRoomModelImpl _$$ChatRoomModelImplFromJson(Map<String, dynamic> json) =>
-    _$ChatRoomModelImpl(
+_DeliveryInfo _$DeliveryInfoFromJson(Map<String, dynamic> json) =>
+    _DeliveryInfo(
       id: json['id'] as String,
-      roomType: $enumDecode(_$RoomTypeEnumMap, json['room_type']),
-      otherParticipant: ChatParticipant.fromJson(
-        json['other_participant'] as Map<String, dynamic>,
-      ),
-      deliveryInfo: json['delivery_info'] == null
-          ? null
-          : DeliveryInfo.fromJson(
-              json['delivery_info'] as Map<String, dynamic>,
-            ),
-      lastMessageText: json['last_message_text'] as String?,
-      lastMessageAt: json['last_message_at'] == null
-          ? null
-          : DateTime.parse(json['last_message_at'] as String),
-      unreadCount: (json['unread_count'] as num?)?.toInt() ?? 0,
-      isArchived: json['is_archived'] as bool? ?? false,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      firebasePath: json['firebase_path'] as String?,
+      trackingNumber: json['trackingNumber'] as String,
+      pickupAddress: json['pickupAddress'] as String?,
+      deliveryAddress: json['deliveryAddress'] as String?,
     );
 
-Map<String, dynamic> _$$ChatRoomModelImplToJson(_$ChatRoomModelImpl instance) =>
+Map<String, dynamic> _$DeliveryInfoToJson(_DeliveryInfo instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'room_type': _$RoomTypeEnumMap[instance.roomType]!,
-      'other_participant': instance.otherParticipant,
-      'delivery_info': instance.deliveryInfo,
-      'last_message_text': instance.lastMessageText,
-      'last_message_at': instance.lastMessageAt?.toIso8601String(),
-      'unread_count': instance.unreadCount,
-      'is_archived': instance.isArchived,
-      'created_at': instance.createdAt.toIso8601String(),
-      'firebase_path': instance.firebasePath,
+      'trackingNumber': instance.trackingNumber,
+      'pickupAddress': instance.pickupAddress,
+      'deliveryAddress': instance.deliveryAddress,
+    };
+
+_ChatRoomModel _$ChatRoomModelFromJson(Map<String, dynamic> json) =>
+    _ChatRoomModel(
+      id: json['id'] as String,
+      roomType: $enumDecode(_$RoomTypeEnumMap, json['roomType']),
+      otherParticipant: ChatParticipant.fromJson(
+        json['otherParticipant'] as Map<String, dynamic>,
+      ),
+      deliveryInfo: json['deliveryInfo'] == null
+          ? null
+          : DeliveryInfo.fromJson(json['deliveryInfo'] as Map<String, dynamic>),
+      lastMessageText: json['lastMessageText'] as String?,
+      lastMessageAt: json['lastMessageAt'] == null
+          ? null
+          : DateTime.parse(json['lastMessageAt'] as String),
+      unreadCount: (json['unreadCount'] as num?)?.toInt() ?? 0,
+      isArchived: json['isArchived'] as bool? ?? false,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      firebasePath: json['firebasePath'] as String?,
+    );
+
+Map<String, dynamic> _$ChatRoomModelToJson(_ChatRoomModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'roomType': _$RoomTypeEnumMap[instance.roomType]!,
+      'otherParticipant': instance.otherParticipant,
+      'deliveryInfo': instance.deliveryInfo,
+      'lastMessageText': instance.lastMessageText,
+      'lastMessageAt': instance.lastMessageAt?.toIso8601String(),
+      'unreadCount': instance.unreadCount,
+      'isArchived': instance.isArchived,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'firebasePath': instance.firebasePath,
     };
 
 const _$RoomTypeEnumMap = {
