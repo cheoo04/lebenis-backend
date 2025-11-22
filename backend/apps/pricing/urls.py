@@ -5,7 +5,8 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     PricingZoneViewSet,
     ZonePricingMatrixViewSet,
-    CalculatePriceView  # AJOUTÉ
+    CalculatePriceView,
+    AssignZonesView,
 )
 
 # Créer un router pour les ViewSets
@@ -19,4 +20,7 @@ urlpatterns = [
 
     # Endpoint spécial pour calculer le prix
     path('calculate/', CalculatePriceView.as_view(), name='calculate_price'),
+
+    # Endpoint pour assigner les zones de travail du livreur
+    path('zones/assign/', AssignZonesView.as_view(), name='assign_zones'),
 ]
