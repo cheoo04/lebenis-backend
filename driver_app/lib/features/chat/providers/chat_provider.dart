@@ -112,10 +112,14 @@ class ChatMessagesState {
 // ==================== StateNotifiers ====================
 
 /// Notifier pour gérer la liste des conversations
-class ChatRoomsNotifier extends StateNotifier<ChatRoomsState> {
-  final ChatRepository _repository;
+class ChatRoomsNotifier extends Notifier<ChatRoomsState> {
+  late final ChatRepository _repository;
 
-  ChatRoomsNotifier(this._repository) : super(ChatRoomsState());
+  @override
+  ChatRoomsState build() {
+    _repository = ref.read(chatRepositoryProvider);
+    return ChatRoomsState();
+  }
 
   /// Charge la liste des conversations
   Future<void> loadChatRooms({
@@ -230,33 +234,33 @@ class ChatRoomsNotifier extends StateNotifier<ChatRoomsState> {
 }
 
 /// Notifier pour gérer les messages d'une conversation
-class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
-  final ChatRepository _repository;
+class ChatMessagesNotifier extends Notifier<ChatMessagesState> {
   final String chatRoomId;
+  late final ChatRepository _repository;
 
-  ChatMessagesNotifier(this._repository, this.chatRoomId)
-      : super(ChatMessagesState());
+  ChatMessagesNotifier(this.chatRoomId);
+
+  @override
+  ChatMessagesState build() {
+    _repository = ref.watch(chatRepositoryProvider);
+    return ChatMessagesState();
+  }
 
   /// Envoie un message texte
   Future<bool> sendTextMessage(String text) async {
     if (text.trim().isEmpty) return false;
-
     state = state.copyWith(isSending: true);
-
     try {
       final message = await _repository.sendMessage(
         chatRoomId: chatRoomId,
         messageType: MessageType.text,
         text: text.trim(),
       );
-
-      // Ajouter le message à la liste (optimistic UI)
       final updatedMessages = [...state.messages, message];
       state = state.copyWith(
         messages: updatedMessages,
         isSending: false,
       );
-
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -270,7 +274,6 @@ class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
   /// Envoie une image
   Future<bool> sendImageMessage(String imageUrl, {String? caption}) async {
     state = state.copyWith(isSending: true);
-
     try {
       final message = await _repository.sendMessage(
         chatRoomId: chatRoomId,
@@ -278,13 +281,11 @@ class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
         imageUrl: imageUrl,
         text: caption,
       );
-
       final updatedMessages = [...state.messages, message];
       state = state.copyWith(
         messages: updatedMessages,
         isSending: false,
       );
-
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -302,7 +303,6 @@ class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
     String? text,
   }) async {
     state = state.copyWith(isSending: true);
-
     try {
       final message = await _repository.sendMessage(
         chatRoomId: chatRoomId,
@@ -311,13 +311,11 @@ class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
         longitude: longitude,
         text: text,
       );
-
       final updatedMessages = [...state.messages, message];
       state = state.copyWith(
         messages: updatedMessages,
         isSending: false,
       );
-
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -356,25 +354,12 @@ class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
 // ==================== Providers ====================
 
 /// Provider pour la liste des conversations
-final chatRoomsProvider =
-    StateNotifierProvider<ChatRoomsNotifier, ChatRoomsState>((ref) {
-  final repository = ref.watch(chatRepositoryProvider);
-  final notifier = ChatRoomsNotifier(repository);
-  
-  // Charger automatiquement au démarrage
-  Future.microtask(() => notifier.loadChatRooms());
-  
-  return notifier;
-});
+final chatRoomsProvider = NotifierProvider<ChatRoomsNotifier, ChatRoomsState>(ChatRoomsNotifier.new);
 
 /// Provider pour les messages d'une conversation (factory)
-final chatMessagesProvider = StateNotifierProvider.family<
-    ChatMessagesNotifier,
-    ChatMessagesState,
-    String>((ref, chatRoomId) {
-  final repository = ref.watch(chatRepositoryProvider);
-  return ChatMessagesNotifier(repository, chatRoomId);
-});
+final chatMessagesProvider = NotifierProvider.family<ChatMessagesNotifier, ChatMessagesState, String>(
+  (chatRoomId) => ChatMessagesNotifier(chatRoomId),
+);
 
 /// Stream provider pour les messages temps réel d'une conversation
 final messagesStreamProvider =

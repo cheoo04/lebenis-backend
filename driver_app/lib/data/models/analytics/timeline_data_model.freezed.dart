@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,394 +9,544 @@ part of 'timeline_data_model.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
-TimelineDataModel _$TimelineDataModelFromJson(Map<String, dynamic> json) {
-  return _TimelineDataModel.fromJson(json);
-}
 
 /// @nodoc
 mixin _$TimelineDataModel {
-  String get date => throw _privateConstructorUsedError;
-  @JsonKey(name: 'deliveries_count')
-  int get deliveriesCount => throw _privateConstructorUsedError;
-  @JsonKey(name: 'total_earnings')
-  double get totalEarnings => throw _privateConstructorUsedError;
+
+ String get date; int get deliveriesCount; double get totalEarnings;
+/// Create a copy of TimelineDataModel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$TimelineDataModelCopyWith<TimelineDataModel> get copyWith => _$TimelineDataModelCopyWithImpl<TimelineDataModel>(this as TimelineDataModel, _$identity);
 
   /// Serializes this TimelineDataModel to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of TimelineDataModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $TimelineDataModelCopyWith<TimelineDataModel> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TimelineDataModel&&(identical(other.date, date) || other.date == date)&&(identical(other.deliveriesCount, deliveriesCount) || other.deliveriesCount == deliveriesCount)&&(identical(other.totalEarnings, totalEarnings) || other.totalEarnings == totalEarnings));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,date,deliveriesCount,totalEarnings);
+
+@override
+String toString() {
+  return 'TimelineDataModel(date: $date, deliveriesCount: $deliveriesCount, totalEarnings: $totalEarnings)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $TimelineDataModelCopyWith<$Res> {
-  factory $TimelineDataModelCopyWith(
-    TimelineDataModel value,
-    $Res Function(TimelineDataModel) then,
-  ) = _$TimelineDataModelCopyWithImpl<$Res, TimelineDataModel>;
-  @useResult
-  $Res call({
-    String date,
-    @JsonKey(name: 'deliveries_count') int deliveriesCount,
-    @JsonKey(name: 'total_earnings') double totalEarnings,
-  });
-}
+abstract mixin class $TimelineDataModelCopyWith<$Res>  {
+  factory $TimelineDataModelCopyWith(TimelineDataModel value, $Res Function(TimelineDataModel) _then) = _$TimelineDataModelCopyWithImpl;
+@useResult
+$Res call({
+ String date, int deliveriesCount, double totalEarnings
+});
 
+
+
+
+}
 /// @nodoc
-class _$TimelineDataModelCopyWithImpl<$Res, $Val extends TimelineDataModel>
+class _$TimelineDataModelCopyWithImpl<$Res>
     implements $TimelineDataModelCopyWith<$Res> {
-  _$TimelineDataModelCopyWithImpl(this._value, this._then);
+  _$TimelineDataModelCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final TimelineDataModel _self;
+  final $Res Function(TimelineDataModel) _then;
 
-  /// Create a copy of TimelineDataModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? date = null,
-    Object? deliveriesCount = null,
-    Object? totalEarnings = null,
-  }) {
-    return _then(
-      _value.copyWith(
-            date: null == date
-                ? _value.date
-                : date // ignore: cast_nullable_to_non_nullable
-                      as String,
-            deliveriesCount: null == deliveriesCount
-                ? _value.deliveriesCount
-                : deliveriesCount // ignore: cast_nullable_to_non_nullable
-                      as int,
-            totalEarnings: null == totalEarnings
-                ? _value.totalEarnings
-                : totalEarnings // ignore: cast_nullable_to_non_nullable
-                      as double,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of TimelineDataModel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? deliveriesCount = null,Object? totalEarnings = null,}) {
+  return _then(_self.copyWith(
+date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as String,deliveriesCount: null == deliveriesCount ? _self.deliveriesCount : deliveriesCount // ignore: cast_nullable_to_non_nullable
+as int,totalEarnings: null == totalEarnings ? _self.totalEarnings : totalEarnings // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
 }
 
-/// @nodoc
-abstract class _$$TimelineDataModelImplCopyWith<$Res>
-    implements $TimelineDataModelCopyWith<$Res> {
-  factory _$$TimelineDataModelImplCopyWith(
-    _$TimelineDataModelImpl value,
-    $Res Function(_$TimelineDataModelImpl) then,
-  ) = __$$TimelineDataModelImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    String date,
-    @JsonKey(name: 'deliveries_count') int deliveriesCount,
-    @JsonKey(name: 'total_earnings') double totalEarnings,
-  });
 }
 
-/// @nodoc
-class __$$TimelineDataModelImplCopyWithImpl<$Res>
-    extends _$TimelineDataModelCopyWithImpl<$Res, _$TimelineDataModelImpl>
-    implements _$$TimelineDataModelImplCopyWith<$Res> {
-  __$$TimelineDataModelImplCopyWithImpl(
-    _$TimelineDataModelImpl _value,
-    $Res Function(_$TimelineDataModelImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of TimelineDataModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? date = null,
-    Object? deliveriesCount = null,
-    Object? totalEarnings = null,
-  }) {
-    return _then(
-      _$TimelineDataModelImpl(
-        date: null == date
-            ? _value.date
-            : date // ignore: cast_nullable_to_non_nullable
-                  as String,
-        deliveriesCount: null == deliveriesCount
-            ? _value.deliveriesCount
-            : deliveriesCount // ignore: cast_nullable_to_non_nullable
-                  as int,
-        totalEarnings: null == totalEarnings
-            ? _value.totalEarnings
-            : totalEarnings // ignore: cast_nullable_to_non_nullable
-                  as double,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [TimelineDataModel].
+extension TimelineDataModelPatterns on TimelineDataModel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _TimelineDataModel value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _TimelineDataModel() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _TimelineDataModel value)  $default,){
+final _that = this;
+switch (_that) {
+case _TimelineDataModel():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _TimelineDataModel value)?  $default,){
+final _that = this;
+switch (_that) {
+case _TimelineDataModel() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String date,  int deliveriesCount,  double totalEarnings)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _TimelineDataModel() when $default != null:
+return $default(_that.date,_that.deliveriesCount,_that.totalEarnings);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String date,  int deliveriesCount,  double totalEarnings)  $default,) {final _that = this;
+switch (_that) {
+case _TimelineDataModel():
+return $default(_that.date,_that.deliveriesCount,_that.totalEarnings);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String date,  int deliveriesCount,  double totalEarnings)?  $default,) {final _that = this;
+switch (_that) {
+case _TimelineDataModel() when $default != null:
+return $default(_that.date,_that.deliveriesCount,_that.totalEarnings);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$TimelineDataModelImpl implements _TimelineDataModel {
-  const _$TimelineDataModelImpl({
-    required this.date,
-    @JsonKey(name: 'deliveries_count') required this.deliveriesCount,
-    @JsonKey(name: 'total_earnings') required this.totalEarnings,
-  });
 
-  factory _$TimelineDataModelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$TimelineDataModelImplFromJson(json);
+class _TimelineDataModel implements TimelineDataModel {
+  const _TimelineDataModel({required this.date, required this.deliveriesCount, required this.totalEarnings});
+  factory _TimelineDataModel.fromJson(Map<String, dynamic> json) => _$TimelineDataModelFromJson(json);
 
-  @override
-  final String date;
-  @override
-  @JsonKey(name: 'deliveries_count')
-  final int deliveriesCount;
-  @override
-  @JsonKey(name: 'total_earnings')
-  final double totalEarnings;
+@override final  String date;
+@override final  int deliveriesCount;
+@override final  double totalEarnings;
 
-  @override
-  String toString() {
-    return 'TimelineDataModel(date: $date, deliveriesCount: $deliveriesCount, totalEarnings: $totalEarnings)';
-  }
+/// Create a copy of TimelineDataModel
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$TimelineDataModelCopyWith<_TimelineDataModel> get copyWith => __$TimelineDataModelCopyWithImpl<_TimelineDataModel>(this, _$identity);
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$TimelineDataModelImpl &&
-            (identical(other.date, date) || other.date == date) &&
-            (identical(other.deliveriesCount, deliveriesCount) ||
-                other.deliveriesCount == deliveriesCount) &&
-            (identical(other.totalEarnings, totalEarnings) ||
-                other.totalEarnings == totalEarnings));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, date, deliveriesCount, totalEarnings);
-
-  /// Create a copy of TimelineDataModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$TimelineDataModelImplCopyWith<_$TimelineDataModelImpl> get copyWith =>
-      __$$TimelineDataModelImplCopyWithImpl<_$TimelineDataModelImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$TimelineDataModelImplToJson(this);
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$TimelineDataModelToJson(this, );
 }
 
-abstract class _TimelineDataModel implements TimelineDataModel {
-  const factory _TimelineDataModel({
-    required final String date,
-    @JsonKey(name: 'deliveries_count') required final int deliveriesCount,
-    @JsonKey(name: 'total_earnings') required final double totalEarnings,
-  }) = _$TimelineDataModelImpl;
-
-  factory _TimelineDataModel.fromJson(Map<String, dynamic> json) =
-      _$TimelineDataModelImpl.fromJson;
-
-  @override
-  String get date;
-  @override
-  @JsonKey(name: 'deliveries_count')
-  int get deliveriesCount;
-  @override
-  @JsonKey(name: 'total_earnings')
-  double get totalEarnings;
-
-  /// Create a copy of TimelineDataModel
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$TimelineDataModelImplCopyWith<_$TimelineDataModelImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TimelineDataModel&&(identical(other.date, date) || other.date == date)&&(identical(other.deliveriesCount, deliveriesCount) || other.deliveriesCount == deliveriesCount)&&(identical(other.totalEarnings, totalEarnings) || other.totalEarnings == totalEarnings));
 }
 
-TimelineResponseModel _$TimelineResponseModelFromJson(
-  Map<String, dynamic> json,
-) {
-  return _TimelineResponseModel.fromJson(json);
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,date,deliveriesCount,totalEarnings);
+
+@override
+String toString() {
+  return 'TimelineDataModel(date: $date, deliveriesCount: $deliveriesCount, totalEarnings: $totalEarnings)';
 }
+
+
+}
+
+/// @nodoc
+abstract mixin class _$TimelineDataModelCopyWith<$Res> implements $TimelineDataModelCopyWith<$Res> {
+  factory _$TimelineDataModelCopyWith(_TimelineDataModel value, $Res Function(_TimelineDataModel) _then) = __$TimelineDataModelCopyWithImpl;
+@override @useResult
+$Res call({
+ String date, int deliveriesCount, double totalEarnings
+});
+
+
+
+
+}
+/// @nodoc
+class __$TimelineDataModelCopyWithImpl<$Res>
+    implements _$TimelineDataModelCopyWith<$Res> {
+  __$TimelineDataModelCopyWithImpl(this._self, this._then);
+
+  final _TimelineDataModel _self;
+  final $Res Function(_TimelineDataModel) _then;
+
+/// Create a copy of TimelineDataModel
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? deliveriesCount = null,Object? totalEarnings = null,}) {
+  return _then(_TimelineDataModel(
+date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as String,deliveriesCount: null == deliveriesCount ? _self.deliveriesCount : deliveriesCount // ignore: cast_nullable_to_non_nullable
+as int,totalEarnings: null == totalEarnings ? _self.totalEarnings : totalEarnings // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$TimelineResponseModel {
-  List<TimelineDataModel> get timeline => throw _privateConstructorUsedError;
+
+ List<TimelineDataModel> get timeline;
+/// Create a copy of TimelineResponseModel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$TimelineResponseModelCopyWith<TimelineResponseModel> get copyWith => _$TimelineResponseModelCopyWithImpl<TimelineResponseModel>(this as TimelineResponseModel, _$identity);
 
   /// Serializes this TimelineResponseModel to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of TimelineResponseModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $TimelineResponseModelCopyWith<TimelineResponseModel> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TimelineResponseModel&&const DeepCollectionEquality().equals(other.timeline, timeline));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(timeline));
+
+@override
+String toString() {
+  return 'TimelineResponseModel(timeline: $timeline)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $TimelineResponseModelCopyWith<$Res> {
-  factory $TimelineResponseModelCopyWith(
-    TimelineResponseModel value,
-    $Res Function(TimelineResponseModel) then,
-  ) = _$TimelineResponseModelCopyWithImpl<$Res, TimelineResponseModel>;
-  @useResult
-  $Res call({List<TimelineDataModel> timeline});
-}
+abstract mixin class $TimelineResponseModelCopyWith<$Res>  {
+  factory $TimelineResponseModelCopyWith(TimelineResponseModel value, $Res Function(TimelineResponseModel) _then) = _$TimelineResponseModelCopyWithImpl;
+@useResult
+$Res call({
+ List<TimelineDataModel> timeline
+});
 
+
+
+
+}
 /// @nodoc
-class _$TimelineResponseModelCopyWithImpl<
-  $Res,
-  $Val extends TimelineResponseModel
->
+class _$TimelineResponseModelCopyWithImpl<$Res>
     implements $TimelineResponseModelCopyWith<$Res> {
-  _$TimelineResponseModelCopyWithImpl(this._value, this._then);
+  _$TimelineResponseModelCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final TimelineResponseModel _self;
+  final $Res Function(TimelineResponseModel) _then;
 
-  /// Create a copy of TimelineResponseModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? timeline = null}) {
-    return _then(
-      _value.copyWith(
-            timeline: null == timeline
-                ? _value.timeline
-                : timeline // ignore: cast_nullable_to_non_nullable
-                      as List<TimelineDataModel>,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of TimelineResponseModel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? timeline = null,}) {
+  return _then(_self.copyWith(
+timeline: null == timeline ? _self.timeline : timeline // ignore: cast_nullable_to_non_nullable
+as List<TimelineDataModel>,
+  ));
 }
 
-/// @nodoc
-abstract class _$$TimelineResponseModelImplCopyWith<$Res>
-    implements $TimelineResponseModelCopyWith<$Res> {
-  factory _$$TimelineResponseModelImplCopyWith(
-    _$TimelineResponseModelImpl value,
-    $Res Function(_$TimelineResponseModelImpl) then,
-  ) = __$$TimelineResponseModelImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({List<TimelineDataModel> timeline});
 }
 
-/// @nodoc
-class __$$TimelineResponseModelImplCopyWithImpl<$Res>
-    extends
-        _$TimelineResponseModelCopyWithImpl<$Res, _$TimelineResponseModelImpl>
-    implements _$$TimelineResponseModelImplCopyWith<$Res> {
-  __$$TimelineResponseModelImplCopyWithImpl(
-    _$TimelineResponseModelImpl _value,
-    $Res Function(_$TimelineResponseModelImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of TimelineResponseModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? timeline = null}) {
-    return _then(
-      _$TimelineResponseModelImpl(
-        timeline: null == timeline
-            ? _value._timeline
-            : timeline // ignore: cast_nullable_to_non_nullable
-                  as List<TimelineDataModel>,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [TimelineResponseModel].
+extension TimelineResponseModelPatterns on TimelineResponseModel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _TimelineResponseModel value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _TimelineResponseModel() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _TimelineResponseModel value)  $default,){
+final _that = this;
+switch (_that) {
+case _TimelineResponseModel():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _TimelineResponseModel value)?  $default,){
+final _that = this;
+switch (_that) {
+case _TimelineResponseModel() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<TimelineDataModel> timeline)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _TimelineResponseModel() when $default != null:
+return $default(_that.timeline);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<TimelineDataModel> timeline)  $default,) {final _that = this;
+switch (_that) {
+case _TimelineResponseModel():
+return $default(_that.timeline);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<TimelineDataModel> timeline)?  $default,) {final _that = this;
+switch (_that) {
+case _TimelineResponseModel() when $default != null:
+return $default(_that.timeline);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$TimelineResponseModelImpl implements _TimelineResponseModel {
-  const _$TimelineResponseModelImpl({
-    required final List<TimelineDataModel> timeline,
-  }) : _timeline = timeline;
 
-  factory _$TimelineResponseModelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$TimelineResponseModelImplFromJson(json);
+class _TimelineResponseModel implements TimelineResponseModel {
+  const _TimelineResponseModel({required final  List<TimelineDataModel> timeline}): _timeline = timeline;
+  factory _TimelineResponseModel.fromJson(Map<String, dynamic> json) => _$TimelineResponseModelFromJson(json);
 
-  final List<TimelineDataModel> _timeline;
-  @override
-  List<TimelineDataModel> get timeline {
-    if (_timeline is EqualUnmodifiableListView) return _timeline;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_timeline);
-  }
-
-  @override
-  String toString() {
-    return 'TimelineResponseModel(timeline: $timeline)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$TimelineResponseModelImpl &&
-            const DeepCollectionEquality().equals(other._timeline, _timeline));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, const DeepCollectionEquality().hash(_timeline));
-
-  /// Create a copy of TimelineResponseModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$TimelineResponseModelImplCopyWith<_$TimelineResponseModelImpl>
-  get copyWith =>
-      __$$TimelineResponseModelImplCopyWithImpl<_$TimelineResponseModelImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$TimelineResponseModelImplToJson(this);
-  }
+ final  List<TimelineDataModel> _timeline;
+@override List<TimelineDataModel> get timeline {
+  if (_timeline is EqualUnmodifiableListView) return _timeline;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_timeline);
 }
 
-abstract class _TimelineResponseModel implements TimelineResponseModel {
-  const factory _TimelineResponseModel({
-    required final List<TimelineDataModel> timeline,
-  }) = _$TimelineResponseModelImpl;
 
-  factory _TimelineResponseModel.fromJson(Map<String, dynamic> json) =
-      _$TimelineResponseModelImpl.fromJson;
+/// Create a copy of TimelineResponseModel
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$TimelineResponseModelCopyWith<_TimelineResponseModel> get copyWith => __$TimelineResponseModelCopyWithImpl<_TimelineResponseModel>(this, _$identity);
 
-  @override
-  List<TimelineDataModel> get timeline;
-
-  /// Create a copy of TimelineResponseModel
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$TimelineResponseModelImplCopyWith<_$TimelineResponseModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
+@override
+Map<String, dynamic> toJson() {
+  return _$TimelineResponseModelToJson(this, );
 }
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TimelineResponseModel&&const DeepCollectionEquality().equals(other._timeline, _timeline));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_timeline));
+
+@override
+String toString() {
+  return 'TimelineResponseModel(timeline: $timeline)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$TimelineResponseModelCopyWith<$Res> implements $TimelineResponseModelCopyWith<$Res> {
+  factory _$TimelineResponseModelCopyWith(_TimelineResponseModel value, $Res Function(_TimelineResponseModel) _then) = __$TimelineResponseModelCopyWithImpl;
+@override @useResult
+$Res call({
+ List<TimelineDataModel> timeline
+});
+
+
+
+
+}
+/// @nodoc
+class __$TimelineResponseModelCopyWithImpl<$Res>
+    implements _$TimelineResponseModelCopyWith<$Res> {
+  __$TimelineResponseModelCopyWithImpl(this._self, this._then);
+
+  final _TimelineResponseModel _self;
+  final $Res Function(_TimelineResponseModel) _then;
+
+/// Create a copy of TimelineResponseModel
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? timeline = null,}) {
+  return _then(_TimelineResponseModel(
+timeline: null == timeline ? _self._timeline : timeline // ignore: cast_nullable_to_non_nullable
+as List<TimelineDataModel>,
+  ));
+}
+
+
+}
+
+// dart format on

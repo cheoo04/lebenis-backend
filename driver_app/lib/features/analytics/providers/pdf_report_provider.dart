@@ -38,10 +38,13 @@ class PDFDownloadState {
 }
 
 // PDF Download Notifier
-class PDFDownloadNotifier extends StateNotifier<PDFDownloadState> {
-  final PDFReportService _pdfService;
-
-  PDFDownloadNotifier(this._pdfService) : super(PDFDownloadState());
+class PDFDownloadNotifier extends Notifier<PDFDownloadState> {
+  late final PDFReportService _pdfService;
+  @override
+  PDFDownloadState build() {
+    _pdfService = ref.read(pdfReportServiceProvider);
+    return PDFDownloadState();
+  }
 
   Future<void> downloadReport({
     required String period,
@@ -117,8 +120,4 @@ class PDFDownloadNotifier extends StateNotifier<PDFDownloadState> {
   }
 }
 
-final pdfDownloadProvider =
-    StateNotifierProvider<PDFDownloadNotifier, PDFDownloadState>((ref) {
-  final pdfService = ref.watch(pdfReportServiceProvider);
-  return PDFDownloadNotifier(pdfService);
-});
+final pdfDownloadProvider = NotifierProvider<PDFDownloadNotifier, PDFDownloadState>(PDFDownloadNotifier.new);

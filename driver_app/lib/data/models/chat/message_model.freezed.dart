@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,685 +9,594 @@ part of 'message_model.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
-MessageSender _$MessageSenderFromJson(Map<String, dynamic> json) {
-  return _MessageSender.fromJson(json);
-}
 
 /// @nodoc
 mixin _$MessageSender {
-  String get id => throw _privateConstructorUsedError;
-  @JsonKey(name: 'full_name')
-  String get fullName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'profile_photo_url')
-  String? get profilePhotoUrl => throw _privateConstructorUsedError;
+
+ String get id;@JsonKey(name: 'full_name') String get fullName;@JsonKey(name: 'profile_photo_url') String? get profilePhotoUrl;
+/// Create a copy of MessageSender
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$MessageSenderCopyWith<MessageSender> get copyWith => _$MessageSenderCopyWithImpl<MessageSender>(this as MessageSender, _$identity);
 
   /// Serializes this MessageSender to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of MessageSender
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $MessageSenderCopyWith<MessageSender> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessageSender&&(identical(other.id, id) || other.id == id)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.profilePhotoUrl, profilePhotoUrl) || other.profilePhotoUrl == profilePhotoUrl));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,fullName,profilePhotoUrl);
+
+@override
+String toString() {
+  return 'MessageSender(id: $id, fullName: $fullName, profilePhotoUrl: $profilePhotoUrl)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $MessageSenderCopyWith<$Res> {
-  factory $MessageSenderCopyWith(
-    MessageSender value,
-    $Res Function(MessageSender) then,
-  ) = _$MessageSenderCopyWithImpl<$Res, MessageSender>;
-  @useResult
-  $Res call({
-    String id,
-    @JsonKey(name: 'full_name') String fullName,
-    @JsonKey(name: 'profile_photo_url') String? profilePhotoUrl,
-  });
-}
+abstract mixin class $MessageSenderCopyWith<$Res>  {
+  factory $MessageSenderCopyWith(MessageSender value, $Res Function(MessageSender) _then) = _$MessageSenderCopyWithImpl;
+@useResult
+$Res call({
+ String id,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'profile_photo_url') String? profilePhotoUrl
+});
 
+
+
+
+}
 /// @nodoc
-class _$MessageSenderCopyWithImpl<$Res, $Val extends MessageSender>
+class _$MessageSenderCopyWithImpl<$Res>
     implements $MessageSenderCopyWith<$Res> {
-  _$MessageSenderCopyWithImpl(this._value, this._then);
+  _$MessageSenderCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final MessageSender _self;
+  final $Res Function(MessageSender) _then;
 
-  /// Create a copy of MessageSender
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? fullName = null,
-    Object? profilePhotoUrl = freezed,
-  }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            fullName: null == fullName
-                ? _value.fullName
-                : fullName // ignore: cast_nullable_to_non_nullable
-                      as String,
-            profilePhotoUrl: freezed == profilePhotoUrl
-                ? _value.profilePhotoUrl
-                : profilePhotoUrl // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of MessageSender
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fullName = null,Object? profilePhotoUrl = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,fullName: null == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
+as String,profilePhotoUrl: freezed == profilePhotoUrl ? _self.profilePhotoUrl : profilePhotoUrl // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
 
-/// @nodoc
-abstract class _$$MessageSenderImplCopyWith<$Res>
-    implements $MessageSenderCopyWith<$Res> {
-  factory _$$MessageSenderImplCopyWith(
-    _$MessageSenderImpl value,
-    $Res Function(_$MessageSenderImpl) then,
-  ) = __$$MessageSenderImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    String id,
-    @JsonKey(name: 'full_name') String fullName,
-    @JsonKey(name: 'profile_photo_url') String? profilePhotoUrl,
-  });
 }
 
-/// @nodoc
-class __$$MessageSenderImplCopyWithImpl<$Res>
-    extends _$MessageSenderCopyWithImpl<$Res, _$MessageSenderImpl>
-    implements _$$MessageSenderImplCopyWith<$Res> {
-  __$$MessageSenderImplCopyWithImpl(
-    _$MessageSenderImpl _value,
-    $Res Function(_$MessageSenderImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of MessageSender
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? fullName = null,
-    Object? profilePhotoUrl = freezed,
-  }) {
-    return _then(
-      _$MessageSenderImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        fullName: null == fullName
-            ? _value.fullName
-            : fullName // ignore: cast_nullable_to_non_nullable
-                  as String,
-        profilePhotoUrl: freezed == profilePhotoUrl
-            ? _value.profilePhotoUrl
-            : profilePhotoUrl // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [MessageSender].
+extension MessageSenderPatterns on MessageSender {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _MessageSender value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _MessageSender() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _MessageSender value)  $default,){
+final _that = this;
+switch (_that) {
+case _MessageSender():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _MessageSender value)?  $default,){
+final _that = this;
+switch (_that) {
+case _MessageSender() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'profile_photo_url')  String? profilePhotoUrl)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _MessageSender() when $default != null:
+return $default(_that.id,_that.fullName,_that.profilePhotoUrl);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'profile_photo_url')  String? profilePhotoUrl)  $default,) {final _that = this;
+switch (_that) {
+case _MessageSender():
+return $default(_that.id,_that.fullName,_that.profilePhotoUrl);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'profile_photo_url')  String? profilePhotoUrl)?  $default,) {final _that = this;
+switch (_that) {
+case _MessageSender() when $default != null:
+return $default(_that.id,_that.fullName,_that.profilePhotoUrl);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$MessageSenderImpl implements _MessageSender {
-  const _$MessageSenderImpl({
-    required this.id,
-    @JsonKey(name: 'full_name') required this.fullName,
-    @JsonKey(name: 'profile_photo_url') this.profilePhotoUrl,
-  });
 
-  factory _$MessageSenderImpl.fromJson(Map<String, dynamic> json) =>
-      _$$MessageSenderImplFromJson(json);
+class _MessageSender implements MessageSender {
+  const _MessageSender({required this.id, @JsonKey(name: 'full_name') required this.fullName, @JsonKey(name: 'profile_photo_url') this.profilePhotoUrl});
+  factory _MessageSender.fromJson(Map<String, dynamic> json) => _$MessageSenderFromJson(json);
 
-  @override
-  final String id;
-  @override
-  @JsonKey(name: 'full_name')
-  final String fullName;
-  @override
-  @JsonKey(name: 'profile_photo_url')
-  final String? profilePhotoUrl;
+@override final  String id;
+@override@JsonKey(name: 'full_name') final  String fullName;
+@override@JsonKey(name: 'profile_photo_url') final  String? profilePhotoUrl;
 
-  @override
-  String toString() {
-    return 'MessageSender(id: $id, fullName: $fullName, profilePhotoUrl: $profilePhotoUrl)';
-  }
+/// Create a copy of MessageSender
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$MessageSenderCopyWith<_MessageSender> get copyWith => __$MessageSenderCopyWithImpl<_MessageSender>(this, _$identity);
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$MessageSenderImpl &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.fullName, fullName) ||
-                other.fullName == fullName) &&
-            (identical(other.profilePhotoUrl, profilePhotoUrl) ||
-                other.profilePhotoUrl == profilePhotoUrl));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, id, fullName, profilePhotoUrl);
-
-  /// Create a copy of MessageSender
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$MessageSenderImplCopyWith<_$MessageSenderImpl> get copyWith =>
-      __$$MessageSenderImplCopyWithImpl<_$MessageSenderImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$MessageSenderImplToJson(this);
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$MessageSenderToJson(this, );
 }
 
-abstract class _MessageSender implements MessageSender {
-  const factory _MessageSender({
-    required final String id,
-    @JsonKey(name: 'full_name') required final String fullName,
-    @JsonKey(name: 'profile_photo_url') final String? profilePhotoUrl,
-  }) = _$MessageSenderImpl;
-
-  factory _MessageSender.fromJson(Map<String, dynamic> json) =
-      _$MessageSenderImpl.fromJson;
-
-  @override
-  String get id;
-  @override
-  @JsonKey(name: 'full_name')
-  String get fullName;
-  @override
-  @JsonKey(name: 'profile_photo_url')
-  String? get profilePhotoUrl;
-
-  /// Create a copy of MessageSender
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$MessageSenderImplCopyWith<_$MessageSenderImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MessageSender&&(identical(other.id, id) || other.id == id)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.profilePhotoUrl, profilePhotoUrl) || other.profilePhotoUrl == profilePhotoUrl));
 }
 
-MessageModel _$MessageModelFromJson(Map<String, dynamic> json) {
-  return _MessageModel.fromJson(json);
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,fullName,profilePhotoUrl);
+
+@override
+String toString() {
+  return 'MessageSender(id: $id, fullName: $fullName, profilePhotoUrl: $profilePhotoUrl)';
 }
+
+
+}
+
+/// @nodoc
+abstract mixin class _$MessageSenderCopyWith<$Res> implements $MessageSenderCopyWith<$Res> {
+  factory _$MessageSenderCopyWith(_MessageSender value, $Res Function(_MessageSender) _then) = __$MessageSenderCopyWithImpl;
+@override @useResult
+$Res call({
+ String id,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'profile_photo_url') String? profilePhotoUrl
+});
+
+
+
+
+}
+/// @nodoc
+class __$MessageSenderCopyWithImpl<$Res>
+    implements _$MessageSenderCopyWith<$Res> {
+  __$MessageSenderCopyWithImpl(this._self, this._then);
+
+  final _MessageSender _self;
+  final $Res Function(_MessageSender) _then;
+
+/// Create a copy of MessageSender
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fullName = null,Object? profilePhotoUrl = freezed,}) {
+  return _then(_MessageSender(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,fullName: null == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
+as String,profilePhotoUrl: freezed == profilePhotoUrl ? _self.profilePhotoUrl : profilePhotoUrl // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$MessageModel {
-  String get id => throw _privateConstructorUsedError;
-  @JsonKey(name: 'chat_room')
-  String get chatRoomId => throw _privateConstructorUsedError;
-  MessageSender get sender => throw _privateConstructorUsedError;
-  @JsonKey(name: 'message_type')
-  MessageType get messageType => throw _privateConstructorUsedError;
-  String? get text => throw _privateConstructorUsedError;
-  @JsonKey(name: 'image_url')
-  String? get imageUrl => throw _privateConstructorUsedError;
-  double? get latitude => throw _privateConstructorUsedError;
-  double? get longitude => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_read')
-  bool get isRead => throw _privateConstructorUsedError;
-  @JsonKey(name: 'read_at')
-  DateTime? get readAt => throw _privateConstructorUsedError;
-  @JsonKey(name: 'created_at')
-  DateTime get createdAt => throw _privateConstructorUsedError; // Champs locaux (non sérialisés)
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  MessageStatus get status => throw _privateConstructorUsedError;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  bool get isMine => throw _privateConstructorUsedError;
+
+ String get id;@JsonKey(name: 'chat_room') String get chatRoomId; MessageSender get sender;@JsonKey(name: 'message_type') MessageType get messageType; String? get text;@JsonKey(name: 'image_url') String? get imageUrl; double? get latitude; double? get longitude; bool get isRead; DateTime? get readAt; DateTime get createdAt;// Champs locaux (non sérialisés)
+@JsonKey(includeFromJson: false, includeToJson: false) MessageStatus get status;@JsonKey(includeFromJson: false, includeToJson: false) bool get isMine;
+/// Create a copy of MessageModel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$MessageModelCopyWith<MessageModel> get copyWith => _$MessageModelCopyWithImpl<MessageModel>(this as MessageModel, _$identity);
 
   /// Serializes this MessageModel to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of MessageModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $MessageModelCopyWith<MessageModel> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessageModel&&(identical(other.id, id) || other.id == id)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId)&&(identical(other.sender, sender) || other.sender == sender)&&(identical(other.messageType, messageType) || other.messageType == messageType)&&(identical(other.text, text) || other.text == text)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.isRead, isRead) || other.isRead == isRead)&&(identical(other.readAt, readAt) || other.readAt == readAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.isMine, isMine) || other.isMine == isMine));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,chatRoomId,sender,messageType,text,imageUrl,latitude,longitude,isRead,readAt,createdAt,status,isMine);
+
+@override
+String toString() {
+  return 'MessageModel(id: $id, chatRoomId: $chatRoomId, sender: $sender, messageType: $messageType, text: $text, imageUrl: $imageUrl, latitude: $latitude, longitude: $longitude, isRead: $isRead, readAt: $readAt, createdAt: $createdAt, status: $status, isMine: $isMine)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $MessageModelCopyWith<$Res> {
-  factory $MessageModelCopyWith(
-    MessageModel value,
-    $Res Function(MessageModel) then,
-  ) = _$MessageModelCopyWithImpl<$Res, MessageModel>;
-  @useResult
-  $Res call({
-    String id,
-    @JsonKey(name: 'chat_room') String chatRoomId,
-    MessageSender sender,
-    @JsonKey(name: 'message_type') MessageType messageType,
-    String? text,
-    @JsonKey(name: 'image_url') String? imageUrl,
-    double? latitude,
-    double? longitude,
-    @JsonKey(name: 'is_read') bool isRead,
-    @JsonKey(name: 'read_at') DateTime? readAt,
-    @JsonKey(name: 'created_at') DateTime createdAt,
-    @JsonKey(includeFromJson: false, includeToJson: false) MessageStatus status,
-    @JsonKey(includeFromJson: false, includeToJson: false) bool isMine,
-  });
+abstract mixin class $MessageModelCopyWith<$Res>  {
+  factory $MessageModelCopyWith(MessageModel value, $Res Function(MessageModel) _then) = _$MessageModelCopyWithImpl;
+@useResult
+$Res call({
+ String id,@JsonKey(name: 'chat_room') String chatRoomId, MessageSender sender,@JsonKey(name: 'message_type') MessageType messageType, String? text,@JsonKey(name: 'image_url') String? imageUrl, double? latitude, double? longitude, bool isRead, DateTime? readAt, DateTime createdAt,@JsonKey(includeFromJson: false, includeToJson: false) MessageStatus status,@JsonKey(includeFromJson: false, includeToJson: false) bool isMine
+});
 
-  $MessageSenderCopyWith<$Res> get sender;
+
+$MessageSenderCopyWith<$Res> get sender;
+
 }
-
 /// @nodoc
-class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
+class _$MessageModelCopyWithImpl<$Res>
     implements $MessageModelCopyWith<$Res> {
-  _$MessageModelCopyWithImpl(this._value, this._then);
+  _$MessageModelCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final MessageModel _self;
+  final $Res Function(MessageModel) _then;
 
-  /// Create a copy of MessageModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? chatRoomId = null,
-    Object? sender = null,
-    Object? messageType = null,
-    Object? text = freezed,
-    Object? imageUrl = freezed,
-    Object? latitude = freezed,
-    Object? longitude = freezed,
-    Object? isRead = null,
-    Object? readAt = freezed,
-    Object? createdAt = null,
-    Object? status = null,
-    Object? isMine = null,
-  }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            chatRoomId: null == chatRoomId
-                ? _value.chatRoomId
-                : chatRoomId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            sender: null == sender
-                ? _value.sender
-                : sender // ignore: cast_nullable_to_non_nullable
-                      as MessageSender,
-            messageType: null == messageType
-                ? _value.messageType
-                : messageType // ignore: cast_nullable_to_non_nullable
-                      as MessageType,
-            text: freezed == text
-                ? _value.text
-                : text // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            imageUrl: freezed == imageUrl
-                ? _value.imageUrl
-                : imageUrl // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            latitude: freezed == latitude
-                ? _value.latitude
-                : latitude // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            longitude: freezed == longitude
-                ? _value.longitude
-                : longitude // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            isRead: null == isRead
-                ? _value.isRead
-                : isRead // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            readAt: freezed == readAt
-                ? _value.readAt
-                : readAt // ignore: cast_nullable_to_non_nullable
-                      as DateTime?,
-            createdAt: null == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as DateTime,
-            status: null == status
-                ? _value.status
-                : status // ignore: cast_nullable_to_non_nullable
-                      as MessageStatus,
-            isMine: null == isMine
-                ? _value.isMine
-                : isMine // ignore: cast_nullable_to_non_nullable
-                      as bool,
-          )
-          as $Val,
-    );
-  }
-
-  /// Create a copy of MessageModel
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $MessageSenderCopyWith<$Res> get sender {
-    return $MessageSenderCopyWith<$Res>(_value.sender, (value) {
-      return _then(_value.copyWith(sender: value) as $Val);
-    });
-  }
+/// Create a copy of MessageModel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? chatRoomId = null,Object? sender = null,Object? messageType = null,Object? text = freezed,Object? imageUrl = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? isRead = null,Object? readAt = freezed,Object? createdAt = null,Object? status = null,Object? isMine = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,chatRoomId: null == chatRoomId ? _self.chatRoomId : chatRoomId // ignore: cast_nullable_to_non_nullable
+as String,sender: null == sender ? _self.sender : sender // ignore: cast_nullable_to_non_nullable
+as MessageSender,messageType: null == messageType ? _self.messageType : messageType // ignore: cast_nullable_to_non_nullable
+as MessageType,text: freezed == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
+as String?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
+as double?,isRead: null == isRead ? _self.isRead : isRead // ignore: cast_nullable_to_non_nullable
+as bool,readAt: freezed == readAt ? _self.readAt : readAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as MessageStatus,isMine: null == isMine ? _self.isMine : isMine // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
 }
-
-/// @nodoc
-abstract class _$$MessageModelImplCopyWith<$Res>
-    implements $MessageModelCopyWith<$Res> {
-  factory _$$MessageModelImplCopyWith(
-    _$MessageModelImpl value,
-    $Res Function(_$MessageModelImpl) then,
-  ) = __$$MessageModelImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    String id,
-    @JsonKey(name: 'chat_room') String chatRoomId,
-    MessageSender sender,
-    @JsonKey(name: 'message_type') MessageType messageType,
-    String? text,
-    @JsonKey(name: 'image_url') String? imageUrl,
-    double? latitude,
-    double? longitude,
-    @JsonKey(name: 'is_read') bool isRead,
-    @JsonKey(name: 'read_at') DateTime? readAt,
-    @JsonKey(name: 'created_at') DateTime createdAt,
-    @JsonKey(includeFromJson: false, includeToJson: false) MessageStatus status,
-    @JsonKey(includeFromJson: false, includeToJson: false) bool isMine,
+/// Create a copy of MessageModel
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MessageSenderCopyWith<$Res> get sender {
+  
+  return $MessageSenderCopyWith<$Res>(_self.sender, (value) {
+    return _then(_self.copyWith(sender: value));
   });
-
-  @override
-  $MessageSenderCopyWith<$Res> get sender;
+}
 }
 
-/// @nodoc
-class __$$MessageModelImplCopyWithImpl<$Res>
-    extends _$MessageModelCopyWithImpl<$Res, _$MessageModelImpl>
-    implements _$$MessageModelImplCopyWith<$Res> {
-  __$$MessageModelImplCopyWithImpl(
-    _$MessageModelImpl _value,
-    $Res Function(_$MessageModelImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of MessageModel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? chatRoomId = null,
-    Object? sender = null,
-    Object? messageType = null,
-    Object? text = freezed,
-    Object? imageUrl = freezed,
-    Object? latitude = freezed,
-    Object? longitude = freezed,
-    Object? isRead = null,
-    Object? readAt = freezed,
-    Object? createdAt = null,
-    Object? status = null,
-    Object? isMine = null,
-  }) {
-    return _then(
-      _$MessageModelImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        chatRoomId: null == chatRoomId
-            ? _value.chatRoomId
-            : chatRoomId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        sender: null == sender
-            ? _value.sender
-            : sender // ignore: cast_nullable_to_non_nullable
-                  as MessageSender,
-        messageType: null == messageType
-            ? _value.messageType
-            : messageType // ignore: cast_nullable_to_non_nullable
-                  as MessageType,
-        text: freezed == text
-            ? _value.text
-            : text // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        imageUrl: freezed == imageUrl
-            ? _value.imageUrl
-            : imageUrl // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        latitude: freezed == latitude
-            ? _value.latitude
-            : latitude // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        longitude: freezed == longitude
-            ? _value.longitude
-            : longitude // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        isRead: null == isRead
-            ? _value.isRead
-            : isRead // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        readAt: freezed == readAt
-            ? _value.readAt
-            : readAt // ignore: cast_nullable_to_non_nullable
-                  as DateTime?,
-        createdAt: null == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as DateTime,
-        status: null == status
-            ? _value.status
-            : status // ignore: cast_nullable_to_non_nullable
-                  as MessageStatus,
-        isMine: null == isMine
-            ? _value.isMine
-            : isMine // ignore: cast_nullable_to_non_nullable
-                  as bool,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [MessageModel].
+extension MessageModelPatterns on MessageModel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _MessageModel value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _MessageModel() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _MessageModel value)  $default,){
+final _that = this;
+switch (_that) {
+case _MessageModel():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _MessageModel value)?  $default,){
+final _that = this;
+switch (_that) {
+case _MessageModel() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'chat_room')  String chatRoomId,  MessageSender sender, @JsonKey(name: 'message_type')  MessageType messageType,  String? text, @JsonKey(name: 'image_url')  String? imageUrl,  double? latitude,  double? longitude,  bool isRead,  DateTime? readAt,  DateTime createdAt, @JsonKey(includeFromJson: false, includeToJson: false)  MessageStatus status, @JsonKey(includeFromJson: false, includeToJson: false)  bool isMine)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _MessageModel() when $default != null:
+return $default(_that.id,_that.chatRoomId,_that.sender,_that.messageType,_that.text,_that.imageUrl,_that.latitude,_that.longitude,_that.isRead,_that.readAt,_that.createdAt,_that.status,_that.isMine);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'chat_room')  String chatRoomId,  MessageSender sender, @JsonKey(name: 'message_type')  MessageType messageType,  String? text, @JsonKey(name: 'image_url')  String? imageUrl,  double? latitude,  double? longitude,  bool isRead,  DateTime? readAt,  DateTime createdAt, @JsonKey(includeFromJson: false, includeToJson: false)  MessageStatus status, @JsonKey(includeFromJson: false, includeToJson: false)  bool isMine)  $default,) {final _that = this;
+switch (_that) {
+case _MessageModel():
+return $default(_that.id,_that.chatRoomId,_that.sender,_that.messageType,_that.text,_that.imageUrl,_that.latitude,_that.longitude,_that.isRead,_that.readAt,_that.createdAt,_that.status,_that.isMine);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'chat_room')  String chatRoomId,  MessageSender sender, @JsonKey(name: 'message_type')  MessageType messageType,  String? text, @JsonKey(name: 'image_url')  String? imageUrl,  double? latitude,  double? longitude,  bool isRead,  DateTime? readAt,  DateTime createdAt, @JsonKey(includeFromJson: false, includeToJson: false)  MessageStatus status, @JsonKey(includeFromJson: false, includeToJson: false)  bool isMine)?  $default,) {final _that = this;
+switch (_that) {
+case _MessageModel() when $default != null:
+return $default(_that.id,_that.chatRoomId,_that.sender,_that.messageType,_that.text,_that.imageUrl,_that.latitude,_that.longitude,_that.isRead,_that.readAt,_that.createdAt,_that.status,_that.isMine);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$MessageModelImpl implements _MessageModel {
-  const _$MessageModelImpl({
-    required this.id,
-    @JsonKey(name: 'chat_room') required this.chatRoomId,
-    required this.sender,
-    @JsonKey(name: 'message_type') required this.messageType,
-    this.text,
-    @JsonKey(name: 'image_url') this.imageUrl,
-    this.latitude,
-    this.longitude,
-    @JsonKey(name: 'is_read') this.isRead = false,
-    @JsonKey(name: 'read_at') this.readAt,
-    @JsonKey(name: 'created_at') required this.createdAt,
-    @JsonKey(includeFromJson: false, includeToJson: false)
-    this.status = MessageStatus.sent,
-    @JsonKey(includeFromJson: false, includeToJson: false) this.isMine = false,
+
+class _MessageModel implements MessageModel {
+  const _MessageModel({required this.id, @JsonKey(name: 'chat_room') required this.chatRoomId, required this.sender, @JsonKey(name: 'message_type') required this.messageType, this.text, @JsonKey(name: 'image_url') this.imageUrl, this.latitude, this.longitude, this.isRead = false, this.readAt, required this.createdAt, @JsonKey(includeFromJson: false, includeToJson: false) this.status = MessageStatus.sent, @JsonKey(includeFromJson: false, includeToJson: false) this.isMine = false});
+  factory _MessageModel.fromJson(Map<String, dynamic> json) => _$MessageModelFromJson(json);
+
+@override final  String id;
+@override@JsonKey(name: 'chat_room') final  String chatRoomId;
+@override final  MessageSender sender;
+@override@JsonKey(name: 'message_type') final  MessageType messageType;
+@override final  String? text;
+@override@JsonKey(name: 'image_url') final  String? imageUrl;
+@override final  double? latitude;
+@override final  double? longitude;
+@override@JsonKey() final  bool isRead;
+@override final  DateTime? readAt;
+@override final  DateTime createdAt;
+// Champs locaux (non sérialisés)
+@override@JsonKey(includeFromJson: false, includeToJson: false) final  MessageStatus status;
+@override@JsonKey(includeFromJson: false, includeToJson: false) final  bool isMine;
+
+/// Create a copy of MessageModel
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$MessageModelCopyWith<_MessageModel> get copyWith => __$MessageModelCopyWithImpl<_MessageModel>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$MessageModelToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MessageModel&&(identical(other.id, id) || other.id == id)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId)&&(identical(other.sender, sender) || other.sender == sender)&&(identical(other.messageType, messageType) || other.messageType == messageType)&&(identical(other.text, text) || other.text == text)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.isRead, isRead) || other.isRead == isRead)&&(identical(other.readAt, readAt) || other.readAt == readAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.isMine, isMine) || other.isMine == isMine));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,chatRoomId,sender,messageType,text,imageUrl,latitude,longitude,isRead,readAt,createdAt,status,isMine);
+
+@override
+String toString() {
+  return 'MessageModel(id: $id, chatRoomId: $chatRoomId, sender: $sender, messageType: $messageType, text: $text, imageUrl: $imageUrl, latitude: $latitude, longitude: $longitude, isRead: $isRead, readAt: $readAt, createdAt: $createdAt, status: $status, isMine: $isMine)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$MessageModelCopyWith<$Res> implements $MessageModelCopyWith<$Res> {
+  factory _$MessageModelCopyWith(_MessageModel value, $Res Function(_MessageModel) _then) = __$MessageModelCopyWithImpl;
+@override @useResult
+$Res call({
+ String id,@JsonKey(name: 'chat_room') String chatRoomId, MessageSender sender,@JsonKey(name: 'message_type') MessageType messageType, String? text,@JsonKey(name: 'image_url') String? imageUrl, double? latitude, double? longitude, bool isRead, DateTime? readAt, DateTime createdAt,@JsonKey(includeFromJson: false, includeToJson: false) MessageStatus status,@JsonKey(includeFromJson: false, includeToJson: false) bool isMine
+});
+
+
+@override $MessageSenderCopyWith<$Res> get sender;
+
+}
+/// @nodoc
+class __$MessageModelCopyWithImpl<$Res>
+    implements _$MessageModelCopyWith<$Res> {
+  __$MessageModelCopyWithImpl(this._self, this._then);
+
+  final _MessageModel _self;
+  final $Res Function(_MessageModel) _then;
+
+/// Create a copy of MessageModel
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? chatRoomId = null,Object? sender = null,Object? messageType = null,Object? text = freezed,Object? imageUrl = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? isRead = null,Object? readAt = freezed,Object? createdAt = null,Object? status = null,Object? isMine = null,}) {
+  return _then(_MessageModel(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,chatRoomId: null == chatRoomId ? _self.chatRoomId : chatRoomId // ignore: cast_nullable_to_non_nullable
+as String,sender: null == sender ? _self.sender : sender // ignore: cast_nullable_to_non_nullable
+as MessageSender,messageType: null == messageType ? _self.messageType : messageType // ignore: cast_nullable_to_non_nullable
+as MessageType,text: freezed == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
+as String?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
+as double?,isRead: null == isRead ? _self.isRead : isRead // ignore: cast_nullable_to_non_nullable
+as bool,readAt: freezed == readAt ? _self.readAt : readAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as MessageStatus,isMine: null == isMine ? _self.isMine : isMine // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+/// Create a copy of MessageModel
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MessageSenderCopyWith<$Res> get sender {
+  
+  return $MessageSenderCopyWith<$Res>(_self.sender, (value) {
+    return _then(_self.copyWith(sender: value));
   });
-
-  factory _$MessageModelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$MessageModelImplFromJson(json);
-
-  @override
-  final String id;
-  @override
-  @JsonKey(name: 'chat_room')
-  final String chatRoomId;
-  @override
-  final MessageSender sender;
-  @override
-  @JsonKey(name: 'message_type')
-  final MessageType messageType;
-  @override
-  final String? text;
-  @override
-  @JsonKey(name: 'image_url')
-  final String? imageUrl;
-  @override
-  final double? latitude;
-  @override
-  final double? longitude;
-  @override
-  @JsonKey(name: 'is_read')
-  final bool isRead;
-  @override
-  @JsonKey(name: 'read_at')
-  final DateTime? readAt;
-  @override
-  @JsonKey(name: 'created_at')
-  final DateTime createdAt;
-  // Champs locaux (non sérialisés)
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final MessageStatus status;
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final bool isMine;
-
-  @override
-  String toString() {
-    return 'MessageModel(id: $id, chatRoomId: $chatRoomId, sender: $sender, messageType: $messageType, text: $text, imageUrl: $imageUrl, latitude: $latitude, longitude: $longitude, isRead: $isRead, readAt: $readAt, createdAt: $createdAt, status: $status, isMine: $isMine)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$MessageModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.chatRoomId, chatRoomId) ||
-                other.chatRoomId == chatRoomId) &&
-            (identical(other.sender, sender) || other.sender == sender) &&
-            (identical(other.messageType, messageType) ||
-                other.messageType == messageType) &&
-            (identical(other.text, text) || other.text == text) &&
-            (identical(other.imageUrl, imageUrl) ||
-                other.imageUrl == imageUrl) &&
-            (identical(other.latitude, latitude) ||
-                other.latitude == latitude) &&
-            (identical(other.longitude, longitude) ||
-                other.longitude == longitude) &&
-            (identical(other.isRead, isRead) || other.isRead == isRead) &&
-            (identical(other.readAt, readAt) || other.readAt == readAt) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt) &&
-            (identical(other.status, status) || other.status == status) &&
-            (identical(other.isMine, isMine) || other.isMine == isMine));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    chatRoomId,
-    sender,
-    messageType,
-    text,
-    imageUrl,
-    latitude,
-    longitude,
-    isRead,
-    readAt,
-    createdAt,
-    status,
-    isMine,
-  );
-
-  /// Create a copy of MessageModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$MessageModelImplCopyWith<_$MessageModelImpl> get copyWith =>
-      __$$MessageModelImplCopyWithImpl<_$MessageModelImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$MessageModelImplToJson(this);
-  }
+}
 }
 
-abstract class _MessageModel implements MessageModel {
-  const factory _MessageModel({
-    required final String id,
-    @JsonKey(name: 'chat_room') required final String chatRoomId,
-    required final MessageSender sender,
-    @JsonKey(name: 'message_type') required final MessageType messageType,
-    final String? text,
-    @JsonKey(name: 'image_url') final String? imageUrl,
-    final double? latitude,
-    final double? longitude,
-    @JsonKey(name: 'is_read') final bool isRead,
-    @JsonKey(name: 'read_at') final DateTime? readAt,
-    @JsonKey(name: 'created_at') required final DateTime createdAt,
-    @JsonKey(includeFromJson: false, includeToJson: false)
-    final MessageStatus status,
-    @JsonKey(includeFromJson: false, includeToJson: false) final bool isMine,
-  }) = _$MessageModelImpl;
-
-  factory _MessageModel.fromJson(Map<String, dynamic> json) =
-      _$MessageModelImpl.fromJson;
-
-  @override
-  String get id;
-  @override
-  @JsonKey(name: 'chat_room')
-  String get chatRoomId;
-  @override
-  MessageSender get sender;
-  @override
-  @JsonKey(name: 'message_type')
-  MessageType get messageType;
-  @override
-  String? get text;
-  @override
-  @JsonKey(name: 'image_url')
-  String? get imageUrl;
-  @override
-  double? get latitude;
-  @override
-  double? get longitude;
-  @override
-  @JsonKey(name: 'is_read')
-  bool get isRead;
-  @override
-  @JsonKey(name: 'read_at')
-  DateTime? get readAt;
-  @override
-  @JsonKey(name: 'created_at')
-  DateTime get createdAt; // Champs locaux (non sérialisés)
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  MessageStatus get status;
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  bool get isMine;
-
-  /// Create a copy of MessageModel
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$MessageModelImplCopyWith<_$MessageModelImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+// dart format on
