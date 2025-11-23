@@ -15,23 +15,25 @@ class DriverCniUploadService {
   final CloudinaryService _cloudinaryService;
   DriverCniUploadService(this._cloudinaryService);
 
-  /// Upload CNI recto/verso (returns Cloudinary URL)
+  /// Upload document (CNI, assurance, etc.) (returns Cloudinary URL)
   Future<String> uploadCni({
     required dynamic file,
-    required bool isFront,
+    bool? isFront,
+    String? documentType,
   }) async {
-    String documentType = isFront ? 'cni_recto' : 'cni_verso';
+    // Si documentType est fourni, on l'utilise, sinon on déduit à partir de isFront (pour la CNI)
+    String docType = documentType ?? (isFront == true ? 'cni_recto' : 'cni_verso');
     if (file == null) throw Exception('Aucun fichier sélectionné');
     if (kIsWeb && file is XFile) {
       // Web: save to bytes, write to temp file
       final bytes = await file.readAsBytes();
       final temp = File('/tmp/${file.name}');
       await temp.writeAsBytes(bytes);
-      return await _cloudinaryService.uploadDocument(temp.path, documentType);
+      return await _cloudinaryService.uploadDocument(temp.path, docType);
     } else if (file is XFile) {
-      return await _cloudinaryService.uploadDocument(file.path, documentType);
+      return await _cloudinaryService.uploadDocument(file.path, docType);
     } else if (file is File) {
-      return await _cloudinaryService.uploadDocument(file.path, documentType);
+      return await _cloudinaryService.uploadDocument(file.path, docType);
     } else {
       throw Exception('Type de fichier non supporté: ${file.runtimeType}');
     }
