@@ -25,6 +25,7 @@ import '../../../../shared/utils/validators.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_textfield.dart';
 import '../../../../shared/widgets/network_image_cached.dart';
+import '../widgets/document_card.dart';
 
 // ============================================================================
 // SCREEN
@@ -42,6 +43,14 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 // ============================================================================
 
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
+    // ========== PERMIS & VIGNETTE STATE ==========
+    dynamic _newLicensePhoto;
+    Uint8List? _newLicensePhotoBytes;
+    String? _initialLicenseUrl;
+
+    dynamic _newVignettePhoto;
+    Uint8List? _newVignettePhotoBytes;
+    String? _initialVignetteUrl;
   // ========== FORM & SUBMISSION STATE ==========
   late GlobalKey<FormState> _formKey;
   bool _isSubmitting = false;
@@ -165,6 +174,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _initialGrayCardUrl = driver.vehicleGrayCard;
     _newGrayCardPhoto = null;
     _newGrayCardPhotoBytes = null;
+
+    // Permis & Vignette
+    _initialLicenseUrl = driver.driverLicense;
+    _newLicensePhoto = null;
+    _newLicensePhotoBytes = null;
+    _initialVignetteUrl = driver.vehicleVignette;
+    _newVignettePhoto = null;
+    _newVignettePhotoBytes = null;
   }
 
   // ========== PHOTO PICKING METHODS ==========
@@ -209,6 +226,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           } else if (type == 'gray_card') {
             _newGrayCardPhoto = file;
             _newGrayCardPhotoBytes = bytes;
+          } else if (type == 'license') {
+            _newLicensePhoto = file;
+            _newLicensePhotoBytes = bytes;
+          } else if (type == 'vignette') {
+            _newVignettePhoto = file;
+            _newVignettePhotoBytes = bytes;
           }
         });
       },
@@ -440,6 +463,44 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   // ========== UPLOAD & SAVE METHODS ==========
 
+  /// Upload permis de conduire
+  Future<String?> _uploadDriverLicense() async {
+    if (_newLicensePhoto != null && _newLicensePhotoBytes != null) {
+      try {
+        return await ref.read(driverCniUploadProvider).uploadCni(
+          file: _newLicensePhoto,
+          isFront: false,
+          documentType: 'permis_conduire',
+        );
+      } catch (e) {
+        if (mounted) {
+          Helpers.showErrorSnackBar(context, 'Erreur upload permis: $e');
+        }
+        return null;
+      }
+    }
+    return _initialLicenseUrl;
+  }
+
+  /// Upload vignette
+  Future<String?> _uploadVignette() async {
+    if (_newVignettePhoto != null && _newVignettePhotoBytes != null) {
+      try {
+        return await ref.read(driverCniUploadProvider).uploadCni(
+          file: _newVignettePhoto,
+          isFront: false,
+          documentType: 'vignette',
+        );
+      } catch (e) {
+        if (mounted) {
+          Helpers.showErrorSnackBar(context, 'Erreur upload vignette: $e');
+        }
+        return null;
+      }
+    }
+    return _initialVignetteUrl;
+  }
+
   /// Upload profile photo
   Future<String?> _uploadProfilePhoto() async {
     if (_photoMarkedForDeletion && _initialProfilePhotoUrl != null &&
@@ -509,16 +570,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Future<String?> _uploadVehicleInsurance() async {
     if (_newInsurancePhoto != null && _newInsurancePhotoBytes != null) {
       try {
-        return await _cloudinaryDirectService.uploadDocument(
-          kIsWeb && _newInsurancePhoto is XFile
-              ? (await (File('/tmp/${(_newInsurancePhoto as XFile).name}')
-                      ..writeAsBytes(
-                          await (_newInsurancePhoto as XFile).readAsBytes()))
-                  .path)
-              : (_newInsurancePhoto is XFile
-                  ? _newInsurancePhoto.path
-                  : (_newInsurancePhoto as File).path),
-          folder: 'lebenis/assurance',
+        return await ref.read(driverCniUploadProvider).uploadCni(
+          file: _newInsurancePhoto,
+          isFront: false, // Utilisé ici pour différencier, adapter si besoin
+          documentType: 'assurance',
         );
       } catch (e) {
         if (mounted) {
@@ -534,16 +589,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Future<String?> _uploadVehicleInspection() async {
     if (_newInspectionPhoto != null && _newInspectionPhotoBytes != null) {
       try {
-        return await _cloudinaryDirectService.uploadDocument(
-          kIsWeb && _newInspectionPhoto is XFile
-              ? (await (File('/tmp/${(_newInspectionPhoto as XFile).name}')
-                      ..writeAsBytes(
-                          await (_newInspectionPhoto as XFile).readAsBytes()))
-                  .path)
-              : (_newInspectionPhoto is XFile
-                  ? _newInspectionPhoto.path
-                  : (_newInspectionPhoto as File).path),
-          folder: 'lebenis/visite_technique',
+        return await ref.read(driverCniUploadProvider).uploadCni(
+          file: _newInspectionPhoto,
+          isFront: false, // Utilisé ici pour différencier, adapter si besoin
+          documentType: 'visite_technique',
         );
       } catch (e) {
         if (mounted) {
@@ -559,16 +608,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Future<String?> _uploadVehicleGrayCard() async {
     if (_newGrayCardPhoto != null && _newGrayCardPhotoBytes != null) {
       try {
-        return await _cloudinaryDirectService.uploadDocument(
-          kIsWeb && _newGrayCardPhoto is XFile
-              ? (await (File('/tmp/${(_newGrayCardPhoto as XFile).name}')
-                      ..writeAsBytes(
-                          await (_newGrayCardPhoto as XFile).readAsBytes()))
-                  .path)
-              : (_newGrayCardPhoto is XFile
-                  ? _newGrayCardPhoto.path
-                  : (_newGrayCardPhoto as File).path),
-          folder: 'lebenis/carte_grise',
+        return await ref.read(driverCniUploadProvider).uploadCni(
+          file: _newGrayCardPhoto,
+          isFront: false, // Utilisé ici pour différencier, adapter si besoin
+          documentType: 'carte_grise',
         );
       } catch (e) {
         if (mounted) {
@@ -608,9 +651,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       final insuranceUrl = await _uploadVehicleInsurance();
       final inspectionUrl = await _uploadVehicleInspection();
       final grayCardUrl = await _uploadVehicleGrayCard();
+      final licenseUrl = await _uploadDriverLicense();
+      final vignetteUrl = await _uploadVignette();
 
       if (cniFrontUrl == null || cniBackUrl == null || insuranceUrl == null ||
-          inspectionUrl == null || grayCardUrl == null) {
+          inspectionUrl == null || grayCardUrl == null || licenseUrl == null || vignetteUrl == null) {
         setState(() => _isSubmitting = false);
         return;
       }
@@ -628,6 +673,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         'vehicle_insurance': insuranceUrl,
         'vehicle_technical_inspection': inspectionUrl,
         'vehicle_gray_card': grayCardUrl,
+        'driver_license': licenseUrl,
+        'vehicle_vignette': vignetteUrl,
         'profile_photo': profilePhotoUrl ?? '',
       };
 
@@ -792,7 +839,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         CustomTextField(
           label: 'Numéro de CNI',
           controller: _cniController,
-          prefixIcon: Icons.credit_card,
+          prefixIcon: Icons.credit_card,gray_card
           enabled: !_isSubmitting,
           validator: (value) =>
               value == null || value.trim().isEmpty ? 'Numéro de CNI requis' : null,
@@ -928,63 +975,128 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       children: [
         Text('Documents véhicule', style: TextStyles.h3),
         const SizedBox(height: Dimensions.spacingM),
-        Row(
+        Wrap(
+          spacing: 16,
+          runSpacing: 16,
           children: [
-            Expanded(
-              child: Column(
-                children: [
-                  Text('Assurance'),
-                  const SizedBox(height: 8),
-                  _buildPhotoWidget(_newInsurancePhoto, _newInsurancePhotoBytes,
-                      _initialInsuranceUrl),
-                  TextButton.icon(
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Uploader assurance'),
-                    onPressed: _isSubmitting
-                        ? null
-                        : () => _pickDocumentPhoto(type: 'insurance'),
-                  ),
-                ],
-              ),
+            DocumentCard(
+              title: 'Assurance',
+              url: _initialInsuranceUrl,
+              onUpload: _isSubmitting ? (){} : () => _pickDocumentPhoto(type: 'insurance'),
+              onDelete: _isSubmitting ? (){} : () => _deleteVehicleDocument('insurance'),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                children: [
-                  Text('Visite technique'),
-                  const SizedBox(height: 8),
-                  _buildPhotoWidget(_newInspectionPhoto, _newInspectionPhotoBytes,
-                      _initialInspectionUrl),
-                  TextButton.icon(
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Uploader visite'),
-                    onPressed: _isSubmitting
-                        ? null
-                        : () => _pickDocumentPhoto(type: 'inspection'),
-                  ),
-                ],
-              ),
+            DocumentCard(
+              title: 'Visite technique',
+              url: _initialInspectionUrl,
+              onUpload: _isSubmitting ? (){} : () => _pickDocumentPhoto(type: 'inspection'),
+              onDelete: _isSubmitting ? (){} : () => _deleteVehicleDocument('inspection'),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                children: [
-                  Text('Carte grise'),
-                  const SizedBox(height: 8),
-                  _buildPhotoWidget(_newGrayCardPhoto, _newGrayCardPhotoBytes,
-                      _initialGrayCardUrl),
-                  TextButton.icon(
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Uploader grise'),
-                    onPressed: _isSubmitting
-                        ? null
-                        : () => _pickDocumentPhoto(type: 'gray_card'),
-                  ),
-                ],
-              ),
+            DocumentCard(
+              title: 'Carte grise',
+              url: _initialGrayCardUrl,
+              onUpload: _isSubmitting ? (){} : () => _pickDocumentPhoto(type: 'gray_card'),
+              onDelete: _isSubmitting ? (){} : () => _deleteVehicleDocument('gray_card'),
+            ),
+            DocumentCard(
+              title: 'Permis de conduire',
+              url: _initialLicenseUrl,
+              onUpload: _isSubmitting ? (){} : () => _pickDocumentPhoto(type: 'license'),
+              onDelete: _isSubmitting ? (){} : () => _deleteVehicleDocument('license'),
+            ),
+            DocumentCard(
+              title: 'Vignette',
+              url: _initialVignetteUrl,
+              onUpload: _isSubmitting ? (){} : () => _pickDocumentPhoto(type: 'vignette'),
+              onDelete: _isSubmitting ? (){} : () => _deleteVehicleDocument('vignette'),
             ),
           ],
         ),
+        /// Suppression effective d'un document véhicule
+        Future<void> _deleteVehicleDocument(String type) async {
+          String title;
+          String? currentUrl;
+          switch (type) {
+            case 'insurance':
+              title = 'Assurance';
+              currentUrl = _initialInsuranceUrl;
+              break;
+            case 'inspection':
+              title = 'Visite technique';
+              currentUrl = _initialInspectionUrl;
+              break;
+            case 'gray_card':
+              title = 'Carte grise';
+              currentUrl = _initialGrayCardUrl;
+              break;
+            case 'license':
+              title = 'Permis de conduire';
+              currentUrl = _initialLicenseUrl;
+              break;
+            case 'vignette':
+              title = 'Vignette';
+              currentUrl = _initialVignetteUrl;
+              break;
+            default:
+              return;
+          }
+
+          if (currentUrl == null || currentUrl.isEmpty) {
+            Helpers.showErrorSnackBar(context, 'Aucun document à supprimer');
+            return;
+          }
+
+          final confirmed = await Helpers.showConfirmDialog(
+            context,
+            title: 'Supprimer $title',
+            message: 'Voulez-vous vraiment supprimer ce document ? Cette action est irréversible.',
+            confirmText: 'Supprimer',
+            cancelText: 'Annuler',
+          );
+          if (confirmed != true) return;
+
+          setState(() => _isSubmitting = true);
+          try {
+            final success = await ref.read(driverCniUploadProvider).deleteDocument(documentType: type);
+            if (success) {
+              setState(() {
+                switch (type) {
+                  case 'insurance':
+                    _initialInsuranceUrl = null;
+                    _newInsurancePhoto = null;
+                    _newInsurancePhotoBytes = null;
+                    break;
+                  case 'inspection':
+                    _initialInspectionUrl = null;
+                    _newInspectionPhoto = null;
+                    _newInspectionPhotoBytes = null;
+                    break;
+                  case 'gray_card':
+                    _initialGrayCardUrl = null;
+                    _newGrayCardPhoto = null;
+                    _newGrayCardPhotoBytes = null;
+                    break;
+                  case 'license':
+                    _initialLicenseUrl = null;
+                    _newLicensePhoto = null;
+                    _newLicensePhotoBytes = null;
+                    break;
+                  case 'vignette':
+                    _initialVignetteUrl = null;
+                    _newVignettePhoto = null;
+                    _newVignettePhotoBytes = null;
+                    break;
+                }
+              });
+              Helpers.showSuccessSnackBar(context, 'Document supprimé avec succès');
+            } else {
+              Helpers.showErrorSnackBar(context, 'Échec de la suppression du document');
+            }
+          } catch (e) {
+            Helpers.showErrorSnackBar(context, 'Erreur: $e');
+          } finally {
+            if (mounted) setState(() => _isSubmitting = false);
+          }
+        }
       ],
     );
   }
