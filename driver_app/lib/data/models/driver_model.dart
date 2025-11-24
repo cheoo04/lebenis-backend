@@ -28,6 +28,8 @@ class DriverModel {
   final String? vehicleTechnicalInspection;
   final DateTime? vehicleInspectionExpiry;
   final String? vehicleGrayCard;
+  final String? vehicleVignette;
+  final DateTime? vehicleVignetteExpiry;
   final String? identityCardNumber;
   final String? identityCardFront;
   final String? identityCardBack;
@@ -73,6 +75,8 @@ class DriverModel {
     this.vehicleTechnicalInspection,
     this.vehicleInspectionExpiry,
     this.vehicleGrayCard,
+    this.vehicleVignette,
+    this.vehicleVignetteExpiry,
     this.identityCardNumber,
     this.identityCardFront,
     this.identityCardBack,
@@ -134,6 +138,10 @@ class DriverModel {
         ? DateTime.tryParse(json['vehicle_inspection_expiry'])
         : null,
       vehicleGrayCard: json['vehicle_gray_card'] as String?,
+      vehicleVignette: json['vehicle_vignette'] as String?,
+      vehicleVignetteExpiry: json['vehicle_vignette_expiry'] != null && (json['vehicle_vignette_expiry'] as String).isNotEmpty
+        ? DateTime.tryParse(json['vehicle_vignette_expiry'])
+        : null,
       identityCardNumber: json['identity_card_number'] as String?,
       identityCardFront: _parseStringField(json['identity_card_front']),
       identityCardBack: _parseStringField(json['identity_card_back']),
@@ -209,6 +217,8 @@ class DriverModel {
       'vehicle_technical_inspection': vehicleTechnicalInspection,
       'vehicle_inspection_expiry': vehicleInspectionExpiry?.toIso8601String(),
       'vehicle_gray_card': vehicleGrayCard,
+      'vehicle_vignette': vehicleVignette,
+      'vehicle_vignette_expiry': vehicleVignetteExpiry?.toIso8601String(),
       'identity_card_number': identityCardNumber,
       'identity_card_front': identityCardFront,
       'identity_card_back': identityCardBack,
@@ -311,6 +321,8 @@ class DriverModel {
     String? identityCardFront,
     String? identityCardBack,
     DateTime? dateOfBirth,
+    String? vehicleVignette,
+    DateTime? vehicleVignetteExpiry,
     DateTime? createdAt,
   }) {
     return DriverModel(
@@ -333,6 +345,8 @@ class DriverModel {
       identityCardFront: identityCardFront ?? this.identityCardFront,
       identityCardBack: identityCardBack ?? this.identityCardBack,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      vehicleVignette: vehicleVignette ?? this.vehicleVignette,
+      vehicleVignetteExpiry: vehicleVignetteExpiry ?? this.vehicleVignetteExpiry,
       createdAt: createdAt ?? this.createdAt,
     );
   }

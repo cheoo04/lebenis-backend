@@ -64,6 +64,8 @@ class Driver(models.Model):
     vehicle_technical_inspection = models.URLField(max_length=500, blank=True, null=True, help_text="Visite technique")
     vehicle_inspection_expiry = models.DateField(null=True, blank=True)
     vehicle_gray_card = models.URLField(max_length=500, blank=True, null=True, help_text="Carte grise")
+    vehicle_vignette = models.URLField(max_length=500, blank=True, null=True, help_text="Document vignette")
+    vehicle_vignette_expiry = models.DateField(null=True, blank=True, help_text="Date d'expiration de la vignette")
     
     # Informations bancaires (PAIEMENTS)
     bank_account_name = models.CharField(max_length=200, blank=True)
