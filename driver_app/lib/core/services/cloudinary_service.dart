@@ -17,6 +17,25 @@ class CloudinaryService {
   /// 
   /// Returns:
   ///   URL Cloudinary de l'image uploadée
+
+
+  /// Supprimer un document (assurance, carte grise, permis, etc.)
+  Future<bool> deleteDocument(String documentType) async {
+    try {
+      final response = await _dioClient.delete(
+        '/api/v1/cloudinary/delete/',
+        data: {'document_type': documentType},
+      );
+      // On attend un booléen ou un champ 'success' dans la réponse
+      if (response.data is Map && response.data['success'] == true) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<String> uploadChatImage(
     String imagePath, {
     Function(double)? onProgress,

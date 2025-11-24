@@ -1,4 +1,5 @@
 // driver_app/lib/features/profile/presentation/screens/profile_screen.dart
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -160,25 +161,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       backgroundColor: Colors.grey[200],
                       child: ClipOval(
                         child: driver?.profilePhoto != null
-                            ? Image.network(
-                                // Use string interpolation for cache-busting query param
-                                '${driver!.profilePhoto!}?cb=${DateTime.now().millisecondsSinceEpoch}',
-                                width: 120,
-                                height: 120,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.person,
-                                    size: 60,
-                                    color: AppColors.textSecondary,
-                                  );
-                                },
-                              )
-                            : Icon(
-                                Icons.person,
-                                size: 60,
-                                color: AppColors.textSecondary,
-                              ),
+                            ? (driver!.profilePhoto!.startsWith('http://') || driver!.profilePhoto!.startsWith('https://'))
+                                ? Image.network(
+                                    // Use string interpolation for cache-busting query param
+                                    '${driver!.profilePhoto!}?cb=${DateTime.now().millisecondsSinceEpoch}',
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Icon(
+                                        Icons.person,
+                                        size: 60,
+                                        color: AppColors.primary,
+                                      );
+                                    },
+                                  )
+                                : driver!.profilePhoto!.startsWith('file://')
+                                    ? Image.file(
+                                        File(Uri.parse(driver!.profilePhoto!).toFilePath()),
+                                        width: 120,
+                                        height: 120,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Icon(Icons.person, size: 60, color: AppColors.primary)
+                            : Icon(Icons.person, size: 60, color: AppColors.primary),
                       ),
                     ),
                     Positioned(

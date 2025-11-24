@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class DocumentCard extends StatelessWidget {
@@ -27,7 +29,19 @@ class DocumentCard extends StatelessWidget {
             if (url != null)
               isPdf
                   ? Icon(Icons.picture_as_pdf, size: 48, color: Colors.red)
-                  : Image.network(url!, height: 80, fit: BoxFit.cover)
+                  : url?.startsWith('http://') == true || url?.startsWith('https://') == true
+                      ? Image.network(url!, height: 80, fit: BoxFit.cover)
+                      : url?.startsWith('file://') == true
+                          ? Image.file(
+                              File(Uri.parse(url!).toFilePath()),
+                              height: 80,
+                              fit: BoxFit.cover,
+                            )
+                          : Container(
+                              height: 80,
+                              color: Colors.grey.shade200,
+                              child: const Icon(Icons.image, color: Colors.grey),
+                            )
             else ...[
               Icon(Icons.warning_amber_rounded, size: 48, color: Colors.red),
               const SizedBox(height: 4),

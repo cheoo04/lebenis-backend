@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -36,6 +35,19 @@ class DriverCniUploadService {
       return await _cloudinaryService.uploadDocument(file.path, docType);
     } else {
       throw Exception('Type de fichier non supporté: ${file.runtimeType}');
+    }
+  }
+
+  /// Supprimer un document (assurance, carte grise, permis, etc.)
+  Future<bool> deleteDocument({required String documentType}) async {
+    try {
+      // Appel à l'API backend pour supprimer le document
+      // L'endpoint doit être implémenté côté backend, ex: /api/v1/cloudinary/delete/
+      final response = await _cloudinaryService.deleteDocument(documentType);
+      return response;
+    } catch (e) {
+      // Log ou gestion d'erreur
+      return false;
     }
   }
 }
