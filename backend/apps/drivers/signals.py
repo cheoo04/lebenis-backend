@@ -12,13 +12,17 @@ def create_driver_profile(sender, instance, created, **kwargs):
     lorsqu'un utilisateur avec user_type='driver' est créé.
     """
     if created and instance.user_type == 'driver':
-        # Créer le profil Driver avec des valeurs par défaut
-        Driver.objects.create(
-            user=instance,
-            vehicle_type='moto',  # Valeur par défaut
-            vehicle_capacity_kg=50.00,
-            verification_status='pending',  # En attente de vérification
-            is_available=False,
-            availability_status='offline'
-        )
-        print(f"✅ Profil Driver créé automatiquement pour {instance.email}")
+        import logging
+        logger = logging.getLogger('django')
+        try:
+            Driver.objects.create(
+                user=instance,
+                vehicle_type='moto',  # Valeur par défaut
+                vehicle_capacity_kg=50.00,
+                verification_status='pending',  # En attente de vérification
+                is_available=False,
+                availability_status='offline'
+            )
+            logger.info(f"[SIGNAL] Profil Driver créé automatiquement pour {instance.email} (user_id={instance.id})")
+        except Exception as e:
+            logger.error(f"[SIGNAL] Erreur création profil Driver pour {instance.email} (user_id={instance.id}): {e}")
