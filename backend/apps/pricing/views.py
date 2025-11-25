@@ -60,6 +60,7 @@ class PricingZoneViewSet(viewsets.ModelViewSet):
         user = request.user
         logger = logging.getLogger('django')
         driver = getattr(user, 'driver_profile', None)
+        print(f"[with_selection] user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, driver_profile_id={getattr(driver, 'id', None)}")
         logger.info(f"[with_selection] user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, driver_profile_id={getattr(driver, 'id', None)}")
         if not driver:
             logger.error(f"[with_selection] Forbidden: user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}")
