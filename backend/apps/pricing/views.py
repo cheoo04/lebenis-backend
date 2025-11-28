@@ -53,6 +53,7 @@ class PricingZoneViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='with-selection', permission_classes=[IsAuthenticated])
     def with_selection(self, request):
+        print('=== APPEL with_selection ===')
         """
         Retourne toutes les zones avec un champ 'selected' indiquant si la zone est assignée au livreur courant.
         Utilise une requête explicite Driver.objects.get(user=user) pour éviter les problèmes de cache ou de relation inverse.
@@ -63,6 +64,7 @@ class PricingZoneViewSet(viewsets.ModelViewSet):
             driver = Driver.objects.get(user=user)
             logger.info(f"[with_selection] Driver trouvé: id={driver.id}, user_id={driver.user.id}")
         except Exception as e:
+            print(f"[DEBUG with_selection] Exception attrapée: {e}")
             logger.error(f"[with_selection] Aucun profil Driver trouvé pour user.id={user.id}, email={getattr(user, 'email', None)}, erreur={e}")
             return Response({'detail': "Seuls les livreurs peuvent accéder à leurs zones. Aucun profil driver trouvé pour cet utilisateur."}, status=403)
         queryset = self.get_queryset()
