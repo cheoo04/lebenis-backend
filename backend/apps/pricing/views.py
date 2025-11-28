@@ -55,17 +55,16 @@ class PricingZoneViewSet(viewsets.ModelViewSet):
     def with_selection(self, request):
         """
         Retourne toutes les zones avec un champ 'selected' indiquant si la zone est assignée au livreur courant.
+        Utilise une requête explicite Driver.objects.get(user=user) pour éviter les problèmes de cache ou de relation inverse.
         """
         user = request.user
         logger = logging.getLogger('django')
-        driver = getattr(user, 'driver_profile', None)
-        # Log ultra-détaillé
-        logger.warning(f"[with_selection] user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, is_authenticated={user.is_authenticated}, is_active={getattr(user, 'is_active', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, driver_profile_id={getattr(driver, 'id', None)}, headers={dict(request.headers)}, auth={request.auth}")
-        print(f"[with_selection] user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, is_authenticated={user.is_authenticated}, is_active={getattr(user, 'is_active', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, driver_profile_id={getattr(driver, 'id', None)}, headers={dict(request.headers)}, auth={request.auth}")
-        if not driver:
-            logger.error(f"[with_selection] Forbidden: user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, headers={dict(request.headers)}, auth={request.auth}")
-            print(f"[with_selection] Forbidden: user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, headers={dict(request.headers)}, auth={request.auth}")
-            return Response({'detail': "Seuls les livreurs peuvent accéder à leurs zones."}, status=403)
+        try:
+            driver = Driver.objects.get(user=user)
+            logger.info(f"[with_selection] Driver trouvé: id={driver.id}, user_id={driver.user.id}")
+        except Exception as e:
+            logger.error(f"[with_selection] Aucun profil Driver trouvé pour user.id={user.id}, email={getattr(user, 'email', None)}, erreur={e}")
+            return Response({'detail': "Seuls les livreurs peuvent accéder à leurs zones. Aucun profil driver trouvé pour cet utilisateur."}, status=403)
         queryset = self.get_queryset()
         serializer = PricingZoneSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
@@ -212,9 +211,12 @@ class AssignZonesView(APIView):
         serializer = AssignZonesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         zone_ids = serializer.validated_data['zone_ids']
-        driver = getattr(request.user, 'driver_profile', None)
-        if not driver:
-            return Response({'detail': "Seuls les livreurs peuvent modifier leurs zones."}, status=403)
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Exception as e:
+            logger = logging.getLogger('django')
+            logger.error(f"[assign_zones] Aucun profil Driver pour user.id={request.user.id}, erreur={e}")
+            return Response({'detail': "Seuls les livreurs peuvent modifier leurs zones. Aucun profil driver trouvé."}, status=403)
         with transaction.atomic():
             DriverZone.objects.filter(driver=driver).delete()
             for zone_id in zone_ids:
