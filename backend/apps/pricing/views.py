@@ -51,7 +51,7 @@ class PricingZoneViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-    @action(detail=False, methods=['get'], url_path='with-selection', permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['get'], url_path='with-selection')
     def with_selection(self, request):
         print('=== APPEL with_selection ===')
         """
