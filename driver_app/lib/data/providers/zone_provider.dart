@@ -56,9 +56,12 @@ class ZoneNotifier extends Notifier<ZoneState> {
   Future<void> loadZones() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
+      print('[ZONE_PROVIDER] Chargement des zones...');
       final zones = await repository.fetchZones();
+      print('[ZONE_PROVIDER] Zones récupérées: ${zones.length}');
       state = state.copyWith(zones: zones, isLoading: false);
     } catch (e) {
+      print('[ZONE_PROVIDER] Erreur lors du chargement des zones: $e');
       state = state.copyWith(error: e.toString(), isLoading: false);
     }
   }
