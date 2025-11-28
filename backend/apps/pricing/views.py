@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .assign_serializers import AssignZonesSerializer
-
+import logging
 from .models import PricingZone, ZonePricingMatrix
 from .serializers import PricingZoneSerializer, ZonePricingMatrixSerializer, CalculatePriceSerializer
 from .calculator import PricingCalculator
@@ -56,14 +56,15 @@ class PricingZoneViewSet(viewsets.ModelViewSet):
         """
         Retourne toutes les zones avec un champ 'selected' indiquant si la zone est assignée au livreur courant.
         """
-        import logging
         user = request.user
         logger = logging.getLogger('django')
         driver = getattr(user, 'driver_profile', None)
+        # Log détaillé pour debug mapping user → driver_profile
+        logger.warning(f"[with_selection] user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, driver_profile_id={getattr(driver, 'id', None)}")
         print(f"[with_selection] user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, driver_profile_id={getattr(driver, 'id', None)}")
-        logger.info(f"[with_selection] user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, driver_profile_id={getattr(driver, 'id', None)}")
         if not driver:
             logger.error(f"[with_selection] Forbidden: user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}")
+            print(f"[with_selection] Forbidden: user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}")
             return Response({'detail': "Seuls les livreurs peuvent accéder à leurs zones."}, status=403)
         queryset = self.get_queryset()
         serializer = PricingZoneSerializer(queryset, many=True, context={'request': request})

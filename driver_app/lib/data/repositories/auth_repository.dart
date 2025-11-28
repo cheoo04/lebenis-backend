@@ -32,7 +32,8 @@ class AuthRepository {
       // Le backend peut renvoyer les tokens directement ou dans un sous-objet
       final accessToken = data['access'] ?? data['access_token'] ?? data['tokens']?['access'];
       final refreshToken = data['refresh'] ?? data['refresh_token'] ?? data['tokens']?['refresh'];
-      
+      print('[AUTH_REPOSITORY] Access token reçu: $accessToken');
+      print('[AUTH_REPOSITORY] Refresh token reçu: $refreshToken');
       if (accessToken == null || refreshToken == null) {
         debugPrint('DEBUG: Access token: $accessToken');
         debugPrint('DEBUG: Refresh token: $refreshToken');
@@ -46,7 +47,7 @@ class AuthRepository {
         refreshToken: refreshToken.toString(),
         userType: data['user']?['user_type']?.toString() ?? 'driver',
       );
-      
+      print('[AUTH_REPOSITORY] Tokens sauvegardés.');
       return data;
     } catch (e) {
       debugPrint('DEBUG LOGIN REPOSITORY ERROR: $e');

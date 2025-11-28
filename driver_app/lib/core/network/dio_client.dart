@@ -50,8 +50,12 @@ class DioClient {
     
     if (!isPublicEndpoint) {
       final token = await _authService.getAccessToken();
+      // Ajout debug : print du token à chaque requête privée
+      print('[DIO_CLIENT] Token utilisé pour ${options.path}: $token');
       if (token != null && token.isNotEmpty) {
         options.headers['Authorization'] = 'Bearer $token';
+      } else {
+        print('[DIO_CLIENT] Aucun token trouvé pour ${options.path}');
       }
     }
     
