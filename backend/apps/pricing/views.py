@@ -43,7 +43,7 @@ class PricingZoneViewSet(viewsets.ModelViewSet):
         - Liste/Détail : Authentifié
         - Créer/Modifier/Supprimer : Admin uniquement
         """
-        if self.action in ['list', 'retrieve']:
+        if self.action in ['list', 'retrieve', 'with_selection']:
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAdminUser]
@@ -102,14 +102,13 @@ class ZonePricingMatrixViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Permissions :
-        - Liste/Détail : Authentifié
+        - Liste/Détail/with_selection : Authentifié
         - Créer/Modifier/Supprimer : Admin uniquement
         """
-        if self.action in ['list', 'retrieve']:
+        if self.action in ['list', 'retrieve', 'with_selection']:
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAdminUser]
-        
         return [permission() for permission in permission_classes]
 
 # ============================================================================
