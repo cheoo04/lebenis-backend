@@ -59,12 +59,12 @@ class PricingZoneViewSet(viewsets.ModelViewSet):
         user = request.user
         logger = logging.getLogger('django')
         driver = getattr(user, 'driver_profile', None)
-        # Log détaillé pour debug mapping user → driver_profile
-        logger.warning(f"[with_selection] user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, driver_profile_id={getattr(driver, 'id', None)}")
-        print(f"[with_selection] user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, driver_profile_id={getattr(driver, 'id', None)}")
+        # Log ultra-détaillé
+        logger.warning(f"[with_selection] user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, is_authenticated={user.is_authenticated}, is_active={getattr(user, 'is_active', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, driver_profile_id={getattr(driver, 'id', None)}, headers={dict(request.headers)}, auth={request.auth}")
+        print(f"[with_selection] user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, is_authenticated={user.is_authenticated}, is_active={getattr(user, 'is_active', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, driver_profile_id={getattr(driver, 'id', None)}, headers={dict(request.headers)}, auth={request.auth}")
         if not driver:
-            logger.error(f"[with_selection] Forbidden: user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}")
-            print(f"[with_selection] Forbidden: user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}")
+            logger.error(f"[with_selection] Forbidden: user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, headers={dict(request.headers)}, auth={request.auth}")
+            print(f"[with_selection] Forbidden: user.id={user.id}, email={getattr(user, 'email', None)}, user_type={getattr(user, 'user_type', None)}, has_driver_profile={hasattr(user, 'driver_profile')}, headers={dict(request.headers)}, auth={request.auth}")
             return Response({'detail': "Seuls les livreurs peuvent accéder à leurs zones."}, status=403)
         queryset = self.get_queryset()
         serializer = PricingZoneSerializer(queryset, many=True, context={'request': request})

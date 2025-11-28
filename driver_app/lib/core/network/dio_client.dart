@@ -1,5 +1,4 @@
 // lib/core/network/dio_client.dart
-
 import 'package:dio/dio.dart';
 import 'dart:typed_data';
 import '../constants/api_constants.dart';
