@@ -1,4 +1,5 @@
 # pricing/serializers.py
+
 from rest_framework import serializers
 from .models import PricingZone, ZonePricingMatrix
 from apps.drivers.models import Driver, DriverZone
@@ -16,8 +17,9 @@ class PricingZoneSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if not request or not request.user or not request.user.is_authenticated:
             return False
-        driver = getattr(request.user, 'driver_profile', None)
-        if not driver:
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Exception:
             return False
         return DriverZone.objects.filter(driver=driver, commune=obj.commune).exists()
 
