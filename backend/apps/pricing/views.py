@@ -10,7 +10,7 @@ import logging
 from .models import PricingZone, ZonePricingMatrix
 from .serializers import PricingZoneSerializer, ZonePricingMatrixSerializer, CalculatePriceSerializer
 from .calculator import PricingCalculator
-from apps.drivers.models import DriverZone
+from apps.drivers.models import DriverZone, Driver
 
 
 # ============================================================================
@@ -216,11 +216,8 @@ class AssignZonesView(APIView):
         if not driver:
             return Response({'detail': "Seuls les livreurs peuvent modifier leurs zones."}, status=403)
         with transaction.atomic():
-            # Supprimer les anciennes zones
             DriverZone.objects.filter(driver=driver).delete()
-            # Créer les nouvelles zones
             for zone_id in zone_ids:
-                # On récupère la commune de la zone tarifaire
                 from apps.pricing.models import PricingZone
                 try:
                     pricing_zone = PricingZone.objects.get(id=zone_id)
