@@ -7,6 +7,46 @@ import '../models/payment_model.dart';
 
 /// Repository pour gérer les paiements (Phase 2)
 class PaymentRepository {
+
+    /// POST /api/v1/payments/wave-session/
+    /// Crée une session de paiement Wave et retourne l'URL de paiement.
+    ///
+    /// Params:
+    /// - amount: montant à payer (double ou String)
+    /// - currency: "XOF"
+    /// - errorUrl: URL de retour en cas d'échec
+    /// - successUrl: URL de retour en cas de succès
+    ///
+    /// Returns:
+    ///   { "payment_url": "https://checkout.wave.com/session/abc123" }
+    Future<String> createWaveSession({
+      required double amount,
+      required String currency,
+      required String errorUrl,
+      required String successUrl,
+    }) async {
+      try {
+        debugPrint('🌊 [PaymentRepository] createWaveSession: amount=$amount, currency=$currency');
+        final response = await _dioClient.post(
+          ApiConstants.paymentWaveSession,
+          data: {
+            'amount': amount,
+            'currency': currency,
+            'error_url': errorUrl,
+            'success_url': successUrl,
+          },
+        );
+        final data = response.data as Map<String, dynamic>;
+        final url = data['payment_url'] as String?;
+        if (url == null || url.isEmpty) {
+          throw Exception('Aucune URL de paiement Wave reçue.');
+        }
+        return url;
+      } catch (e) {
+        debugPrint('❌ [PaymentRepository] createWaveSession error: $e');
+        rethrow;
+      }
+    }
   final DioClient _dioClient;
 
   PaymentRepository(this._dioClient);
