@@ -49,6 +49,9 @@ class ApiConstants {
   static const String paymentStats = '/api/v1/payments/stats/';
   // Historique des transactions
   static const String paymentTransactions = '/api/v1/payments/transactions/';
+  // Création d'une session Wave (paiement driver)
+  static const String paymentWaveSession = '/api/v1/payments/wave-session/';
+
 
   // ========== BREAK MANAGEMENT ==========
   static const String startBreak = '/api/v1/drivers/start-break/';
