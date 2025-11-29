@@ -254,3 +254,14 @@ class TransactionHistorySerializer(serializers.ModelSerializer):
             'failed': 'Échoué'
         }
         return status_map.get(obj.status, obj.status)
+
+
+# ==============================================================================
+# SERIALIZER POUR INPUT SESSION WAVE
+# ==============================================================================
+
+class WaveSessionInputSerializer(serializers.Serializer):
+    amount = serializers.DecimalField(max_digits=12, decimal_places=2)
+    currency = serializers.CharField(max_length=8)
+    error_url = serializers.URLField()
+    success_url = serializers.URLField()

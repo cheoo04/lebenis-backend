@@ -572,6 +572,61 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
     """
     permission_classes = [IsDriver]
     serializer_class = None  # Défini dynamiquement dans get_serializer_class
+
+    @action(detail=False, methods=['POST'], url_path='wave-session')
+    def create_wave_session(self, request):
+        """
+        Crée une session de paiement Wave et retourne l'URL de paiement.
+
+        **POST** `/api/v1/payments/wave-session/`
+
+        ### Corps attendu (JSON):
+        ```json
+        {
+          "amount": 1000.00,
+          "currency": "XOF",
+          "error_url": "https://votre-app.com/echec",
+          "success_url": "https://votre-app.com/succes"
+        }
+        ```
+
+        ### Réponse (succès):
+        ```json
+        {
+          "payment_url": "https://checkout.wave.com/session/abc123"
+        }
+        ```
+
+        ### Réponse (erreur):
+        ```json
+        {
+          "error": "Message d'erreur explicite."
+        }
+        ```
+        """
+        from .services.wave_service import create_wave_payment_session, WaveAPIError
+        from .serializers import WaveSessionInputSerializer
+
+        serializer = WaveSessionInputSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        try:
+            result = create_wave_payment_session(
+                amount=data['amount'],
+                currency=data['currency'],
+                error_url=data['error_url'],
+                success_url=data['success_url']
+            )
+            payment_url = result.get('payment_url') or result.get('redirect_url') or result.get('url')
+            if not payment_url:
+                return Response({'error': 'URL de paiement non trouvée dans la réponse Wave.'}, status=500)
+            return Response({'payment_url': payment_url})
+        except WaveAPIError as e:
+            return Response({'error': str(e)}, status=502)
+        except Exception as e:
+            return Response({'error': f'Erreur inattendue: {e}'}, status=500)
     
     def get_serializer_class(self):
         """Retourne le serializer approprié selon l'action"""
