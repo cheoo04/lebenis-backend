@@ -1,5 +1,4 @@
 // driver_app/lib/features/profile/presentation/screens/edit_profile_screen.dart
-
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -21,8 +20,13 @@ import '../../../../shared/theme/text_styles.dart';
 import '../../../../shared/utils/helpers.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_textfield.dart';
-import '../../../../shared/widgets/network_image_cached.dart';
-import '../widgets/document_card.dart';
+import '../widgets/identity_section.dart';
+import '../widgets/vehicle_section.dart';
+import '../widgets/vehicle_documents_section.dart';
+import '../widgets/profile_photo_section.dart';
+import '../widgets/action_buttons_section.dart';
+import '../../services/photo_mixin.dart';
+import '../../services/profile_service.dart';
 
 // ============================================================================
 // SCREEN
@@ -39,85 +43,45 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 // STATE
 // ============================================================================
 
-class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
+class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with PhotoMixin<EditProfileScreen> {
 
-      /// Suppression effective d'un document véhicule
-      Future<void> _deleteVehicleDocument(String type) async {
-        String title;
-        String? currentUrl;
-        switch (type) {
-          case 'insurance':
-            title = 'Assurance';
-            currentUrl = _initialInsuranceUrl;
-            break;
-          case 'inspection':
-            title = 'Visite technique';
-            currentUrl = _initialInspectionUrl;
-            break;
-          case 'gray_card':
-            title = 'Carte grise';
-            currentUrl = _initialGrayCardUrl;
-            break;
-          case 'license':
-            title = 'Permis de conduire';
-            currentUrl = _initialLicenseUrl;
-            break;
-          default:
-            return;
-        }
-
-        if (currentUrl == null || currentUrl.isEmpty) {
-          Helpers.showErrorSnackBar(context, 'Aucun document à supprimer');
-          return;
-        }
-
-        final confirmed = await Helpers.showConfirmDialog(
-          context,
-          title: 'Supprimer $title',
-          message: 'Voulez-vous vraiment supprimer ce document ? Cette action est irréversible.',
-          confirmText: 'Supprimer',
-          cancelText: 'Annuler',
-        );
-        if (confirmed != true) return;
-
-        setState(() => _isSubmitting = true);
-        try {
-          final success = await ref.read(driverCniUploadProvider).deleteDocument(documentType: type);
-          if (success) {
-            setState(() {
-              switch (type) {
-                case 'insurance':
-                  _initialInsuranceUrl = null;
-                  _newInsurancePhoto = null;
-                  _newInsurancePhotoBytes = null;
-                  break;
-                case 'inspection':
-                  _initialInspectionUrl = null;
-                  _newInspectionPhoto = null;
-                  _newInspectionPhotoBytes = null;
-                  break;
-                case 'gray_card':
-                  _initialGrayCardUrl = null;
-                  _newGrayCardPhoto = null;
-                  _newGrayCardPhotoBytes = null;
-                  break;
-                case 'license':
-                  _initialLicenseUrl = null;
-                  _newLicensePhoto = null;
-                  _newLicensePhotoBytes = null;
-                  break;
-              }
-            });
-            Helpers.showSuccessSnackBar(context, 'Document supprimé avec succès');
-          } else {
-            Helpers.showErrorSnackBar(context, 'Échec de la suppression du document');
+  /// Suppression effective d'un document véhicule (via service)
+  Future<void> _deleteVehicleDocument(String type) async {
+    setState(() => _isSubmitting = true);
+    final result = await ProfileService.deleteVehicleDocument(
+      context: context,
+      ref: ref,
+      type: type,
+      onStateUpdate: (String? url, dynamic photo, Uint8List? bytes) {
+        setState(() {
+          switch (type) {
+            case 'insurance':
+              _initialInsuranceUrl = url;
+              _newInsurancePhoto = photo;
+              _newInsurancePhotoBytes = bytes;
+              break;
+            case 'inspection':
+              _initialInspectionUrl = url;
+              _newInspectionPhoto = photo;
+              _newInspectionPhotoBytes = bytes;
+              break;
+            case 'gray_card':
+              _initialGrayCardUrl = url;
+              _newGrayCardPhoto = photo;
+              _newGrayCardPhotoBytes = bytes;
+              break;
+            case 'license':
+              _initialLicenseUrl = url;
+              _newLicensePhoto = photo;
+              _newLicensePhotoBytes = bytes;
+              break;
           }
-        } catch (e) {
-          Helpers.showErrorSnackBar(context, 'Erreur: $e');
-        } finally {
-          if (mounted) setState(() => _isSubmitting = false);
-        }
-      }
+        });
+      },
+    );
+    if (mounted) setState(() => _isSubmitting = false);
+    return result;
+  }
     // ========== PERMIS & VIGNETTE STATE ==========
     dynamic _newLicensePhoto;
     Uint8List? _newLicensePhotoBytes;
@@ -170,6 +134,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   // ========== VEHICLE & OTHER FIELDS STATE ==========
   late String _selectedVehicleType;
   DateTime? _dateOfBirth;
+
+  // ========== LANGUAGES STATE ==========
+  List<String> _selectedLanguages = [];
+  static const List<String> _allLanguages = [
+    'Français',
+    'Anglais',
+    'Bété',
+    'Baoulé',
+    'Dioula',
+    'Malinké',
+    'Autre',
+  ];
 
   // ========== SERVICES ==========
   late final CloudinaryDirectService _cloudinaryDirectService;
@@ -262,12 +238,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       : '';
     _newVignettePhoto = null;
     _newVignettePhotoBytes = null;
+
+    // Languages
+    _selectedLanguages = List<String>.from(driver.languagesSpoken ?? []);
   }
 
   // ========== PHOTO PICKING METHODS ==========
 
+
   Future<void> _pickProfilePhoto() async {
-    await _pickPhoto(
+    await pickPhoto(
+      context: context,
       onPhotoPicked: (file, bytes) {
         setState(() {
           _newProfilePhoto = file;
@@ -278,7 +259,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _pickCniPhoto(bool isFront) async {
-    await _pickPhoto(
+    await pickPhoto(
+      context: context,
       onPhotoPicked: (file, bytes) {
         setState(() {
           if (isFront) {
@@ -294,7 +276,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _pickDocumentPhoto({required String type}) async {
-    await _pickPhoto(
+    await pickPhoto(
+      context: context,
       onPhotoPicked: (file, bytes) {
         setState(() {
           if (type == 'insurance') {
@@ -382,50 +365,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   // ========== PHOTO DISPLAY METHODS ==========
 
   Widget _buildPhotoWidget(dynamic file, Uint8List? bytes, dynamic url) {
-    if (file != null && bytes != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: kIsWeb
-            ? Image.memory(bytes, width: 90, height: 60, fit: BoxFit.cover)
-            : (file is File)
-                ? Image.file(file, width: 90, height: 60, fit: BoxFit.cover)
-                : (file is XFile)
-                    ? Image.file(File(file.path), width: 90, height: 60, fit: BoxFit.cover)
-                    : Image.memory(bytes, width: 90, height: 60, fit: BoxFit.cover),
-      );
-    } else if (url != null && url is String && url.isNotEmpty) {
-      if (url.startsWith('http://') || url.startsWith('https://')) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: CachedNetworkImageWidget(
-            imageUrl: url,
-            width: 90,
-            height: 60,
-            fit: BoxFit.cover,
-          ),
-        );
-      } else if (url.startsWith('file://')) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.file(
-            File(Uri.parse(url).toFilePath()),
-            width: 90,
-            height: 60,
-            fit: BoxFit.cover,
-          ),
-        );
-      }
-    }
-    // Par défaut, retourne un placeholder
-    return Container(
-      width: 90,
-      height: 60,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: const Icon(Icons.image, size: 32, color: Colors.grey),
-    );
+    return buildPhotoWidget(file, bytes, url);
   }
 
   // ========== PROFILE PHOTO DELETION ==========
@@ -557,163 +497,138 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   // ========== UPLOAD & SAVE METHODS ==========
 
-  /// Upload permis de conduire
-  Future<String?> _uploadDriverLicense() async {
-    if (_newLicensePhoto != null && _newLicensePhotoBytes != null) {
-      try {
-        return await ref.read(driverCniUploadProvider).uploadCni(
-          file: _newLicensePhoto,
-          isFront: false,
-          documentType: 'drivers_license',
-        );
-      } catch (e) {
-        if (mounted) {
-          Helpers.showErrorSnackBar(context, 'Erreur upload permis: $e');
-        }
-        return _initialLicenseUrl;
-      }
-    }
-    return _initialLicenseUrl;
-  }
 
-  /// Upload vignette
-  Future<String?> _uploadVignette() async {
-    if (_newVignettePhoto != null && _newVignettePhotoBytes != null) {
-      try {
-        return await ref.read(driverCniUploadProvider).uploadCni(
-          file: _newVignettePhoto,
-          isFront: false,
-          documentType: 'vignette',
-        );
-      } catch (e) {
-        if (mounted) {
-          Helpers.showErrorSnackBar(context, 'Erreur upload vignette: $e');
-        }
-        return _initialVignetteUrl;
-      }
+  // Nouvelle méthode centralisée pour upload
+  Future<Map<String, String?>> _uploadAllDocuments() async {
+    debugPrint('=== DEBUG UPLOAD ===');
+    debugPrint('Photo de profil: file=${_newProfilePhoto}, bytes=${_newProfilePhotoBytes?.length}');
+    debugPrint('Vignette: file=${_newVignettePhoto}, bytes=${_newVignettePhotoBytes?.length}');
+    final Map<String, String?> uploads = {};
+    final List<String> failed = [];
+    // Helper to upload and check
+    Future<void> uploadDoc(String key, Future<String?> future, String label) async {
+      final url = await future;
+      uploads[key] = url;
+      if (url == null) failed.add(label);
     }
-    return _initialVignetteUrl;
-  }
 
-  /// Upload profile photo
-  Future<String?> _uploadProfilePhoto() async {
-    if (_photoMarkedForDeletion && _initialProfilePhotoUrl != null &&
-        _initialProfilePhotoUrl!.isNotEmpty) {
-      final success = await ref.read(driverProvider.notifier).deleteProfilePhoto();
-      if (!success) {
-        Helpers.showErrorSnackBar(context, 'Erreur lors de la suppression de la photo');
-        return _initialProfilePhotoUrl;
-      }
-      return null;
+    // Vérification préalable : n'uploader la photo de profil que si elle a été modifiée ou marquée pour suppression
+    if (_newProfilePhoto != null || _photoMarkedForDeletion) {
+      await uploadDoc('profile_photo', ProfileService.uploadProfilePhoto(
+        ref: ref,
+        file: _newProfilePhoto,
+        bytes: _newProfilePhotoBytes,
+        fallbackUrl: _initialProfilePhotoUrl,
+        context: context,
+        delete: _photoMarkedForDeletion,
+        initialUrl: _initialProfilePhotoUrl,
+      ), 'Photo de profil');
+    } else {
+      uploads['profile_photo'] = _initialProfilePhotoUrl;
     }
-    if (_newProfilePhoto != null && _newProfilePhotoBytes != null) {
-      try {
-        if (_newProfilePhoto is XFile || _newProfilePhoto is File) {
-          return await ref.read(driverProvider.notifier).uploadProfilePhoto(_newProfilePhoto);
-        } else {
-          throw Exception('Type de fichier non supporté: \\${_newProfilePhoto.runtimeType}');
-        }
-      } catch (e) {
-        if (mounted) {
-          Helpers.showErrorSnackBar(context, 'Erreur upload photo: $e');
-        }
-        return _initialProfilePhotoUrl;
-      }
+    // CNI recto
+    if (_newCniFrontPhoto != null) {
+      await uploadDoc('identity_card_front', ProfileService.uploadDocument(
+        ref: ref,
+        file: _newCniFrontPhoto,
+        bytes: _newCniFrontPhotoBytes,
+        documentType: 'identity_card_front',
+        isFront: true,
+        fallbackUrl: _initialCniFrontUrl,
+        context: context,
+      ), 'CNI (recto)');
+    } else {
+      uploads['identity_card_front'] = _initialCniFrontUrl;
     }
-    return _initialProfilePhotoUrl;
-  }
 
-  /// Upload CNI front
-  Future<String?> _uploadCniFront() async {
-    if (_newCniFrontPhoto != null && _newCniFrontPhotoBytes != null) {
-      try {
-        return await ref.read(driverCniUploadProvider).uploadCni(
-          file: _newCniFrontPhoto,
-          isFront: true,
-        );
-      } catch (e) {
-        if (mounted) {
-          Helpers.showErrorSnackBar(context, 'Erreur upload CNI recto: $e');
-        }
-        return _initialCniFrontUrl;
-      }
+    // CNI verso
+    if (_newCniBackPhoto != null) {
+      await uploadDoc('identity_card_back', ProfileService.uploadDocument(
+        ref: ref,
+        file: _newCniBackPhoto,
+        bytes: _newCniBackPhotoBytes,
+        documentType: 'identity_card_back',
+        isFront: false,
+        fallbackUrl: _initialCniBackUrl,
+        context: context,
+      ), 'CNI (verso)');
+    } else {
+      uploads['identity_card_back'] = _initialCniBackUrl;
     }
-    return _initialCniFrontUrl;
-  }
 
-  /// Upload CNI back
-  Future<String?> _uploadCniBack() async {
-    if (_newCniBackPhoto != null && _newCniBackPhotoBytes != null) {
-      try {
-        return await ref.read(driverCniUploadProvider).uploadCni(
-          file: _newCniBackPhoto,
-          isFront: false,
-        );
-      } catch (e) {
-        if (mounted) {
-          Helpers.showErrorSnackBar(context, 'Erreur upload CNI verso: $e');
-        }
-        return _initialCniBackUrl;
-      }
+    // Assurance
+    if (_newInsurancePhoto != null) {
+      await uploadDoc('vehicle_insurance', ProfileService.uploadDocument(
+        ref: ref,
+        file: _newInsurancePhoto,
+        bytes: _newInsurancePhotoBytes,
+        documentType: 'vehicle_insurance',
+        fallbackUrl: _initialInsuranceUrl,
+        context: context,
+      ), 'Assurance');
+    } else {
+      uploads['vehicle_insurance'] = _initialInsuranceUrl;
     }
-    return _initialCniBackUrl;
-  }
 
-  /// Upload vehicle insurance
-  Future<String?> _uploadVehicleInsurance() async {
-    if (_newInsurancePhoto != null && _newInsurancePhotoBytes != null) {
-      try {
-        return await ref.read(driverCniUploadProvider).uploadCni(
-          file: _newInsurancePhoto,
-          isFront: false,
-          documentType: 'vehicle_insurance',
-        );
-      } catch (e) {
-        if (mounted) {
-          Helpers.showErrorSnackBar(context, 'Erreur upload assurance: $e');
-        }
-        return _initialInsuranceUrl;
-      }
+    // Visite technique
+    if (_newInspectionPhoto != null) {
+      await uploadDoc('vehicle_technical_inspection', ProfileService.uploadDocument(
+        ref: ref,
+        file: _newInspectionPhoto,
+        bytes: _newInspectionPhotoBytes,
+        documentType: 'vehicle_technical_inspection',
+        fallbackUrl: _initialInspectionUrl,
+        context: context,
+      ), 'Visite technique');
+    } else {
+      uploads['vehicle_technical_inspection'] = _initialInspectionUrl;
     }
-    return _initialInsuranceUrl;
-  }
 
-  /// Upload vehicle inspection
-  Future<String?> _uploadVehicleInspection() async {
-    if (_newInspectionPhoto != null && _newInspectionPhotoBytes != null) {
-      try {
-        return await ref.read(driverCniUploadProvider).uploadCni(
-          file: _newInspectionPhoto,
-          isFront: false,
-          documentType: 'vehicle_technical_inspection',
-        );
-      } catch (e) {
-        if (mounted) {
-          Helpers.showErrorSnackBar(context, 'Erreur upload visite technique: $e');
-        }
-        return _initialInspectionUrl;
-      }
+    // Carte grise
+    if (_newGrayCardPhoto != null) {
+      await uploadDoc('vehicle_gray_card', ProfileService.uploadDocument(
+        ref: ref,
+        file: _newGrayCardPhoto,
+        bytes: _newGrayCardPhotoBytes,
+        documentType: 'vehicle_gray_card',
+        fallbackUrl: _initialGrayCardUrl,
+        context: context,
+      ), 'Carte grise');
+    } else {
+      uploads['vehicle_gray_card'] = _initialGrayCardUrl;
     }
-    return _initialInspectionUrl;
-  }
 
-  /// Upload vehicle gray card
-  Future<String?> _uploadVehicleGrayCard() async {
-    if (_newGrayCardPhoto != null && _newGrayCardPhotoBytes != null) {
-      try {
-        return await ref.read(driverCniUploadProvider).uploadCni(
-          file: _newGrayCardPhoto,
-          isFront: false,
-          documentType: 'vehicle_gray_card',
-        );
-      } catch (e) {
-        if (mounted) {
-          Helpers.showErrorSnackBar(context, 'Erreur upload carte grise: $e');
-        }
-        return _initialGrayCardUrl;
-      }
+    // Permis de conduire
+    if (_newLicensePhoto != null) {
+      await uploadDoc('drivers_license', ProfileService.uploadDocument(
+        ref: ref,
+        file: _newLicensePhoto,
+        bytes: _newLicensePhotoBytes,
+        documentType: 'drivers_license',
+        fallbackUrl: _initialLicenseUrl,
+        context: context,
+      ), 'Permis de conduire');
+    } else {
+      uploads['drivers_license'] = _initialLicenseUrl;
     }
-    return _initialGrayCardUrl;
+
+    // Vignette
+    if (_newVignettePhoto != null) {
+      await uploadDoc('vignette', ProfileService.uploadDocument(
+        ref: ref,
+        file: _newVignettePhoto,
+        bytes: _newVignettePhotoBytes,
+        documentType: 'vignette',
+        fallbackUrl: _initialVignetteUrl,
+        context: context,
+      ), 'Vignette');
+    } else {
+      uploads['vignette'] = _initialVignetteUrl;
+    }
+    if (failed.isNotEmpty) {
+      Helpers.showErrorSnackBar(context, 'Échec de l\'upload pour :\n' + failed.join(', '));
+    }
+    return uploads;
   }
 
   /// Main save changes method
@@ -737,40 +652,42 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      // Upload all documents in parallel
-      final profilePhotoUrl = await _uploadProfilePhoto();
-      final cniFrontUrl = await _uploadCniFront();
-      final cniBackUrl = await _uploadCniBack();
-      final insuranceUrl = await _uploadVehicleInsurance();
-      final inspectionUrl = await _uploadVehicleInspection();
-      final grayCardUrl = await _uploadVehicleGrayCard();
-      final licenseUrl = await _uploadDriverLicense();
-      final vignetteUrl = await _uploadVignette();
-
-        if (cniFrontUrl == null || cniBackUrl == null || insuranceUrl == null ||
-          inspectionUrl == null || grayCardUrl == null || licenseUrl == null || vignetteUrl == null) {
+      // Upload all documents
+      final uploads = await _uploadAllDocuments();
+      final failedDocs = uploads.entries.where((e) => e.value == null).map((e) => e.key).toList();
+      if (failedDocs.isNotEmpty) {
         setState(() => _isSubmitting = false);
         return;
       }
 
       // Prepare update data
+      // Nettoyage/formatage des champs
+      String cleanPlate(String plate) {
+        // Garde lettres/chiffres/espaces, majuscules
+        return plate.replaceAll(RegExp(r'[^A-Za-z0-9 ]'), '').toUpperCase();
+      }
+      String? formatDate(DateTime? d) => d == null ? null : d.toIso8601String().split('T').first;
+      String? truncate(String? s, int max) => (s != null && s.length > max) ? s.substring(0, max) : s;
+
       final updateData = <String, dynamic>{
         'phone': _phoneController.text.trim(),
         'vehicle_type': _selectedVehicleType,
-        'vehicle_plate': _vehiclePlateController.text.trim(),
+        'vehicle_plate': cleanPlate(_vehiclePlateController.text.trim()),
         'vehicle_capacity_kg': double.parse(_vehicleCapacityController.text.trim()),
-        'vehicle_vignette': vignetteUrl,
+        'vehicle_vignette': uploads['vignette'],
         'vehicle_vignette_expiry': _vignetteExpiryController.text.isNotEmpty ? _vignetteExpiryController.text : null,
         'identity_card_number': _cniController.text.trim(),
-        'date_of_birth': _dateOfBirth != null ? _dateOfBirth!.toIso8601String() : null,
-        'identity_card_front': cniFrontUrl,
-        'identity_card_back': cniBackUrl,
-        'vehicle_insurance': insuranceUrl,
-        'vehicle_technical_inspection': inspectionUrl,
-        'vehicle_gray_card': grayCardUrl,
-        'driver_license': licenseUrl,
-        'vehicle_vignette': vignetteUrl,
-        'profile_photo': profilePhotoUrl ?? '',
+        'date_of_birth': formatDate(_dateOfBirth),
+        'identity_card_front': uploads['identity_card_front'],
+        'identity_card_back': uploads['identity_card_back'],
+        'vehicle_insurance': uploads['vehicle_insurance'],
+        'vehicle_technical_inspection': uploads['vehicle_technical_inspection'],
+        'vehicle_gray_card': uploads['vehicle_gray_card'],
+        'driver_license': (uploads['drivers_license'] != null && (uploads['drivers_license']!.startsWith('http://') || uploads['drivers_license']!.startsWith('https://')))
+          ? uploads['drivers_license']
+          : '',
+        'profile_photo': uploads['profile_photo'] ?? '',
+        'languages_spoken': _selectedLanguages,
       };
 
       // Call API
@@ -789,7 +706,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           Navigator.of(context).pop(true);
         }
       } else {
-        Helpers.showErrorSnackBar(context, 'Échec de la mise à jour du profil');
+        // Afficher l'erreur détaillée si présente dans le provider
+        final error = ref.read(driverProvider).error;
+        if (error != null && error.isNotEmpty) {
+          Helpers.showErrorSnackBar(context, 'Erreur backend :\n$error');
+        } else {
+          Helpers.showErrorSnackBar(context, 'Échec de la mise à jour du profil');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -838,16 +761,64 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           padding: const EdgeInsets.all(Dimensions.pagePadding),
           children: [
             // === PROFILE PHOTO ===
-            _buildProfilePhotoSection(),
+            ProfilePhotoSection(
+              newProfilePhoto: _newProfilePhoto,
+              newProfilePhotoBytes: _newProfilePhotoBytes,
+              initialProfilePhotoUrl: _initialProfilePhotoUrl,
+              photoMarkedForDeletion: _photoMarkedForDeletion,
+              isSubmitting: _isSubmitting,
+              onPickProfilePhoto: _pickProfilePhoto,
+            ),
             const SizedBox(height: Dimensions.spacingXXL),
             // === IDENTITY INFORMATION ===
-            _buildIdentitySection(),
+            IdentitySection(
+              cniController: _cniController,
+              dateOfBirth: _dateOfBirth,
+              isSubmitting: _isSubmitting,
+              onDateChanged: (date) => setState(() => _dateOfBirth = date),
+              allLanguages: _allLanguages,
+              selectedLanguages: _selectedLanguages,
+              onLanguagesChanged: (langs) => setState(() => _selectedLanguages = langs),
+              cniFrontWidget: _buildPhotoWidget(_newCniFrontPhoto, _newCniFrontPhotoBytes, _initialCniFrontUrl),
+              cniBackWidget: _buildPhotoWidget(_newCniBackPhoto, _newCniBackPhotoBytes, _initialCniBackUrl),
+              onPickCniFront: () => _pickCniPhoto(true),
+              onPickCniBack: () => _pickCniPhoto(false),
+            ),
             const SizedBox(height: Dimensions.spacingXXL),
             // === VEHICLE INFORMATION ===
-            _buildVehicleSection(),
+            VehicleSection(
+              phoneController: _phoneController,
+              vehicleTypeController: _vehicleTypeController,
+              vehiclePlateController: _vehiclePlateController,
+              vehicleCapacityController: _vehicleCapacityController,
+              isSubmitting: _isSubmitting,
+              onSelectVehicleType: _selectVehicleType,
+            ),
             const SizedBox(height: Dimensions.spacingXXL),
             // === VEHICLE DOCUMENTS ===
-            _buildVehicleDocumentsSection(),
+            VehicleDocumentsSection(
+              initialInsuranceUrl: _initialInsuranceUrl,
+              insuranceBytes: _newInsurancePhotoBytes,
+              initialInspectionUrl: _initialInspectionUrl,
+              inspectionBytes: _newInspectionPhotoBytes,
+              initialGrayCardUrl: _initialGrayCardUrl,
+              grayCardBytes: _newGrayCardPhotoBytes,
+              initialLicenseUrl: _initialLicenseUrl,
+              licenseBytes: _newLicensePhotoBytes,
+              initialVignetteUrl: _initialVignetteUrl,
+              vignetteBytes: _newVignettePhotoBytes,
+              isSubmitting: _isSubmitting,
+              onPickInsurance: () => _pickDocumentPhoto(type: 'insurance'),
+              onDeleteInsurance: () => _deleteVehicleDocument('insurance'),
+              onPickInspection: () => _pickDocumentPhoto(type: 'inspection'),
+              onDeleteInspection: () => _deleteVehicleDocument('inspection'),
+              onPickGrayCard: () => _pickDocumentPhoto(type: 'gray_card'),
+              onDeleteGrayCard: () => _deleteVehicleDocument('gray_card'),
+              onPickLicense: () => _pickDocumentPhoto(type: 'license'),
+              onDeleteLicense: () => _deleteVehicleDocument('license'),
+              onPickVignette: () => _pickDocumentPhoto(type: 'vignette'),
+              onDeleteVignette: () => _deleteVehicleDocument('vignette'),
+            ),
             const SizedBox(height: Dimensions.spacingXXL),
             // === DATE EXPIRATION VIGNETTE ===
             Padding(
@@ -880,7 +851,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               ),
             ),
             // === BUTTONS ===
-            _buildActionButtons(),
+            ActionButtonsSection(
+              isSubmitting: _isSubmitting,
+              onSave: _saveChanges,
+              onCancel: () {
+                setState(() {
+                  _newProfilePhoto = null;
+                  _newProfilePhotoBytes = null;
+                  _photoMarkedForDeletion = false;
+                });
+                Navigator.of(context).pop();
+              },
+            ),
             const SizedBox(height: Dimensions.spacingM),
           ],
         ),
@@ -888,283 +870,5 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     );
   }
 
-  Widget _buildProfilePhotoSection() {
-    return Center(
-      child: Stack(
-        children: [
-          CircleAvatar(
-            radius: 60,
-            backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-            child: _photoMarkedForDeletion
-                ? const Icon(Icons.person, size: 60)
-                : _newProfilePhoto != null
-                    ? ClipOval(
-                        child: kIsWeb && _newProfilePhotoBytes != null
-                            ? Image.memory(_newProfilePhotoBytes!,
-                                width: 120, height: 120, fit: BoxFit.cover)
-                            : (_newProfilePhoto is File)
-                                ? Image.file(_newProfilePhoto as File,
-                                    width: 120, height: 120, fit: BoxFit.cover)
-                                : (_newProfilePhoto is XFile)
-                                    ? Image.file(File((_newProfilePhoto as XFile).path),
-                                        width: 120, height: 120, fit: BoxFit.cover)
-                                    : const Icon(Icons.person, size: 60),
-                      )
-                    : (_initialProfilePhotoUrl != null &&
-                            _initialProfilePhotoUrl!.isNotEmpty &&
-                            (_initialProfilePhotoUrl!.startsWith('http://') || _initialProfilePhotoUrl!.startsWith('https://')))
-                        ? ClipOval(
-                            child: CachedNetworkImageWidget(
-                              imageUrl: _initialProfilePhotoUrl!,
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : (_initialProfilePhotoUrl != null &&
-                            _initialProfilePhotoUrl!.isNotEmpty &&
-                            _initialProfilePhotoUrl!.startsWith('file://'))
-                        ? ClipOval(
-                            child: Image.file(
-                              File(Uri.parse(_initialProfilePhotoUrl!).toFilePath()),
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Icon(Icons.person, size: 60, color: AppColors.primary),
-          ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: GestureDetector(
-              onTap: _isSubmitting ? null : _pickProfilePhoto,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1), // Remplacer par .withValues si besoin
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.camera_alt, color: Colors.white, size: 24),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildIdentitySection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Informations d\'identité', style: TextStyles.h3),
-        const SizedBox(height: Dimensions.spacingM),
-        CustomTextField(
-          label: 'Numéro de CNI',
-          controller: _cniController,
-          prefixIcon: Icons.credit_card,
-          enabled: !_isSubmitting,
-          validator: (value) =>
-              value == null || value.trim().isEmpty ? 'Numéro de CNI requis' : null,
-        ),
-        const SizedBox(height: Dimensions.spacingM),
-        ListTile(
-          leading: const Icon(Icons.cake),
-          title: Text(_dateOfBirth != null
-              ? DateFormat('dd/MM/yyyy').format(_dateOfBirth!)
-              : 'Date de naissance'),
-          trailing: IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: _isSubmitting
-                ? null
-                : () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: _dateOfBirth ?? DateTime(1990, 1, 1),
-                      firstDate: DateTime(1900),
-                      lastDate: DateTime.now(),
-                    );
-                    if (picked != null) {
-                      setState(() => _dateOfBirth = picked);
-                    }
-                  },
-            ),
-        ),
-        const SizedBox(height: Dimensions.spacingM),
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                children: [
-                  Text('Photo recto CNI'),
-                  const SizedBox(height: 8),
-                  _buildPhotoWidget(
-                      _newCniFrontPhoto, _newCniFrontPhotoBytes, _initialCniFrontUrl),
-                  TextButton.icon(
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Uploader recto'),
-                    onPressed: _isSubmitting ? null : () => _pickCniPhoto(true),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                children: [
-                  Text('Photo verso CNI'),
-                  const SizedBox(height: 8),
-                  _buildPhotoWidget(
-                      _newCniBackPhoto, _newCniBackPhotoBytes, _initialCniBackUrl),
-                  TextButton.icon(
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Uploader verso'),
-                    onPressed: _isSubmitting ? null : () => _pickCniPhoto(false),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVehicleSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Informations du véhicule', style: TextStyles.h3),
-        const SizedBox(height: Dimensions.spacingM),
-        CustomTextField(
-          label: 'Téléphone',
-          controller: _phoneController,
-          prefixIcon: Icons.phone,
-          enabled: !_isSubmitting,
-          validator: (value) =>
-              value == null || value.trim().isEmpty ? 'Téléphone requis' : null,
-        ),
-        const SizedBox(height: Dimensions.spacingM),
-        GestureDetector(
-          onTap: _isSubmitting ? null : _selectVehicleType,
-          child: AbsorbPointer(
-            child: CustomTextField(
-              label: 'Type de véhicule',
-              controller: _vehicleTypeController,
-              prefixIcon: Icons.directions_car,
-              enabled: !_isSubmitting,
-              readOnly: true,
-              validator: (value) =>
-                  value == null || value.trim().isEmpty
-                      ? 'Type de véhicule requis'
-                      : null,
-            ),
-          ),
-        ),
-        const SizedBox(height: Dimensions.spacingM),
-        CustomTextField(
-          label: 'Matricule (plaque d\'immatriculation)',
-          controller: _vehiclePlateController,
-          prefixIcon: Icons.confirmation_number,
-          enabled: !_isSubmitting,
-          validator: (value) =>
-              value == null || value.trim().isEmpty ? 'Matricule requis' : null,
-        ),
-        const SizedBox(height: Dimensions.spacingM),
-        CustomTextField(
-          label: 'Capacité de charge (kg)',
-          controller: _vehicleCapacityController,
-          prefixIcon: Icons.scale,
-          keyboardType: TextInputType.number,
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Capacité requise';
-            }
-            final capacity = double.tryParse(value.trim());
-            if (capacity == null) {
-              return 'Valeur numérique requise';
-            }
-            return BackendValidators.validateVehicleCapacity(value);
-          },
-          enabled: !_isSubmitting,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVehicleDocumentsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Documents véhicule', style: TextStyles.h3),
-        const SizedBox(height: Dimensions.spacingM),
-        Wrap(
-          spacing: 16,
-          runSpacing: 16,
-          children: [
-            DocumentCard(
-              title: 'Assurance',
-              url: _initialInsuranceUrl,
-              onUpload: _isSubmitting ? (){} : () => _pickDocumentPhoto(type: 'insurance'),
-              onDelete: _isSubmitting ? (){} : () => _deleteVehicleDocument('insurance'),
-            ),
-            DocumentCard(
-              title: 'Visite technique',
-              url: _initialInspectionUrl,
-              onUpload: _isSubmitting ? (){} : () => _pickDocumentPhoto(type: 'inspection'),
-              onDelete: _isSubmitting ? (){} : () => _deleteVehicleDocument('inspection'),
-            ),
-            DocumentCard(
-              title: 'Carte grise',
-              url: _initialGrayCardUrl,
-              onUpload: _isSubmitting ? (){} : () => _pickDocumentPhoto(type: 'gray_card'),
-              onDelete: _isSubmitting ? (){} : () => _deleteVehicleDocument('gray_card'),
-            ),
-            DocumentCard(
-              title: 'Permis de conduire',
-              url: _initialLicenseUrl,
-              onUpload: _isSubmitting ? (){} : () => _pickDocumentPhoto(type: 'license'),
-              onDelete: _isSubmitting ? (){} : () => _deleteVehicleDocument('license'),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Column(
-      children: [
-        CustomButton(
-          text: 'Enregistrer les modifications',
-          onPressed: _isSubmitting ? null : _saveChanges,
-          isLoading: _isSubmitting,
-          icon: Icons.save,
-        ),
-        const SizedBox(height: Dimensions.spacingM),
-        OutlineButton(
-          text: 'Annuler',
-          onPressed: _isSubmitting
-              ? null
-              : () {
-                  setState(() {
-                    _newProfilePhoto = null;
-                    _newProfilePhotoBytes = null;
-                    _photoMarkedForDeletion = false;
-                  });
-                  Navigator.of(context).pop();
-                },
-          icon: Icons.close,
-        ),
-      ],
-    );
-  }
 }

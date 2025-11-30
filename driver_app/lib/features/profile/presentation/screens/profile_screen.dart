@@ -16,6 +16,9 @@ import '../../../../shared/widgets/loading_widget.dart';
 import '../../../../shared/utils/formatters.dart';
 import '../../../../shared/utils/helpers.dart';
 import '../widgets/availability_toggle.dart';
+import '../widgets/stat_card.dart';
+import '../widgets/info_row.dart';
+import '../widgets/vehicle_capacity_card.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -24,51 +27,15 @@ class ProfileScreen extends ConsumerStatefulWidget {
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
+
+
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  void _showFullInfoDialog(DriverModel? driver) {
-    if (driver == null) return;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Informations supplémentaires'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Nom: ${driver.user.fullName}'),
-              Text('Email: ${driver.user.email}'),
-              Text('Téléphone: ${driver.phone}'),
-              Text('Date de naissance: ${driver.dateOfBirth != null ? DateFormat('dd/MM/yyyy').format(driver.dateOfBirth!) : '-'}'),
-              Text('Numéro de CNI: ${driver.identityCardNumber ?? '-'}'),
-              Text('CNI Recto: ${driver.identityCardFront ?? '-'}'),
-              Text('CNI Verso: ${driver.identityCardBack ?? '-'}'),
-              Text('Type véhicule: ${driver.vehicleTypeLabel}'),
-              Text('Immatriculation: ${driver.vehicleRegistration}'),
-              Text('Capacité: ${driver.vehicleCapacityKg} kg'),
-              Text('Statut: ${driver.verificationStatus}'),
-              Text('Banque: ${driver.bankName ?? '-'}'),
-              Text('Compte bancaire: ${driver.bankAccountNumber ?? '-'}'),
-              Text('Mobile Money: ${driver.mobileMoneyNumber ?? '-'}'),
-              Text('Contact urgence: ${driver.emergencyContactName ?? '-'} (${driver.emergencyContactPhone ?? '-'})'),
-              // Ajoutez d'autres champs si besoin
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fermer'),
-          ),
-        ],
-      ),
+  void _goToZones() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ZoneSelectionScreen()),
     );
   }
 
-    void _goToZones() {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const ZoneSelectionScreen()),
-      );
-    }
   @override
   void initState() {
     super.initState();
@@ -132,11 +99,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: _goToEditProfile,
-          ),
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            tooltip: 'Informations supplémentaires',
-            onPressed: () => _showFullInfoDialog(driver),
           ),
         ],
       ),
@@ -255,7 +217,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: _StatCard(
+                    child: StatCard(
                       icon: Icons.star,
                       iconColor: AppColors.warning,
                       label: 'Note',
@@ -264,7 +226,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   const SizedBox(width: Dimensions.spacingM),
                   Expanded(
-                    child: _StatCard(
+                    child: StatCard(
                       icon: Icons.local_shipping,
                       iconColor: AppColors.info,
                       label: 'Livraisons',
@@ -279,7 +241,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: _StatCard(
+                    child: StatCard(
                       icon: Icons.check_circle,
                       iconColor: AppColors.success,
                       label: 'Complétées',
@@ -288,7 +250,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   const SizedBox(width: Dimensions.spacingM),
                   Expanded(
-                    child: _StatCard(
+                    child: StatCard(
                       icon: Icons.attach_money,
                       iconColor: AppColors.primary,
                       label: 'Gains Total',
@@ -313,7 +275,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   padding: const EdgeInsets.all(Dimensions.cardPadding),
                   child: Column(
                     children: [
-                      _InfoRow(
+                      InfoRow(
                         icon: driver?.vehicleType != null 
                           ? BackendConstants.getVehicleTypeIcon(driver!.vehicleType)
                           : Icons.local_shipping,
@@ -322,14 +284,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       if (driver?.vehicleRegistration != null) ...[
                         const Divider(),
-                        _InfoRow(
+                        InfoRow(
                           icon: Icons.confirmation_number,
                           label: 'Immatriculation',
                           value: driver?.vehicleRegistration ?? '',
                         ),
                       ],
                       const Divider(),
-                      _InfoRow(
+                      InfoRow(
                         icon: Icons.scale,
                         label: 'Capacité de charge',
                         value: '${driver?.vehicleCapacityKg ?? 0} kg',
@@ -342,7 +304,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               // Capacités du véhicule (info visuelle)
               if (driver?.vehicleType != null) ...[
                 const SizedBox(height: Dimensions.spacingM),
-                _VehicleCapacityCard(vehicleType: driver!.vehicleType),
+                VehicleCapacityCard(vehicleType: driver!.vehicleType),
               ],
 
               const SizedBox(height: Dimensions.spacingXL),
@@ -356,274 +318,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
 
               // Actions
-              CustomButton(
-                text: 'Voir mes gains',
-                onPressed: () {
-                  Navigator.of(context).pushNamed('/earnings');
-                },
-                icon: Icons.attach_money,
-                type: ButtonType.secondary,
-              ),
-
-              const SizedBox(height: Dimensions.spacingM),
-
-              OutlineButton(
-                text: 'Déconnexion',
-                onPressed: _logout,
-                icon: Icons.logout,
-              ),
-
               const SizedBox(height: Dimensions.spacingXL),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String label;
-  final String value;
-
-  const _StatCard({
-    required this.icon,
-    required this.iconColor,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(Dimensions.cardPadding),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: iconColor,
-              size: Dimensions.iconL,
-            ),
-            const SizedBox(height: Dimensions.spacingS),
-            Text(
-              value,
-              style: TextStyles.h3,
-            ),
-            const SizedBox(height: Dimensions.spacingXS),
-            Text(
-              label,
-              style: TextStyles.caption,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: Dimensions.iconM,
-          color: AppColors.textSecondary,
-        ),
-        const SizedBox(width: Dimensions.spacingM),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyles.labelSmall.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              Text(
-                value,
-                style: TextStyles.bodyMedium,
+              CustomButton(
+                text: 'Déconnexion',
+                icon: Icons.logout,
+                type: ButtonType.danger,
+                onPressed: _logout,
               ),
             ],
           ),
-        ),
-      ],
-    );
-  }
-}
-
-// Widget pour afficher les capacités du véhicule
-class _VehicleCapacityCard extends StatelessWidget {
-  final String vehicleType;
-
-  const _VehicleCapacityCard({required this.vehicleType});
-
-  Map<String, dynamic> _getCapacityInfo(String type) {
-    switch (type) {
-      case 'moto':
-        return {
-          'weight': '15 kg',
-          'dimensions': '50 × 40 × 50 cm',
-          'description': 'Idéal pour petits colis (sac à dos)',
-          'icon': Icons.backpack,
-          'color': AppColors.info,
-        };
-      case 'tricycle':
-        return {
-          'weight': '100 kg',
-          'dimensions': '120 × 80 × 80 cm',
-          'description': 'Bon pour colis moyens (caisse arrière)',
-          'icon': Icons.shopping_bag,
-          'color': AppColors.warning,
-        };
-      case 'voiture':
-        return {
-          'weight': '200 kg',
-          'dimensions': '150 × 100 × 100 cm',
-          'description': 'Colis volumineux (coffre de voiture)',
-          'icon': Icons.luggage,
-          'color': AppColors.primary,
-        };
-      case 'camionnette':
-        return {
-          'weight': '500 kg',
-          'dimensions': '300 × 150 × 150 cm',
-          'description': 'Gros volumes (benne de camionnette)',
-          'icon': Icons.inventory_2,
-          'color': AppColors.success,
-        };
-      default:
-        return {
-          'weight': '30 kg',
-          'dimensions': 'Non spécifié',
-          'description': 'Capacité par défaut',
-          'icon': Icons.local_shipping,
-          'color': AppColors.textSecondary,
-        };
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final info = _getCapacityInfo(vehicleType);
-    
-    return Card(
-      color: (info['color'] as Color).withValues(alpha: 0.1),
-      child: Padding(
-        padding: const EdgeInsets.all(Dimensions.cardPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  info['icon'] as IconData,
-                  color: info['color'] as Color,
-                  size: Dimensions.iconL,
-                ),
-                const SizedBox(width: Dimensions.spacingM),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Capacités maximales',
-                        style: TextStyles.labelMedium.copyWith(
-                          color: info['color'] as Color,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: Dimensions.spacingXS),
-                      Text(
-                        info['description'] as String,
-                        style: TextStyles.caption.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: Dimensions.spacingM),
-            Container(
-              padding: const EdgeInsets.all(Dimensions.spacingM),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(Dimensions.radiusM),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.scale,
-                          color: info['color'] as Color,
-                          size: Dimensions.iconM,
-                        ),
-                        const SizedBox(height: Dimensions.spacingXS),
-                        Text(
-                          info['weight'] as String,
-                          style: TextStyles.labelMedium.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'Poids max',
-                          style: TextStyles.caption,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 50,
-                    color: AppColors.border,
-                  ),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.straighten,
-                          color: info['color'] as Color,
-                          size: Dimensions.iconM,
-                        ),
-                        const SizedBox(height: Dimensions.spacingXS),
-                        Text(
-                          info['dimensions'] as String,
-                          style: TextStyles.caption.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          'Dimensions max',
-                          style: TextStyles.caption,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );

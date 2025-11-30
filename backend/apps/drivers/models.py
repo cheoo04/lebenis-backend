@@ -39,7 +39,7 @@ class Driver(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='driver_profile')
     
-    driver_license = models.CharField(max_length=100, blank=True)
+    driver_license = models.CharField(max_length=500, blank=True)
     license_expiry = models.DateField(null=True, blank=True)
     
     # Documents d'identité (SÉCURITÉ)

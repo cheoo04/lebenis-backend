@@ -1,16 +1,19 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
 class DocumentCard extends StatelessWidget {
   final String title;
   final String? url;
+  final Uint8List? bytes;
   final VoidCallback onUpload;
   final VoidCallback onDelete;
 
   const DocumentCard({
     required this.title,
     required this.url,
+    this.bytes,
     required this.onUpload,
     required this.onDelete,
     super.key,
@@ -19,53 +22,60 @@ class DocumentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPdf = url != null && url!.toLowerCase().endsWith('.pdf');
+    final isValidNetworkUrl = url != null && (url!.startsWith('http://') || url!.startsWith('https://')) && !url!.endsWith('/lebe');
+    final isMissing = (url == null || url!.isEmpty || !isValidNetworkUrl) && bytes == null;
     return Card(
-      color: url == null ? Colors.red[50] : null,
+      color: isMissing ? Colors.red[50] : null,
       child: SizedBox(
         width: 180,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (url != null)
-              isPdf
-                  ? Icon(Icons.picture_as_pdf, size: 48, color: Colors.red)
-                  : url?.startsWith('http://') == true || url?.startsWith('https://') == true
-                      ? Image.network(url!, height: 80, fit: BoxFit.cover)
-                      : url?.startsWith('file://') == true
-                          ? Image.file(
-                              File(Uri.parse(url!).toFilePath()),
-                              height: 80,
-                              fit: BoxFit.cover,
-                            )
-                          : Container(
-                              height: 80,
-                              color: Colors.grey.shade200,
-                              child: const Icon(Icons.image, color: Colors.grey),
-                            )
-            else ...[
+            if (isMissing) ...[
+              const SizedBox(height: 8),
               Icon(Icons.warning_amber_rounded, size: 48, color: Colors.red),
               const SizedBox(height: 4),
               Text('Document manquant', style: TextStyle(color: Colors.red, fontSize: 12)),
-            ],
+              const SizedBox(height: 8),
+            ]
+            else if (bytes != null)
+              Image.memory(bytes!, height: 80, fit: BoxFit.cover)
+            else if (url != null && isPdf)
+              Icon(Icons.picture_as_pdf, size: 48, color: Colors.red)
+            else if (isValidNetworkUrl)
+              Image.network(url!, height: 80, fit: BoxFit.cover)
+            else if (url != null && url!.startsWith('file://'))
+              Image.file(
+                File(Uri.parse(url!).toFilePath()),
+                height: 80,
+                fit: BoxFit.cover,
+              ),
             Text(title, style: Theme.of(context).textTheme.bodyLarge),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(
-                  icon: Icon(url == null ? Icons.upload : Icons.refresh),
-                  color: url == null ? Colors.red : null,
-                  onPressed: onUpload,
-                  tooltip: url == null ? 'Uploader' : 'Remplacer',
-                ),
-                if (url != null)
+                if (isMissing)
+                  IconButton(
+                    icon: const Icon(Icons.upload),
+                    color: Colors.red,
+                    onPressed: onUpload,
+                    tooltip: 'Uploader',
+                  )
+                else ...[
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: onUpload,
+                    tooltip: 'Remplacer',
+                  ),
                   IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: onDelete,
                     tooltip: 'Supprimer',
                   ),
+                ]
               ],
             ),
-            if (url != null)
+            if (!isMissing && url != null)
               TextButton(
                 onPressed: () {
                   // Ouvrir le document (image ou PDF)

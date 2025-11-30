@@ -44,14 +44,25 @@ class PricingZoneViewSet(PricingViewSetPermissionMixin, viewsets.ModelViewSet):
             logger.error(f"[assign_zones] Aucun profil Driver pour user.id={request.user.id}, erreur={e}")
             return Response({'detail': "Seuls les livreurs peuvent modifier leurs zones. Aucun profil driver trouvé."}, status=403)
         with transaction.atomic():
-            DriverZone.objects.filter(driver=driver).delete()
+            # Récupère les communes actuelles du driver
+            current_communes = set(DriverZone.objects.filter(driver=driver).values_list('commune', flat=True))
+            # Récupère les nouvelles communes à assigner
+            new_communes = set()
             for zone_id in zone_ids:
                 try:
                     pricing_zone = PricingZone.objects.get(id=zone_id)
                 except PricingZone.DoesNotExist:
                     logger.error(f"[assign_zones] Zone introuvable: {zone_id}")
                     return Response({'detail': f"Zone introuvable: {zone_id}"}, status=400)
-                DriverZone.objects.create(driver=driver, commune=pricing_zone.commune)
+                new_communes.add(pricing_zone.commune)
+            # Supprime les communes qui ne sont plus sélectionnées
+            to_remove = current_communes - new_communes
+            if to_remove:
+                DriverZone.objects.filter(driver=driver, commune__in=to_remove).delete()
+            # Ajoute seulement les nouvelles communes non déjà présentes
+            to_add = new_communes - current_communes
+            for commune in to_add:
+                DriverZone.objects.create(driver=driver, commune=commune)
         logger.info(f"[assign_zones] Zones assignées avec succès pour driver.id={driver.id}, zones={zone_ids}")
         return Response({'success': True, 'assigned_zone_ids': zone_ids})
 

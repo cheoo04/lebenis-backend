@@ -6,11 +6,11 @@ class ZoneTile extends StatelessWidget {
   final VoidCallback onTap;
 
   const ZoneTile({
-    Key? key,
+    super.key,
     required this.zoneName,
     required this.selected,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
