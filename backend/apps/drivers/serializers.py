@@ -84,6 +84,8 @@ class DriverSerializer(serializers.ModelSerializer):
             'vehicle_technical_inspection',
             'vehicle_inspection_expiry',
             'vehicle_gray_card',
+            'vehicle_vignette',
+            'vehicle_vignette_expiry',
             # Banking Information
             'bank_account_name',
             'bank_account_number',
