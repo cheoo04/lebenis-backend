@@ -7,11 +7,11 @@ class ZoneList extends StatelessWidget {
   final void Function(String) onZoneToggle;
 
   const ZoneList({
-    Key? key,
+    super.key,
     required this.zones,
     required this.selectedZones,
     required this.onZoneToggle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

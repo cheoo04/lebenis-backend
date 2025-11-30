@@ -1,19 +1,18 @@
 // Only compiled for web (via conditional import)
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 
 String? getFromWebStorage(String key) {
-  return html.window.localStorage[key];
+  return web.window.localStorage.getItem(key);
 }
 
 Future<void> setToWebStorage(String key, String? value) async {
   if (value == null) {
-    html.window.localStorage.remove(key);
+    web.window.localStorage.removeItem(key);
   } else {
-    html.window.localStorage[key] = value;
+    web.window.localStorage.setItem(key, value);
   }
 }
 
 Future<void> clearWebStorage() async {
-  html.window.localStorage.clear();
+  web.window.localStorage.clear();
 }

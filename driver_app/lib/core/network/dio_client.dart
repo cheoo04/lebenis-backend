@@ -1,6 +1,7 @@
 // lib/core/network/dio_client.dart
-import 'package:dio/dio.dart';
 import 'dart:typed_data';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../constants/api_constants.dart';
 import '../services/auth_service.dart';
 import 'api_exception.dart';
@@ -49,12 +50,12 @@ class DioClient {
     
     if (!isPublicEndpoint) {
       final token = await _authService.getAccessToken();
-      // Ajout debug : print du token à chaque requête privée
-      print('[DIO_CLIENT] Token utilisé pour ${options.path}: $token');
+        // Ajout debug : debugPrint du token à chaque requête privée
+        debugPrint('[DIO_CLIENT] Token utilisé pour ${options.path}: $token');
       if (token != null && token.isNotEmpty) {
         options.headers['Authorization'] = 'Bearer $token';
       } else {
-        print('[DIO_CLIENT] Aucun token trouvé pour ${options.path}');
+        debugPrint('[DIO_CLIENT] Aucun token trouvé pour ${options.path}');
       }
     }
     
