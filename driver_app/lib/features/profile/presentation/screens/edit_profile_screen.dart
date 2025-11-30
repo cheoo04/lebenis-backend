@@ -674,21 +674,40 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
         'vehicle_type': _selectedVehicleType,
         'vehicle_plate': cleanPlate(_vehiclePlateController.text.trim()),
         'vehicle_capacity_kg': double.parse(_vehicleCapacityController.text.trim()),
-        'vehicle_vignette': uploads['vignette'],
-        'vehicle_vignette_expiry': _vignetteExpiryController.text.isNotEmpty ? _vignetteExpiryController.text : null,
         'identity_card_number': _cniController.text.trim(),
         'date_of_birth': formatDate(_dateOfBirth),
-        'identity_card_front': uploads['identity_card_front'],
-        'identity_card_back': uploads['identity_card_back'],
-        'vehicle_insurance': uploads['vehicle_insurance'],
-        'vehicle_technical_inspection': uploads['vehicle_technical_inspection'],
-        'vehicle_gray_card': uploads['vehicle_gray_card'],
-        'driver_license': (uploads['drivers_license'] != null && (uploads['drivers_license']!.startsWith('http://') || uploads['drivers_license']!.startsWith('https://')))
-          ? uploads['drivers_license']
-          : '',
-        'profile_photo': uploads['profile_photo'] ?? '',
         'languages_spoken': _selectedLanguages,
       };
+
+      // Ajout conditionnel des documents
+      if (uploads['vignette'] != null && uploads['vignette'] != '') {
+        updateData['vehicle_vignette'] = uploads['vignette'];
+      }
+      if (_vignetteExpiryController.text.isNotEmpty) {
+        updateData['vehicle_vignette_expiry'] = _vignetteExpiryController.text;
+      }
+      if (uploads['identity_card_front'] != null && uploads['identity_card_front'] != '') {
+        updateData['identity_card_front'] = uploads['identity_card_front'];
+      }
+      if (uploads['identity_card_back'] != null && uploads['identity_card_back'] != '') {
+        updateData['identity_card_back'] = uploads['identity_card_back'];
+      }
+      if (uploads['vehicle_insurance'] != null && uploads['vehicle_insurance'] != '') {
+        updateData['vehicle_insurance'] = uploads['vehicle_insurance'];
+      }
+      if (uploads['vehicle_technical_inspection'] != null && uploads['vehicle_technical_inspection'] != '') {
+        updateData['vehicle_technical_inspection'] = uploads['vehicle_technical_inspection'];
+      }
+      if (uploads['vehicle_gray_card'] != null && uploads['vehicle_gray_card'] != '') {
+        updateData['vehicle_gray_card'] = uploads['vehicle_gray_card'];
+      }
+      if (uploads['drivers_license'] != null && uploads['drivers_license'] != '' &&
+          (uploads['drivers_license']!.startsWith('http://') || uploads['drivers_license']!.startsWith('https://'))) {
+        updateData['driver_license'] = uploads['drivers_license'];
+      }
+      if (uploads['profile_photo'] != null && uploads['profile_photo'] != '') {
+        updateData['profile_photo'] = uploads['profile_photo'];
+      }
 
       // Call API
       final success = await ref.read(driverProvider.notifier).updateProfile(updateData);
