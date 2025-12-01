@@ -94,7 +94,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'apps.core.middleware.DebugAuthMiddleware',  # DEBUG: log user/token sur chaque requête API
+    # 'apps.core.middleware.DebugAuthMiddleware',  # ⚠️ DÉSACTIVÉ en production (à réactiver uniquement en dev)
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -242,8 +242,9 @@ SIMPLE_JWT = {
 #]
 CORS_ALLOW_CREDENTIALS = True
 
-#pour debut test en production a enlever plus tard
-CORS_ALLOW_ALL_ORIGINS = True
+# ⚠️ CORS_ALLOW_ALL_ORIGINS désactivé pour la sécurité en production
+# Utiliser CORS_ALLOWED_ORIGINS dans production.py à la place
+CORS_ALLOW_ALL_ORIGINS = False
 
 
 CORS_ALLOW_HEADERS = [
@@ -265,6 +266,7 @@ CORS_ALLOW_METHODS = [
     'PATCH',
     'POST',
     'PUT',
+    'HEAD',
 ]
 #fin test
 
