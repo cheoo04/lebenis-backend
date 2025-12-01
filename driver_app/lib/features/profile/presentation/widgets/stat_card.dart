@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_radius.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class StatCard extends StatelessWidget {
   final IconData icon;
@@ -19,24 +21,28 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.card),
+      ),
+      elevation: 2,
       child: Padding(
-        padding: const EdgeInsets.all(Dimensions.cardPadding),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           children: [
             Icon(
               icon,
               color: iconColor,
-              size: Dimensions.iconL,
+              size: 32,
             ),
-            const SizedBox(height: Dimensions.spacingS),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               value,
-              style: TextStyles.h3,
+              style: AppTypography.h3,
             ),
-            const SizedBox(height: Dimensions.spacingXS),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               label,
-              style: TextStyles.caption,
+              style: AppTypography.caption,
               textAlign: TextAlign.center,
             ),
           ],

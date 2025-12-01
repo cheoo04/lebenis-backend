@@ -64,12 +64,12 @@ class ProfileService {
   }) async {
     try {
       final success = await ref.read(driverCniUploadProvider).deleteDocument(documentType: documentType);
-      if (!success && context != null) {
+      if (!success && context != null && context.mounted) {
         Helpers.showErrorSnackBar(context, 'Échec de la suppression du document');
       }
       return success;
     } catch (e) {
-      if (context != null) {
+      if (context != null && context.mounted) {
         Helpers.showErrorSnackBar(context, 'Erreur: $e');
       }
       return false;

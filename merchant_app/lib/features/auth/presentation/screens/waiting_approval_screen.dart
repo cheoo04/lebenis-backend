@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class WaitingApprovalScreen extends StatelessWidget {
-  const WaitingApprovalScreen({Key? key}) : super(key: key);
+  const WaitingApprovalScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

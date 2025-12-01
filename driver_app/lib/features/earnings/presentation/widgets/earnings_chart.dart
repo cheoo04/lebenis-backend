@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_typography.dart';
 import '../../../../shared/utils/formatters.dart';
 
 class EarningsChart extends StatelessWidget {
@@ -21,7 +21,7 @@ class EarningsChart extends StatelessWidget {
       return Card(
         child: Container(
           height: 250,
-          padding: const EdgeInsets.all(Dimensions.cardPadding),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -31,10 +31,10 @@ class EarningsChart extends StatelessWidget {
                   size: 64,
                   color: AppColors.textSecondary.withValues(alpha: 0.5),
                 ),
-                const SizedBox(height: Dimensions.spacingM),
+                const SizedBox(height: AppSpacing.md),
                 Text(
                   'Aucune donnée disponible',
-                  style: TextStyles.bodyMedium.copyWith(
+                  style: AppTypography.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -47,7 +47,7 @@ class EarningsChart extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(Dimensions.cardPadding),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -56,15 +56,15 @@ class EarningsChart extends StatelessWidget {
               children: [
                 Text(
                   'Évolution des gains',
-                  style: TextStyles.h3,
+                  style: AppTypography.h3,
                 ),
                 Text(
                   period,
-                  style: TextStyles.caption,
+                  style: AppTypography.caption,
                 ),
               ],
             ),
-            const SizedBox(height: Dimensions.spacingXL),
+            const SizedBox(height: AppSpacing.xl),
             SizedBox(
               height: 200,
               child: LineChart(
@@ -99,7 +99,7 @@ class EarningsChart extends StatelessWidget {
                               padding: const EdgeInsets.only(top: 8.0),
                               child: Text(
                                 data[value.toInt()].label,
-                                style: TextStyles.caption,
+                                style: AppTypography.caption,
                               ),
                             );
                           }
@@ -115,7 +115,7 @@ class EarningsChart extends StatelessWidget {
                         getTitlesWidget: (value, meta) {
                           return Text(
                             '${value.toInt()}k',
-                            style: TextStyles.caption,
+                            style: AppTypography.caption,
                           );
                         },
                       ),
@@ -181,7 +181,7 @@ class EarningsChart extends StatelessWidget {
                           if (dataIndex >= 0 && dataIndex < data.length) {
                             return LineTooltipItem(
                               '${data[dataIndex].label}\n${Formatters.formatPrice(data[dataIndex].amount)}',
-                              TextStyles.caption.copyWith(
+                              AppTypography.caption.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),

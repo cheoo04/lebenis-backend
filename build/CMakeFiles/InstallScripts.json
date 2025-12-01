@@ -1,0 +1,13 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/cheoo/lebenis_project/build/cmake_install.cmake",
+		"/home/cheoo/lebenis_project/build/flutter/cmake_install.cmake",
+		"/home/cheoo/lebenis_project/build/runner/cmake_install.cmake",
+		"/home/cheoo/lebenis_project/build/plugins/file_selector_linux/cmake_install.cmake",
+		"/home/cheoo/lebenis_project/build/plugins/flutter_secure_storage_linux/cmake_install.cmake",
+		"/home/cheoo/lebenis_project/build/plugins/open_file_linux/cmake_install.cmake",
+		"/home/cheoo/lebenis_project/build/plugins/url_launcher_linux/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

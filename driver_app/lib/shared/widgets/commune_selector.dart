@@ -1,10 +1,12 @@
 // lib/shared/widgets/commune_selector.dart
 
 import 'package:flutter/material.dart';
+import '../../core/constants/app_colors.dart';
+import '../../theme/app_typography.dart';
+import '../../theme/app_spacing.dart';
+import '../../theme/app_radius.dart';
 import '../../core/constants/backend_constants.dart';
-import '../theme/app_colors.dart';
-import '../theme/dimensions.dart';
-import '../theme/text_styles.dart';
+
 
 /// Widget pour sélectionner une commune
 /// Utilise les communes définies dans BackendConstants
@@ -29,13 +31,13 @@ class CommuneSelector extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyles.labelMedium,
+          style: AppTypography.labelMedium,
         ),
-        const SizedBox(height: Dimensions.spacingS),
+        const SizedBox(height: AppSpacing.sm),
         Container(
           decoration: BoxDecoration(
             color: enabled ? Colors.white : Colors.grey[100],
-            borderRadius: BorderRadius.circular(Dimensions.radiusM),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(
               color: AppColors.border,
               width: 1,
@@ -47,18 +49,18 @@ class CommuneSelector extends StatelessWidget {
               isExpanded: true,
               hint: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: Dimensions.spacingM,
+                  horizontal: AppSpacing.md,
                 ),
                 child: Text(
                   'Sélectionnez une commune',
-                  style: TextStyles.bodyMedium.copyWith(
+                  style: AppTypography.bodyMedium.copyWith(
                     color: AppColors.textHint,
                   ),
                 ),
               ),
               padding: const EdgeInsets.symmetric(
-                horizontal: Dimensions.spacingM,
-                vertical: Dimensions.spacingS,
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
               ),
               icon: Icon(
                 Icons.arrow_drop_down,
@@ -69,7 +71,7 @@ class CommuneSelector extends StatelessWidget {
                   value: commune,
                   child: Text(
                     BackendConstants.getCommuneLabel(commune),
-                    style: TextStyles.bodyMedium,
+                    style: AppTypography.bodyMedium,
                   ),
                 );
               }).toList(),
@@ -108,27 +110,27 @@ class PaymentMethodSelector extends StatelessWidget {
       children: [
         Text(
           'Méthode de paiement',
-          style: TextStyles.labelMedium,
+          style: AppTypography.labelMedium,
         ),
-        const SizedBox(height: Dimensions.spacingM),
+        const SizedBox(height: AppSpacing.md),
         ...BackendConstants.paymentMethodChoices.map((method) {
           final isSelected = selectedMethod == method;
           return Padding(
-            padding: const EdgeInsets.only(bottom: Dimensions.spacingS),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: InkWell(
               onTap: enabled
                   ? () {
                       onMethodSelected(method);
                     }
                   : null,
-              borderRadius: BorderRadius.circular(Dimensions.radiusM),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               child: Container(
-                padding: const EdgeInsets.all(Dimensions.spacingM),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.primary.withValues(alpha: 0.1)
                       : Colors.grey[100],
-                  borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(
                     color: isSelected ? AppColors.primary : AppColors.border,
                     width: 2,
@@ -142,14 +144,14 @@ class PaymentMethodSelector extends StatelessWidget {
                           : Icons.radio_button_unchecked,
                       color: isSelected ? AppColors.primary : AppColors.textSecondary,
                     ),
-                    const SizedBox(width: Dimensions.spacingM),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             BackendConstants.getPaymentMethodLabel(method),
-                            style: TextStyles.bodyMedium.copyWith(
+                            style: AppTypography.bodyMedium.copyWith(
                               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                               color: isSelected ? AppColors.primary : AppColors.textPrimary,
                             ),
@@ -157,7 +159,7 @@ class PaymentMethodSelector extends StatelessWidget {
                           if (method == BackendConstants.paymentMethodCod)
                             Text(
                               'Le destinataire paiera à la livraison',
-                              style: TextStyles.caption.copyWith(
+                              style: AppTypography.caption.copyWith(
                                 color: AppColors.textSecondary,
                               ),
                             ),
@@ -195,29 +197,29 @@ class SchedulingTypeSelector extends StatelessWidget {
       children: [
         Text(
           'Quand souhaitez-vous cette livraison ?',
-          style: TextStyles.labelMedium,
+          style: AppTypography.labelMedium,
         ),
-        const SizedBox(height: Dimensions.spacingM),
+        const SizedBox(height: AppSpacing.md),
         Row(
           children: BackendConstants.schedulingTypeChoices.map((type) {
             final isSelected = selectedType == type;
             return Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(right: Dimensions.spacingS),
+                padding: const EdgeInsets.only(right: AppSpacing.sm),
                 child: InkWell(
                   onTap: enabled
                       ? () {
                           onTypeSelected(type);
                         }
                       : null,
-                  borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      vertical: Dimensions.spacingM,
+                      vertical: AppSpacing.md,
                     ),
                     decoration: BoxDecoration(
                       color: isSelected ? AppColors.primary : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                       border: Border.all(
                         color: isSelected ? AppColors.primary : AppColors.border,
                         width: 2,
@@ -230,12 +232,12 @@ class SchedulingTypeSelector extends StatelessWidget {
                               ? Icons.flash_on
                               : Icons.schedule,
                           color: isSelected ? Colors.white : AppColors.textSecondary,
-                          size: Dimensions.iconL,
+                          size: 32.0,
                         ),
-                        const SizedBox(height: Dimensions.spacingXS),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           BackendConstants.schedulingTypeLabels[type]!,
-                          style: TextStyles.labelSmall.copyWith(
+                          style: AppTypography.labelSmall.copyWith(
                             color: isSelected ? Colors.white : AppColors.textSecondary,
                           ),
                           textAlign: TextAlign.center,

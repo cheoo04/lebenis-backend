@@ -144,9 +144,49 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  /// Check si connecté
+  /// Check si connecté et charger les infos utilisateur
   Future<void> checkLoginStatus() async {
     final isLoggedIn = await _authService.isLoggedIn();
+    
+    if (isLoggedIn) {
+      // Charger les infos utilisateur depuis le storage
+      try {
+        final userId = await _authService.getUserId();
+        final email = await _authService.getUserEmail();
+        final userType = await _authService.getUserType();
+        final userName = await _authService.getUserName();
+        
+        if (userId != null && email != null) {
+          // Séparer le nom complet en prénom et nom de famille
+          String? firstName;
+          String? lastName;
+          if (userName != null && userName.isNotEmpty) {
+            final nameParts = userName.split(' ');
+            firstName = nameParts.isNotEmpty ? nameParts[0] : null;
+            lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : null;
+          }
+          
+          final user = UserModel(
+            id: userId,
+            email: email,
+            userType: userType ?? 'driver',
+            firstName: firstName,
+            lastName: lastName,
+            isVerified: true,
+            createdAt: DateTime.now(),
+          );
+          
+          state = state.copyWith(
+            isLoggedIn: true,
+            user: user,
+          );
+          return;
+        }
+      } catch (e) {
+        debugPrint('Erreur chargement infos utilisateur: $e');
+      }
+    }
+    
     state = state.copyWith(isLoggedIn: isLoggedIn);
   }
 

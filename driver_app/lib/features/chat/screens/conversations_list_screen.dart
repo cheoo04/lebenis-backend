@@ -3,7 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/chat_provider.dart';
 import '../../../data/models/chat/chat_room_model.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../theme/app_typography.dart';
+import '../../../theme/app_spacing.dart';
+import '../../../theme/app_radius.dart';
+import '../../../shared/widgets/status_chip.dart';
 import 'chat_screen.dart';
+import '../../../main.dart'; // Pour firebaseEnabledProvider
 
 class ConversationsListScreen extends ConsumerStatefulWidget {
   const ConversationsListScreen({super.key});
@@ -26,6 +32,46 @@ class _ConversationsListScreenState
 
   @override
   Widget build(BuildContext context) {
+    // Vérifier si Firebase est disponible
+    final firebaseEnabled = ref.watch(firebaseEnabledProvider);
+    
+    // Si Firebase n'est pas disponible, afficher un message
+    if (!firebaseEnabled) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Messages'),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.chat_bubble_outline,
+                size: 64,
+                color: Colors.grey[400],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Chat non disponible',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  'La fonctionnalité de chat n\'est pas disponible sur cette plateforme.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
     final chatRoomsState = ref.watch(chatRoomsProvider);
     final totalUnreadAsync = ref.watch(totalUnreadCountProvider);
 

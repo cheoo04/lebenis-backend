@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/providers/payment_provider.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/loading_widget.dart';
 import '../../../../shared/widgets/error_widget.dart';
+import '../../../../shared/widgets/modern_list_tile.dart';
 import '../../../../shared/utils/formatters.dart';
 import '../widgets/stats_card.dart';
 import '../widgets/earnings_chart.dart';
@@ -214,7 +216,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
       body: RefreshIndicator(
         onRefresh: _loadEarnings,
         child: ListView(
-          padding: const EdgeInsets.all(Dimensions.pagePadding),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
             // Summary Card
             EarningsSummaryCard(
@@ -224,12 +226,12 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
               period: _getPeriodLabel(),
             ),
 
-            const SizedBox(height: Dimensions.spacingL),
+            const SizedBox(height: AppSpacing.lg),
 
             // Period Selector
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(Dimensions.spacingS),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 child: Row(
                   children: [
                     Expanded(
@@ -242,7 +244,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(width: Dimensions.spacingS),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: _PeriodChip(
                         label: 'Semaine',
@@ -253,7 +255,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(width: Dimensions.spacingS),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: _PeriodChip(
                         label: 'Mois',
@@ -269,7 +271,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
               ),
             ),
 
-            const SizedBox(height: Dimensions.spacingL),
+            const SizedBox(height: AppSpacing.lg),
 
             // Chart
             EarningsChart(
@@ -277,14 +279,14 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
               period: _getPeriodLabel(),
             ),
 
-            const SizedBox(height: Dimensions.spacingL),
+            const SizedBox(height: AppSpacing.lg),
 
             // Stats Grid
             Text(
               'Statistiques (Lifetime)',
-              style: TextStyles.h3,
+              style: AppTypography.h3,
             ),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
 
             Row(
               children: [
@@ -296,7 +298,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                     color: AppColors.success,
                   ),
                 ),
-                const SizedBox(width: Dimensions.spacingM),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: StatsCard(
                     title: 'Paiements',
@@ -308,7 +310,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
               ],
             ),
 
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
 
             Row(
               children: [
@@ -320,7 +322,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                     color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(width: Dimensions.spacingM),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: StatsCard(
                     title: 'Orange Money',
@@ -333,7 +335,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
               ],
             ),
 
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
 
             Row(
               children: [
@@ -346,7 +348,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                     color: const Color(0xFFFFCC00), // MTN yellow
                   ),
                 ),
-                const SizedBox(width: Dimensions.spacingM),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: StatsCard(
                     title: 'Wave',
@@ -359,7 +361,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
               ],
             ),
 
-            const SizedBox(height: Dimensions.spacingXL),
+            const SizedBox(height: AppSpacing.xl),
 
             // Derniers versements
             Row(
@@ -367,7 +369,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
               children: [
                 Text(
                   'Derniers versements',
-                  style: TextStyles.h3,
+                  style: AppTypography.h3,
                 ),
                 TextButton.icon(
                   onPressed: () {
@@ -383,12 +385,12 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
 
             // Afficher les 3 derniers payouts
             if (paymentState.payouts != null && paymentState.payouts!.isNotEmpty) ...[
               ...paymentState.payouts!.take(3).map((payout) => Card(
-                margin: const EdgeInsets.only(bottom: Dimensions.spacingM),
+                margin: const EdgeInsets.only(bottom: AppSpacing.md),
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: _getPayoutStatusColor(payout.status).withValues(alpha: 0.1),
@@ -400,13 +402,13 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                   ),
                   title: Text(
                     Formatters.formatPrice(payout.totalAmount),
-                    style: TextStyles.labelLarge.copyWith(
+                    style: AppTypography.labelLarge.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   subtitle: Text(
                     '${payout.paymentCount} paiements • ${_formatPayoutDate(payout.payoutDate)}',
-                    style: TextStyles.caption,
+                    style: AppTypography.caption,
                   ),
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(
@@ -419,7 +421,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                     ),
                     child: Text(
                       payout.statusLabel,
-                      style: TextStyles.caption.copyWith(
+                      style: AppTypography.caption.copyWith(
                         color: _getPayoutStatusColor(payout.status),
                         fontWeight: FontWeight.w600,
                       ),
@@ -438,7 +440,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
             ] else ...[
               Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(Dimensions.cardPadding),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   child: Center(
                     child: Column(
                       children: [
@@ -447,10 +449,10 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                           size: 48,
                           color: AppColors.textSecondary.withValues(alpha: 0.5),
                         ),
-                        const SizedBox(height: Dimensions.spacingM),
+                        const SizedBox(height: AppSpacing.md),
                         Text(
                           'Aucun versement pour le moment',
-                          style: TextStyles.bodyMedium.copyWith(
+                          style: AppTypography.bodyMedium.copyWith(
                             color: AppColors.textSecondary,
                           ),
                         ),
@@ -461,14 +463,14 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
               ),
             ],
 
-            const SizedBox(height: Dimensions.spacingXL),
+            const SizedBox(height: AppSpacing.xl),
 
             // Note
             Container(
-              padding: const EdgeInsets.all(Dimensions.cardPadding),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: AppColors.info.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
               ),
               child: Row(
@@ -476,13 +478,13 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                   Icon(
                     Icons.info_outline,
                     color: AppColors.info,
-                    size: Dimensions.iconM,
+                    size: 24.0,
                   ),
-                  const SizedBox(width: Dimensions.spacingM),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Text(
                       'Les paiements sont regroupés et versés automatiquement chaque jour à 23h59.',
-                      style: TextStyles.bodySmall.copyWith(
+                      style: AppTypography.bodySmall.copyWith(
                         color: AppColors.info,
                       ),
                     ),
@@ -512,19 +514,19 @@ class _PeriodChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(Dimensions.radiusS),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
       child: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: Dimensions.spacingS,
+          vertical: AppSpacing.sm,
         ),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(Dimensions.radiusS),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
-          style: TextStyles.labelMedium.copyWith(
+          style: AppTypography.labelMedium.copyWith(
             color: isSelected ? Colors.white : AppColors.textSecondary,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),

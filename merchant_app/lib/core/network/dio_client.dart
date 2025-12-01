@@ -10,7 +10,11 @@ class DioClient {
     try {
       return await dio.get(path, queryParameters: queryParameters);
     } on DioException catch (e) {
-      throw ApiException(e.message ?? 'Erreur réseau', code: e.response?.statusCode ?? 0);
+      throw ApiException(
+        e.message ?? 'Erreur réseau',
+        code: e.response?.statusCode ?? 0,
+        details: e.response?.data,
+      );
     }
   }
 
@@ -18,7 +22,11 @@ class DioClient {
     try {
       return await dio.post(path, data: data);
     } on DioException catch (e) {
-      throw ApiException(e.message ?? 'Erreur réseau', code: e.response?.statusCode ?? 0);
+      throw ApiException(
+        e.message ?? 'Erreur réseau',
+        code: e.response?.statusCode ?? 0,
+        details: e.response?.data,
+      );
     }
   }
 
@@ -26,7 +34,11 @@ class DioClient {
     try {
       return await dio.patch(path, data: data);
     } on DioException catch (e) {
-      throw ApiException(e.message ?? 'Erreur réseau', code: e.response?.statusCode ?? 0);
+      throw ApiException(
+        e.message ?? 'Erreur réseau',
+        code: e.response?.statusCode ?? 0,
+        details: e.response?.data,
+      );
     }
   }
 
@@ -34,7 +46,11 @@ class DioClient {
     try {
       return await dio.delete(path);
     } on DioException catch (e) {
-      throw ApiException(e.message ?? 'Erreur réseau', code: e.response?.statusCode ?? 0);
+      throw ApiException(
+        e.message ?? 'Erreur réseau',
+        code: e.response?.statusCode ?? 0,
+        details: e.response?.data,
+      );
     }
   }
 
@@ -42,7 +58,11 @@ class DioClient {
     try {
       return await dio.post(path, data: data);
     } on DioException catch (e) {
-      throw ApiException(e.message ?? 'Erreur réseau', code: e.response?.statusCode ?? 0);
+      throw ApiException(
+        e.message ?? 'Erreur réseau',
+        code: e.response?.statusCode ?? 0,
+        details: e.response?.data,
+      );
     }
   }
 }

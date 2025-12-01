@@ -60,10 +60,12 @@ mixin PhotoMixin<T extends StatefulWidget> on State<T> {
 
       onPhotoPicked(pickedFile, bytes);
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Photo sélectionnée')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur: $e')),
       );

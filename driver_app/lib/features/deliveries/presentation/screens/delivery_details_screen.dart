@@ -3,10 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/backend_constants.dart';
 import '../../../../core/providers/delivery_provider.dart';
 import '../../../../data/models/delivery_model.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
-import '../../../../shared/widgets/custom_button.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_radius.dart';
+import '../../../../shared/widgets/modern_button.dart';
+import '../../../../shared/widgets/modern_card.dart';
+import '../../../../shared/widgets/modern_text_field.dart';
+import '../../../../shared/widgets/modern_list_tile.dart';
+import '../../../../shared/widgets/status_chip.dart';
 import '../../../../shared/utils/formatters.dart';
 import '../../../../shared/utils/helpers.dart';
 import '../../../../core/utils/navigation_utils.dart';
@@ -173,7 +178,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
           children: [
             // Status Banner
             Container(
-              padding: const EdgeInsets.all(Dimensions.spacingL),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               color: _getStatusColor().withValues(alpha: 0.1),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -182,10 +187,10 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     Icons.info_outline,
                     color: _getStatusColor(),
                   ),
-                  const SizedBox(width: Dimensions.spacingS),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(
                     _getStatusLabel(),
-                    style: TextStyles.h3.copyWith(
+                    style: AppTypography.h3.copyWith(
                       color: _getStatusColor(),
                     ),
                   ),
@@ -195,7 +200,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
 
             // Map Preview (placeholder)
             Container(
-              height: Dimensions.mapPreviewHeight,
+              height: 200.0,
               color: Colors.grey[300],
               child: const Center(
                 child: Column(
@@ -206,7 +211,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                       size: 64,
                       color: Colors.grey,
                     ),
-                    SizedBox(height: Dimensions.spacingS),
+                    SizedBox(height: AppSpacing.sm),
                     Text(
                       'Carte Google Maps',
                       style: TextStyle(color: Colors.grey),
@@ -217,13 +222,13 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
             ),
 
             Padding(
-              padding: const EdgeInsets.all(Dimensions.pagePadding),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Addresses Section
                   _SectionTitle(title: 'Itinéraire'),
-                  const SizedBox(height: Dimensions.spacingM),
+                  const SizedBox(height: AppSpacing.md),
                   _AddressCard(
                     icon: Icons.circle_outlined,
                     iconColor: AppColors.success,
@@ -232,7 +237,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     contactName: delivery.merchantName,
                     contactPhone: null,
                   ),
-                  const SizedBox(height: Dimensions.spacingM),
+                  const SizedBox(height: AppSpacing.md),
                   _AddressCard(
                     icon: Icons.location_on,
                     iconColor: AppColors.error,
@@ -241,17 +246,17 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     contactName: delivery.recipientName,
                     contactPhone: delivery.recipientPhone,
                   ),
-                  const SizedBox(height: Dimensions.spacingM),
-                  CustomButton(
+                  const SizedBox(height: AppSpacing.md),
+                  ModernButton(
                     text: 'Naviguer',
                     icon: Icons.navigation,
                     onPressed: _openNavigation,
                   ),
-                  const SizedBox(height: Dimensions.spacingXL),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Delivery Details Section
                   _SectionTitle(title: 'Détails'),
-                  const SizedBox(height: Dimensions.spacingM),
+                  const SizedBox(height: AppSpacing.md),
 
                   _DetailRow(
                     icon: Icons.qr_code,
@@ -263,7 +268,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     icon: Icons.attach_money,
                     label: 'Montant',
                     value: Formatters.formatPrice(delivery.price),
-                    valueStyle: TextStyles.priceSmall,
+                    valueStyle: AppTypography.price,
                   ),
 
                   _DetailRow(
@@ -299,32 +304,33 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                       value: Formatters.formatDateTime(delivery.assignedAt!),
                     ),
 
-                  const SizedBox(height: Dimensions.spacingXXL),
+                  const SizedBox(height: AppSpacing.xxl),
 
                   // Action Buttons
                   if (delivery.status == BackendConstants.deliveryStatusPendingAssignment) ...[
-                    CustomButton(
+                    ModernButton(
                       text: 'Accepter la livraison',
                       onPressed: _isProcessing ? null : _acceptDelivery,
                       isLoading: _isProcessing,
                       icon: Icons.check_circle,
-                      type: ButtonType.success,
+                      type: ModernButtonType.success,
                     ),
-                    const SizedBox(height: Dimensions.spacingM),
-                    OutlineButton(
+                    const SizedBox(height: AppSpacing.md),
+                    ModernButton(
                       text: 'Refuser',
                       onPressed: _isProcessing ? null : _rejectDelivery,
                       icon: Icons.cancel,
+                      type: ModernButtonType.outlined,
                     ),
                   ] else if (delivery.status == BackendConstants.deliveryStatusAssigned) ...[
-                    CustomButton(
+                    ModernButton(
                       text: 'Commencer la livraison',
                       onPressed: _isProcessing ? null : _startDelivery,
                       isLoading: _isProcessing,
                       icon: Icons.play_arrow,
                     ),
                   ] else if (delivery.status == BackendConstants.deliveryStatusInTransit || delivery.status == BackendConstants.deliveryStatusPickedUp) ...[
-                    const SizedBox(height: Dimensions.spacingM),
+                    const SizedBox(height: AppSpacing.md),
                     TextField(
                       controller: _pinController,
                       keyboardType: TextInputType.number,
@@ -335,13 +341,13 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                         counterText: '',
                       ),
                     ),
-                    const SizedBox(height: Dimensions.spacingM),
-                    CustomButton(
+                    const SizedBox(height: AppSpacing.md),
+                    ModernButton(
                       text: 'Confirmer la livraison',
                       onPressed: _isConfirmingDelivery ? null : _confirmDelivery,
                       isLoading: _isConfirmingDelivery,
                       icon: Icons.verified,
-                      type: ButtonType.success,
+                      type: ModernButtonType.success,
                     ),
                   ],
                 ],
@@ -363,7 +369,7 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: TextStyles.h3,
+      style: AppTypography.h3,
     );
   }
 }
@@ -389,57 +395,57 @@ class _AddressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(Dimensions.cardPadding),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, color: iconColor, size: Dimensions.iconM),
-                const SizedBox(width: Dimensions.spacingS),
+                Icon(icon, color: iconColor, size: 24.0),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   title,
-                  style: TextStyles.labelLarge,
+                  style: AppTypography.labelLarge,
                 ),
               ],
             ),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
             Text(
               address,
-              style: TextStyles.bodyMedium,
+              style: AppTypography.bodyMedium,
             ),
             if (contactName != null || contactPhone != null) ...[
-              const SizedBox(height: Dimensions.spacingM),
+              const SizedBox(height: AppSpacing.md),
               const Divider(),
-              const SizedBox(height: Dimensions.spacingS),
+              const SizedBox(height: AppSpacing.sm),
               if (contactName != null)
                 Row(
                   children: [
                     const Icon(
                       Icons.person_outline,
-                      size: Dimensions.iconS,
+                      size: 20.0,
                       color: AppColors.textSecondary,
                     ),
-                    const SizedBox(width: Dimensions.spacingS),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       contactName!,
-                      style: TextStyles.bodyMedium,
+                      style: AppTypography.bodyMedium,
                     ),
                   ],
                 ),
               if (contactPhone != null) ...[
-                const SizedBox(height: Dimensions.spacingS),
+                const SizedBox(height: AppSpacing.sm),
                 Row(
                   children: [
                     const Icon(
                       Icons.phone_outlined,
-                      size: Dimensions.iconS,
+                      size: 20.0,
                       color: AppColors.textSecondary,
                     ),
-                    const SizedBox(width: Dimensions.spacingS),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       Formatters.formatPhoneNumber(contactPhone!),
-                      style: TextStyles.bodyMedium.copyWith(
+                      style: AppTypography.bodyMedium.copyWith(
                         color: AppColors.primary,
                       ),
                     ),
@@ -470,30 +476,30 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: Dimensions.spacingM),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
             icon,
-            size: Dimensions.iconS,
+            size: 20.0,
             color: AppColors.textSecondary,
           ),
-          const SizedBox(width: Dimensions.spacingM),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
-                  style: TextStyles.labelSmall.copyWith(
+                  style: AppTypography.labelSmall.copyWith(
                     color: AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: valueStyle ?? TextStyles.bodyMedium,
+                  style: valueStyle ?? AppTypography.bodyMedium,
                 ),
               ],
             ),

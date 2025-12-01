@@ -1,11 +1,11 @@
 // lib/shared/widgets/break_status_card.dart
 
 import 'package:flutter/material.dart';
+import '../../theme/app_typography.dart';
+import '../../core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/providers/break_provider.dart';
 import '../../features/break/screens/break_management_screen.dart';
-import '../theme/app_colors.dart';
-import '../theme/text_styles.dart';
 
 /// Widget compact affichant le statut de pause dans le dashboard
 /// 
@@ -94,7 +94,7 @@ class _BreakStatusCardState extends ConsumerState<BreakStatusCard> {
                   const SizedBox(width: 8),
                   Text(
                     'Statut',
-                    style: TextStyles.caption.copyWith(
+                    style: AppTypography.caption.copyWith(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
@@ -125,7 +125,7 @@ class _BreakStatusCardState extends ConsumerState<BreakStatusCard> {
                       children: [
                         Text(
                           isOnBreak ? 'En pause' : 'Disponible',
-                          style: TextStyles.bodyLarge.copyWith(
+                          style: AppTypography.bodyLarge.copyWith(
                             fontWeight: FontWeight.bold,
                             color: isOnBreak ? AppColors.warning : AppColors.success,
                           ),
@@ -134,7 +134,7 @@ class _BreakStatusCardState extends ConsumerState<BreakStatusCard> {
                           const SizedBox(height: 4),
                           Text(
                             _formatDuration(state.currentDuration),
-                            style: TextStyles.h3.copyWith(
+                            style: AppTypography.h3.copyWith(
                               color: AppColors.textPrimary,
                               fontWeight: FontWeight.w600,
                             ),
@@ -143,7 +143,7 @@ class _BreakStatusCardState extends ConsumerState<BreakStatusCard> {
                           const SizedBox(height: 4),
                           Text(
                             'Total: ${state.breakStatus!.formattedTotalBreak}',
-                            style: TextStyles.bodySmall.copyWith(
+                            style: AppTypography.bodySmall.copyWith(
                               color: AppColors.textSecondary,
                             ),
                           ),

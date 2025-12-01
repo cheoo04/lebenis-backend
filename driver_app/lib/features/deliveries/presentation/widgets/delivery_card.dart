@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../data/models/delivery_model.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_radius.dart';
 import '../../../../shared/utils/formatters.dart';
 import 'status_badge.dart';
 
@@ -19,12 +20,16 @@ class DeliveryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: Dimensions.spacingM),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.card),
+      ),
+      elevation: 2,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         child: Padding(
-          padding: const EdgeInsets.all(Dimensions.cardPadding),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -35,12 +40,14 @@ class DeliveryCard extends StatelessWidget {
                   StatusBadge(status: delivery.status),
                   Text(
                     '#${delivery.trackingNumber}',
-                    style: TextStyles.trackingNumber,
+                    style: AppTypography.label.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
               
-              const SizedBox(height: Dimensions.spacingM),
+              const SizedBox(height: AppSpacing.md),
               
               // Pickup & Delivery Addresses
               _AddressRow(
@@ -50,7 +57,7 @@ class DeliveryCard extends StatelessWidget {
                 label: 'Récupération',
               ),
               
-              const SizedBox(height: Dimensions.spacingS),
+              const SizedBox(height: AppSpacing.sm),
               
               _AddressRow(
                 icon: Icons.location_on,
@@ -59,11 +66,11 @@ class DeliveryCard extends StatelessWidget {
                 label: 'Livraison',
               ),
               
-              const SizedBox(height: Dimensions.spacingM),
+              const SizedBox(height: AppSpacing.md),
               
-              const Divider(),
+              Divider(height: 1, color: AppColors.border),
               
-              const SizedBox(height: Dimensions.spacingS),
+              const SizedBox(height: AppSpacing.sm),
               
               // Footer: Price & Date
               Row(
@@ -73,13 +80,13 @@ class DeliveryCard extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.attach_money,
-                        size: Dimensions.iconS,
-                        color: AppColors.primary,
+                        size: 20,
+                        color: AppColors.green,
                       ),
-                      const SizedBox(width: Dimensions.spacingXS),
+                      const SizedBox(width: AppSpacing.xs),
                       Text(
                         Formatters.formatPrice(delivery.price),
-                        style: TextStyles.priceSmall,
+                        style: AppTypography.price.copyWith(fontSize: 16),
                       ),
                     ],
                   ),
@@ -87,13 +94,13 @@ class DeliveryCard extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.access_time,
-                        size: Dimensions.iconS,
+                        size: 16,
                         color: AppColors.textSecondary,
                       ),
-                      const SizedBox(width: Dimensions.spacingXS),
+                      const SizedBox(width: AppSpacing.xs),
                       Text(
                         Formatters.formatRelativeTime(delivery.createdAt),
-                        style: TextStyles.caption,
+                        style: AppTypography.caption,
                       ),
                     ],
                   ),
@@ -127,24 +134,24 @@ class _AddressRow extends StatelessWidget {
       children: [
         Icon(
           icon,
-          size: Dimensions.iconM,
+          size: 24,
           color: iconColor,
         ),
-        const SizedBox(width: Dimensions.spacingS),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: TextStyles.labelSmall.copyWith(
+                style: AppTypography.caption.copyWith(
                   color: AppColors.textSecondary,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
               Text(
                 address,
-                style: TextStyles.bodyMedium,
+                style: AppTypography.bodyMedium,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),

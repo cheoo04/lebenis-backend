@@ -53,17 +53,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     super.dispose();
   }
 
-  Future<void> _pickDocument() async {
-    final picker = ImagePicker();
-    final rccm = await picker.pickImage(source: ImageSource.gallery);
-    if (rccm != null) {
-      setState(() => _rccmDocumentPath = rccm.path);
-    }
-    final idDoc = await picker.pickImage(source: ImageSource.gallery);
-    if (idDoc != null) {
-      setState(() => _idDocumentPath = idDoc.path);
-    }
-  }
 
   void _register() async {
     final authNotifier = ref.read(authStateProvider.notifier);
@@ -89,11 +78,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       authState.whenOrNull(
         error: (err, _) {
-          if (err != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(err.toString())),
-            );
+          String msg;
+          if (err is Map) {
+            msg = err.entries.map((e) => "${e.key}: ${e.value}").join("\n");
+          } else {
+            msg = err.toString();
           }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(msg)),
+          );
         },
       );
     });

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class RejectedScreen extends StatelessWidget {
   final String? reason;
-  const RejectedScreen({Key? key, this.reason}) : super(key: key);
+  const RejectedScreen({super.key, this.reason});
 
   @override
   Widget build(BuildContext context) {

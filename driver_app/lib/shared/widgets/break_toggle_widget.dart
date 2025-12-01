@@ -2,9 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../theme/app_typography.dart';
+import '../../core/constants/app_colors.dart';
 import '../../data/providers/break_provider.dart';
-import '../theme/app_colors.dart';
-import '../theme/text_styles.dart';
 
 /// Widget affichant le toggle de pause avec timer en temps réel
 /// 
@@ -153,7 +153,7 @@ class _BreakToggleWidgetState extends ConsumerState<BreakToggleWidget> {
                 backgroundColor: isOnBreak ? AppColors.success : AppColors.warning,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                textStyle: TextStyles.button,
+                textStyle: AppTypography.button,
               ),
             ),
           ),
@@ -187,14 +187,14 @@ class _BreakToggleWidgetState extends ConsumerState<BreakToggleWidget> {
                       children: [
                         Text(
                           'Pause en cours',
-                          style: TextStyles.caption.copyWith(
+                          style: AppTypography.caption.copyWith(
                             color: AppColors.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           _formatDuration(state.currentDuration),
-                          style: TextStyles.h3.copyWith(
+                          style: AppTypography.h3.copyWith(
                             color: AppColors.warning,
                             fontWeight: FontWeight.bold,
                           ),
@@ -229,14 +229,14 @@ class _BreakToggleWidgetState extends ConsumerState<BreakToggleWidget> {
                     children: [
                       Text(
                         'Total aujourd\'hui',
-                        style: TextStyles.caption.copyWith(
+                        style: AppTypography.caption.copyWith(
                           color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         state.breakStatus!.formattedTotalBreak,
-                        style: TextStyles.bodyLarge.copyWith(
+                        style: AppTypography.bodyLarge.copyWith(
                           color: AppColors.info,
                           fontWeight: FontWeight.w600,
                         ),
@@ -264,7 +264,7 @@ class _BreakToggleWidgetState extends ConsumerState<BreakToggleWidget> {
                   Expanded(
                     child: Text(
                       state.error!,
-                      style: TextStyles.bodySmall.copyWith(
+                      style: AppTypography.bodySmall.copyWith(
                         color: AppColors.error,
                       ),
                     ),

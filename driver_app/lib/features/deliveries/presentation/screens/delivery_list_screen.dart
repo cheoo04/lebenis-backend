@@ -5,13 +5,15 @@ import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/providers/delivery_provider.dart';
 import '../../../../data/providers/driver_provider.dart';
 import '../../../../data/models/delivery_model.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/loading_widget.dart';
 import '../../../../shared/widgets/error_widget.dart';
 import '../../../../shared/widgets/empty_state_widget.dart';
-import '../widgets/delivery_card.dart';
+import '../../../../shared/widgets/status_chip.dart';
+import '../widgets/modern_delivery_card.dart';
 
 class DeliveryListScreen extends ConsumerStatefulWidget {
   const DeliveryListScreen({super.key});
@@ -36,7 +38,7 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
       try {
         // Vérifier si l'utilisateur est connecté avant de charger
         final authState = ref.read(authProvider);
-        if (authState.isLoggedIn && authState.user != null) {
+        if (authState.isLoggedIn) {
           await ref.read(deliveryProvider.notifier).loadMyDeliveries();
         } else {
           // Si pas connecté, rediriger vers login
@@ -46,6 +48,14 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
         }
       } catch (e) {
         debugPrint('Error loading deliveries: $e');
+        // Si erreur d'authentification, rediriger vers login
+        if (e.toString().contains('Token invalide') || 
+            e.toString().contains('token_not_valid') ||
+            e.toString().contains('401')) {
+          if (mounted) {
+            Navigator.of(context).pushReplacementNamed('/login');
+          }
+        }
       }
     });
   }
@@ -117,41 +127,31 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
     final driver = ref.watch(currentDriverProvider);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Mes Livraisons'),
         centerTitle: true,
         actions: [
           if (activeDeliveryCount > 0)
             Padding(
-              padding: const EdgeInsets.only(right: Dimensions.spacingM),
+              padding: const EdgeInsets.only(right: AppSpacing.md),
               child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: Dimensions.spacingM,
-                    vertical: Dimensions.spacingXS,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning,
-                    borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                  ),
-                  child: Text(
-                    '$activeDeliveryCount active${activeDeliveryCount > 1 ? 's' : ''}',
-                    style: TextStyles.labelSmall.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
+                child: StatusChip(
+                  label: '$activeDeliveryCount',
+                  color: AppColors.orange,
+                  icon: Icons.local_shipping_outlined,
                 ),
               ),
             ),
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          indicatorColor: Colors.white,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textSecondary,
+          indicatorColor: AppColors.primary,
           indicatorWeight: 3,
-          labelStyle: TextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold),
-          unselectedLabelStyle: TextStyles.labelMedium,
+          labelStyle: AppTypography.label.copyWith(fontWeight: FontWeight.bold),
+          unselectedLabelStyle: AppTypography.label,
           tabs: const [
             Tab(text: 'Toutes'),
             Tab(text: 'En attente'),
@@ -187,36 +187,36 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
                                 if (driver != null && !driver.isVerified)
                                   Container(
                                     width: double.infinity,
-                                    padding: const EdgeInsets.all(Dimensions.spacingM),
-                                    margin: const EdgeInsets.all(Dimensions.pagePadding),
+                                    padding: const EdgeInsets.all(AppSpacing.md),
+                                    margin: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
                                     decoration: BoxDecoration(
-                                      color: AppColors.warning.withValues(alpha: 0.1),
-                                      border: Border.all(color: AppColors.warning),
-                                      borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                      color: AppColors.orange.withValues(alpha: 0.1),
+                                      border: Border.all(color: AppColors.orange, width: 1),
+                                      borderRadius: BorderRadius.circular(AppRadius.md),
                                     ),
                                     child: Row(
                                       children: [
                                         Icon(
                                           Icons.info_outline,
-                                          color: AppColors.warning,
-                                          size: Dimensions.iconM,
+                                          color: AppColors.orange,
+                                          size: 24,
                                         ),
-                                        const SizedBox(width: Dimensions.spacingM),
+                                        const SizedBox(width: AppSpacing.md),
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 'Compte en attente de vérification',
-                                                style: TextStyles.labelMedium.copyWith(
+                                                style: AppTypography.label.copyWith(
                                                   color: AppColors.textPrimary,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
-                                              const SizedBox(height: Dimensions.spacingXS),
+                                              const SizedBox(height: AppSpacing.xs),
                                               Text(
                                                 'Votre compte sera activé prochainement. Vous pourrez accepter des livraisons une fois vérifié.',
-                                                style: TextStyles.caption.copyWith(
+                                                style: AppTypography.caption.copyWith(
                                                   color: AppColors.textSecondary,
                                                 ),
                                               ),
@@ -249,36 +249,36 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
                             SliverToBoxAdapter(
                               child: Container(
                                 width: double.infinity,
-                                padding: const EdgeInsets.all(Dimensions.spacingM),
-                                margin: const EdgeInsets.all(Dimensions.pagePadding),
+                                padding: const EdgeInsets.all(AppSpacing.md),
+                                margin: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
                                 decoration: BoxDecoration(
-                                  color: AppColors.warning.withValues(alpha: 0.1),
-                                  border: Border.all(color: AppColors.warning),
-                                  borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                  color: AppColors.orange.withValues(alpha: 0.1),
+                                  border: Border.all(color: AppColors.orange, width: 1),
+                                  borderRadius: BorderRadius.circular(AppRadius.md),
                                 ),
                                 child: Row(
                                   children: [
                                     Icon(
                                       Icons.info_outline,
-                                      color: AppColors.warning,
-                                      size: Dimensions.iconM,
+                                      color: AppColors.orange,
+                                      size: 24,
                                     ),
-                                    const SizedBox(width: Dimensions.spacingM),
+                                    const SizedBox(width: AppSpacing.md),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             'Compte en attente de vérification',
-                                            style: TextStyles.labelMedium.copyWith(
+                                            style: AppTypography.label.copyWith(
                                               color: AppColors.textPrimary,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          const SizedBox(height: Dimensions.spacingXS),
+                                          const SizedBox(height: AppSpacing.xs),
                                           Text(
                                             'Votre compte sera activé prochainement. Vous pourrez accepter des livraisons une fois vérifié.',
-                                            style: TextStyles.caption.copyWith(
+                                            style: AppTypography.caption.copyWith(
                                               color: AppColors.textSecondary,
                                             ),
                                           ),
@@ -292,13 +292,19 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
                           
                           // Liste des livraisons
                           SliverPadding(
-                            padding: const EdgeInsets.all(Dimensions.pagePadding),
+                            padding: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
                             sliver: SliverList(
                               delegate: SliverChildBuilderDelegate(
                                 (context, index) {
                                   final delivery = filteredDeliveries[index];
-                                  return DeliveryCard(
-                                    delivery: delivery,
+                                  return ModernDeliveryCard(
+                                    deliveryId: delivery.id,
+                                    merchantName: delivery.merchant?['name'] ?? 'Marchand inconnu',
+                                    pickupAddress: delivery.pickupAddress,
+                                    deliveryAddress: delivery.deliveryAddress,
+                                    status: delivery.status,
+                                    amount: delivery.price.toString(),
+                                    distance: delivery.distanceKm.toString(),
                                     onTap: () => _navigateToDetails(delivery),
                                   );
                                 },

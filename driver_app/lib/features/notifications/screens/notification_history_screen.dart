@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/providers/notification_provider.dart';
 import '../../../data/models/notification_model.dart';
-import '../../../shared/theme/app_colors.dart';
-import '../../../shared/theme/text_styles.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../theme/app_typography.dart';
+import '../../../theme/app_spacing.dart';
+import '../../../theme/app_radius.dart';
 import '../../../shared/widgets/loading_widget.dart';
 import '../../../shared/widgets/error_widget.dart' as app_error;
 import '../widgets/notification_card.dart';
@@ -164,7 +166,7 @@ class _NotificationHistoryScreenState
                   const SizedBox(width: 8),
                   Text(
                     '${state.unreadCount} notification${state.unreadCount > 1 ? 's' : ''} non lue${state.unreadCount > 1 ? 's' : ''}',
-                    style: TextStyles.bodyMedium.copyWith(
+                    style: AppTypography.bodyMedium.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,
                     ),
@@ -265,7 +267,7 @@ class _NotificationHistoryScreenState
             _selectedType != null
                 ? 'Aucune notification de ce type'
                 : 'Aucune notification',
-            style: TextStyles.h3.copyWith(
+            style: AppTypography.h3.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
@@ -274,7 +276,7 @@ class _NotificationHistoryScreenState
             _selectedType != null
                 ? 'Essayez un autre filtre'
                 : 'Vous recevrez ici vos notifications',
-            style: TextStyles.bodyMedium.copyWith(
+            style: AppTypography.bodyMedium.copyWith(
               color: AppColors.textSecondary.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
@@ -350,7 +352,7 @@ class _NotificationDetailsSheet extends StatelessWidget {
               Expanded(
                 child: Text(
                   notification.typeLabel,
-                  style: TextStyles.bodySmall.copyWith(
+                  style: AppTypography.bodySmall.copyWith(
                     color: AppColors.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
@@ -365,7 +367,7 @@ class _NotificationDetailsSheet extends StatelessWidget {
                   ),
                   child: Text(
                     'Lue',
-                    style: TextStyles.caption.copyWith(color: AppColors.success),
+                    style: AppTypography.caption.copyWith(color: AppColors.success),
                   ),
                 ),
             ],
@@ -374,13 +376,13 @@ class _NotificationDetailsSheet extends StatelessWidget {
           // Titre
           Text(
             notification.title,
-            style: TextStyles.h3.copyWith(fontWeight: FontWeight.bold),
+            style: AppTypography.h3.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           // Corps
           Text(
             notification.body,
-            style: TextStyles.bodyMedium,
+            style: AppTypography.bodyMedium,
           ),
           const SizedBox(height: 16),
           // Date
@@ -390,7 +392,7 @@ class _NotificationDetailsSheet extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 notification.relativeTime,
-                style: TextStyles.bodySmall.copyWith(
+                style: AppTypography.bodySmall.copyWith(
                   color: AppColors.textSecondary,
                 ),
               ),
@@ -403,7 +405,7 @@ class _NotificationDetailsSheet extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'Informations complémentaires',
-              style: TextStyles.bodySmall.copyWith(
+              style: AppTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.textSecondary,
               ),
@@ -418,7 +420,7 @@ class _NotificationDetailsSheet extends StatelessWidget {
                         width: 120,
                         child: Text(
                           '${entry.key}:',
-                          style: TextStyles.bodySmall.copyWith(
+                          style: AppTypography.bodySmall.copyWith(
                             color: AppColors.textSecondary,
                           ),
                         ),
@@ -426,7 +428,7 @@ class _NotificationDetailsSheet extends StatelessWidget {
                       Expanded(
                         child: Text(
                           entry.value.toString(),
-                          style: TextStyles.bodySmall.copyWith(
+                          style: AppTypography.bodySmall.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -499,7 +501,7 @@ class _TypeFilterSheetState extends State<_TypeFilterSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Filtrer par type', style: TextStyles.h3),
+          Text('Filtrer par type', style: AppTypography.h3),
           const SizedBox(height: 16),
           // Custom radio group to avoid deprecated groupValue/onChanged
           ...types.map((type) {

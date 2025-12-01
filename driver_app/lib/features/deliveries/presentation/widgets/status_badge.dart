@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/backend_constants.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_radius.dart';
 
 class StatusBadge extends StatelessWidget {
   final String status;
@@ -65,12 +66,12 @@ class StatusBadge extends StatelessWidget {
     
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: Dimensions.spacingS,
-        vertical: Dimensions.spacingXS,
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(Dimensions.radiusS),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -78,16 +79,16 @@ class StatusBadge extends StatelessWidget {
           if (showIcon) ...[
             Icon(
               _getStatusIcon(),
-              size: fontSize ?? Dimensions.iconS,
+              size: fontSize ?? 20.0,
               color: color,
             ),
-            const SizedBox(width: Dimensions.spacingXS),
+            const SizedBox(width: AppSpacing.xs),
           ],
           Text(
             _getStatusLabel(),
             style: (fontSize != null
-                    ? TextStyles.statusBadge.copyWith(fontSize: fontSize)
-                    : TextStyles.statusBadge)
+                    ? AppTypography.labelSmall.copyWith(fontSize: fontSize)
+                    : AppTypography.labelSmall)
                 .copyWith(color: color),
           ),
         ],

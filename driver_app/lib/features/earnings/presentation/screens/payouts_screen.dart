@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/providers/payment_provider.dart';
 import '../../../../data/models/payment_model.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/loading_widget.dart';
 import '../../../../shared/widgets/error_widget.dart';
 import '../widgets/payout_card.dart';
@@ -109,20 +110,20 @@ class _PayoutsScreenState extends ConsumerState<PayoutsScreen> {
                 size: 100,
                 color: AppColors.textSecondary.withValues(alpha: 0.5),
               ),
-              const SizedBox(height: Dimensions.spacingL),
+              const SizedBox(height: AppSpacing.lg),
               Text(
                 'Aucun versement',
-                style: TextStyles.h3.copyWith(
+                style: AppTypography.h3.copyWith(
                   color: AppColors.textSecondary,
                 ),
               ),
-              const SizedBox(height: Dimensions.spacingS),
+              const SizedBox(height: AppSpacing.sm),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: Dimensions.pagePadding),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Text(
                   'Les paiements sont automatiquement versés\nchaque jour à 23h59',
                   textAlign: TextAlign.center,
-                  style: TextStyles.bodyMedium.copyWith(
+                  style: AppTypography.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -154,8 +155,8 @@ class _PayoutsScreenState extends ConsumerState<PayoutsScreen> {
             // Header Stats
             SliverToBoxAdapter(
               child: Container(
-                margin: const EdgeInsets.all(Dimensions.pagePadding),
-                padding: const EdgeInsets.all(Dimensions.cardPadding),
+                margin: const EdgeInsets.all(AppSpacing.lg),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -163,26 +164,26 @@ class _PayoutsScreenState extends ConsumerState<PayoutsScreen> {
                       AppColors.primary.withValues(alpha: 0.8),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Column(
                   children: [
                     Text(
                       'Total versé',
-                      style: TextStyles.bodyMedium.copyWith(
+                      style: AppTypography.bodyMedium.copyWith(
                         color: Colors.white.withValues(alpha: 0.9),
                       ),
                     ),
-                    const SizedBox(height: Dimensions.spacingS),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       '${totalAmount.toStringAsFixed(0)} FCFA',
-                      style: TextStyles.h1.copyWith(
+                      style: AppTypography.h1.copyWith(
                         color: Colors.white,
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: Dimensions.spacingL),
+                    const SizedBox(height: AppSpacing.lg),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -222,13 +223,13 @@ class _PayoutsScreenState extends ConsumerState<PayoutsScreen> {
             SliverToBoxAdapter(
               child: Container(
                 margin: const EdgeInsets.symmetric(
-                  horizontal: Dimensions.pagePadding,
-                  vertical: Dimensions.spacingS,
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.sm,
                 ),
-                padding: const EdgeInsets.all(Dimensions.cardPadding),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: AppColors.info.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(
                     color: AppColors.info.withValues(alpha: 0.3),
                   ),
@@ -238,13 +239,13 @@ class _PayoutsScreenState extends ConsumerState<PayoutsScreen> {
                     Icon(
                       Icons.info_outline,
                       color: AppColors.info,
-                      size: Dimensions.iconM,
+                      size: 24.0,
                     ),
-                    const SizedBox(width: Dimensions.spacingM),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Text(
                         'Versements automatiques quotidiens à 23h59',
-                        style: TextStyles.bodySmall.copyWith(
+                        style: AppTypography.bodySmall.copyWith(
                           color: AppColors.info,
                         ),
                       ),
@@ -256,7 +257,7 @@ class _PayoutsScreenState extends ConsumerState<PayoutsScreen> {
 
             // Liste des payouts
             SliverPadding(
-              padding: const EdgeInsets.all(Dimensions.pagePadding),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -264,7 +265,7 @@ class _PayoutsScreenState extends ConsumerState<PayoutsScreen> {
                       // Loading indicator pour pagination
                       return _isLoadingMore
                           ? const Padding(
-                              padding: EdgeInsets.all(Dimensions.spacingL),
+                              padding: EdgeInsets.all(AppSpacing.lg),
                               child: Center(
                                 child: CircularProgressIndicator(),
                               ),
@@ -308,19 +309,19 @@ class _StatItem extends StatelessWidget {
         Icon(
           icon,
           color: Colors.white.withValues(alpha: 0.8),
-          size: Dimensions.iconM,
+          size: 24.0,
         ),
-        const SizedBox(height: Dimensions.spacingXS),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           label,
-          style: TextStyles.caption.copyWith(
+          style: AppTypography.caption.copyWith(
             color: Colors.white.withValues(alpha: 0.7),
           ),
         ),
-        const SizedBox(height: Dimensions.spacingXS),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           value,
-          style: TextStyles.h3.copyWith(
+          style: AppTypography.h3.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -347,14 +348,14 @@ class _PayoutDetailsSheet extends StatelessWidget {
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(
-              top: Radius.circular(Dimensions.radiusL),
+              top: Radius.circular(AppRadius.lg),
             ),
           ),
           child: Column(
             children: [
               // Handle
               Container(
-                margin: const EdgeInsets.symmetric(vertical: Dimensions.spacingM),
+                margin: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
@@ -365,13 +366,13 @@ class _PayoutDetailsSheet extends StatelessWidget {
 
               // Title
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: Dimensions.pagePadding),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Row(
                   children: [
                     Expanded(
                       child: Text(
                         'Détails du versement',
-                        style: TextStyles.h2,
+                        style: AppTypography.h2,
                       ),
                     ),
                     IconButton(
@@ -388,23 +389,23 @@ class _PayoutDetailsSheet extends StatelessWidget {
               Expanded(
                 child: ListView(
                   controller: scrollController,
-                  padding: const EdgeInsets.all(Dimensions.pagePadding),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
                   children: [
                     // Payout info card
                     PayoutCard(payout: payout),
 
-                    const SizedBox(height: Dimensions.spacingL),
+                    const SizedBox(height: AppSpacing.lg),
 
                     // Liste des paiements inclus
                     if (payout.payments.isNotEmpty) ...[
                       Text(
                         'Paiements inclus (${payout.payments.length})',
-                        style: TextStyles.h3,
+                        style: AppTypography.h3,
                       ),
-                      const SizedBox(height: Dimensions.spacingM),
+                      const SizedBox(height: AppSpacing.md),
                       
                       ...payout.payments.map((payment) => Card(
-                        margin: const EdgeInsets.only(bottom: Dimensions.spacingS),
+                        margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: AppColors.primary.withValues(alpha: 0.1),
@@ -415,17 +416,17 @@ class _PayoutDetailsSheet extends StatelessWidget {
                           ),
                           title: Text(
                             '${payment.driverAmount.toStringAsFixed(0)} FCFA',
-                            style: TextStyles.labelLarge.copyWith(
+                            style: AppTypography.labelLarge.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           subtitle: Text(
                             payment.paymentMethodLabel,
-                            style: TextStyles.caption,
+                            style: AppTypography.caption,
                           ),
                           trailing: Text(
                             payment.statusLabel,
-                            style: TextStyles.caption.copyWith(
+                            style: AppTypography.caption.copyWith(
                               color: payment.status == 'completed'
                                   ? AppColors.success
                                   : AppColors.textSecondary,
@@ -436,10 +437,10 @@ class _PayoutDetailsSheet extends StatelessWidget {
                     ] else ...[
                       Center(
                         child: Padding(
-                          padding: const EdgeInsets.all(Dimensions.spacingL),
+                          padding: const EdgeInsets.all(AppSpacing.lg),
                           child: Text(
                             'Détails des paiements non disponibles',
-                            style: TextStyles.bodyMedium.copyWith(
+                            style: AppTypography.bodyMedium.copyWith(
                               color: AppColors.textSecondary,
                             ),
                           ),

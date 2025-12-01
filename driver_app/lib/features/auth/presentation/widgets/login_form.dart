@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
-import '../../../../shared/widgets/custom_button.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../shared/widgets/modern_button.dart';
 import 'auth_form.dart';
 
 /// Login-specific form wrapper with submit button and forgot password link
@@ -43,7 +43,7 @@ class LoginForm extends StatelessWidget {
           ),
           
           if (onForgotPassword != null) ...[
-            const SizedBox(height: Dimensions.spacingS),
+            const SizedBox(height: AppSpacing.sm),
             
             Align(
               alignment: Alignment.centerRight,
@@ -51,15 +51,15 @@ class LoginForm extends StatelessWidget {
                 onPressed: isLoading ? null : onForgotPassword,
                 child: Text(
                   'Mot de passe oublié?',
-                  style: TextStyles.link,
+                  style: AppTypography.link,
                 ),
               ),
             ),
           ],
           
-          const SizedBox(height: Dimensions.spacingXL),
+          const SizedBox(height: AppSpacing.xl),
           
-          CustomButton(
+          ModernButton(
             text: 'Se connecter',
             onPressed: isLoading ? null : onSubmit,
             isLoading: isLoading,

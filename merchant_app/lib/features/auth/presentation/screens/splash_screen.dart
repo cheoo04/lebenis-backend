@@ -4,7 +4,7 @@ import '../../../../data/providers/auth_provider.dart';
 import '../../../../data/providers/merchant_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
-	const SplashScreen({Key? key}) : super(key: key);
+	const SplashScreen({super.key});
 
 	@override
 	ConsumerState<SplashScreen> createState() => _SplashScreenState();
@@ -14,7 +14,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 	@override
 	void initState() {
 		super.initState();
-		_checkAuthAndRedirect();
+		WidgetsBinding.instance.addPostFrameCallback((_) {
+			_checkAuthAndRedirect();
+		});
 	}
 
 	Future<void> _checkAuthAndRedirect() async {

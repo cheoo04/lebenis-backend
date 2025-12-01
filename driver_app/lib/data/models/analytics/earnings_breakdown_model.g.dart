@@ -6,9 +6,9 @@ part of 'earnings_breakdown_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_EarningsBreakdownModel _$EarningsBreakdownModelFromJson(
+_$EarningsBreakdownModelImpl _$$EarningsBreakdownModelImplFromJson(
   Map<String, dynamic> json,
-) => _EarningsBreakdownModel(
+) => _$EarningsBreakdownModelImpl(
   deliveryEarnings: (json['delivery_earnings'] as num).toDouble(),
   bonusEarnings: (json['bonus_earnings'] as num).toDouble(),
   tipEarnings: (json['tip_earnings'] as num).toDouble(),
@@ -16,8 +16,8 @@ _EarningsBreakdownModel _$EarningsBreakdownModelFromJson(
   totalEarnings: (json['total_earnings'] as num).toDouble(),
 );
 
-Map<String, dynamic> _$EarningsBreakdownModelToJson(
-  _EarningsBreakdownModel instance,
+Map<String, dynamic> _$$EarningsBreakdownModelImplToJson(
+  _$EarningsBreakdownModelImpl instance,
 ) => <String, dynamic>{
   'delivery_earnings': instance.deliveryEarnings,
   'bonus_earnings': instance.bonusEarnings,

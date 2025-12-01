@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../data/providers/pricing_provider.dart';
+import '../../../../data/providers/pricing_provider.dart';
 import '../widgets/price_estimator.dart';
 
 class CreateDeliveryScreen extends ConsumerStatefulWidget {

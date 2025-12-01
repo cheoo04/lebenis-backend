@@ -21,7 +21,16 @@ class NotificationService {
   // ========== INITIALISATION ==========
 
   /// Initialiser le service de notifications
-  Future<void> initialize() async {
+  /// [firebaseEnabled] : indique si Firebase est disponible sur cette plateforme
+  Future<void> initialize({bool firebaseEnabled = true}) async {
+    if (!firebaseEnabled) {
+      if (kDebugMode) {
+        debugPrint('💡 Firebase non disponible sur cette plateforme');
+        debugPrint('💡 Les notifications push ne seront pas disponibles');
+      }
+      return;
+    }
+    
     try {
       // Initialiser Firebase Messaging
       _fcm = FirebaseMessaging.instance;

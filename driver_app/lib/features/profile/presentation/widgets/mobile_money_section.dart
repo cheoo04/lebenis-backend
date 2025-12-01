@@ -27,7 +27,7 @@ class MobileMoneySection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: selectedProvider,
+          initialValue: selectedProvider,
           items: const [
             DropdownMenuItem(value: 'orange', child: Text('Orange Money')),
             DropdownMenuItem(value: 'mtn', child: Text('MTN Money')),

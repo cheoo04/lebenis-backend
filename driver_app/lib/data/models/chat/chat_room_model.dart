@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-
+import 'chat_participant.dart';
+import 'delivery_info.dart';
 part 'chat_room_model.freezed.dart';
 part 'chat_room_model.g.dart';
 
@@ -8,35 +9,6 @@ enum RoomType {
   delivery,
   @JsonValue('support')
   support,
-}
-
-/// Participant dans une conversation
-@freezed
-class ChatParticipant with _$ChatParticipant {
-  const factory ChatParticipant({
-    required String id,
-    required String fullName,
-    required String phoneNumber,
-    required String userType,
-    String? profilePhotoUrl,
-  }) = _ChatParticipant;
-
-  factory ChatParticipant.fromJson(Map<String, dynamic> json) =>
-      _$ChatParticipantFromJson(json);
-}
-
-/// Info livraison simplifiée
-@freezed
-class DeliveryInfo with _$DeliveryInfo {
-  const factory DeliveryInfo({
-    required String id,
-    required String trackingNumber,
-    String? pickupAddress,
-    String? deliveryAddress,
-  }) = _DeliveryInfo;
-
-  factory DeliveryInfo.fromJson(Map<String, dynamic> json) =>
-      _$DeliveryInfoFromJson(json);
 }
 
 @freezed
@@ -48,8 +20,8 @@ class ChatRoomModel with _$ChatRoomModel {
     DeliveryInfo? deliveryInfo,
     String? lastMessageText,
     DateTime? lastMessageAt,
-    @Default(0) int unreadCount,
-    @Default(false) bool isArchived,
+    required int unreadCount,
+    required bool isArchived,
     required DateTime createdAt,
     String? firebasePath,
   }) = _ChatRoomModel;
@@ -57,3 +29,4 @@ class ChatRoomModel with _$ChatRoomModel {
   factory ChatRoomModel.fromJson(Map<String, dynamic> json) =>
       _$ChatRoomModelFromJson(json);
 }
+

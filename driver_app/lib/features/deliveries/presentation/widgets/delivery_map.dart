@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_radius.dart';
 
 class DeliveryMap extends StatefulWidget {
   final LatLng pickupLocation;
@@ -156,7 +158,7 @@ class _DeliveryMapState extends State<DeliveryMap> {
     return Container(
       height: widget.height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -166,7 +168,7 @@ class _DeliveryMapState extends State<DeliveryMap> {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: GoogleMap(
           onMapCreated: _onMapCreated,
           initialCameraPosition: CameraPosition(
@@ -206,7 +208,7 @@ class StaticMapPreview extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Stack(
         children: [
@@ -221,9 +223,9 @@ class StaticMapPreview extends StatelessWidget {
           
           // Address overlays
           Positioned(
-            top: Dimensions.spacingM,
-            left: Dimensions.spacingM,
-            right: Dimensions.spacingM,
+            top: AppSpacing.md,
+            left: AppSpacing.md,
+            right: AppSpacing.md,
             child: _AddressChip(
               icon: Icons.circle_outlined,
               iconColor: AppColors.success,
@@ -232,9 +234,9 @@ class StaticMapPreview extends StatelessWidget {
           ),
           
           Positioned(
-            bottom: Dimensions.spacingM,
-            left: Dimensions.spacingM,
-            right: Dimensions.spacingM,
+            bottom: AppSpacing.md,
+            left: AppSpacing.md,
+            right: AppSpacing.md,
             child: _AddressChip(
               icon: Icons.location_on,
               iconColor: AppColors.error,
@@ -262,12 +264,12 @@ class _AddressChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: Dimensions.spacingM,
-        vertical: Dimensions.spacingS,
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(Dimensions.radiusS),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -278,8 +280,8 @@ class _AddressChip extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: iconColor, size: Dimensions.iconS),
-          const SizedBox(width: Dimensions.spacingS),
+          Icon(icon, color: iconColor, size: 20.0),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               label,

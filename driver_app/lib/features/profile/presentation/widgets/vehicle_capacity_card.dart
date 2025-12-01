@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_radius.dart';
 
 class VehicleCapacityCard extends StatelessWidget {
   final String vehicleType;
@@ -59,7 +60,7 @@ class VehicleCapacityCard extends StatelessWidget {
     return Card(
       color: (info['color'] as Color).withValues(alpha: 0.1),
       child: Padding(
-        padding: const EdgeInsets.all(Dimensions.cardPadding),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -68,24 +69,24 @@ class VehicleCapacityCard extends StatelessWidget {
                 Icon(
                   info['icon'] as IconData,
                   color: info['color'] as Color,
-                  size: Dimensions.iconL,
+                  size: 32.0,
                 ),
-                const SizedBox(width: Dimensions.spacingM),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Capacités maximales',
-                        style: TextStyles.labelMedium.copyWith(
+                        style: AppTypography.labelMedium.copyWith(
                           color: info['color'] as Color,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: Dimensions.spacingXS),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         info['description'] as String,
-                        style: TextStyles.caption.copyWith(
+                        style: AppTypography.caption.copyWith(
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -94,12 +95,12 @@ class VehicleCapacityCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
             Container(
-              padding: const EdgeInsets.all(Dimensions.spacingM),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Row(
                 children: [
@@ -109,18 +110,18 @@ class VehicleCapacityCard extends StatelessWidget {
                         Icon(
                           Icons.scale,
                           color: info['color'] as Color,
-                          size: Dimensions.iconM,
+                          size: 24.0,
                         ),
-                        const SizedBox(height: Dimensions.spacingXS),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           info['weight'] as String,
-                          style: TextStyles.labelMedium.copyWith(
+                          style: AppTypography.labelMedium.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           'Poids max',
-                          style: TextStyles.caption,
+                          style: AppTypography.caption,
                         ),
                       ],
                     ),
@@ -136,19 +137,19 @@ class VehicleCapacityCard extends StatelessWidget {
                         Icon(
                           Icons.straighten,
                           color: info['color'] as Color,
-                          size: Dimensions.iconM,
+                          size: 24.0,
                         ),
-                        const SizedBox(height: Dimensions.spacingXS),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           info['dimensions'] as String,
-                          style: TextStyles.caption.copyWith(
+                          style: AppTypography.caption.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
                         ),
                         Text(
                           'Dimensions max',
-                          style: TextStyles.caption,
+                          style: AppTypography.caption,
                         ),
                       ],
                     ),

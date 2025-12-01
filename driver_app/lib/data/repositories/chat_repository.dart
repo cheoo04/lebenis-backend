@@ -309,9 +309,3 @@ class ChatRepository {
     return Exception('Erreur réseau: $error');
   }
 }
-
-// ==================== Provider ====================
-
-final chatRepositoryProvider = Provider<ChatRepository>((ref) {
-  throw UnimplementedError('ChatRepository provider must be overridden');
-});

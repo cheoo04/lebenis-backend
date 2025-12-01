@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'message_sender.dart';
 
 part 'message_model.freezed.dart';
 part 'message_model.g.dart';
@@ -15,28 +16,16 @@ enum MessageType {
 }
 
 enum MessageStatus {
-  sending, // En cours d'envoi
-  sent, // Envoyé au serveur
-  delivered, // Reçu par le destinataire
-  read, // Lu par le destinataire
-  failed, // Échec d'envoi
-}
-
-/// Sender simple
-@freezed
-class MessageSender with _$MessageSender {
-  const factory MessageSender({
-    required String id,
-    @JsonKey(name: 'full_name') required String fullName,
-    @JsonKey(name: 'profile_photo_url') String? profilePhotoUrl,
-  }) = _MessageSender;
-
-  factory MessageSender.fromJson(Map<String, dynamic> json) =>
-      _$MessageSenderFromJson(json);
+  sending,
+  sent,
+  delivered,
+  read,
+  failed,
 }
 
 @freezed
 class MessageModel with _$MessageModel {
+  const MessageModel._();
   const factory MessageModel({
     required String id,
     @JsonKey(name: 'chat_room') required String chatRoomId,
@@ -46,21 +35,20 @@ class MessageModel with _$MessageModel {
     @JsonKey(name: 'image_url') String? imageUrl,
     double? latitude,
     double? longitude,
-    @Default(false) bool isRead,
+    required bool isRead,
     DateTime? readAt,
     required DateTime createdAt,
-    // Champs locaux (non sérialisés)
-    @JsonKey(includeFromJson: false, includeToJson: false)
     @Default(MessageStatus.sent)
-    MessageStatus status,
     @JsonKey(includeFromJson: false, includeToJson: false)
-    @Default(false) bool isMine,
+    MessageStatus status,
+    @Default(false)
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    bool isMine,
   }) = _MessageModel;
 
   factory MessageModel.fromJson(Map<String, dynamic> json) =>
       _$MessageModelFromJson(json);
 
-  /// Factory pour créer un message depuis Firebase Realtime Database
   factory MessageModel.fromFirebase(
     String messageId,
     Map<dynamic, dynamic> firebaseData,
@@ -102,26 +90,4 @@ class MessageModel with _$MessageModel {
         return MessageType.text;
     }
   }
-}
-
-/// Extension pour obtenir le preview du message
-extension MessagePreview on MessageModel {
-  String get preview {
-    switch (messageType) {
-      case MessageType.text:
-        return text ?? '';
-      case MessageType.image:
-        return '📷 Photo';
-      case MessageType.location:
-        return '📍 Position';
-      case MessageType.system:
-        return text ?? 'Message système';
-    }
-  }
-
-  bool get hasImage => messageType == MessageType.image && imageUrl != null;
-  bool get hasLocation =>
-      messageType == MessageType.location &&
-      latitude != null &&
-      longitude != null;
 }
