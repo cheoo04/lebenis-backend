@@ -15,15 +15,10 @@ class VehicleDocumentsSection extends StatelessWidget {
   final Uint8List? vignetteBytes;
   final bool isSubmitting;
   final VoidCallback onPickInsurance;
-  final VoidCallback onDeleteInsurance;
   final VoidCallback onPickInspection;
-  final VoidCallback onDeleteInspection;
   final VoidCallback onPickGrayCard;
-  final VoidCallback onDeleteGrayCard;
   final VoidCallback onPickLicense;
-  final VoidCallback onDeleteLicense;
   final VoidCallback onPickVignette;
-  final VoidCallback onDeleteVignette;
 
   const VehicleDocumentsSection({
     super.key,
@@ -39,15 +34,10 @@ class VehicleDocumentsSection extends StatelessWidget {
     required this.initialVignetteUrl,
     required this.vignetteBytes,
     required this.onPickVignette,
-    required this.onDeleteVignette,
     required this.onPickInsurance,
-    required this.onDeleteInsurance,
     required this.onPickInspection,
-    required this.onDeleteInspection,
     required this.onPickGrayCard,
-    required this.onDeleteGrayCard,
     required this.onPickLicense,
-    required this.onDeleteLicense,
   });
 
   @override
@@ -66,35 +56,35 @@ class VehicleDocumentsSection extends StatelessWidget {
               url: initialInsuranceUrl,
               bytes: insuranceBytes,
               onUpload: isSubmitting ? (){} : onPickInsurance,
-              onDelete: isSubmitting ? (){} : onDeleteInsurance,
+                // onDelete: isSubmitting ? (){} : onDeleteInsurance,
             ),
             DocumentCard(
               title: 'Vignette',
               url: initialVignetteUrl,
               bytes: vignetteBytes,
               onUpload: isSubmitting ? (){} : onPickVignette,
-              onDelete: isSubmitting ? (){} : onDeleteVignette,
+                // onDelete: isSubmitting ? (){} : onDeleteVignette,
             ),
             DocumentCard(
               title: 'Visite technique',
               url: initialInspectionUrl,
               bytes: inspectionBytes,
               onUpload: isSubmitting ? (){} : onPickInspection,
-              onDelete: isSubmitting ? (){} : onDeleteInspection,
+                // onDelete: isSubmitting ? (){} : onDeleteInspection,
             ),
             DocumentCard(
               title: 'Carte grise',
               url: initialGrayCardUrl,
               bytes: grayCardBytes,
               onUpload: isSubmitting ? (){} : onPickGrayCard,
-              onDelete: isSubmitting ? (){} : onDeleteGrayCard,
+                // onDelete: isSubmitting ? (){} : onDeleteGrayCard,
             ),
             DocumentCard(
               title: 'Permis de conduire',
               url: initialLicenseUrl,
               bytes: licenseBytes,
               onUpload: isSubmitting ? (){} : onPickLicense,
-              onDelete: isSubmitting ? (){} : onDeleteLicense,
+                // onDelete: isSubmitting ? (){} : onDeleteLicense,
             ),
           ],
         ),

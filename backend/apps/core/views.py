@@ -7,14 +7,14 @@ from rest_framework.response import Response
 from django.db import connection
 
 
-@api_view(['GET'])
+@api_view(['GET', 'HEAD'])
 @permission_classes([AllowAny])
 @throttle_classes([])  # ✅ Pas de rate limiting sur health check
 def health_check(request):
     """
     Endpoint de santé pour monitoring (Load Balancer, Uptime Robot, etc.)
     
-    GET /health/
+    GET /health/ ou HEAD /health/
     
     Response:
     {

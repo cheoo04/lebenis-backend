@@ -25,6 +25,10 @@ import '../widgets/vehicle_section.dart';
 import '../widgets/vehicle_documents_section.dart';
 import '../widgets/profile_photo_section.dart';
 import '../widgets/action_buttons_section.dart';
+import '../widgets/bank_section.dart';
+import '../widgets/mobile_money_section.dart';
+import '../widgets/emergency_contact_section.dart';
+import '../widgets/experience_section.dart';
 import '../../services/photo_mixin.dart';
 import '../../services/profile_service.dart';
 
@@ -102,6 +106,19 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
   late TextEditingController _vehiclePlateController;
   late TextEditingController _vehicleCapacityController;
   late TextEditingController _cniController;
+  late TextEditingController _bankAccountNameController;
+  late TextEditingController _bankAccountNumberController;
+  late TextEditingController _bankNameController;
+  late TextEditingController _mobileMoneyNumberController;
+  late TextEditingController _emergencyContactNameController;
+  late TextEditingController _emergencyContactPhoneController;
+  late TextEditingController _emergencyContactRelationshipController;
+  late TextEditingController _yearsOfExperienceController;
+  late TextEditingController _previousEmployerController;
+  
+  
+  // ========= MOBILE MONEY STATE ==========
+  String? _selectedMobileMoneyProvider;
 
   // ========== PROFILE PHOTO STATE ==========
   dynamic _newProfilePhoto;
@@ -182,6 +199,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
     
     _cniController = TextEditingController();
     _vignetteExpiryController = TextEditingController();
+    _bankAccountNameController = TextEditingController();
+    _bankAccountNumberController = TextEditingController();
+    _bankNameController = TextEditingController();
+    _mobileMoneyNumberController = TextEditingController();
+    _emergencyContactNameController = TextEditingController();
+    _emergencyContactPhoneController = TextEditingController();
+    _emergencyContactRelationshipController = TextEditingController();
+    _yearsOfExperienceController = TextEditingController();
+    _previousEmployerController = TextEditingController();
   }
 
   void _disposeControllers() {
@@ -191,6 +217,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
     _vehicleCapacityController.dispose();
     _cniController.dispose();
     _vignetteExpiryController.dispose();
+    _bankAccountNameController.dispose();
+    _bankAccountNumberController.dispose();
+    _bankNameController.dispose();
+    _mobileMoneyNumberController.dispose();
+    _emergencyContactNameController.dispose();
+    _emergencyContactPhoneController.dispose();
+    _emergencyContactRelationshipController.dispose();
+    _yearsOfExperienceController.dispose();
+    _previousEmployerController.dispose();
   }
 
   void _initializeForm(DriverModel driver) {
@@ -241,6 +276,27 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
 
     // Languages
     _selectedLanguages = List<String>.from(driver.languagesSpoken ?? []);
+
+    // Bank
+    _bankAccountNameController.text = driver.bankAccountName ?? '';
+    _bankAccountNumberController.text = driver.bankAccountNumber ?? '';
+    _bankNameController.text = driver.bankName ?? '';
+    // Mobile Money
+    _mobileMoneyNumberController.text = driver.mobileMoneyNumber ?? '';
+    // Correction : n'accepte que les valeurs valides ou null
+    const validProviders = ['orange', 'mtn', 'wave'];
+    if (driver.mobileMoneyProvider != null && validProviders.contains(driver.mobileMoneyProvider)) {
+      _selectedMobileMoneyProvider = driver.mobileMoneyProvider;
+    } else {
+      _selectedMobileMoneyProvider = null;
+    }
+    // Emergency Contact
+    _emergencyContactNameController.text = driver.emergencyContactName ?? '';
+    _emergencyContactPhoneController.text = driver.emergencyContactPhone ?? '';
+    _emergencyContactRelationshipController.text = driver.emergencyContactRelationship ?? '';
+    // Experience
+    _yearsOfExperienceController.text = driver.yearsOfExperience?.toString() ?? '';
+    _previousEmployerController.text = driver.previousEmployer ?? '';
   }
 
   // ========== PHOTO PICKING METHODS ==========
@@ -677,6 +733,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
         'identity_card_number': _cniController.text.trim(),
         'date_of_birth': formatDate(_dateOfBirth),
         'languages_spoken': _selectedLanguages,
+        'bank_account_name': _bankAccountNameController.text.trim(),
+        'bank_account_number': _bankAccountNumberController.text.trim(),
+        'bank_name': _bankNameController.text.trim(),
+        'mobile_money_number': _mobileMoneyNumberController.text.trim(),
+        'mobile_money_provider': _selectedMobileMoneyProvider,
+        'emergency_contact_name': _emergencyContactNameController.text.trim(),
+        'emergency_contact_phone': _emergencyContactPhoneController.text.trim(),
+        'emergency_contact_relationship': _emergencyContactRelationshipController.text.trim(),
+        'years_of_experience': int.tryParse(_yearsOfExperienceController.text.trim() == '' ? '0' : _yearsOfExperienceController.text.trim()),
+        'previous_employer': _previousEmployerController.text.trim(),
       };
 
       // Ajout conditionnel des documents
@@ -720,7 +786,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
         ref.refresh(driverProvider);
         _clearImageCache();
         Helpers.showSuccessSnackBar(context, 'Profil mis à jour avec succès!');
-        await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) {
           Navigator.of(context).pop(true);
         }
@@ -828,15 +893,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
               vignetteBytes: _newVignettePhotoBytes,
               isSubmitting: _isSubmitting,
               onPickInsurance: () => _pickDocumentPhoto(type: 'insurance'),
-              onDeleteInsurance: () => _deleteVehicleDocument('insurance'),
               onPickInspection: () => _pickDocumentPhoto(type: 'inspection'),
-              onDeleteInspection: () => _deleteVehicleDocument('inspection'),
               onPickGrayCard: () => _pickDocumentPhoto(type: 'gray_card'),
-              onDeleteGrayCard: () => _deleteVehicleDocument('gray_card'),
               onPickLicense: () => _pickDocumentPhoto(type: 'license'),
-              onDeleteLicense: () => _deleteVehicleDocument('license'),
               onPickVignette: () => _pickDocumentPhoto(type: 'vignette'),
-              onDeleteVignette: () => _deleteVehicleDocument('vignette'),
             ),
             const SizedBox(height: Dimensions.spacingXXL),
             // === DATE EXPIRATION VIGNETTE ===
@@ -869,6 +929,38 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
                 },
               ),
             ),
+            const SizedBox(height: Dimensions.spacingXXL),
+            // === BANK SECTION ===
+            BankSection(
+              bankAccountNameController: _bankAccountNameController,
+              bankAccountNumberController: _bankAccountNumberController,
+              bankNameController: _bankNameController,
+              isSubmitting: _isSubmitting,
+            ),
+            const SizedBox(height: Dimensions.spacingXXL),
+            // === MOBILE MONEY SECTION ===
+            MobileMoneySection(
+              mobileMoneyNumberController: _mobileMoneyNumberController,
+              selectedProvider: _selectedMobileMoneyProvider,
+              onProviderChanged: (val) => setState(() => _selectedMobileMoneyProvider = val),
+              isSubmitting: _isSubmitting,
+            ),
+            const SizedBox(height: Dimensions.spacingXXL),
+            // === EMERGENCY CONTACT SECTION ===
+            EmergencyContactSection(
+              contactNameController: _emergencyContactNameController,
+              contactPhoneController: _emergencyContactPhoneController,
+              contactRelationshipController: _emergencyContactRelationshipController,
+              isSubmitting: _isSubmitting,
+            ),
+            const SizedBox(height: Dimensions.spacingXXL),
+            // === EXPERIENCE SECTION ===
+            ExperienceSection(
+              yearsOfExperienceController: _yearsOfExperienceController,
+              previousEmployerController: _previousEmployerController,
+              isSubmitting: _isSubmitting,
+            ),
+            const SizedBox(height: Dimensions.spacingXXL),
             // === BUTTONS ===
             ActionButtonsSection(
               isSubmitting: _isSubmitting,
