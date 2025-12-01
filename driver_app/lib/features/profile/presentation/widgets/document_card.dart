@@ -1,21 +1,20 @@
 import 'dart:io';
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DocumentCard extends StatelessWidget {
   final String title;
   final String? url;
   final Uint8List? bytes;
   final VoidCallback onUpload;
-  final VoidCallback onDelete;
+  // Suppression du bouton Supprimer : onDelete retiré
 
   const DocumentCard({
     required this.title,
     required this.url,
     this.bytes,
     required this.onUpload,
-    required this.onDelete,
     super.key,
   });
 
@@ -67,18 +66,28 @@ class DocumentCard extends StatelessWidget {
                     onPressed: onUpload,
                     tooltip: 'Remplacer',
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: onDelete,
-                    tooltip: 'Supprimer',
-                  ),
                 ]
               ],
             ),
             if (!isMissing && url != null)
               TextButton(
-                onPressed: () {
-                  // Ouvrir le document (image ou PDF)
+                onPressed: () async {
+                  if (isPdf) {
+                    // Ouvre le PDF dans le navigateur
+                    if (await canLaunchUrl(Uri.parse(url!))) {
+                      await launchUrl(Uri.parse(url!), mode: LaunchMode.externalApplication);
+                    }
+                  } else if (isValidNetworkUrl) {
+                    // Affiche l'image dans un dialog
+                    showDialog(
+                      context: context,
+                      builder: (_) => Dialog(
+                        child: InteractiveViewer(
+                          child: Image.network(url!),
+                        ),
+                      ),
+                    );
+                  }
                 },
                 child: const Text('Voir'),
               ),

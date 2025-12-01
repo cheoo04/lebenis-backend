@@ -176,6 +176,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
     final paymentMethods = stats?['payment_methods'] as Map<String, dynamic>?;
     final orangeCount = int.tryParse(paymentMethods?['orange_money']?.toString() ?? '0') ?? 0;
     final mtnCount = int.tryParse(paymentMethods?['mtn_momo']?.toString() ?? '0') ?? 0;
+    final waveCount = int.tryParse(paymentMethods?['wave']?.toString() ?? '0') ?? 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -346,9 +347,14 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                   ),
                 ),
                 const SizedBox(width: Dimensions.spacingM),
-                // Espace pour un futur stat
-                const Expanded(
-                  child: SizedBox(),
+                Expanded(
+                  child: StatsCard(
+                    title: 'Wave',
+                    value: '$waveCount',
+                    subtitle: 'paiements',
+                    icon: Icons.waves,
+                    color: const Color(0xFF00B9E1), // Wave blue
+                  ),
                 ),
               ],
             ),
