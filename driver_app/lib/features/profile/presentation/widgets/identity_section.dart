@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/utils/backend_validators.dart';
-import '../../../../shared/theme/dimensions.dart';
+import '../../../../theme/app_spacing.dart';
 import '../../../../shared/widgets/custom_textfield.dart';
 import 'language_selector.dart';
 
@@ -39,7 +38,7 @@ class IdentitySection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Informations d\'identité', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: Dimensions.spacingM),
+        const SizedBox(height: AppSpacing.md),
         CustomTextField(
           label: 'Numéro de CNI',
           controller: cniController,
@@ -48,7 +47,7 @@ class IdentitySection extends StatelessWidget {
           validator: (value) =>
               value == null || value.trim().isEmpty ? 'Numéro de CNI requis' : null,
         ),
-        const SizedBox(height: Dimensions.spacingM),
+        const SizedBox(height: AppSpacing.md),
         ListTile(
           leading: const Icon(Icons.cake),
           title: Text(dateOfBirth != null
@@ -71,14 +70,14 @@ class IdentitySection extends StatelessWidget {
                   },
             ),
         ),
-        const SizedBox(height: Dimensions.spacingM),
+        const SizedBox(height: AppSpacing.md),
         LanguageSelector(
           allLanguages: allLanguages,
           selectedLanguages: selectedLanguages,
           isSubmitting: isSubmitting,
           onChanged: onLanguagesChanged,
         ),
-        const SizedBox(height: Dimensions.spacingM),
+        const SizedBox(height: AppSpacing.md),
         Row(
           children: [
             Expanded(

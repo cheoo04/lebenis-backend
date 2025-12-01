@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/notification_model.dart';
-import '../../../shared/theme/app_colors.dart';
-import '../../../shared/theme/text_styles.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../theme/app_typography.dart';
+import '../../../theme/app_spacing.dart';
+import '../../../theme/app_radius.dart';
 
 class NotificationCard extends StatelessWidget {
   final NotificationModel notification;
@@ -73,7 +75,7 @@ class NotificationCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           notification.typeLabel,
-                          style: TextStyles.caption.copyWith(
+                          style: AppTypography.caption.copyWith(
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
@@ -82,7 +84,7 @@ class NotificationCard extends StatelessWidget {
                       // Temps relatif
                       Text(
                         notification.relativeTime,
-                        style: TextStyles.caption.copyWith(
+                        style: AppTypography.caption.copyWith(
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -92,7 +94,7 @@ class NotificationCard extends StatelessWidget {
                   // Titre
                   Text(
                     notification.title,
-                    style: TextStyles.bodyMedium.copyWith(
+                    style: AppTypography.bodyMedium.copyWith(
                       fontWeight:
                           notification.isRead ? FontWeight.normal : FontWeight.bold,
                     ),
@@ -101,7 +103,7 @@ class NotificationCard extends StatelessWidget {
                   // Corps du message
                   Text(
                     notification.body,
-                    style: TextStyles.bodySmall.copyWith(
+                    style: AppTypography.bodySmall.copyWith(
                       color: AppColors.textSecondary,
                     ),
                     maxLines: 2,
@@ -123,7 +125,7 @@ class NotificationCard extends StatelessWidget {
                         ),
                         child: Text(
                           '#${notification.data['tracking_number']}',
-                          style: TextStyles.caption.copyWith(
+                          style: AppTypography.caption.copyWith(
                             fontFamily: 'Courier',
                             fontWeight: FontWeight.w600,
                           ),

@@ -6,27 +6,28 @@ part of 'status_distribution_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_StatusDistributionItemModel _$StatusDistributionItemModelFromJson(
+_$StatusDistributionItemModelImpl _$$StatusDistributionItemModelImplFromJson(
   Map<String, dynamic> json,
-) => _StatusDistributionItemModel(
+) => _$StatusDistributionItemModelImpl(
   status: json['status'] as String,
   count: (json['count'] as num).toInt(),
 );
 
-Map<String, dynamic> _$StatusDistributionItemModelToJson(
-  _StatusDistributionItemModel instance,
+Map<String, dynamic> _$$StatusDistributionItemModelImplToJson(
+  _$StatusDistributionItemModelImpl instance,
 ) => <String, dynamic>{'status': instance.status, 'count': instance.count};
 
-_StatusDistributionResponseModel _$StatusDistributionResponseModelFromJson(
-  Map<String, dynamic> json,
-) => _StatusDistributionResponseModel(
-  distribution: (json['distribution'] as List<dynamic>)
-      .map(
-        (e) => StatusDistributionItemModel.fromJson(e as Map<String, dynamic>),
-      )
-      .toList(),
-);
+_$StatusDistributionResponseModelImpl
+_$$StatusDistributionResponseModelImplFromJson(Map<String, dynamic> json) =>
+    _$StatusDistributionResponseModelImpl(
+      distribution: (json['distribution'] as List<dynamic>)
+          .map(
+            (e) =>
+                StatusDistributionItemModel.fromJson(e as Map<String, dynamic>),
+          )
+          .toList(),
+    );
 
-Map<String, dynamic> _$StatusDistributionResponseModelToJson(
-  _StatusDistributionResponseModel instance,
+Map<String, dynamic> _$$StatusDistributionResponseModelImplToJson(
+  _$StatusDistributionResponseModelImpl instance,
 ) => <String, dynamic>{'distribution': instance.distribution};

@@ -26,6 +26,7 @@ class _ConfirmDeliveryScreenState extends State<ConfirmDeliveryScreen> {
     setState(() => _submitting = true);
     // TODO: Envoyer _photo, _signature et _notes à l'API de confirmation de livraison
     await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
     setState(() => _submitting = false);
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preuve de livraison envoyée.')));
     Navigator.of(context).pop();

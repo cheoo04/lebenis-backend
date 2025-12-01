@@ -5,10 +5,13 @@ import '../../../../core/constants/backend_constants.dart';
 import '../../../../core/providers/delivery_provider.dart';
 import '../../../../core/providers/location_provider.dart';
 import '../../../../data/models/delivery_model.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
-import '../../../../shared/widgets/custom_button.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_radius.dart';
+import '../../../../shared/widgets/modern_button.dart';
+import '../../../../shared/widgets/modern_card.dart';
+import '../../../../shared/widgets/status_chip.dart';
 import '../../../../shared/utils/formatters.dart';
 import '../../../../shared/utils/helpers.dart';
 
@@ -177,19 +180,21 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
               child: Stack(
                 children: [
                   // Map Placeholder
-                  const Center(
+                  Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           Icons.map_outlined,
                           size: 80,
-                          color: Colors.grey,
+                          color: AppColors.textSecondary,
                         ),
-                        SizedBox(height: Dimensions.spacingM),
+                        const SizedBox(height: AppSpacing.md),
                         Text(
                           'Carte Google Maps avec suivi GPS',
-                          style: TextStyle(color: Colors.grey),
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ],
                     ),
@@ -197,16 +202,16 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
                   
                   // GPS Status Indicator
                   Positioned(
-                    top: Dimensions.spacingM,
-                    right: Dimensions.spacingM,
+                    top: AppSpacing.md,
+                    right: AppSpacing.md,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: Dimensions.spacingM,
-                        vertical: Dimensions.spacingS,
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
                       ),
                       decoration: BoxDecoration(
                         color: isGpsReady ? AppColors.success : AppColors.warning,
-                        borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.2),
@@ -220,12 +225,12 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
                           Icon(
                             locationState.isTracking ? Icons.gps_fixed : Icons.gps_off,
                             color: Colors.white,
-                            size: Dimensions.iconS,
+                            size: 20.0,
                           ),
-                          const SizedBox(width: Dimensions.spacingXS),
+                          const SizedBox(width: AppSpacing.xs),
                           Text(
                             locationState.isTracking ? 'GPS Actif' : 'GPS Inactif',
-                            style: TextStyles.labelSmall.copyWith(
+                            style: AppTypography.labelSmall.copyWith(
                               color: Colors.white,
                             ),
                           ),
@@ -242,14 +247,14 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
           Expanded(
             flex: 3,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(Dimensions.pagePadding),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Step Indicator
                   _StepIndicator(currentStep: _currentStep),
 
-                  const SizedBox(height: Dimensions.spacingXL),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Current Destination Card
                   _DestinationCard(
@@ -258,7 +263,7 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
                     onCall: _callContact,
                   ),
 
-                  const SizedBox(height: Dimensions.spacingXL),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Delivery Info
                   _InfoCard(
@@ -281,36 +286,37 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
                     ],
                   ),
 
-                  const SizedBox(height: Dimensions.spacingXL),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Action Buttons
                   if (_currentStep == DeliveryStep.goingToPickup) ...[
-                    CustomButton(
+                    ModernButton(
                       text: 'Confirmer la récupération',
                       onPressed: _isProcessing ? null : _confirmPickup,
                       isLoading: _isProcessing,
                       icon: Icons.check_circle,
-                      type: ButtonType.success,
+                      type: ModernButtonType.success,
                     ),
                   ] else if (_currentStep == DeliveryStep.goingToDelivery) ...[
-                    CustomButton(
+                    ModernButton(
                       text: 'Confirmer la livraison',
                       onPressed: _isProcessing ? null : _goToConfirmDelivery,
                       isLoading: _isProcessing,
                       icon: Icons.check_circle,
-                      type: ButtonType.success,
+                      type: ModernButtonType.success,
                     ),
                   ],
 
-                  const SizedBox(height: Dimensions.spacingM),
+                  const SizedBox(height: AppSpacing.md),
 
-                  OutlineButton(
+                  ModernButton(
                     text: 'Annuler la livraison',
                     onPressed: _isProcessing ? null : _cancelDelivery,
                     icon: Icons.cancel,
+                    type: ModernButtonType.outlined,
                   ),
 
-                  const SizedBox(height: Dimensions.spacingL),
+                  const SizedBox(height: AppSpacing.lg),
                 ],
               ),
             ),
@@ -435,10 +441,10 @@ class _StepItem extends StatelessWidget {
             color: isCompleted || isActive ? Colors.white : AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: Dimensions.spacingS),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           label,
-          style: TextStyles.labelSmall.copyWith(
+          style: AppTypography.labelSmall.copyWith(
             color: color,
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
           ),
@@ -470,7 +476,7 @@ class _DestinationCard extends StatelessWidget {
     return Card(
       elevation: 4,
       child: Padding(
-        padding: const EdgeInsets.all(Dimensions.cardPadding),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -480,21 +486,21 @@ class _DestinationCard extends StatelessWidget {
                   isPickup ? Icons.circle_outlined : Icons.location_on,
                   color: isPickup ? AppColors.success : AppColors.error,
                 ),
-                const SizedBox(width: Dimensions.spacingS),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   isPickup ? 'Aller récupérer' : 'Livrer à',
-                  style: TextStyles.h3,
+                  style: AppTypography.h3,
                 ),
               ],
             ),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
             Text(
               address,
-              style: TextStyles.bodyLarge,
+              style: AppTypography.bodyLarge,
             ),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
             const Divider(),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -504,14 +510,14 @@ class _DestinationCard extends StatelessWidget {
                     if (name != null) ...[
                       Text(
                         name,
-                        style: TextStyles.labelLarge,
+                        style: AppTypography.labelLarge,
                       ),
-                      const SizedBox(height: Dimensions.spacingXS),
+                      const SizedBox(height: AppSpacing.xs),
                     ],
                     if (phone != null)
                       Text(
                         Formatters.formatPhoneNumber(phone),
-                        style: TextStyles.bodyMedium.copyWith(
+                        style: AppTypography.bodyMedium.copyWith(
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -519,18 +525,30 @@ class _DestinationCard extends StatelessWidget {
                 ),
                 Row(
                   children: [
-                    IconCircleButton(
-                      icon: Icons.phone,
-                      onPressed: () => onCall(phone),
-                      backgroundColor: AppColors.success,
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.success,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.phone),
+                        onPressed: () => onCall(phone),
+                        color: Colors.white,
+                      ),
                     ),
-                    const SizedBox(width: Dimensions.spacingS),
-                    IconCircleButton(
-                      icon: Icons.navigation,
-                      onPressed: () {
-                        Helpers.showSnackBar(context, 'Ouverture de Google Maps...');
-                      },
-                      backgroundColor: AppColors.primary,
+                    const SizedBox(width: AppSpacing.sm),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.navigation),
+                        onPressed: () {
+                          Helpers.showSnackBar(context, 'Ouverture de Google Maps...');
+                        },
+                        color: Colors.white,
+                      ),
                     ),
                   ],
                 ),
@@ -558,32 +576,32 @@ class _InfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(Dimensions.cardPadding),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, size: Dimensions.iconM),
-                const SizedBox(width: Dimensions.spacingS),
-                Text(title, style: TextStyles.labelLarge),
+                Icon(icon, size: 24.0),
+                const SizedBox(width: AppSpacing.sm),
+                Text(title, style: AppTypography.labelLarge),
               ],
             ),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
             ...items.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: Dimensions.spacingS),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         item.label,
-                        style: TextStyles.bodyMedium.copyWith(
+                        style: AppTypography.bodyMedium.copyWith(
                           color: AppColors.textSecondary,
                         ),
                       ),
                       Text(
                         item.value,
-                        style: TextStyles.bodyMedium,
+                        style: AppTypography.bodyMedium,
                       ),
                     ],
                   ),

@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/providers/payment_provider.dart';
 import '../../../../data/models/payment_model.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/loading_widget.dart';
 import '../../../../shared/widgets/error_widget.dart';
+import '../../../../shared/widgets/status_chip.dart';
 import '../widgets/transaction_card.dart';
 
 /// Écran affichant l'historique complet des transactions avec filtres
@@ -181,8 +183,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   // Header Stats
                   SliverToBoxAdapter(
                     child: Container(
-                      margin: const EdgeInsets.all(Dimensions.pagePadding),
-                      padding: const EdgeInsets.all(Dimensions.cardPadding),
+                      margin: const EdgeInsets.all(AppSpacing.lg),
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
@@ -190,26 +192,26 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                             AppColors.primary.withValues(alpha: 0.8),
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       child: Column(
                         children: [
                           Text(
                             'Solde net',
-                            style: TextStyles.bodyMedium.copyWith(
+                            style: AppTypography.bodyMedium.copyWith(
                               color: Colors.white.withValues(alpha: 0.9),
                             ),
                           ),
-                          const SizedBox(height: Dimensions.spacingS),
+                          const SizedBox(height: AppSpacing.sm),
                           Text(
                             '${totalAmount >= 0 ? '+' : ''}${totalAmount.toStringAsFixed(0)} FCFA',
-                            style: TextStyles.h1.copyWith(
+                            style: AppTypography.h1.copyWith(
                               color: Colors.white,
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: Dimensions.spacingL),
+                          const SizedBox(height: AppSpacing.lg),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
@@ -253,11 +255,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     SliverToBoxAdapter(
                       child: Container(
                         margin: const EdgeInsets.symmetric(
-                          horizontal: Dimensions.pagePadding,
-                          vertical: Dimensions.spacingS,
+                          horizontal: AppSpacing.lg,
+                          vertical: AppSpacing.sm,
                         ),
                         child: Wrap(
-                          spacing: Dimensions.spacingS,
+                          spacing: AppSpacing.sm,
                           children: [
                             if (_selectedType != null)
                               Chip(
@@ -283,14 +285,14 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 
                   // Liste des transactions
                   SliverPadding(
-                    padding: const EdgeInsets.all(Dimensions.pagePadding),
+                    padding: const EdgeInsets.all(AppSpacing.lg),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
                           if (index >= transactions.length) {
                             return _isLoadingMore
                                 ? const Padding(
-                                    padding: EdgeInsets.all(Dimensions.spacingL),
+                                    padding: EdgeInsets.all(AppSpacing.lg),
                                     child: Center(
                                       child: CircularProgressIndicator(),
                                     ),
@@ -319,7 +321,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(Dimensions.pagePadding),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -328,25 +330,25 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               size: 100,
               color: AppColors.textSecondary.withValues(alpha: 0.5),
             ),
-            const SizedBox(height: Dimensions.spacingL),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               hasFilters ? 'Aucun résultat' : 'Aucune transaction',
-              style: TextStyles.h3.copyWith(
+              style: AppTypography.h3.copyWith(
                 color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: Dimensions.spacingS),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               hasFilters
                   ? 'Essayez de modifier vos filtres'
                   : 'Vos transactions apparaîtront ici',
               textAlign: TextAlign.center,
-              style: TextStyles.bodyMedium.copyWith(
+              style: AppTypography.bodyMedium.copyWith(
                 color: AppColors.textSecondary,
               ),
             ),
             if (hasFilters) ...[
-              const SizedBox(height: Dimensions.spacingL),
+              const SizedBox(height: AppSpacing.lg),
               ElevatedButton.icon(
                 onPressed: _clearFilters,
                 icon: const Icon(Icons.clear_all),
@@ -418,19 +420,19 @@ class _StatItem extends StatelessWidget {
         Icon(
           icon,
           color: statColor.withValues(alpha: 0.9),
-          size: Dimensions.iconM,
+          size: 24.0,
         ),
-        const SizedBox(height: Dimensions.spacingXS),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           label,
-          style: TextStyles.caption.copyWith(
+          style: AppTypography.caption.copyWith(
             color: Colors.white.withValues(alpha: 0.7),
           ),
         ),
-        const SizedBox(height: Dimensions.spacingXS),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           value,
-          style: TextStyles.h3.copyWith(
+          style: AppTypography.h3.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -475,7 +477,7 @@ class _FilterSheetState extends State<_FilterSheet> {
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(Dimensions.radiusL),
+          top: Radius.circular(AppRadius.lg),
         ),
       ),
       child: SafeArea(
@@ -484,7 +486,7 @@ class _FilterSheetState extends State<_FilterSheet> {
           children: [
             // Handle
             Container(
-              margin: const EdgeInsets.symmetric(vertical: Dimensions.spacingM),
+              margin: const EdgeInsets.symmetric(vertical: AppSpacing.md),
               width: 40,
               height: 4,
               decoration: BoxDecoration(
@@ -495,13 +497,13 @@ class _FilterSheetState extends State<_FilterSheet> {
 
             // Title
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: Dimensions.pagePadding),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
                       'Filtrer les transactions',
-                      style: TextStyles.h2,
+                      style: AppTypography.h2,
                     ),
                   ),
                   IconButton(
@@ -516,20 +518,20 @@ class _FilterSheetState extends State<_FilterSheet> {
 
             // Filters
             Padding(
-              padding: const EdgeInsets.all(Dimensions.pagePadding),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Type de transaction
                   Text(
                     'Type de transaction',
-                    style: TextStyles.labelLarge.copyWith(
+                    style: AppTypography.labelLarge.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: Dimensions.spacingM),
+                  const SizedBox(height: AppSpacing.md),
                   Wrap(
-                    spacing: Dimensions.spacingS,
+                    spacing: AppSpacing.sm,
                     children: [
                       _FilterChip(
                         label: 'Tous',
@@ -554,18 +556,18 @@ class _FilterSheetState extends State<_FilterSheet> {
                     ],
                   ),
 
-                  const SizedBox(height: Dimensions.spacingL),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // Statut
                   Text(
                     'Statut',
-                    style: TextStyles.labelLarge.copyWith(
+                    style: AppTypography.labelLarge.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: Dimensions.spacingM),
+                  const SizedBox(height: AppSpacing.md),
                   Wrap(
-                    spacing: Dimensions.spacingS,
+                    spacing: AppSpacing.sm,
                     children: [
                       _FilterChip(
                         label: 'Tous',
@@ -593,7 +595,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                     ],
                   ),
 
-                  const SizedBox(height: Dimensions.spacingXL),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Boutons
                   Row(
@@ -604,7 +606,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                           child: const Text('Effacer'),
                         ),
                       ),
-                      const SizedBox(width: Dimensions.spacingM),
+                      const SizedBox(width: AppSpacing.md),
                       Expanded(
                         flex: 2,
                         child: ElevatedButton(
@@ -644,11 +646,11 @@ class _FilterChip extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(Dimensions.radiusM),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: Dimensions.spacingM,
-          vertical: Dimensions.spacingS,
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
         ),
         decoration: BoxDecoration(
           color: isSelected
@@ -658,11 +660,11 @@ class _FilterChip extends StatelessWidget {
             color: isSelected ? chipColor : AppColors.border,
             width: isSelected ? 2 : 1,
           ),
-          borderRadius: BorderRadius.circular(Dimensions.radiusM),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         child: Text(
           label,
-          style: TextStyles.labelMedium.copyWith(
+          style: AppTypography.labelMedium.copyWith(
             color: isSelected ? chipColor : AppColors.textSecondary,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
@@ -689,14 +691,14 @@ class _TransactionDetailsSheet extends StatelessWidget {
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(
-              top: Radius.circular(Dimensions.radiusL),
+              top: Radius.circular(AppRadius.lg),
             ),
           ),
           child: Column(
             children: [
               // Handle
               Container(
-                margin: const EdgeInsets.symmetric(vertical: Dimensions.spacingM),
+                margin: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
@@ -707,13 +709,13 @@ class _TransactionDetailsSheet extends StatelessWidget {
 
               // Title
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: Dimensions.pagePadding),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Row(
                   children: [
                     Expanded(
                       child: Text(
                         'Détails de la transaction',
-                        style: TextStyles.h2,
+                        style: AppTypography.h2,
                       ),
                     ),
                     IconButton(
@@ -730,11 +732,11 @@ class _TransactionDetailsSheet extends StatelessWidget {
               Expanded(
                 child: ListView(
                   controller: scrollController,
-                  padding: const EdgeInsets.all(Dimensions.pagePadding),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
                   children: [
                     TransactionCard(transaction: transaction),
 
-                    const SizedBox(height: Dimensions.spacingL),
+                    const SizedBox(height: AppSpacing.lg),
 
                     // Détails supplémentaires
                     _DetailRow(
@@ -751,23 +753,23 @@ class _TransactionDetailsSheet extends StatelessWidget {
                       value: transaction.currency,
                     ),
                     if (transaction.metadata != null) ...[
-                      const SizedBox(height: Dimensions.spacingM),
+                      const SizedBox(height: AppSpacing.md),
                       Text(
                         'Métadonnées',
-                        style: TextStyles.labelLarge.copyWith(
+                        style: AppTypography.labelLarge.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: Dimensions.spacingS),
+                      const SizedBox(height: AppSpacing.sm),
                       Container(
-                        padding: const EdgeInsets.all(Dimensions.cardPadding),
+                        padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
                           color: AppColors.background,
-                          borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: Text(
                           transaction.metadata.toString(),
-                          style: TextStyles.bodySmall.copyWith(
+                          style: AppTypography.bodySmall.copyWith(
                             fontFamily: 'monospace',
                           ),
                         ),
@@ -797,7 +799,7 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: Dimensions.spacingM),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -805,7 +807,7 @@ class _DetailRow extends StatelessWidget {
             flex: 2,
             child: Text(
               label,
-              style: TextStyles.bodyMedium.copyWith(
+              style: AppTypography.bodyMedium.copyWith(
                 color: AppColors.textSecondary,
               ),
             ),
@@ -814,7 +816,7 @@ class _DetailRow extends StatelessWidget {
             flex: 3,
             child: Text(
               value,
-              style: TextStyles.bodyMedium.copyWith(
+              style: AppTypography.bodyMedium.copyWith(
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.end,

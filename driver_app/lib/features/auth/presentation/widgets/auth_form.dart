@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../shared/theme/dimensions.dart';
+import '../../../../theme/app_spacing.dart';
 import '../../../../shared/widgets/custom_textfield.dart';
 import '../../../../shared/utils/validators.dart';
 
@@ -40,7 +40,7 @@ class AuthForm extends StatelessWidget {
           enabled: enabled,
         ),
         
-        const SizedBox(height: Dimensions.spacingM),
+        const SizedBox(height: AppSpacing.md),
         
         CustomTextField(
           controller: passwordController,
@@ -61,7 +61,7 @@ class AuthForm extends StatelessWidget {
         ),
 
         if (showPasswordConfirm) ...[
-          const SizedBox(height: Dimensions.spacingM),
+          const SizedBox(height: AppSpacing.md),
           
           CustomTextField(
             controller: passwordConfirmController!,

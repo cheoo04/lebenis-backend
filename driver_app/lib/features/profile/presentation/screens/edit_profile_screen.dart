@@ -15,8 +15,10 @@ import '../../../../data/models/driver_model.dart';
 import '../../../../data/providers/driver_cni_upload_provider.dart';
 import '../../../../data/providers/driver_provider.dart';
 import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_radius.dart';
+import '../../../../shared/widgets/modern_text_field.dart';
 import '../../../../shared/utils/helpers.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_textfield.dart';
@@ -443,11 +445,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
       if (success) {
         _resetPhotoState();
         _clearImageCache();
+        if (!mounted) return;
         Helpers.showSuccessSnackBar(context, 'Photo de profil supprimée avec succès');
       } else {
+        if (!mounted) return;
         Helpers.showErrorSnackBar(context, 'Échec de la suppression de la photo');
       }
     } catch (e) {
+      if (!mounted) return;
       Helpers.showErrorSnackBar(context, 'Erreur: $e');
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -557,8 +562,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
   // Nouvelle méthode centralisée pour upload
   Future<Map<String, String?>> _uploadAllDocuments() async {
     debugPrint('=== DEBUG UPLOAD ===');
-    debugPrint('Photo de profil: file=${_newProfilePhoto}, bytes=${_newProfilePhotoBytes?.length}');
-    debugPrint('Vignette: file=${_newVignettePhoto}, bytes=${_newVignettePhotoBytes?.length}');
+    debugPrint('Photo de profil: file=$_newProfilePhoto, bytes=${_newProfilePhotoBytes?.length}');
+    debugPrint('Vignette: file=$_newVignettePhoto, bytes=${_newVignettePhotoBytes?.length}');
     final Map<String, String?> uploads = {};
     final List<String> failed = [];
     // Helper to upload and check
@@ -682,7 +687,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
       uploads['vignette'] = _initialVignetteUrl;
     }
     if (failed.isNotEmpty) {
-      Helpers.showErrorSnackBar(context, 'Échec de l\'upload pour :\n' + failed.join(', '));
+      Helpers.showErrorSnackBar(context, 'Échec de l\'upload pour :\n${failed.join(', ')}');
     }
     return uploads;
   }
@@ -722,7 +727,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
         // Garde lettres/chiffres/espaces, majuscules
         return plate.replaceAll(RegExp(r'[^A-Za-z0-9 ]'), '').toUpperCase();
       }
-      String? formatDate(DateTime? d) => d == null ? null : d.toIso8601String().split('T').first;
+      String? formatDate(DateTime? d) => d?.toIso8601String().split('T').first;
       String? truncate(String? s, int max) => (s != null && s.length > max) ? s.substring(0, max) : s;
 
       final updateData = <String, dynamic>{
@@ -785,10 +790,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
         await Future.delayed(const Duration(milliseconds: 500));
         ref.refresh(driverProvider);
         _clearImageCache();
+        if (!mounted) return;
         Helpers.showSuccessSnackBar(context, 'Profil mis à jour avec succès!');
-        if (mounted) {
-          Navigator.of(context).pop(true);
-        }
+        Navigator.of(context).pop(true);
       } else {
         // Afficher l'erreur détaillée si présente dans le provider
         final error = ref.read(driverProvider).error;
@@ -842,7 +846,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(Dimensions.pagePadding),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
             // === PROFILE PHOTO ===
             ProfilePhotoSection(
@@ -853,7 +857,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
               isSubmitting: _isSubmitting,
               onPickProfilePhoto: _pickProfilePhoto,
             ),
-            const SizedBox(height: Dimensions.spacingXXL),
+            const SizedBox(height: AppSpacing.xxl),
             // === IDENTITY INFORMATION ===
             IdentitySection(
               cniController: _cniController,
@@ -868,7 +872,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
               onPickCniFront: () => _pickCniPhoto(true),
               onPickCniBack: () => _pickCniPhoto(false),
             ),
-            const SizedBox(height: Dimensions.spacingXXL),
+            const SizedBox(height: AppSpacing.xxl),
             // === VEHICLE INFORMATION ===
             VehicleSection(
               phoneController: _phoneController,
@@ -878,7 +882,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
               isSubmitting: _isSubmitting,
               onSelectVehicleType: _selectVehicleType,
             ),
-            const SizedBox(height: Dimensions.spacingXXL),
+            const SizedBox(height: AppSpacing.xxl),
             // === VEHICLE DOCUMENTS ===
             VehicleDocumentsSection(
               initialInsuranceUrl: _initialInsuranceUrl,
@@ -898,7 +902,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
               onPickLicense: () => _pickDocumentPhoto(type: 'license'),
               onPickVignette: () => _pickDocumentPhoto(type: 'vignette'),
             ),
-            const SizedBox(height: Dimensions.spacingXXL),
+            const SizedBox(height: AppSpacing.xxl),
             // === DATE EXPIRATION VIGNETTE ===
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -929,7 +933,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
                 },
               ),
             ),
-            const SizedBox(height: Dimensions.spacingXXL),
+            const SizedBox(height: AppSpacing.xxl),
             // === BANK SECTION ===
             BankSection(
               bankAccountNameController: _bankAccountNameController,
@@ -937,7 +941,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
               bankNameController: _bankNameController,
               isSubmitting: _isSubmitting,
             ),
-            const SizedBox(height: Dimensions.spacingXXL),
+            const SizedBox(height: AppSpacing.xxl),
             // === MOBILE MONEY SECTION ===
             MobileMoneySection(
               mobileMoneyNumberController: _mobileMoneyNumberController,
@@ -945,7 +949,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
               onProviderChanged: (val) => setState(() => _selectedMobileMoneyProvider = val),
               isSubmitting: _isSubmitting,
             ),
-            const SizedBox(height: Dimensions.spacingXXL),
+            const SizedBox(height: AppSpacing.xxl),
             // === EMERGENCY CONTACT SECTION ===
             EmergencyContactSection(
               contactNameController: _emergencyContactNameController,
@@ -953,14 +957,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
               contactRelationshipController: _emergencyContactRelationshipController,
               isSubmitting: _isSubmitting,
             ),
-            const SizedBox(height: Dimensions.spacingXXL),
+            const SizedBox(height: AppSpacing.xxl),
             // === EXPERIENCE SECTION ===
             ExperienceSection(
               yearsOfExperienceController: _yearsOfExperienceController,
               previousEmployerController: _previousEmployerController,
               isSubmitting: _isSubmitting,
             ),
-            const SizedBox(height: Dimensions.spacingXXL),
+            const SizedBox(height: AppSpacing.xxl),
             // === BUTTONS ===
             ActionButtonsSection(
               isSubmitting: _isSubmitting,
@@ -974,7 +978,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
                 Navigator.of(context).pop();
               },
             ),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
           ],
         ),
       ),

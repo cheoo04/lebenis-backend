@@ -5,10 +5,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'firebase_options.dart';
-import 'shared/theme/app_theme.dart';
+import 'theme/app_theme.dart';
 import 'core/constants/app_strings.dart';
 import 'core/services/notification_service.dart';
 import 'core/routes/app_router.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'data/repositories/chat_repository.dart';
+import 'features/chat/providers/chat_provider.dart';
+import 'data/providers/auth_provider.dart';
 
 /// Handler pour les messages Firebase en arrière-plan
 /// DOIT être une fonction top-level
@@ -77,6 +81,29 @@ void main() async {
       overrides: [
         // Passer l'état Firebase aux providers
         firebaseEnabledProvider.overrideWithValue(firebaseInitialized),
+        
+        // Override Firebase Database provider uniquement si Firebase est activé
+        if (firebaseInitialized)
+          firebaseDatabaseProvider.overrideWithValue(FirebaseDatabase.instance),
+        
+        // Override ChatRepository provider avec ou sans Firebase
+        chatRepositoryProvider.overrideWith((ref) {
+          final dioClient = ref.watch(dioClientProvider);
+          final authService = ref.watch(authServiceProvider);
+          
+          if (firebaseInitialized) {
+            final firebaseDb = ref.watch(firebaseDatabaseProvider);
+            return ChatRepository(
+              dioClient: dioClient,
+              firebaseDatabase: firebaseDb,
+              authService: authService,
+            );
+          } else {
+            // Sur les plateformes non supportées, créer un mock ou retourner une instance sans Firebase
+            // Pour l'instant, on lance une erreur si l'utilisateur tente d'accéder au chat
+            throw UnsupportedError('Chat functionality requires Firebase (not available on this platform)');
+          }
+        }),
       ],
       child: const LeBenisDriverApp(),
     ),
@@ -106,15 +133,9 @@ class _LeBenisDriverAppState extends ConsumerState<LeBenisDriverApp> {
   Future<void> _initializeNotifications() async {
     // Vérifier si Firebase est activé
     final firebaseEnabled = ref.read(firebaseEnabledProvider);
-    if (!firebaseEnabled) {
-      if (kDebugMode) {
-        debugPrint('⚠️ Notifications désactivées (Firebase non configuré)');
-      }
-      return;
-    }
 
     try {
-      await _notificationService.initialize();
+      await _notificationService.initialize(firebaseEnabled: firebaseEnabled);
       if (kDebugMode) {
         debugPrint('✅ Notifications initialisées');
       }

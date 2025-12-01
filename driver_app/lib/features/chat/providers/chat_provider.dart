@@ -9,9 +9,9 @@ import '../services/chat_notification_service.dart';
 
 // ==================== Providers de base ====================
 
-/// Provider pour Firebase Database
+/// Provider pour Firebase Database (sera overridé dans main.dart avec contrôle plateforme)
 final firebaseDatabaseProvider = Provider<FirebaseDatabase>((ref) {
-  return FirebaseDatabase.instance;
+  throw UnimplementedError('Firebase Database not available on this platform');
 });
 
 /// Provider pour NotificationService
@@ -32,17 +32,9 @@ final chatNotificationServiceProvider = Provider<ChatNotificationService>((ref) 
   );
 });
 
-/// Provider pour le ChatRepository
+/// Provider pour le ChatRepository (sera overridé dans main.dart avec contrôle plateforme)
 final chatRepositoryProvider = Provider<ChatRepository>((ref) {
-  final dioClient = ref.watch(dioClientProvider);
-  final firebaseDb = ref.watch(firebaseDatabaseProvider);
-  final authService = ref.watch(authServiceProvider);
-  
-  return ChatRepository(
-    dioClient: dioClient,
-    firebaseDatabase: firebaseDb,
-    authService: authService,
-  );
+  throw UnimplementedError('ChatRepository must be overridden in main.dart with platform check');
 });
 
 // ==================== State Classes ====================

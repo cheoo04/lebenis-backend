@@ -2,7 +2,7 @@ name: driver_app
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # js: any
   # Localizations
   flutter_localizations:
@@ -39,56 +39,56 @@ dependencies:
   # HTTP & Networking
   dio: ^5.3.3
   http: ^1.6.0
-  
+
   # Storage sécurisé
-  flutter_secure_storage: ^10.0.0-beta.4
-  
+  flutter_secure_storage: ^9.0.0
+
   # State Management
-  flutter_riverpod: ^3.0.3           # StateNotifierProvider, etc.
-  
+  flutter_riverpod: ^3.0.3 # StateNotifierProvider, etc.
+
   # Code Generation (Models immutables)
-  freezed_annotation: ^3.1.0
+  freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
-  
+
   # Firebase
   firebase_core: ^4.2.1
   firebase_messaging: ^16.0.4
-  firebase_database: ^12.0.4             # Realtime Database pour chat (version compatible)
-  flutter_local_notifications: ^19.5.0  # Pour afficher les notifs
-  
+  firebase_database: ^12.0.4 # Realtime Database pour chat (version compatible)
+  flutter_local_notifications: ^19.5.0 # Pour afficher les notifs
+
   # Géolocalisation
   geolocator: ^14.0.2
   geocoding: ^4.0.0
-  
+
   # Cartes (Google Maps)
   google_maps_flutter: ^2.5.0
-  
+
   # Scanner QR/Barcode
   mobile_scanner: ^7.1.3
-  
+
   # Charts pour earnings
   fl_chart: ^1.1.1
-  
+
   # Images & Médias
   image_picker: ^1.2.0
-  cached_network_image: ^3.3.0       # Pour les images avec cache
-  
+  cached_network_image: ^3.3.0 # Pour les images avec cache
+
   # Signature
   signature: ^6.3.0
-  
+
   # Permissions
   permission_handler: ^12.0.1
-  
+
   # URL Launcher (pour appels téléphoniques, SMS, emails, etc.)
   url_launcher: ^6.3.2
-  
+
   # Utilitaires
-  device_info_plus: ^12.2.0           # Info appareil
-  intl: ^0.20.2                      # Formatage dates/nombres
-  path_provider: ^2.1.1              # Pour sauvegarder fichiers
-  path: ^1.9.0                       # Manipulation de chemins de fichiers
-  share_plus: ^12.0.1                # Partager fichiers
-  open_file: ^3.5.10                 # Ouvrir fichiers PDF
+  device_info_plus: ^12.2.0 # Info appareil
+  intl: ^0.20.2 # Formatage dates/nombres
+  path_provider: ^2.1.1 # Pour sauvegarder fichiers
+  path: ^1.9.0 # Manipulation de chemins de fichiers
+  share_plus: ^12.0.1 # Partager fichiers
+  open_file: ^3.5.10 # Ouvrir fichiers PDF
 
   # Icons
   cupertino_icons: ^1.0.8
@@ -109,10 +109,10 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-  
+
   # Code generation
   build_runner: ^2.4.6
-  freezed: ^3.2.3
+  freezed: ^2.5.7
   json_serializable: ^6.7.1
   test: ^1.26.2
 
@@ -121,12 +121,11 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-  
+
   # Internationalisation
   generate: true
 

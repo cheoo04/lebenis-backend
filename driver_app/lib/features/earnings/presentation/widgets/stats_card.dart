@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_radius.dart';
 import '../../../../shared/utils/formatters.dart';
 
 class StatsCard extends StatelessWidget {
@@ -30,9 +31,9 @@ class StatsCard extends StatelessWidget {
       elevation: 2,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
-          padding: const EdgeInsets.all(Dimensions.cardPadding),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -40,45 +41,45 @@ class StatsCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(Dimensions.spacingS),
+                    padding: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
                       color: cardColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Icon(
                       icon,
                       color: cardColor,
-                      size: Dimensions.iconM,
+                      size: 24.0,
                     ),
                   ),
                   const Spacer(),
                   if (onTap != null)
                     Icon(
                       Icons.arrow_forward_ios,
-                      size: Dimensions.iconS,
+                      size: 20.0,
                       color: AppColors.textSecondary,
                     ),
                 ],
               ),
-              const SizedBox(height: Dimensions.spacingM),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 title,
-                style: TextStyles.labelMedium.copyWith(
+                style: AppTypography.labelMedium.copyWith(
                   color: AppColors.textSecondary,
                 ),
               ),
-              const SizedBox(height: Dimensions.spacingXS),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 value,
-                style: TextStyles.h2.copyWith(
+                style: AppTypography.h2.copyWith(
                   color: cardColor,
                 ),
               ),
               if (subtitle != null) ...[
-                const SizedBox(height: Dimensions.spacingXS),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   subtitle!,
-                  style: TextStyles.caption,
+                  style: AppTypography.caption,
                 ),
               ],
             ],
@@ -108,7 +109,7 @@ class EarningsSummaryCard extends StatelessWidget {
     return Card(
       color: AppColors.primary,
       child: Padding(
-        padding: const EdgeInsets.all(Dimensions.cardPadding),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -117,36 +118,36 @@ class EarningsSummaryCard extends StatelessWidget {
                 Icon(
                   Icons.calendar_today,
                   color: Colors.white.withValues(alpha: 0.8),
-                  size: Dimensions.iconS,
+                  size: 20.0,
                 ),
-                const SizedBox(width: Dimensions.spacingXS),
+                const SizedBox(width: AppSpacing.xs),
                 Text(
                   period,
-                  style: TextStyles.labelMedium.copyWith(
+                  style: AppTypography.labelMedium.copyWith(
                     color: Colors.white.withValues(alpha: 0.8),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: Dimensions.spacingL),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               'Gains totaux',
-              style: TextStyles.bodyMedium.copyWith(
+              style: AppTypography.bodyMedium.copyWith(
                 color: Colors.white.withValues(alpha: 0.9),
               ),
             ),
-            const SizedBox(height: Dimensions.spacingXS),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               Formatters.formatPrice(totalEarnings),
-              style: TextStyles.h1.copyWith(
+              style: AppTypography.h1.copyWith(
                 color: Colors.white,
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: Dimensions.spacingL),
+            const SizedBox(height: AppSpacing.lg),
             const Divider(color: Colors.white24),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -193,22 +194,22 @@ class _StatItem extends StatelessWidget {
           Icon(
             icon,
             color: Colors.white.withValues(alpha: 0.8),
-            size: Dimensions.iconM,
+            size: 24.0,
           ),
-          const SizedBox(width: Dimensions.spacingS),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
-                  style: TextStyles.caption.copyWith(
+                  style: AppTypography.caption.copyWith(
                     color: Colors.white.withValues(alpha: 0.7),
                   ),
                 ),
                 Text(
                   value,
-                  style: TextStyles.labelLarge.copyWith(
+                  style: AppTypography.labelLarge.copyWith(
                     color: Colors.white,
                   ),
                   overflow: TextOverflow.ellipsis,

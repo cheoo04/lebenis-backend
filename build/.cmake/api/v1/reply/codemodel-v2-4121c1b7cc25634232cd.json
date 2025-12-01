@@ -1,0 +1,321 @@
+{
+	"configurations" : 
+	[
+		{
+			"abstractTargets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "PkgConfig::GIO::@2bb09fbb03a373b2cb34",
+					"jsonFile" : "target-PkgConfig__GIO-Debug-85745bbc066ba6c594c3.json",
+					"name" : "PkgConfig::GIO",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "PkgConfig::GLIB::@2bb09fbb03a373b2cb34",
+					"jsonFile" : "target-PkgConfig__GLIB-Debug-b4a71278ffb76130e321.json",
+					"name" : "PkgConfig::GLIB",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "PkgConfig::GTK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-PkgConfig__GTK-Debug-ae0fd6bab4117991c979.json",
+					"name" : "PkgConfig::GTK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "PkgConfig::GTK::@2bb09fbb03a373b2cb34",
+					"jsonFile" : "target-PkgConfig__GTK-Debug-b14700a0722dfb245383.json",
+					"name" : "PkgConfig::GTK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "PkgConfig::LIBSECRET::@facd980744eea941fe37",
+					"jsonFile" : "target-PkgConfig__LIBSECRET-Debug-f67f2ac556a3fe440b2b.json",
+					"name" : "PkgConfig::LIBSECRET",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "flutter::@2bb09fbb03a373b2cb34",
+					"jsonFile" : "target-flutter-Debug-824f86f653f671a917cf.json",
+					"name" : "flutter",
+					"projectIndex" : 0
+				}
+			],
+			"directories" : 
+			[
+				{
+					"abstractTargetIndexes" : 
+					[
+						2
+					],
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-d44e638c5ac9735d2629.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"abstractTargetIndexes" : 
+					[
+						0,
+						1,
+						3,
+						5
+					],
+					"build" : "flutter",
+					"jsonFile" : "directory-flutter-Debug-8c6948c963ff8a700163.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "flutter",
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"build" : "runner",
+					"jsonFile" : "directory-runner-Debug-a82e021081316c606242.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "runner",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "plugins/file_selector_linux",
+					"jsonFile" : "directory-plugins.file_selector_linux-Debug-7765ef01c4b3119ae21c.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "flutter/ephemeral/.plugin_symlinks/file_selector_linux/linux",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"abstractTargetIndexes" : 
+					[
+						4
+					],
+					"build" : "plugins/flutter_secure_storage_linux",
+					"jsonFile" : "directory-plugins.flutter_secure_storage_linux-Debug-739a25e3fb9caab92847.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "flutter/ephemeral/.plugin_symlinks/flutter_secure_storage_linux/linux",
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"build" : "plugins/open_file_linux",
+					"jsonFile" : "directory-plugins.open_file_linux-Debug-e1ce17a7dd9ca7f70545.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 3,
+					"source" : "flutter/ephemeral/.plugin_symlinks/open_file_linux/linux",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "plugins/url_launcher_linux",
+					"jsonFile" : "directory-plugins.url_launcher_linux-Debug-eff8475adc7488d5a7e6.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 4,
+					"source" : "flutter/ephemeral/.plugin_symlinks/url_launcher_linux/linux",
+					"targetIndexes" : 
+					[
+						5
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"abstractTargetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						5
+					],
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3,
+						4
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2
+					],
+					"name" : "runner",
+					"targetIndexes" : 
+					[
+						0,
+						2
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						3
+					],
+					"name" : "file_selector_linux",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"abstractTargetIndexes" : 
+					[
+						4
+					],
+					"directoryIndexes" : 
+					[
+						4
+					],
+					"name" : "flutter_secure_storage_linux",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						5
+					],
+					"name" : "open_file_linux",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						6
+					],
+					"name" : "url_launcher_linux",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						5
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 2,
+					"id" : "driver_app::@056c4f61b0156d1d9b06",
+					"jsonFile" : "target-driver_app-Debug-9d2eb36dc5e9dd910672.json",
+					"name" : "driver_app",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "file_selector_linux_plugin::@7c9bf7a1cf6bec785d6d",
+					"jsonFile" : "target-file_selector_linux_plugin-Debug-691407d528386d243df6.json",
+					"name" : "file_selector_linux_plugin",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "flutter_assemble::@2bb09fbb03a373b2cb34",
+					"jsonFile" : "target-flutter_assemble-Debug-76badcfcfadc1b2c6096.json",
+					"name" : "flutter_assemble",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "flutter_secure_storage_linux_plugin::@facd980744eea941fe37",
+					"jsonFile" : "target-flutter_secure_storage_linux_plugin-Debug-c54e9176e92135e20380.json",
+					"name" : "flutter_secure_storage_linux_plugin",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "open_file_linux_plugin::@fa95addebb39b6c10ed7",
+					"jsonFile" : "target-open_file_linux_plugin-Debug-597191af4cb1ecc2e29f.json",
+					"name" : "open_file_linux_plugin",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "url_launcher_linux_plugin::@f99505b10d3d80eeda47",
+					"jsonFile" : "target-url_launcher_linux_plugin-Debug-5bfe17d691264b39baf3.json",
+					"name" : "url_launcher_linux_plugin",
+					"projectIndex" : 4
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/cheoo/lebenis_project/build",
+		"source" : "/home/cheoo/lebenis_project/driver_app/linux"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 9
+	}
+}

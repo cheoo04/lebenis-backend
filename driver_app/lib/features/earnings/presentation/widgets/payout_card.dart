@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../data/models/payment_model.dart';
 import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_radius.dart';
 import '../../../../shared/utils/formatters.dart';
 
 /// Card pour afficher un versement quotidien (DailyPayout)
@@ -69,12 +70,12 @@ class PayoutCard extends StatelessWidget {
     final statusColor = _getStatusColor();
 
     return Card(
-      margin: const EdgeInsets.only(bottom: Dimensions.spacingM),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
-          padding: const EdgeInsets.all(Dimensions.cardPadding),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -83,18 +84,18 @@ class PayoutCard extends StatelessWidget {
                 children: [
                   // Icône calendrier
                   Container(
-                    padding: const EdgeInsets.all(Dimensions.spacingS),
+                    padding: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Icon(
                       Icons.calendar_today,
-                      size: Dimensions.iconS,
+                      size: 20.0,
                       color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(width: Dimensions.spacingM),
+                  const SizedBox(width: AppSpacing.md),
                   
                   // Date
                   Expanded(
@@ -103,13 +104,13 @@ class PayoutCard extends StatelessWidget {
                       children: [
                         Text(
                           _formatPayoutDate(payout.payoutDate),
-                          style: TextStyles.labelLarge.copyWith(
+                          style: AppTypography.labelLarge.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           DateFormat('HH:mm', 'fr_FR').format(payout.createdAt),
-                          style: TextStyles.caption,
+                          style: AppTypography.caption,
                         ),
                       ],
                     ),
@@ -118,12 +119,12 @@ class PayoutCard extends StatelessWidget {
                   // Status badge
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: Dimensions.spacingM,
-                      vertical: Dimensions.spacingXS,
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.xs,
                     ),
                     decoration: BoxDecoration(
                       color: statusColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                       border: Border.all(
                         color: statusColor.withValues(alpha: 0.3),
                         width: 1,
@@ -134,13 +135,13 @@ class PayoutCard extends StatelessWidget {
                       children: [
                         Icon(
                           _getStatusIcon(),
-                          size: Dimensions.iconXS,
+                          size: 16.0,
                           color: statusColor,
                         ),
-                        const SizedBox(width: Dimensions.spacingXS),
+                        const SizedBox(width: AppSpacing.xs),
                         Text(
                           payout.statusLabel,
-                          style: TextStyles.caption.copyWith(
+                          style: AppTypography.caption.copyWith(
                             color: statusColor,
                             fontWeight: FontWeight.w600,
                           ),
@@ -151,9 +152,9 @@ class PayoutCard extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: Dimensions.spacingM),
+              const SizedBox(height: AppSpacing.md),
               const Divider(height: 1),
-              const SizedBox(height: Dimensions.spacingM),
+              const SizedBox(height: AppSpacing.md),
 
               // Montant + Nombre de paiements
               Row(
@@ -165,14 +166,14 @@ class PayoutCard extends StatelessWidget {
                       children: [
                         Text(
                           'Montant versé',
-                          style: TextStyles.caption.copyWith(
+                          style: AppTypography.caption.copyWith(
                             color: AppColors.textSecondary,
                           ),
                         ),
-                        const SizedBox(height: Dimensions.spacingXS),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           Formatters.formatPrice(payout.totalAmount),
-                          style: TextStyles.h3.copyWith(
+                          style: AppTypography.h3.copyWith(
                             color: AppColors.success,
                             fontWeight: FontWeight.bold,
                           ),
@@ -191,28 +192,28 @@ class PayoutCard extends StatelessWidget {
                   // Nombre de paiements
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(left: Dimensions.spacingM),
+                      padding: const EdgeInsets.only(left: AppSpacing.md),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Paiements groupés',
-                            style: TextStyles.caption.copyWith(
+                            style: AppTypography.caption.copyWith(
                               color: AppColors.textSecondary,
                             ),
                           ),
-                          const SizedBox(height: Dimensions.spacingXS),
+                          const SizedBox(height: AppSpacing.xs),
                           Row(
                             children: [
                               Icon(
                                 Icons.payment,
-                                size: Dimensions.iconS,
+                                size: 20.0,
                                 color: AppColors.primary,
                               ),
-                              const SizedBox(width: Dimensions.spacingXS),
+                              const SizedBox(width: AppSpacing.xs),
                               Text(
                                 '${payout.paymentCount}',
-                                style: TextStyles.h3.copyWith(
+                                style: AppTypography.h3.copyWith(
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -228,27 +229,27 @@ class PayoutCard extends StatelessWidget {
 
               // Méthode de paiement + Transaction ID (si complété)
               if (payout.status == 'completed' || payout.transactionId != null) ...[
-                const SizedBox(height: Dimensions.spacingM),
+                const SizedBox(height: AppSpacing.md),
                 const Divider(height: 1),
-                const SizedBox(height: Dimensions.spacingM),
+                const SizedBox(height: AppSpacing.md),
                 
                 Row(
                   children: [
                     Icon(
                       Icons.smartphone,
-                      size: Dimensions.iconS,
+                      size: 20.0,
                       color: AppColors.textSecondary,
                     ),
-                    const SizedBox(width: Dimensions.spacingS),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       _getPaymentMethodLabel(payout.paymentMethod),
-                      style: TextStyles.bodySmall,
+                      style: AppTypography.bodySmall,
                     ),
                     if (payout.transactionId != null) ...[
                       const Spacer(),
                       Text(
                         '#${payout.transactionId}',
-                        style: TextStyles.caption.copyWith(
+                        style: AppTypography.caption.copyWith(
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -259,12 +260,12 @@ class PayoutCard extends StatelessWidget {
 
               // Message d'erreur (si échoué)
               if (payout.status == 'failed' && payout.errorMessage != null) ...[
-                const SizedBox(height: Dimensions.spacingM),
+                const SizedBox(height: AppSpacing.md),
                 Container(
-                  padding: const EdgeInsets.all(Dimensions.spacingM),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: AppColors.error.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                     border: Border.all(
                       color: AppColors.error.withValues(alpha: 0.3),
                     ),
@@ -273,14 +274,14 @@ class PayoutCard extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.error_outline,
-                        size: Dimensions.iconS,
+                        size: 20.0,
                         color: AppColors.error,
                       ),
-                      const SizedBox(width: Dimensions.spacingS),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
                           payout.errorMessage!,
-                          style: TextStyles.caption.copyWith(
+                          style: AppTypography.caption.copyWith(
                             color: AppColors.error,
                           ),
                         ),
@@ -292,19 +293,19 @@ class PayoutCard extends StatelessWidget {
 
               // Bouton voir détails (si on peut expand)
               if (onTap != null) ...[
-                const SizedBox(height: Dimensions.spacingS),
+                const SizedBox(height: AppSpacing.sm),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
                       'Voir détails',
-                      style: TextStyles.caption.copyWith(
+                      style: AppTypography.caption.copyWith(
                         color: AppColors.primary,
                       ),
                     ),
                     Icon(
                       Icons.arrow_forward_ios,
-                      size: Dimensions.iconXS,
+                      size: 16.0,
                       color: AppColors.primary,
                     ),
                   ],

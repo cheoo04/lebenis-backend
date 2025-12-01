@@ -1,19 +1,23 @@
 name: merchant_app
 description: LeBeni's Group - Application Commerçant
-publish_to: 'none'
+publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-    
+
+  # State Management & Code Generation
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
 
   # HTTP & Networking
   dio: ^5.3.3
 
+  signature: ^5.4.0
   # State Management
   provider: ^6.1.1
   riverpod: ^3.0.3
@@ -60,10 +64,13 @@ dev_dependencies:
   mockito: ^5.4.3
   build_runner: ^2.4.7
 
+  # Code Generation
+  freezed: ^2.4.5
+  json_serializable: ^6.7.2
+
 flutter:
   uses-material-design: true
   assets:
     - assets/images/
     - assets/icons/
     - .env
-

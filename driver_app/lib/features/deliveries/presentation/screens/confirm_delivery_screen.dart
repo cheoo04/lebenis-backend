@@ -9,9 +9,10 @@ import 'package:path_provider/path_provider.dart';
 import '../../../../core/providers/delivery_provider.dart';
 import '../../../../core/utils/backend_validators.dart';
 import '../../../../data/models/delivery_model.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_textfield.dart';
 import '../../../../shared/utils/helpers.dart';
@@ -96,6 +97,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
             _signatureBytes = signature; // Garde les bytes aussi
           });
         }
+        if (!mounted) return;
         Helpers.showSuccessSnackBar(context, 'Signature capturée avec succès');
       }
     }
@@ -169,7 +171,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(Dimensions.pagePadding),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -177,7 +179,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
             Card(
               color: AppColors.success.withValues(alpha: 0.1),
               child: Padding(
-                padding: const EdgeInsets.all(Dimensions.cardPadding),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 child: Column(
                   children: [
                     Icon(
@@ -185,43 +187,43 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                       size: 64,
                       color: AppColors.success,
                     ),
-                    const SizedBox(height: Dimensions.spacingM),
+                    const SizedBox(height: AppSpacing.md),
                     Text(
                       'Livraison effectuée!',
-                      style: TextStyles.h2.copyWith(
+                      style: AppTypography.h2.copyWith(
                         color: AppColors.success,
                       ),
                     ),
-                    const SizedBox(height: Dimensions.spacingS),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       'Livraison #${widget.delivery.trackingNumber}',
-                      style: TextStyles.trackingNumber,
+                      style: AppTypography.labelMedium,
                     ),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: Dimensions.spacingXL),
+            const SizedBox(height: AppSpacing.xl),
 
             // Instructions
             Text(
               'Informations requises',
-              style: TextStyles.h3,
+              style: AppTypography.h3,
             ),
-            const SizedBox(height: Dimensions.spacingS),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               'Pour finaliser la livraison, veuillez fournir:',
-              style: TextStyles.bodyMedium.copyWith(
+              style: AppTypography.bodyMedium.copyWith(
                 color: AppColors.textSecondary,
               ),
             ),
 
-            const SizedBox(height: Dimensions.spacingL),
+            const SizedBox(height: AppSpacing.lg),
 
             // Champ de saisie du code PIN (4 chiffres)
             Padding(
-              padding: const EdgeInsets.only(bottom: Dimensions.spacingL),
+              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
               child: TextField(
                 controller: _pinController,
                 keyboardType: TextInputType.number,
@@ -248,7 +250,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                 children: [
                   if (_photoFile != null || _photoBytes != null) ...[
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                       child: kIsWeb && _photoBytes != null
                           ? Image.memory(
                               _photoBytes!,
@@ -263,7 +265,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                               fit: BoxFit.cover,
                             ),
                     ),
-                    const SizedBox(height: Dimensions.spacingM),
+                    const SizedBox(height: AppSpacing.md),
                   ],
                   Row(
                     children: [
@@ -275,7 +277,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                         ),
                       ),
                       if (_photoFile != null || _photoBytes != null) ...[
-                        const SizedBox(width: Dimensions.spacingS),
+                        const SizedBox(width: AppSpacing.sm),
                         IconButton(
                           icon: const Icon(Icons.delete, color: AppColors.error),
                           onPressed: _isProcessing
@@ -294,7 +296,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
               ),
             ),
 
-            const SizedBox(height: Dimensions.spacingL),
+            const SizedBox(height: AppSpacing.lg),
 
             // Signature Section ← MODIFICATION ICI
             _RequirementCard(
@@ -306,12 +308,12 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                 children: [
                   if (_signatureFile != null || _signatureBytes != null)
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                       child: Container(
                         height: 150,
                         decoration: BoxDecoration(
                           border: Border.all(color: AppColors.success, width: 2),
-                          borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: kIsWeb && _signatureBytes != null
                             ? Image.memory(
@@ -329,7 +331,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                       height: 150,
                       decoration: BoxDecoration(
                         color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                         border: Border.all(color: AppColors.border),
                       ),
                       child: const Center(
@@ -341,7 +343,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                               color: AppColors.textSecondary,
                               size: 48,
                             ),
-                            SizedBox(height: Dimensions.spacingS),
+                            SizedBox(height: AppSpacing.sm),
                             Text(
                               'Zone de signature',
                               style: TextStyle(color: AppColors.textSecondary),
@@ -350,7 +352,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                         ),
                       ),
                     ),
-                  const SizedBox(height: Dimensions.spacingM),
+                  const SizedBox(height: AppSpacing.md),
                   Row(
                     children: [
                       Expanded(
@@ -361,7 +363,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
                         ),
                       ),
                       if (_signatureFile != null || _signatureBytes != null) ...[
-                        const SizedBox(width: Dimensions.spacingS),
+                        const SizedBox(width: AppSpacing.sm),
                         IconButton(
                           icon: const Icon(Icons.delete, color: AppColors.error),
                           onPressed: _isProcessing
@@ -380,7 +382,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
               ),
             ),
 
-            const SizedBox(height: Dimensions.spacingL),
+            const SizedBox(height: AppSpacing.lg),
 
             // Notes Section
             _RequirementCard(
@@ -399,7 +401,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
               ),
             ),
 
-            const SizedBox(height: Dimensions.spacingXXL),
+            const SizedBox(height: AppSpacing.xxl),
 
             // Confirm Button
             CustomButton(
@@ -410,7 +412,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
               type: ButtonType.success,
             ),
 
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
 
             OutlineButton(
               text: 'Annuler',
@@ -422,7 +424,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
               icon: Icons.close,
             ),
 
-            const SizedBox(height: Dimensions.spacingL),
+            const SizedBox(height: AppSpacing.lg),
           ],
         ),
       ),
@@ -453,7 +455,7 @@ class _RequirementCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(Dimensions.cardPadding),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -471,10 +473,10 @@ class _RequirementCard extends StatelessWidget {
                   child: Icon(
                     isCompleted ? Icons.check : icon,
                     color: isCompleted ? AppColors.success : AppColors.primary,
-                    size: Dimensions.iconM,
+                    size: 24.0,
                   ),
                 ),
-                const SizedBox(width: Dimensions.spacingM),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -483,20 +485,20 @@ class _RequirementCard extends StatelessWidget {
                         children: [
                           Text(
                             title,
-                            style: TextStyles.labelLarge,
+                            style: AppTypography.labelLarge,
                           ),
                           if (isOptional) ...[
-                            const SizedBox(width: Dimensions.spacingXS),
+                            const SizedBox(width: AppSpacing.xs),
                             Text(
                               '(optionnel)',
-                              style: TextStyles.caption,
+                              style: AppTypography.caption,
                             ),
                           ],
                         ],
                       ),
                       Text(
                         subtitle,
-                        style: TextStyles.bodySmall.copyWith(
+                        style: AppTypography.bodySmall.copyWith(
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -505,7 +507,7 @@ class _RequirementCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
             child,
           ],
         ),
@@ -524,10 +526,10 @@ class _SignatureDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(Dimensions.radiusL),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(Dimensions.dialogPadding),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -537,7 +539,7 @@ class _SignatureDialog extends StatelessWidget {
               children: [
                 Text(
                   'Signature du destinataire',
-                  style: TextStyles.h3,
+                  style: AppTypography.h3,
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -545,24 +547,24 @@ class _SignatureDialog extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
 
             // Instructions
             Text(
               'Demandez au destinataire de signer ci-dessous',
-              style: TextStyles.bodyMedium.copyWith(
+              style: AppTypography.bodyMedium.copyWith(
                 color: AppColors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: Dimensions.spacingL),
+            const SizedBox(height: AppSpacing.lg),
 
             // Signature Canvas
             Container(
               height: 250,
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.border, width: 2),
-                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 color: Colors.white,
               ),
               child: Signature(
@@ -570,7 +572,7 @@ class _SignatureDialog extends StatelessWidget {
                 backgroundColor: Colors.white,
               ),
             ),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
 
             // Actions
             Row(
@@ -584,7 +586,7 @@ class _SignatureDialog extends StatelessWidget {
                     icon: Icons.clear,
                   ),
                 ),
-                const SizedBox(width: Dimensions.spacingM),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   flex: 2,
                   child: CustomButton(

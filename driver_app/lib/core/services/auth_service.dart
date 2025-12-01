@@ -143,6 +143,14 @@ class AuthService {
     return await _storage.read(key: StorageKeys.userType);
   }
 
+  /// Récupérer le nom de l'utilisateur
+  Future<String?> getUserName() async {
+    if (_isWeb) {
+      return _getFromWebStorage(StorageKeys.userName);
+    }
+    return await _storage.read(key: StorageKeys.userName);
+  }
+
   // ========== DRIVER SPÉCIFIQUE ==========
 
   /// Sauvegarder les informations du driver

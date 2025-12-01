@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_spacing.dart';
 
 class InfoRow extends StatelessWidget {
   final IconData icon;
@@ -21,23 +21,24 @@ class InfoRow extends StatelessWidget {
       children: [
         Icon(
           icon,
-          size: Dimensions.iconM,
+          size: 24,
           color: AppColors.textSecondary,
         ),
-        const SizedBox(width: Dimensions.spacingM),
+        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: TextStyles.labelSmall.copyWith(
+                style: AppTypography.caption.copyWith(
                   color: AppColors.textSecondary,
                 ),
               ),
+              const SizedBox(height: 2),
               Text(
                 value,
-                style: TextStyles.bodyMedium,
+                style: AppTypography.bodyMedium,
               ),
             ],
           ),

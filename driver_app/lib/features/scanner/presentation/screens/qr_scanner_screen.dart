@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_radius.dart';
 
 class QRScannerScreen extends StatefulWidget {
   final Function(String) onCodeScanned;
@@ -95,15 +96,15 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                       size: 64,
                       color: AppColors.error,
                     ),
-                    const SizedBox(height: Dimensions.spacingM),
+                    const SizedBox(height: AppSpacing.md),
                     Text(
                       'Erreur de caméra',
-                      style: TextStyles.h3.copyWith(color: Colors.white),
+                      style: AppTypography.h3.copyWith(color: Colors.white),
                     ),
-                    const SizedBox(height: Dimensions.spacingS),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       error.errorDetails?.message ?? 'Impossible d\'accéder à la caméra',
-                      style: TextStyles.bodyMedium.copyWith(color: Colors.white70),
+                      style: AppTypography.bodyMedium.copyWith(color: Colors.white70),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -124,7 +125,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.all(Dimensions.pagePadding),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
@@ -140,12 +141,12 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                   if (_isProcessing)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: Dimensions.spacingL,
-                        vertical: Dimensions.spacingM,
+                        horizontal: AppSpacing.lg,
+                        vertical: AppSpacing.md,
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.success.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -154,10 +155,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                             Icons.check_circle,
                             color: Colors.white,
                           ),
-                          const SizedBox(width: Dimensions.spacingS),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             'Code scanné avec succès!',
-                            style: TextStyles.labelLarge.copyWith(
+                            style: AppTypography.labelLarge.copyWith(
                               color: Colors.white,
                             ),
                           ),
@@ -172,19 +173,19 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                           size: 48,
                           color: Colors.white.withValues(alpha: 0.9),
                         ),
-                        const SizedBox(height: Dimensions.spacingM),
+                        const SizedBox(height: AppSpacing.md),
                         Text(
                           widget.instruction ?? 'Placez le code QR dans le cadre',
-                          style: TextStyles.bodyLarge.copyWith(
+                          style: AppTypography.bodyLarge.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w500,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: Dimensions.spacingS),
+                        const SizedBox(height: AppSpacing.sm),
                         Text(
                           'Le scan se fera automatiquement',
-                          style: TextStyles.bodySmall.copyWith(
+                          style: AppTypography.bodySmall.copyWith(
                             color: Colors.white70,
                           ),
                           textAlign: TextAlign.center,
@@ -220,7 +221,7 @@ class ScannerOverlayPainter extends CustomPainter {
       ..addRRect(
         RRect.fromRectAndRadius(
           Rect.fromLTWH(left, top, scanAreaSize, scanAreaSize),
-          const Radius.circular(Dimensions.radiusL),
+          const Radius.circular(AppRadius.lg),
         ),
       );
 
@@ -243,48 +244,48 @@ class ScannerOverlayPainter extends CustomPainter {
 
     // Top-left corner
     canvas.drawLine(
-      Offset(left, top + Dimensions.radiusL),
+      Offset(left, top + AppRadius.lg),
       Offset(left, top + cornerLength),
       cornerPaint,
     );
     canvas.drawLine(
-      Offset(left + Dimensions.radiusL, top),
+      Offset(left + AppRadius.lg, top),
       Offset(left + cornerLength, top),
       cornerPaint,
     );
 
     // Top-right corner
     canvas.drawLine(
-      Offset(left + scanAreaSize, top + Dimensions.radiusL),
+      Offset(left + scanAreaSize, top + AppRadius.lg),
       Offset(left + scanAreaSize, top + cornerLength),
       cornerPaint,
     );
     canvas.drawLine(
-      Offset(left + scanAreaSize - Dimensions.radiusL, top),
+      Offset(left + scanAreaSize - AppRadius.lg, top),
       Offset(left + scanAreaSize - cornerLength, top),
       cornerPaint,
     );
 
     // Bottom-left corner
     canvas.drawLine(
-      Offset(left, top + scanAreaSize - Dimensions.radiusL),
+      Offset(left, top + scanAreaSize - AppRadius.lg),
       Offset(left, top + scanAreaSize - cornerLength),
       cornerPaint,
     );
     canvas.drawLine(
-      Offset(left + Dimensions.radiusL, top + scanAreaSize),
+      Offset(left + AppRadius.lg, top + scanAreaSize),
       Offset(left + cornerLength, top + scanAreaSize),
       cornerPaint,
     );
 
     // Bottom-right corner
     canvas.drawLine(
-      Offset(left + scanAreaSize, top + scanAreaSize - Dimensions.radiusL),
+      Offset(left + scanAreaSize, top + scanAreaSize - AppRadius.lg),
       Offset(left + scanAreaSize, top + scanAreaSize - cornerLength),
       cornerPaint,
     );
     canvas.drawLine(
-      Offset(left + scanAreaSize - Dimensions.radiusL, top + scanAreaSize),
+      Offset(left + scanAreaSize - AppRadius.lg, top + scanAreaSize),
       Offset(left + scanAreaSize - cornerLength, top + scanAreaSize),
       cornerPaint,
     );

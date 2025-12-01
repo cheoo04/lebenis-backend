@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../data/models/payment_model.dart';
 import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_radius.dart';
 import '../../../../shared/utils/formatters.dart';
 
 /// Card pour afficher une transaction individuelle (TransactionHistory)
@@ -112,12 +113,12 @@ class TransactionCard extends StatelessWidget {
     final isPositive = transaction.transactionType == 'collection';
 
     return Card(
-      margin: const EdgeInsets.only(bottom: Dimensions.spacingM),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
-          padding: const EdgeInsets.all(Dimensions.cardPadding),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             children: [
               // Icône type de transaction
@@ -126,16 +127,16 @@ class TransactionCard extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   color: typeColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Icon(
                   _getTransactionTypeIcon(),
                   color: typeColor,
-                  size: Dimensions.iconM,
+                  size: 24.0,
                 ),
               ),
 
-              const SizedBox(width: Dimensions.spacingM),
+              const SizedBox(width: AppSpacing.md),
 
               // Détails transaction
               Expanded(
@@ -147,51 +148,51 @@ class TransactionCard extends StatelessWidget {
                       children: [
                         Text(
                           transaction.transactionTypeLabel,
-                          style: TextStyles.labelLarge.copyWith(
+                          style: AppTypography.labelLarge.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(width: Dimensions.spacingS),
+                        const SizedBox(width: AppSpacing.sm),
                         Text(
                           _getProviderIcon(),
                           style: const TextStyle(fontSize: 16),
                         ),
-                        const SizedBox(width: Dimensions.spacingXS),
+                        const SizedBox(width: AppSpacing.xs),
                         Expanded(
                           child: Text(
                             transaction.providerLabel,
-                            style: TextStyles.caption,
+                            style: AppTypography.caption,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
 
-                    const SizedBox(height: Dimensions.spacingXS),
+                    const SizedBox(height: AppSpacing.xs),
 
                     // Date
                     Text(
                       _formatTransactionDate(transaction.createdAt),
-                      style: TextStyles.caption.copyWith(
+                      style: AppTypography.caption.copyWith(
                         color: AppColors.textSecondary,
                       ),
                     ),
 
                     // Référence externe (si disponible)
                     if (transaction.externalReference != null) ...[
-                      const SizedBox(height: Dimensions.spacingXS),
+                      const SizedBox(height: AppSpacing.xs),
                       Row(
                         children: [
                           Icon(
                             Icons.tag,
-                            size: Dimensions.iconXS,
+                            size: 16.0,
                             color: AppColors.textSecondary,
                           ),
-                          const SizedBox(width: Dimensions.spacingXS),
+                          const SizedBox(width: AppSpacing.xs),
                           Expanded(
                             child: Text(
                               transaction.externalReference!,
-                              style: TextStyles.caption.copyWith(
+                              style: AppTypography.caption.copyWith(
                                 color: AppColors.textSecondary,
                                 fontFamily: 'monospace',
                               ),
@@ -205,28 +206,28 @@ class TransactionCard extends StatelessWidget {
                     // Message d'erreur (si échec)
                     if (transaction.status == 'failed' && 
                         transaction.errorMessage != null) ...[
-                      const SizedBox(height: Dimensions.spacingS),
+                      const SizedBox(height: AppSpacing.sm),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: Dimensions.spacingS,
-                          vertical: Dimensions.spacingXS,
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xs,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.error.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                         child: Row(
                           children: [
                             Icon(
                               Icons.error_outline,
-                              size: Dimensions.iconXS,
+                              size: 16.0,
                               color: AppColors.error,
                             ),
-                            const SizedBox(width: Dimensions.spacingXS),
+                            const SizedBox(width: AppSpacing.xs),
                             Expanded(
                               child: Text(
                                 transaction.errorMessage!,
-                                style: TextStyles.caption.copyWith(
+                                style: AppTypography.caption.copyWith(
                                   color: AppColors.error,
                                 ),
                                 maxLines: 2,
@@ -241,7 +242,7 @@ class TransactionCard extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(width: Dimensions.spacingM),
+              const SizedBox(width: AppSpacing.md),
 
               // Montant + Status
               Column(
@@ -250,23 +251,23 @@ class TransactionCard extends StatelessWidget {
                   // Montant avec signe
                   Text(
                     '${isPositive ? '+' : '-'} ${Formatters.formatPrice(transaction.amount)}',
-                    style: TextStyles.labelLarge.copyWith(
+                    style: AppTypography.labelLarge.copyWith(
                       color: isPositive ? AppColors.success : AppColors.textPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
 
-                  const SizedBox(height: Dimensions.spacingXS),
+                  const SizedBox(height: AppSpacing.xs),
 
                   // Status badge
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: Dimensions.spacingS,
-                      vertical: Dimensions.spacingXS,
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xs,
                     ),
                     decoration: BoxDecoration(
                       color: statusColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                       border: Border.all(
                         color: statusColor.withValues(alpha: 0.3),
                         width: 1,
@@ -277,13 +278,13 @@ class TransactionCard extends StatelessWidget {
                       children: [
                         Icon(
                           _getStatusIcon(),
-                          size: Dimensions.iconXS,
+                          size: 16.0,
                           color: statusColor,
                         ),
-                        const SizedBox(width: Dimensions.spacingXS),
+                        const SizedBox(width: AppSpacing.xs),
                         Text(
                           transaction.statusLabel,
-                          style: TextStyles.caption.copyWith(
+                          style: AppTypography.caption.copyWith(
                             color: statusColor,
                             fontWeight: FontWeight.w600,
                           ),

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 
 // Import des écrans
+import '../../features/chat/screens/conversations_list_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -15,6 +16,8 @@ import '../../features/deliveries/presentation/screens/confirm_delivery_screen.d
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/earnings/presentation/screens/earnings_screen.dart';
+import '../../features/earnings/presentation/screens/transactions_screen.dart';
+import '../../features/notifications/screens/notification_history_screen.dart';
 import '../../features/scanner/presentation/screens/qr_scanner_screen.dart';
 import '../../data/models/delivery_model.dart';
 
@@ -33,12 +36,19 @@ class AppRouter {
   static const String profile = '/profile';
   static const String editProfile = '/edit-profile';
   static const String earnings = '/earnings';
+  static const String transactions = '/transactions';
+  static const String notifications = '/notifications';
   static const String qrScanner = '/qr-scanner';
   static const String settings = '/settings';
+  static const String chatConversations = '/chat-conversations';
 
   // ========== GÉNÉRATEUR DE ROUTES ==========
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case chatConversations:
+        return MaterialPageRoute(
+          builder: (_) => const ConversationsListScreen(),
+        );
       case splash:
         return MaterialPageRoute(
           builder: (_) => const SplashScreen(),
@@ -115,6 +125,16 @@ class AppRouter {
       case earnings:
         return MaterialPageRoute(
           builder: (_) => const EarningsScreen(),
+        );
+
+      case transactions:
+        return MaterialPageRoute(
+          builder: (_) => const TransactionsScreen(),
+        );
+
+      case notifications:
+        return MaterialPageRoute(
+          builder: (_) => const NotificationHistoryScreen(),
         );
 
       case qrScanner:

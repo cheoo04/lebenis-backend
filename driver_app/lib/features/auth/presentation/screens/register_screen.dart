@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/constants/backend_constants.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
-import '../../../../shared/widgets/custom_button.dart';
-import '../../../../shared/widgets/custom_textfield.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_radius.dart';
+import '../../../../shared/widgets/modern_button.dart';
+import '../../../../shared/widgets/modern_text_field.dart';
 import '../../../../shared/utils/validators.dart';
 import '../../../../shared/utils/helpers.dart';
 
@@ -103,7 +104,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Widget _buildPasswordStrengthIndicator(String text, bool isValid) {
     return Padding(
-      padding: const EdgeInsets.only(top: Dimensions.spacingXS),
+      padding: const EdgeInsets.only(top: AppSpacing.xs),
       child: Row(
         children: [
           Icon(
@@ -111,11 +112,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             size: 14,
             color: isValid ? AppColors.success : AppColors.textSecondary,
           ),
-          const SizedBox(width: Dimensions.spacingXS),
+          const SizedBox(width: AppSpacing.xs),
           Expanded(
             child: Text(
               text,
-              style: TextStyles.caption.copyWith(
+              style: AppTypography.caption.copyWith(
                 color: isValid ? AppColors.success : AppColors.textSecondary,
                 fontWeight: isValid ? FontWeight.w600 : FontWeight.normal,
               ),
@@ -165,55 +166,101 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final isLoading = authState.isLoading;
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Créer un compte'),
-        centerTitle: true,
-      ),
+      backgroundColor: AppColors.surface,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(Dimensions.pagePadding),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: Dimensions.spacingL),
-                
-                // Title
-                Text(
-                  'Devenez livreur LeBenis',
-                  style: TextStyles.h2,
-                  textAlign: TextAlign.center,
+        child: Column(
+          children: [
+            // Header avec gradient vert
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: AppColors.greenGradient,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(AppRadius.xxxl),
+                  bottomRight: Radius.circular(AppRadius.xxxl),
                 ),
-                
-                const SizedBox(height: Dimensions.spacingS),
-                
-                Text(
-                  'Remplissez le formulaire pour commencer',
-                  style: TextStyles.bodyMedium.copyWith(
-                    color: AppColors.textSecondary,
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPaddingHorizontal,
+                vertical: AppSpacing.xxl,
+              ),
+              child: Column(
+                children: [
+                  // Bouton retour
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios, color: AppColors.textWhite),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      const Spacer(),
+                    ],
                   ),
-                  textAlign: TextAlign.center,
-                ),
+                  
+                  // Icône
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: AppColors.textWhite.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.person_add_outlined,
+                      size: 40,
+                      color: AppColors.textWhite,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  
+                  // Titre
+                  Text(
+                    'Créer un compte',
+                    style: AppTypography.h2.copyWith(
+                      color: AppColors.textWhite,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  
+                  Text(
+                    'Devenez livreur LeBenis',
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.textWhite.withValues(alpha: 0.9),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+
+            // Formulaire
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: AppSpacing.xl),
+                      
+                      // First Name
+                      ModernTextField(
+                        controller: _firstNameController,
+                        label: 'Prénom',
+                        hint: 'Votre prénom',
+                        prefixIcon: Icons.person_outlined,
+                        validator: (value) => Validators.validateRequired(value, fieldName: 'Prénom'),
+                        enabled: !isLoading,
+                        textCapitalization: TextCapitalization.words,
+                      ),
                 
-                const SizedBox(height: Dimensions.spacingXL),
-                
-                // First Name
-                CustomTextField(
-                  controller: _firstNameController,
-                  label: 'Prénom',
-                  hint: 'Votre prénom',
-                  prefixIcon: Icons.person_outlined,
-                  validator: (value) => Validators.validateRequired(value, fieldName: 'Prénom'),
-                  enabled: !isLoading,
-                  textCapitalization: TextCapitalization.words,
-                ),
-                
-                const SizedBox(height: Dimensions.spacingL),
+                const SizedBox(height: AppSpacing.lg),
                 
                 // Last Name
-                CustomTextField(
+                ModernTextField(
                   controller: _lastNameController,
                   label: 'Nom',
                   hint: 'Votre nom',
@@ -223,10 +270,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   textCapitalization: TextCapitalization.words,
                 ),
                 
-                const SizedBox(height: Dimensions.spacingL),
+                const SizedBox(height: AppSpacing.lg),
                 
                 // Email
-                CustomTextField(
+                ModernTextField(
                   controller: _emailController,
                   label: 'Email',
                   hint: 'exemple@email.com',
@@ -236,10 +283,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   enabled: !isLoading,
                 ),
                 
-                const SizedBox(height: Dimensions.spacingL),
+                const SizedBox(height: AppSpacing.lg),
                 
                 // Phone
-                CustomTextField(
+                ModernTextField(
                   controller: _phoneController,
                   label: 'Téléphone',
                   hint: '07 12 34 56 78',
@@ -249,65 +296,74 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   enabled: !isLoading,
                 ),
                 
-                const SizedBox(height: Dimensions.spacingS),
+                const SizedBox(height: AppSpacing.sm),
                 
                 // Phone format hint
                 Text(
                   'Format: 07 12 34 56 78 (Côte d\'Ivoire)',
-                  style: TextStyles.caption.copyWith(
+                  style: AppTypography.caption.copyWith(
                     color: AppColors.textSecondary,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
                 
-                const SizedBox(height: Dimensions.spacingL),
+                const SizedBox(height: AppSpacing.lg),
                 
                 // Vehicle Type
                 Text(
                   'Type de véhicule',
-                  style: TextStyles.labelMedium,
+                  style: AppTypography.label,
                 ),
                 
-                const SizedBox(height: Dimensions.spacingM),
+                const SizedBox(height: AppSpacing.md),
                 
                 Row(
                   children: _vehicleTypes.map((type) {
                     final isSelected = _selectedVehicleType == type['value'];
                     return Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.only(right: Dimensions.spacingS),
+                        padding: const EdgeInsets.only(right: AppSpacing.sm),
                         child: InkWell(
                           onTap: isLoading ? null : () {
                             setState(() {
                               _selectedVehicleType = type['value'];
                             });
                           },
-                          borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              vertical: Dimensions.spacingM,
+                              vertical: AppSpacing.md,
                             ),
                             decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primary : Colors.grey[100],
-                              borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                              color: isSelected ? AppColors.primary : AppColors.surface,
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               border: Border.all(
-                                color: isSelected ? AppColors.primary : Colors.grey[300]!,
+                                color: isSelected ? AppColors.primary : AppColors.border,
                                 width: 2,
                               ),
+                              boxShadow: isSelected ? [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.2),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ] : null,
                             ),
                             child: Column(
                               children: [
                                 Icon(
                                   type['icon'],
-                                  color: isSelected ? Colors.white : AppColors.textSecondary,
-                                  size: Dimensions.iconL,
+                                  color: isSelected ? AppColors.textWhite : AppColors.textSecondary,
+                                  size: 32,
                                 ),
-                                const SizedBox(height: Dimensions.spacingXS),
+                                const SizedBox(height: AppSpacing.xs),
                                 Text(
                                   type['label'],
-                                  style: TextStyles.labelSmall.copyWith(
-                                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                                  style: AppTypography.caption.copyWith(
+                                    color: isSelected ? AppColors.textWhite : AppColors.textSecondary,
+                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                                   ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ],
                             ),
@@ -318,51 +374,46 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   }).toList(),
                 ),
                 
-                const SizedBox(height: Dimensions.spacingL),
+                const SizedBox(height: AppSpacing.lg),
                 
                 // Password
-                CustomTextField(
+                ModernTextField(
                   controller: _passwordController,
                   label: 'Mot de passe',
                   hint: 'Min 8 caractères, lettres + chiffres',
                   obscureText: _obscurePassword,
                   prefixIcon: Icons.lock_outlined,
-                  suffix: IconButton(
-                    icon: Icon(
-                      _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                      color: AppColors.textSecondary,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                  ),
+                  suffixIcon: _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  onSuffixIconTap: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
                   validator: (value) => Validators.validatePassword(value ?? ''),
                   enabled: !isLoading,
                 ),
                 
-                const SizedBox(height: Dimensions.spacingS),
+                const SizedBox(height: AppSpacing.sm),
                 
                 // Password requirements hint with real-time feedback
-                if (_passwordController.text.isNotEmpty)
+                if (_passwordController.text.isNotEmpty) ...[
                   Container(
-                    padding: const EdgeInsets.all(Dimensions.spacingS),
+                    padding: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Force du mot de passe :',
-                          style: TextStyles.caption.copyWith(
+                          style: AppTypography.caption.copyWith(
                             fontWeight: FontWeight.w600,
                             color: AppColors.primary,
                           ),
                         ),
-                        const SizedBox(height: Dimensions.spacingXS),
+                        const SizedBox(height: AppSpacing.xs),
                         _buildPasswordStrengthIndicator(
                           'Au moins 8 caractères',
                           _passwordHasMinLength,
@@ -378,69 +429,68 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ],
                     ),
                   ),
+                ],
                 
-                const SizedBox(height: Dimensions.spacingL),
+                const SizedBox(height: AppSpacing.lg),
                 
                 // Confirm Password
-                CustomTextField(
+                ModernTextField(
                   controller: _confirmPasswordController,
                   label: 'Confirmer le mot de passe',
                   hint: 'Retapez votre mot de passe',
                   obscureText: _obscureConfirmPassword,
                   prefixIcon: Icons.lock_outlined,
-                  suffix: IconButton(
-                    icon: Icon(
-                      _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                      color: AppColors.textSecondary,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureConfirmPassword = !_obscureConfirmPassword;
-                      });
-                    },
-                  ),
+                  suffixIcon: _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  onSuffixIconTap: () {
+                    setState(() {
+                      _obscureConfirmPassword = !_obscureConfirmPassword;
+                    });
+                  },
                   validator: _validateConfirmPassword,
                   enabled: !isLoading,
                 ),
                 
-                const SizedBox(height: Dimensions.spacingXL),
+                const SizedBox(height: AppSpacing.xxl),
                 
                 // Register Button
-                CustomButton(
+                ModernButton(
                   text: 'S\'inscrire',
                   onPressed: _handleRegister,
                   isLoading: isLoading,
                   icon: Icons.person_add,
+                  type: ModernButtonType.primary,
+                  size: ModernButtonSize.large,
+                  fullWidth: true,
                 ),
                 
-                const SizedBox(height: Dimensions.spacingL),
+                const SizedBox(height: AppSpacing.lg),
                 
                 // Terms
                 Text(
                   'En vous inscrivant, vous acceptez nos conditions d\'utilisation et notre politique de confidentialité',
-                  style: TextStyles.caption,
+                  style: AppTypography.caption,
                   textAlign: TextAlign.center,
                 ),
                 
-                const SizedBox(height: Dimensions.spacingL),
+                const SizedBox(height: AppSpacing.lg),
                 
                 // Error Message
                 if (authState.error != null)
                   Container(
-                    padding: const EdgeInsets.all(Dimensions.spacingM),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: AppColors.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                      border: Border.all(color: AppColors.error),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      border: Border.all(color: AppColors.error, width: 1),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.error_outline, color: AppColors.error),
-                        const SizedBox(width: Dimensions.spacingS),
+                        Icon(Icons.error_outline, color: AppColors.error, size: 20),
+                        const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Text(
                             authState.error!,
-                            style: TextStyles.bodySmall.copyWith(
+                            style: AppTypography.bodySmall.copyWith(
                               color: AppColors.error,
                             ),
                           ),
@@ -448,9 +498,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ],
                     ),
                   ),
-              ],
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

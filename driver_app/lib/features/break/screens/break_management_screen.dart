@@ -3,8 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/providers/break_provider.dart';
-import '../../../shared/theme/app_colors.dart';
-import '../../../shared/theme/text_styles.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../theme/app_typography.dart';
+import '../../../theme/app_spacing.dart';
+import '../../../theme/app_radius.dart';
 import '../../../shared/widgets/loading_widget.dart';
 import '../../../shared/widgets/break_toggle_widget.dart';
 
@@ -106,7 +108,7 @@ class _BreakManagementScreenState extends ConsumerState<BreakManagementScreen> {
         children: [
           Text(
             'Statistiques du jour',
-            style: TextStyles.h3.copyWith(fontWeight: FontWeight.bold),
+            style: AppTypography.h3.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
 
@@ -167,14 +169,14 @@ class _BreakManagementScreenState extends ConsumerState<BreakManagementScreen> {
         Expanded(
           child: Text(
             label,
-            style: TextStyles.bodyMedium.copyWith(
+            style: AppTypography.bodyMedium.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
         ),
         Text(
           value,
-          style: TextStyles.bodyMedium.copyWith(
+          style: AppTypography.bodyMedium.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -206,7 +208,7 @@ class _BreakManagementScreenState extends ConsumerState<BreakManagementScreen> {
               const SizedBox(width: 8),
               Text(
                 'Conseils bien-être',
-                style: TextStyles.bodyLarge.copyWith(
+                style: AppTypography.bodyLarge.copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                 ),
@@ -234,7 +236,7 @@ class _BreakManagementScreenState extends ConsumerState<BreakManagementScreen> {
           Expanded(
             child: Text(
               text,
-              style: TextStyles.bodyMedium.copyWith(
+              style: AppTypography.bodyMedium.copyWith(
                 color: AppColors.textPrimary,
               ),
             ),
@@ -261,7 +263,7 @@ class _BreakManagementScreenState extends ConsumerState<BreakManagementScreen> {
               const SizedBox(width: 8),
               Text(
                 'Règles des pauses',
-                style: TextStyles.bodyLarge.copyWith(
+                style: AppTypography.bodyLarge.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -300,7 +302,7 @@ class _BreakManagementScreenState extends ConsumerState<BreakManagementScreen> {
           Expanded(
             child: Text(
               text,
-              style: TextStyles.bodySmall.copyWith(
+              style: AppTypography.bodySmall.copyWith(
                 color: AppColors.textSecondary,
               ),
             ),

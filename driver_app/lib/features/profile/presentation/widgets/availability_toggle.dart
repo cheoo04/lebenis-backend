@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/providers/driver_provider.dart';
-import '../../../../shared/theme/app_colors.dart';
-import '../../../../shared/theme/dimensions.dart';
-import '../../../../shared/theme/text_styles.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_spacing.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_radius.dart';
 
 class AvailabilityToggle extends ConsumerWidget {
   const AvailabilityToggle({super.key});
@@ -37,7 +38,7 @@ class AvailabilityToggle extends ConsumerWidget {
           ? statusColor.withValues(alpha: 0.1) 
           : Colors.grey.shade100,
       child: Padding(
-        padding: const EdgeInsets.all(Dimensions.cardPadding),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -51,19 +52,19 @@ class AvailabilityToggle extends ConsumerWidget {
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: Dimensions.spacingS),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Statut de disponibilité',
-                        style: TextStyles.labelMedium,
+                        style: AppTypography.labelMedium,
                       ),
-                      const SizedBox(height: Dimensions.spacingXS),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         _getStatusMessage(availabilityStatus),
-                        style: TextStyles.bodySmall.copyWith(
+                        style: AppTypography.bodySmall.copyWith(
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -72,9 +73,9 @@ class AvailabilityToggle extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
             const Divider(),
-            const SizedBox(height: Dimensions.spacingM),
+            const SizedBox(height: AppSpacing.md),
             
             // Boutons de statut
             Row(
@@ -93,7 +94,7 @@ class AvailabilityToggle extends ConsumerWidget {
                     },
                   ),
                 ),
-                const SizedBox(width: Dimensions.spacingS),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: _StatusButton(
                     label: 'Occupé',
@@ -110,7 +111,7 @@ class AvailabilityToggle extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: Dimensions.spacingS),
+            const SizedBox(height: AppSpacing.sm),
             SizedBox(
               width: double.infinity,
               child: _StatusButton(
@@ -168,35 +169,35 @@ class _StatusButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: isSelected ? color : Colors.white,
-      borderRadius: BorderRadius.circular(Dimensions.radiusM),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       elevation: isSelected ? 2 : 0,
       child: InkWell(
         onTap: isLoading || isSelected ? null : onTap,
-        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Container(
           padding: const EdgeInsets.symmetric(
-            horizontal: Dimensions.spacingM,
-            vertical: Dimensions.spacingS,
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
             border: Border.all(
               color: isSelected ? color : AppColors.border,
               width: isSelected ? 2 : 1,
             ),
-            borderRadius: BorderRadius.circular(Dimensions.radiusM),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 icon,
-                size: Dimensions.iconS,
+                size: 20.0,
                 color: isSelected ? Colors.white : color,
               ),
-              const SizedBox(width: Dimensions.spacingS),
+              const SizedBox(width: AppSpacing.sm),
               Text(
                 label,
-                style: TextStyles.labelMedium.copyWith(
+                style: AppTypography.labelMedium.copyWith(
                   color: isSelected ? Colors.white : color,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),

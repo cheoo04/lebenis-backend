@@ -1,5 +1,4 @@
 // lib/core/network/dio_client.dart
-import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../constants/api_constants.dart';
@@ -28,6 +27,7 @@ class DioClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: _onRequest,
+        onResponse: _onResponse,
         onError: _onError,
       ),
     );
@@ -60,6 +60,35 @@ class DioClient {
     }
     
     return handler.next(options);
+  }
+
+  Future<void> _onResponse(
+    Response response,
+    ResponseInterceptorHandler handler,
+  ) async {
+    // Vérifier si la réponse contient une erreur d'authentification
+    if (response.data is Map) {
+      final data = response.data as Map;
+      final code = data['code'];
+      
+      // Si le token est invalide ou expiré
+      if (code == 'token_not_valid' || code == 'token_expired') {
+        debugPrint('[DIO_CLIENT] Token invalide détecté, déconnexion...');
+        await _authService.logout();
+        
+        // Créer une DioException pour que l'app puisse la gérer
+        return handler.reject(
+          DioException(
+            requestOptions: response.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            error: 'Token invalide ou expiré',
+          ),
+        );
+      }
+    }
+    
+    return handler.next(response);
   }
 
   Future<void> _onError(

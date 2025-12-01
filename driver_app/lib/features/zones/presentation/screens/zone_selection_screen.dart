@@ -3,11 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/providers/zone_provider.dart';
 import '../widgets/zone_list.dart';
 
-class ZoneSelectionScreen extends ConsumerWidget {
+class ZoneSelectionScreen extends ConsumerStatefulWidget {
   const ZoneSelectionScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ZoneSelectionScreen> createState() => _ZoneSelectionScreenState();
+}
+
+class _ZoneSelectionScreenState extends ConsumerState<ZoneSelectionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Charger les zones automatiquement au démarrage
+    Future.microtask(() => ref.read(zoneProvider.notifier).loadZones());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final zoneState = ref.watch(zoneProvider);
     final notifier = ref.read(zoneProvider.notifier);
 
@@ -60,13 +72,6 @@ class ZoneSelectionScreen extends ConsumerWidget {
                     ],
                   ),
       ),
-      floatingActionButton: zoneState.zones.isEmpty
-          ? FloatingActionButton.extended(
-              onPressed: () => notifier.loadZones(),
-              icon: const Icon(Icons.download),
-              label: const Text('Charger les zones'),
-            )
-          : null,
     );
   }
 }
