@@ -27,10 +27,11 @@ SECURE_HSTS_PRELOAD = True
 # CORS - Limiter aux domaines autorisés
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='https://lebenis.com, localhost',
+    default='https://lebenis.com',
     cast=lambda v: [s.strip() for s in v.split(',')] if v else []
 )
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = False  # ✅ Forcer à False en production
 
 # Database - Pooling pour production
 DATABASES['default']['CONN_MAX_AGE'] = 600  # 10 minutes
@@ -102,8 +103,8 @@ REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = [
     'rest_framework.throttling.UserRateThrottle'
 ]
 REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
-    'anon': '100/hour',      # 100 requêtes/heure pour anonymes
-    'user': '1000/hour',     # 1000 requêtes/heure pour authentifiés
+    'anon': '1000/hour',      # 1000 requêtes/heure pour anonymes (limite raisonnable)
+    'user': '5000/hour',      # 5000 requêtes/heure pour authentifiés (limite généreuse)
 }
 
 # Sentry (monitoring erreurs - optionnel)
