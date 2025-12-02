@@ -1,18 +1,15 @@
 #!/bin/bash
-# Script pour démarrer Django + Celery sur Render Free Tier
+# Script pour démarrer Django + Celery sur Render Free Tier (optimisé mémoire)
 
-echo "🚀 Démarrage de Django + Celery"
+echo "🚀 Démarrage de Django + Celery (mode économie mémoire)"
 
-# Démarrer Celery Beat en arrière-plan (tâches planifiées)
-celery -A config beat --loglevel=info --detach
-
-# Démarrer Celery Worker en arrière-plan (exécution des tâches)
-celery -A config worker --loglevel=info --concurrency=2 --detach
+# Démarrer Celery Worker en arrière-plan (1 seul worker pour économiser la RAM)
+celery -A config worker --loglevel=warning --concurrency=1 --max-memory-per-child=100000 --detach
 
 # Attendre que Celery démarre
-sleep 5
+sleep 3
 
 echo "✅ Celery démarré en arrière-plan"
 
-# Démarrer Gunicorn (serveur web Django)
-exec gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+# Démarrer Gunicorn avec 1 worker seulement pour économiser la RAM
+exec gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 2 --worker-class gthread --max-requests 1000 --max-requests-jitter 50 --timeout 120 --log-level warning
