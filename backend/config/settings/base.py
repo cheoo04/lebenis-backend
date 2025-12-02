@@ -355,18 +355,29 @@ SWAGGER_SETTINGS = {
 
 
 # Email Configuration (pour production)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.sendgrid.net')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))  # Port TLS (recommandé par SendGrid)
-EMAIL_USE_TLS = True  # TLS activé (port 587)
-EMAIL_USE_SSL = False  # SSL désactivé (ne pas utiliser avec TLS)
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'apikey')
-EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY', '')  # Clé API SendGrid
+# Render Free Tier bloque SMTP, utiliser l'API SendGrid via HTTP
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY', '')
+
+if SENDGRID_API_KEY:
+    # Utiliser l'API SendGrid (HTTP - non bloquée par Render)
+    EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+    SENDGRID_SANDBOX_MODE_IN_DEBUG = DEBUG
+else:
+    # Fallback SMTP (pour développement local ou plans payants Render)
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.sendgrid.net')
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))  # Port TLS
+    EMAIL_USE_TLS = True
+    EMAIL_USE_SSL = False
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'apikey')
+    EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+
+# Configuration commune
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'yah.kouakou24@inphb.ci')
 SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'yah.kouakou24@inphb.ci')
 
-# Si SENDGRID_API_KEY n'est pas définie, utiliser un backend console en dev
-if not EMAIL_HOST_PASSWORD and DEBUG:
+# En développement sans clé API, utiliser console
+if not SENDGRID_API_KEY and DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # ==============================================================================
 # MOBILE MONEY CONFIGURATION (Phase 2)

@@ -76,9 +76,36 @@ DEFAULT_FROM_EMAIL=votre-email@gmail.com
 - Vérifiez que l'email expéditeur est vérifié dans SendGrid
 - Vérifiez les logs Render pour voir les erreurs
 
-## Backup : Mode console (développement)
+## ⚠️ IMPORTANT : Render Free Tier et SMTP
+
+**Depuis septembre 2025, Render bloque les ports SMTP (25, 465, 587) sur le plan gratuit.**
+
+### Solution 1 : Utiliser l'API SendGrid (HTTP - non bloquée) ✅
+
+Au lieu de SMTP, utilisez l'API HTTP SendGrid :
+
+```bash
+pip install sendgrid
+```
+
+Puis dans `settings/base.py` :
+```python
+# Remplacer le backend SMTP par l'API SendGrid
+EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY', '')
+```
+
+### Solution 2 : Passer au plan payant Render ($7/mois)
+
+Les ports SMTP sont disponibles sur tous les plans payants.
+
+### Solution 3 : Mode console (développement/démo)
 
 Si aucune clé API n'est configurée, les emails seront affichés dans les logs :
 ```python
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ```
+
+## 📱 SMS non affecté
+
+Les SMS (Twilio, Infobip, etc.) utilisent des APIs HTTP et ne sont **pas affectés** par cette restriction.
