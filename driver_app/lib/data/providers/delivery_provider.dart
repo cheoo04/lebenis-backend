@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/delivery_repository.dart';
 import '../models/delivery_model.dart';
+import '../models/driver_model.dart';
 import 'auth_provider.dart';
 import '../../core/constants/backend_constants.dart';
 
@@ -115,7 +116,24 @@ class DeliveryNotifier extends Notifier<DeliveryState> {
   }
 
   /// Accepter une livraison
-  Future<bool> acceptDelivery(String id) async {
+  Future<bool> acceptDelivery(String id, {DriverModel? driver}) async {
+    // Vérification préalable côté client
+    if (driver != null) {
+      if (!driver.isVerified) {
+        state = state.copyWith(
+          error: 'Votre compte n\'est pas encore vérifié. Veuillez attendre la validation de votre profil.',
+        );
+        return false;
+      }
+      
+      if (!driver.isAvailable) {
+        state = state.copyWith(
+          error: 'Vous devez être en ligne (disponible) pour accepter une livraison. Veuillez passer en mode "Disponible" dans votre profil.',
+        );
+        return false;
+      }
+    }
+    
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final delivery = await _deliveryRepository.acceptDelivery(id);

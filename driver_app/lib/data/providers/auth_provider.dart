@@ -136,58 +136,42 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isLoading: true);
     try {
       await _repository.logout();
-      state = AuthState();
+      // ✅ Réinitialiser l'état avec isLoggedIn = false pour déclencher la redirection
+      state = AuthState(isLoggedIn: false);
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
-      state = state.copyWith(isLoading: false, error: errorMessage);
-      rethrow;
+      // ⚠️ Même en cas d'erreur, on déconnecte localement
+      state = AuthState(isLoggedIn: false, error: errorMessage);
+      // Ne pas rethrow pour permettre la redirection
     }
   }
 
   /// Check si connecté et charger les infos utilisateur
+  /// ✅ Vérifie aussi la validité du token en faisant une vraie requête API
   Future<void> checkLoginStatus() async {
-    final isLoggedIn = await _authService.isLoggedIn();
+    final hasToken = await _authService.isLoggedIn();
     
-    if (isLoggedIn) {
-      // Charger les infos utilisateur depuis le storage
-      try {
-        final userId = await _authService.getUserId();
-        final email = await _authService.getUserEmail();
-        final userType = await _authService.getUserType();
-        final userName = await _authService.getUserName();
-        
-        if (userId != null && email != null) {
-          // Séparer le nom complet en prénom et nom de famille
-          String? firstName;
-          String? lastName;
-          if (userName != null && userName.isNotEmpty) {
-            final nameParts = userName.split(' ');
-            firstName = nameParts.isNotEmpty ? nameParts[0] : null;
-            lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : null;
-          }
-          
-          final user = UserModel(
-            id: userId,
-            email: email,
-            userType: userType ?? 'driver',
-            firstName: firstName,
-            lastName: lastName,
-            isVerified: true,
-            createdAt: DateTime.now(),
-          );
-          
-          state = state.copyWith(
-            isLoggedIn: true,
-            user: user,
-          );
-          return;
-        }
-      } catch (e) {
-        debugPrint('Erreur chargement infos utilisateur: $e');
-      }
+    if (!hasToken) {
+      // Pas de token stocké, pas connecté
+      state = state.copyWith(isLoggedIn: false);
+      return;
     }
     
-    state = state.copyWith(isLoggedIn: isLoggedIn);
+    // ✅ Vérifier que le token est encore valide en chargeant le profil utilisateur
+    try {
+      final userProfile = await _repository.getCurrentUser();
+      final user = UserModel.fromJson(userProfile);
+      
+      state = state.copyWith(
+        isLoggedIn: true,
+        user: user,
+      );
+    } catch (e) {
+      // Token invalide ou expiré - déconnecter
+      debugPrint('⚠️ Token invalide lors de la vérification: $e');
+      await _authService.logout();
+      state = AuthState(isLoggedIn: false);
+    }
   }
 
   /// Demander la réinitialisation du mot de passe
