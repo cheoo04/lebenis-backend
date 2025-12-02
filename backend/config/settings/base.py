@@ -401,8 +401,18 @@ MTN_MOMO_ENVIRONMENT = config('MTN_MOMO_ENVIRONMENT', default='sandbox')
 # ==============================================================================
 
 # Celery Broker (Redis)
+# Note: Upstash Redis utilise rediss:// (TLS) au lieu de redis://
 CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
+
+# Configuration SSL pour Upstash Redis
+import ssl
+CELERY_BROKER_USE_SSL = {
+    'ssl_cert_reqs': ssl.CERT_NONE
+}
+CELERY_REDIS_BACKEND_USE_SSL = {
+    'ssl_cert_reqs': ssl.CERT_NONE
+}
 
 # Celery Settings
 CELERY_ACCEPT_CONTENT = ['json']
