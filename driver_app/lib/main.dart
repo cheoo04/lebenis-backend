@@ -122,6 +122,7 @@ class LeBenisDriverApp extends ConsumerStatefulWidget {
 
 class _LeBenisDriverAppState extends ConsumerState<LeBenisDriverApp> {
   final NotificationService _notificationService = NotificationService();
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
@@ -181,7 +182,24 @@ class _LeBenisDriverAppState extends ConsumerState<LeBenisDriverApp> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Écouter les changements d'authentification
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      // Si l'utilisateur était connecté mais ne l'est plus (déconnexion ou token expiré)
+      if (previous?.isLoggedIn == true && next.isLoggedIn == false) {
+        if (kDebugMode) {
+          debugPrint('🔐 Session expirée ou déconnexion détectée - redirection vers login');
+        }
+        
+        // Rediriger vers la page de connexion
+        _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          AppRouter.login,
+          (route) => false, // Supprimer toutes les routes précédentes
+        );
+      }
+    });
+
     return MaterialApp(
+      navigatorKey: _navigatorKey, // ✅ Clé globale pour la navigation
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/backend_constants.dart';
 import '../../../../core/providers/delivery_provider.dart';
 import '../../../../data/models/delivery_model.dart';
+import '../../../../data/providers/driver_provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
@@ -70,6 +71,26 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
   bool _isProcessing = false;
 
   Future<void> _acceptDelivery() async {
+    // Récupérer le profil du driver
+    final driver = ref.read(currentDriverProvider);
+    
+    // Vérifications préalables
+    if (driver != null && !driver.isVerified) {
+      Helpers.showErrorSnackBar(
+        context, 
+        'Votre compte n\'est pas encore vérifié. Veuillez attendre la validation de votre profil.'
+      );
+      return;
+    }
+    
+    if (driver != null && !driver.isAvailable) {
+      Helpers.showErrorSnackBar(
+        context, 
+        'Vous devez être en ligne (disponible) pour accepter une livraison. Veuillez passer en mode "Disponible" dans votre profil.'
+      );
+      return;
+    }
+    
     final confirmed = await Helpers.showConfirmDialog(
       context,
       title: 'Accepter la livraison',
@@ -83,7 +104,10 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
     setState(() => _isProcessing = true);
 
     try {
-      await ref.read(deliveryProvider.notifier).acceptDelivery(widget.delivery.id);
+      await ref.read(deliveryProvider.notifier).acceptDelivery(
+        widget.delivery.id,
+        driver: driver,
+      );
       
       if (!mounted) return;
       

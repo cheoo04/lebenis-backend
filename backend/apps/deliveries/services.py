@@ -371,6 +371,14 @@ class DeliveryAssignmentService:
             if delivery.status != 'assigned':
                 raise ValidationError(f"Statut invalide: {delivery.status}")
             
+            # Vérifier que le driver est toujours vérifié
+            if driver.verification_status != 'verified':
+                raise ValidationError("Votre compte n'est pas encore vérifié. Veuillez attendre la validation de votre profil.")
+            
+            # Vérifier que le driver est toujours disponible
+            if not driver.is_available:
+                raise ValidationError("Vous devez être en ligne (disponible) pour accepter une livraison. Veuillez passer en mode 'Disponible' dans votre profil.")
+            
             # Passer au statut suivant
             delivery.status = 'pickup_in_progress'
             delivery.save()

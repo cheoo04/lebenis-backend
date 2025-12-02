@@ -136,6 +136,12 @@ class AuthRepository {
     }
   }
 
+  /// Récupérer le profil utilisateur actuel (pour valider le token)
+  Future<Map<String, dynamic>> getCurrentUser() async {
+    final response = await _dioClient.get(ApiConstants.me);
+    return response.data as Map<String, dynamic>;
+  }
+
   /// Logout
   Future<void> logout() async {
     final refreshToken = await _authService.getRefreshToken();

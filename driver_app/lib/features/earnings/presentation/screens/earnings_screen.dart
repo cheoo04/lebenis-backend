@@ -367,9 +367,11 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Derniers versements',
-                  style: AppTypography.h3,
+                Expanded(
+                  child: Text(
+                    'Derniers versements',
+                    style: AppTypography.h3,
+                  ),
                 ),
                 TextButton.icon(
                   onPressed: () {
