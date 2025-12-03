@@ -33,12 +33,13 @@ driver_app/lib/
 ## 🔧 Configuration des Permissions
 
 ### Android (`android/app/src/main/AndroidManifest.xml`)
+
 ```xml
 <manifest ...>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
-    
+
     <application ...>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -48,6 +49,7 @@ driver_app/lib/
 ```
 
 ### iOS (`ios/Runner/Info.plist`)
+
 ```xml
 <dict>
     <key>NSLocationWhenInUseUsageDescription</key>
@@ -60,6 +62,7 @@ driver_app/lib/
 ## 🎯 Exemple d'Utilisation Complète
 
 ### Option 1 : Sélection de Commune
+
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -97,9 +100,9 @@ class _DeliveryAddressFormState extends ConsumerState<DeliveryAddressForm> {
                 print('GPS: ${pickupCoordinates}');
               },
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             if (pickupCoordinates != null)
               Text('✅ Position: $pickupCoordinates'),
           ],
@@ -111,6 +114,7 @@ class _DeliveryAddressFormState extends ConsumerState<DeliveryAddressForm> {
 ```
 
 ### Option 2 : Géocodage d'Adresse
+
 ```dart
 import 'shared/widgets/address_geocoder_widget.dart';
 
@@ -136,9 +140,9 @@ class _DeliveryWithGeocodingState extends ConsumerState<DeliveryWithGeocoding> {
             print('📍 Livraison géocodée: $coordinates');
           },
         ),
-        
+
         const SizedBox(height: 20),
-        
+
         if (deliveryCoordinates != null)
           ElevatedButton(
             onPressed: () {
@@ -154,6 +158,7 @@ class _DeliveryWithGeocodingState extends ConsumerState<DeliveryWithGeocoding> {
 ```
 
 ### Option 3 : Position GPS Actuelle
+
 ```dart
 import 'shared/widgets/location_picker_widget.dart';
 
@@ -188,6 +193,7 @@ class _CurrentLocationPickerState extends State<CurrentLocationPicker> {
 ## 🔄 Intégration avec Formulaire de Livraison
 
 ### Exemple Complet avec les 3 Méthodes
+
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -203,15 +209,15 @@ class CompleteDeliveryForm extends ConsumerStatefulWidget {
 
 class _CompleteDeliveryFormState extends ConsumerState<CompleteDeliveryForm> {
   final _formKey = GlobalKey<FormState>();
-  
+
   // Récupération
   String? pickupCommune;
   LatLng? pickupCoordinates;
-  
+
   // Livraison
   String? deliveryAddress;
   LatLng? deliveryCoordinates;
-  
+
   // Méthode de saisie
   String locationMethod = 'commune'; // 'commune', 'address', 'gps'
 
@@ -236,7 +242,7 @@ class _CompleteDeliveryFormState extends ConsumerState<CompleteDeliveryForm> {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Choix de la méthode
                     SegmentedButton<String>(
                       segments: const [
@@ -252,7 +258,7 @@ class _CompleteDeliveryFormState extends ConsumerState<CompleteDeliveryForm> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Widget selon la méthode choisie
                     if (locationMethod == 'commune')
                       CommuneSelectorWidget(
@@ -290,9 +296,9 @@ class _CompleteDeliveryFormState extends ConsumerState<CompleteDeliveryForm> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // SECTION LIVRAISON (similaire)
             Card(
               child: Padding(
@@ -317,9 +323,9 @@ class _CompleteDeliveryFormState extends ConsumerState<CompleteDeliveryForm> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             // BOUTON DE CRÉATION
             ElevatedButton(
               onPressed: (pickupCoordinates != null && deliveryCoordinates != null)
@@ -342,7 +348,7 @@ class _CompleteDeliveryFormState extends ConsumerState<CompleteDeliveryForm> {
 
   Future<void> _createDelivery() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     // Préparer les données avec coordonnées GPS
     final deliveryData = {
       'pickup_latitude': pickupCoordinates!.latitude,
@@ -351,14 +357,14 @@ class _CompleteDeliveryFormState extends ConsumerState<CompleteDeliveryForm> {
       'delivery_longitude': deliveryCoordinates!.longitude,
       // ... autres champs
     };
-    
+
     print('🚀 Création de livraison avec GPS:');
     print('Récupération: $pickupCoordinates');
     print('Livraison: $deliveryCoordinates');
-    
+
     // TODO: Appeler votre API
     // await deliveryRepository.createDelivery(deliveryData);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('✅ Livraison créée avec succès'),

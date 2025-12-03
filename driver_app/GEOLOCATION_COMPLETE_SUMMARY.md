@@ -5,36 +5,47 @@
 ### 🎯 **7 Nouveaux Fichiers Flutter**
 
 #### 1️⃣ **Modèles de Données**
+
 ```
 driver_app/lib/data/models/commune/commune_model.dart
 ```
+
 - Modèle pour représenter une commune avec GPS
 - Fields : `commune`, `latitude`, `longitude`, `zoneName`
 - Conversion JSON automatique avec `fromJson()`
 
 #### 2️⃣ **Repository API**
+
 ```
 driver_app/lib/data/repositories/geolocation_repository.dart
 ```
+
 Trois méthodes pour appeler le backend :
+
 - `fetchCommunes()` → GET `/api/v1/pricing/communes/`
 - `getCommuneCoordinates(String)` → GET `/api/v1/pricing/communes/coordinates/?commune=`
 - `geocodeAddress(String)` → POST `/api/v1/pricing/geocode/`
 
 #### 3️⃣ **Riverpod Providers**
+
 ```
 driver_app/lib/data/providers/geolocation_provider.dart
 ```
+
 Trois providers pour la gestion d'état :
+
 - `communesProvider` : Liste complète des 13 communes (FutureProvider)
 - `communeCoordinatesProvider(commune)` : Coordonnées d'une commune spécifique
 - `geocodeAddressProvider` : Géocodage d'adresse avec StateNotifier
 
 #### 4️⃣ **Widget Sélecteur de Commune**
+
 ```
 driver_app/lib/shared/widgets/commune_selector_widget.dart
 ```
+
 **Usage** :
+
 ```dart
 CommuneSelectorWidget(
   label: 'Commune de récupération',
@@ -45,16 +56,20 @@ CommuneSelectorWidget(
 ```
 
 **Features** :
+
 - ✅ Dropdown avec les 13 communes d'Abidjan
 - ✅ Chargement automatique depuis l'API
 - ✅ Gestion des états (loading, error, data)
 - ✅ Callback avec objet `CommuneModel` complet
 
 #### 5️⃣ **Widget Géocodeur d'Adresse**
+
 ```
 driver_app/lib/shared/widgets/address_geocoder_widget.dart
 ```
+
 **Usage** :
+
 ```dart
 AddressGeocoderWidget(
   label: 'Adresse de livraison',
@@ -66,6 +81,7 @@ AddressGeocoderWidget(
 ```
 
 **Features** :
+
 - ✅ Champ texte avec bouton de recherche
 - ✅ Appel API OpenRouteService pour géocoder
 - ✅ Affichage des coordonnées géocodées
@@ -73,10 +89,13 @@ AddressGeocoderWidget(
 - ✅ Soumettre avec Enter ou bouton
 
 #### 6️⃣ **Widget Position GPS Actuelle**
+
 ```
 driver_app/lib/shared/widgets/location_picker_widget.dart
 ```
+
 **Usage** :
+
 ```dart
 LocationPickerWidget(
   buttonText: 'Utiliser ma position',
@@ -88,6 +107,7 @@ LocationPickerWidget(
 ```
 
 **Features** :
+
 - ✅ Obtient la position GPS de l'appareil (Geolocator)
 - ✅ Demande automatiquement les permissions
 - ✅ Affichage optionnel des coordonnées
@@ -97,10 +117,13 @@ LocationPickerWidget(
 ### 📚 **2 Guides de Documentation**
 
 #### 7️⃣ **Guide d'Intégration Flutter**
+
 ```
 driver_app/GEOLOCATION_INTEGRATION_GUIDE.md
 ```
+
 Contient :
+
 - Configuration des packages et permissions
 - Exemples d'utilisation des 3 widgets
 - Formulaire complet avec sélection de méthode (commune/adresse/GPS)
@@ -108,10 +131,13 @@ Contient :
 - Debugging et troubleshooting
 
 #### 8️⃣ **Checklist de Déploiement**
+
 ```
 GEOLOCATION_DEPLOYMENT_CHECKLIST.md
 ```
+
 Contient :
+
 - Étapes de déploiement sur Render
 - Commandes de vérification backend
 - Tests des endpoints API
@@ -182,6 +208,7 @@ Contient :
 ## 🎯 Comment Ça Marche (Flux Complet)
 
 ### **Scénario 1 : Utilisateur sélectionne une commune**
+
 ```
 1. User tape sur CommuneSelectorWidget
 2. Widget charge la liste via communesProvider
@@ -201,6 +228,7 @@ Contient :
 ```
 
 ### **Scénario 2 : Utilisateur tape une adresse**
+
 ```
 1. User tape "Rue des Jardins, Cocody" dans AddressGeocoderWidget
 2. User clique sur le bouton recherche (ou Enter)
@@ -216,6 +244,7 @@ Contient :
 ```
 
 ### **Scénario 3 : Utilisateur utilise sa position actuelle**
+
 ```
 1. User clique sur LocationPickerWidget
 2. Widget demande les permissions de localisation
@@ -228,6 +257,7 @@ Contient :
 ```
 
 ### **Backend : Calcul Automatique**
+
 ```
 1. Flutter envoie la livraison avec pickup/delivery coordinates
 2. Backend reçoit le POST /api/v1/deliveries/
@@ -244,19 +274,20 @@ Contient :
 
 ## 📊 Comparaison Avant / Après
 
-| Aspect | ❌ Avant | ✅ Après |
-|--------|---------|---------|
-| **Distance** | Toujours 0 km | Calculée automatiquement (ex: 18.32 km) |
-| **Prix** | Manuel / incorrect | Automatique basé sur distance réelle |
-| **Coordonnées GPS** | Absentes | Pickup + Delivery coords présentes |
-| **Saisie Adresse** | Texte simple | 3 méthodes : commune / adresse / GPS |
-| **Géolocalisation** | N/A | OpenRouteService + Geolocator |
-| **Validation** | Manuelle | Automatique (coordonnées vérifiées) |
-| **Navigation** | Impossible | Prête (avec Google Maps) |
+| Aspect              | ❌ Avant           | ✅ Après                                |
+| ------------------- | ------------------ | --------------------------------------- |
+| **Distance**        | Toujours 0 km      | Calculée automatiquement (ex: 18.32 km) |
+| **Prix**            | Manuel / incorrect | Automatique basé sur distance réelle    |
+| **Coordonnées GPS** | Absentes           | Pickup + Delivery coords présentes      |
+| **Saisie Adresse**  | Texte simple       | 3 méthodes : commune / adresse / GPS    |
+| **Géolocalisation** | N/A                | OpenRouteService + Geolocator           |
+| **Validation**      | Manuelle           | Automatique (coordonnées vérifiées)     |
+| **Navigation**      | Impossible         | Prête (avec Google Maps)                |
 
 ## 🚀 Prochaines Actions Recommandées
 
 ### **Immédiat (Aujourd'hui)**
+
 1. ✅ Code poussé sur GitHub → Render auto-déploie
 2. ⏳ Attendre 5-10 minutes le build Render
 3. 🔍 Vérifier les logs de déploiement
@@ -264,18 +295,21 @@ Contient :
 5. 📝 Exécuter `populate_commune_gps` si nécessaire
 
 ### **Court Terme (Cette Semaine)**
+
 1. Intégrer les widgets dans votre écran de création de livraison
 2. Tester avec un vrai marchand/driver
 3. Vérifier le calcul de distance dans Django Admin
 4. Ajuster le design des widgets selon votre charte graphique
 
 ### **Moyen Terme (2 Semaines)**
+
 1. Ajouter Google Maps pour visualiser le trajet
 2. Implémenter la navigation turn-by-turn
 3. Afficher la position du driver en temps réel
 4. Ajouter un historique d'adresses récentes
 
 ### **Long Terme (1 Mois)**
+
 1. Autocomplétion d'adresse (Google Places API)
 2. Calcul du temps estimé d'arrivée (ETA)
 3. Optimisation de routes pour plusieurs livraisons
@@ -284,15 +318,19 @@ Contient :
 ## 🎓 Ce Que Vous Pouvez Faire Maintenant
 
 ### **Option A : Tester Localement**
+
 ```bash
 cd driver_app
 flutter pub get
 flutter run
 ```
+
 Créer un fichier `lib/test_geolocation.dart` avec le code du guide.
 
 ### **Option B : Intégrer dans Votre App**
+
 Remplacer votre formulaire actuel avec les nouveaux widgets :
+
 ```dart
 import 'shared/widgets/commune_selector_widget.dart';
 import 'shared/widgets/address_geocoder_widget.dart';
@@ -309,6 +347,7 @@ CommuneSelectorWidget(
 ```
 
 ### **Option C : Vérifier le Backend**
+
 ```bash
 # SSH dans Render Shell
 cd backend
@@ -325,10 +364,12 @@ for z in zones:
 Si vous rencontrez un problème :
 
 1. **Consulter les guides** :
+
    - `GEOLOCATION_INTEGRATION_GUIDE.md`
    - `GEOLOCATION_DEPLOYMENT_CHECKLIST.md`
 
 2. **Vérifier les logs** :
+
    - Backend : Render Dashboard → Logs
    - Flutter : Terminal où `flutter run` est lancé
 
