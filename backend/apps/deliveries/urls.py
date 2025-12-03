@@ -5,7 +5,7 @@ from .analytics_views import AnalyticsViewSet
 from .pdf_views import generate_analytics_pdf, test_pdf_generation
 
 router = DefaultRouter()
-router.register(r'deliveries', DeliveryViewSet, basename='delivery')
+router.register(r'', DeliveryViewSet, basename='delivery')  # Pas de préfixe 'deliveries' ici car déjà dans config/urls.py
 router.register(r'analytics', AnalyticsViewSet, basename='analytics')
 
 urlpatterns = [
