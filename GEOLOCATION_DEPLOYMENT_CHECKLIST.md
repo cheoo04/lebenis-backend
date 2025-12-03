@@ -3,6 +3,7 @@
 ## ✅ Modifications Complétées
 
 ### Backend
+
 1. ✅ Ajout des champs GPS à `PricingZone` (default_latitude/longitude)
 2. ✅ Migration créée : `0003_add_gps_coordinates_to_zones.py`
 3. ✅ Commande `populate_commune_gps` pour les 13 communes d'Abidjan
@@ -15,6 +16,7 @@
 7. ✅ Fix de la commande `geocode_deliveries` (tuple unpacking)
 
 ### Flutter
+
 1. ✅ Modèle `CommuneModel` (commune, latitude, longitude, zoneName)
 2. ✅ Repository `GeolocationRepository` (3 méthodes API)
 3. ✅ Providers Riverpod (communesProvider, communeCoordinatesProvider, geocodeAddressProvider)
@@ -26,6 +28,7 @@
 ## 🔄 Déploiement sur Render
 
 ### Étape 1 : Vérifier que les modifications sont poussées
+
 ```bash
 cd /home/cheoo/lebenis_project
 git status
@@ -35,6 +38,7 @@ git push origin main
 ```
 
 ### Étape 2 : Attendre le déploiement automatique
+
 Render détecte automatiquement le push et redéploie le backend.
 
 **Temps estimé** : 5-10 minutes
@@ -42,7 +46,9 @@ Render détecte automatiquement le push et redéploie le backend.
 **URL** : https://dashboard.render.com/web/[VOTRE_SERVICE]
 
 ### Étape 3 : Vérifier que le build réussit
+
 Logs à surveiller :
+
 - ✅ "Running migrations"
 - ✅ "No migrations to apply" OU "Applying pricing.0003_add_gps_coordinates_to_zones... OK"
 - ✅ "Build successful 🎉"
@@ -56,19 +62,21 @@ Si les migrations n'ont pas été appliquées automatiquement :
 
 1. **Ouvrir le Shell Render** :
    - Dashboard Render → votre service → onglet "Shell"
-   
 2. **Exécuter les migrations** :
+
 ```bash
 cd backend
 python manage.py migrate
 ```
 
 3. **Peupler les communes avec GPS** :
+
 ```bash
 python manage.py populate_commune_gps
 ```
 
 Output attendu :
+
 ```
 ✅ Cocody: (5.3676810, -3.8714600)
 ✅ Plateau: (5.3226160, -4.0142390)
@@ -78,6 +86,7 @@ Output attendu :
 ```
 
 4. **Vérifier qu'une commune a bien ses coordonnées** :
+
 ```bash
 python manage.py shell -c "
 from apps.pricing.models import PricingZone
@@ -91,11 +100,13 @@ print(f'Longitude: {zone.default_longitude}')
 ### Étape 5 : Tester les nouveaux endpoints
 
 #### Test 1 : Liste des communes
+
 ```bash
 curl https://votre-backend.onrender.com/api/v1/pricing/communes/
 ```
 
 Réponse attendue :
+
 ```json
 [
   {
@@ -109,20 +120,23 @@ Réponse attendue :
 ```
 
 #### Test 2 : Coordonnées d'une commune spécifique
+
 ```bash
 curl "https://votre-backend.onrender.com/api/v1/pricing/communes/coordinates/?commune=Yopougon"
 ```
 
 Réponse attendue :
+
 ```json
 {
   "commune": "Yopougon",
-  "latitude": 5.3684770,
-  "longitude": -4.0094000
+  "latitude": 5.368477,
+  "longitude": -4.0094
 }
 ```
 
 #### Test 3 : Géocodage d'une adresse
+
 ```bash
 curl -X POST https://votre-backend.onrender.com/api/v1/pricing/geocode/ \
   -H "Content-Type: application/json" \
@@ -130,11 +144,12 @@ curl -X POST https://votre-backend.onrender.com/api/v1/pricing/geocode/ \
 ```
 
 Réponse attendue :
+
 ```json
 {
   "address": "Rue des Jardins, Cocody, Abidjan",
-  "latitude": 5.3700000,
-  "longitude": -3.8750000
+  "latitude": 5.37,
+  "longitude": -3.875
 }
 ```
 
@@ -151,11 +166,13 @@ Depuis le **Django Admin** :
 3. Sauvegarder
 
 **Résultat attendu** :
+
 - Le signal `pre_save` géocode automatiquement les adresses
 - Les champs `pickup_latitude`, `pickup_longitude`, `delivery_latitude`, `delivery_longitude` sont remplis
 - Le champ `distance` est calculé (ex: 15.42 km)
 
 4. Vérifier dans l'admin que la livraison a bien ses coordonnées :
+
 ```
 Pickup: (5.3013390, -3.9883060)
 Delivery: (5.3676810, -3.8714600)
@@ -165,6 +182,7 @@ Distance: 8.56 km
 ### Étape 7 : Vérifier le calcul automatique de prix
 
 Le prix est calculé automatiquement selon :
+
 - La **distance** calculée avec les coordonnées GPS
 - La **matrice tarifaire** entre les zones de pickup et delivery
 
@@ -197,13 +215,14 @@ if tariff:
 ### Étape 8 : Mettre à jour l'application Flutter
 
 1. **Installer les dépendances** :
+
 ```bash
 cd driver_app
 flutter pub get
 ```
 
 2. **Tester l'import des widgets** :
-Créer un fichier de test `lib/test_geolocation.dart` :
+   Créer un fichier de test `lib/test_geolocation.dart` :
 
 ```dart
 import 'package:flutter/material.dart';
@@ -247,7 +266,7 @@ class _TestGeolocationPageState extends State<TestGeolocationPage> {
           },
         ),
         SizedBox(height: 30),
-        
+
         Text('Test AddressGeocoderWidget', style: TextStyle(fontWeight: FontWeight.bold)),
         AddressGeocoderWidget(
           onLocationSelected: (coords) {
@@ -255,7 +274,7 @@ class _TestGeolocationPageState extends State<TestGeolocationPage> {
           },
         ),
         SizedBox(height: 30),
-        
+
         Text('Test LocationPickerWidget', style: TextStyle(fontWeight: FontWeight.bold)),
         LocationPickerWidget(
           onLocationPicked: (coords) {
@@ -269,6 +288,7 @@ class _TestGeolocationPageState extends State<TestGeolocationPage> {
 ```
 
 3. **Lancer l'application** :
+
 ```bash
 flutter run
 ```
@@ -281,9 +301,11 @@ flutter run
 ## 🐛 Troubleshooting
 
 ### Problème 1 : Les communes ne se chargent pas
+
 **Symptôme** : CommuneSelectorWidget affiche "Chargement..." indéfiniment
 
 **Solution** :
+
 ```bash
 # Vérifier l'endpoint API
 curl https://votre-backend.onrender.com/api/v1/pricing/communes/
@@ -294,14 +316,17 @@ curl https://votre-backend.onrender.com/api/v1/pricing/communes/
 ```
 
 ### Problème 2 : Géocodage échoue
+
 **Symptôme** : "❌ Impossible de localiser cette adresse"
 
 **Causes possibles** :
+
 1. OpenRouteService API Key non configurée → Vérifier `.env` backend
 2. Limite de requêtes dépassée (40/min gratuit) → Attendre ou upgrader
 3. Adresse trop vague → Ajouter "Abidjan" ou la commune
 
 **Solution** :
+
 ```python
 # Vérifier la clé API
 python manage.py shell -c "
@@ -311,13 +336,16 @@ print(f'ORS API Key: {os.getenv(\"OPENROUTESERVICE_API_KEY\")}')
 ```
 
 ### Problème 3 : Distance = 0 km
+
 **Symptôme** : Après création de livraison, la distance reste à 0
 
 **Causes** :
+
 1. Les coordonnées ne sont pas géocodées
 2. Le signal `pre_save` n'est pas déclenché
 
 **Solution** :
+
 ```bash
 # Géocoder manuellement les livraisons existantes
 python manage.py geocode_deliveries
@@ -333,9 +361,11 @@ print(f'Distance: {d.distance} km')
 ```
 
 ### Problème 4 : Permissions GPS refusées (Flutter)
+
 **Symptôme** : LocationPickerWidget affiche "Permission de localisation refusée"
 
 **Solution** :
+
 1. Vérifier AndroidManifest.xml et Info.plist (voir guide)
 2. Demander à l'utilisateur d'activer les permissions manuellement
 3. Utiliser `Geolocator.openLocationSettings()` pour ouvrir les paramètres
@@ -343,6 +373,7 @@ print(f'Distance: {d.distance} km')
 ## ✅ Checklist Finale
 
 ### Backend Render
+
 - [ ] Migrations appliquées (PricingZone avec GPS)
 - [ ] Commande `populate_commune_gps` exécutée (13 communes)
 - [ ] Endpoints API testés (/communes/, /coordinates/, /geocode/)
@@ -350,6 +381,7 @@ print(f'Distance: {d.distance} km')
 - [ ] Clé API OpenRouteService configurée dans `.env`
 
 ### Flutter
+
 - [ ] Packages installés (`flutter pub get`)
 - [ ] Widgets importés sans erreur
 - [ ] CommuneSelectorWidget affiche les communes
@@ -358,6 +390,7 @@ print(f'Distance: {d.distance} km')
 - [ ] Permissions Android/iOS configurées
 
 ### Tests End-to-End
+
 - [ ] Créer une livraison depuis Django Admin → Distance calculée
 - [ ] Créer une livraison depuis Flutter → Coordonnées envoyées
 - [ ] Vérifier que le prix est calculé automatiquement
@@ -368,16 +401,19 @@ print(f'Distance: {d.distance} km')
 Une fois tout validé :
 
 1. **Intégrer les widgets dans vos écrans existants**
+
    - Formulaire de création de livraison
    - Écran de détails de livraison (afficher sur une carte)
    - Dashboard du driver (navigation vers le point de livraison)
 
 2. **Ajouter une carte Google Maps**
+
    - Afficher le trajet entre pickup et delivery
    - Montrer la position actuelle du driver
    - Calculer le temps estimé d'arrivée
 
 3. **Optimisations**
+
    - Cache des coordonnées des communes côté Flutter
    - Autocomplétion d'adresse avec Google Places API
    - Calcul de trajet avec directions API

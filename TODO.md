@@ -8,11 +8,13 @@
 ## ✅ COMPLÉTÉ (100%)
 
 ### Phase 1 (100%)
+
 - [x] Authentification JWT
 - [x] Notifications Push FCM
 - [x] Mobile Money - Profil Driver
 
 ### Phase 2 (100%)
+
 - [x] Modèles de Paiement (Payment, DailyPayout, TransactionHistory)
 - [x] Service Orange Money (Sandbox)
 - [x] Celery - Paiements automatiques 23h59
@@ -20,6 +22,7 @@
 - [x] Système de Notation (rate-driver)
 
 ### Phase 3 (100%)
+
 - [x] Chat Temps Réel (17 fichiers)
 - [x] Cloudinary Upload (4 fichiers)
 - [x] Push Notifications (2 fichiers)
@@ -27,6 +30,7 @@
 - [x] Analytics Flutter (17 fichiers)
 - [x] Rapports PDF (8 fichiers)
 - [x] GPS Adaptatif (12 fichiers)
+- [x] Géolocalisation Automatique (9 fichiers backend + 7 fichiers Flutter)
 
 ---
 
@@ -35,23 +39,23 @@
 ### Backend
 
 #### Tests (Haute Priorité)
+
 - [ ] Tests unitaires modèles
   - [ ] Test Payment model (calcul commission)
   - [ ] Test LocationUpdate model
   - [ ] Test DailyPayout model
-  
 - [ ] Tests API endpoints critiques
   - [ ] Test /payments/my-earnings/
   - [ ] Test /gps/update-location/
   - [ ] Test /analytics/overview/
   - [ ] Test /chat/send-message/
-  
 - [ ] Tests services
   - [ ] Test GPSTrackingService.get_tracking_interval()
   - [ ] Test OrangeMoneyService.initiate_payment()
   - [ ] Test PDFReportService.generate_analytics_report()
 
 **Commande**:
+
 ```bash
 cd backend
 pytest apps/payments/tests/
@@ -62,7 +66,9 @@ coverage report
 ```
 
 #### Tâches Celery
+
 - [ ] Créer task cleanup GPS
+
   ```python
   # backend/apps/drivers/tasks.py
   @shared_task
@@ -84,12 +90,13 @@ coverage report
   ```
 
 #### Sécurité
+
 - [ ] Rate limiting
   ```bash
   pip install django-ratelimit
   ```
-  
 - [ ] Vérifier ALLOWED_HOSTS production
+
   ```python
   # config/settings/production.py
   ALLOWED_HOSTS = ['lebenis-backend.onrender.com', 'api.lebenis.com']
@@ -103,11 +110,11 @@ coverage report
   ```
 
 #### Monitoring (Optionnel)
+
 - [ ] Configurer Sentry
   ```bash
   pip install sentry-sdk
   ```
-  
 - [ ] Logs structurés
   ```python
   LOGGING = {
@@ -127,7 +134,9 @@ coverage report
 ### Flutter Driver App
 
 #### Tests (Moyenne Priorité)
+
 - [ ] Tests widgets principaux
+
   ```bash
   cd driver_app
   flutter test test/analytics_dashboard_test.dart
@@ -136,6 +145,7 @@ coverage report
   ```
 
 - [ ] Tests providers
+
   ```bash
   flutter test test/gps_provider_test.dart
   flutter test test/chat_provider_test.dart
@@ -149,23 +159,11 @@ coverage report
   ```
 
 #### Configuration & Build
-- [ ] Vérifier permissions GPS
-  - [ ] **Android**: `android/app/src/main/AndroidManifest.xml`
-    ```xml
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    ```
-  
-  - [ ] **iOS**: `ios/Runner/Info.plist`
-    ```xml
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>Nous avons besoin de votre localisation pour le suivi des livraisons</string>
-    <key>NSLocationAlwaysUsageDescription</key>
-    <string>Nous avons besoin de votre localisation en arrière-plan pour le suivi des livraisons</string>
-    ```
+
+- [x] Permissions GPS vérifiées (voir `driver_app/GEOLOCATION_COMPLETE_SUMMARY.md`)
 
 - [ ] Build release Android
+
   ```bash
   flutter build apk --release
   # Test APK: build/app/outputs/flutter-apk/app-release.apk
@@ -178,7 +176,9 @@ coverage report
   ```
 
 #### Performance
+
 - [ ] Analyse performance
+
   ```bash
   flutter analyze
   flutter build apk --analyze-size
@@ -194,149 +194,89 @@ coverage report
 
 ## 🚀 PHASE 4 (Fonctionnalités Avancées) - OPTIONNEL
 
-### 1. Background GPS Service
-**Priorité**: Haute  
+### 1. Intégration Widgets Géolocalisation dans Formulaires
+
+**Priorité**: Haute (Déjà créés, à intégrer)
+**Impact**: Calcul automatique distance et prix
+
+- [ ] Intégrer `CommuneSelectorWidget` dans formulaire création livraison
+- [ ] Intégrer `AddressGeocoderWidget` pour saisie adresse
+- [ ] Intégrer `LocationPickerWidget` pour GPS actuel
+- [ ] Tester le flux complet : sélection → création → vérification distance
+
+**Voir** : `driver_app/GEOLOCATION_INTEGRATION_GUIDE.md`  
+**Estimation**: 1 jour
+
+---
+
+### 2. Background GPS Service
+
+**Priorité**: Moyenne  
 **Impact**: Tracking continu même app fermée
 
 - [ ] Package: `flutter_background_service`
-  ```yaml
-  dependencies:
-    flutter_background_service: ^5.0.0
-  ```
-
-- [ ] Service Android
-  ```dart
-  // lib/core/services/background_gps_service.dart
-  void startBackgroundService() {
-    FlutterBackgroundService().startService();
-  }
-  ```
-
-- [ ] Notification persistante
-  ```dart
-  // Afficher notification "GPS actif" en background
-  ```
+- [ ] Service Android avec notification persistante
 
 **Estimation**: 2-3 jours
 
 ---
 
-### 2. Détection Batterie
-**Priorité**: Moyenne  
+### 3. Détection Batterie
+
+**Priorité**: Basse  
 **Impact**: Économie batterie intelligente
 
 - [ ] Package: `battery_plus`
-  ```yaml
-  dependencies:
-    battery_plus: ^6.0.3
-  ```
-
-- [ ] Implémenter dans `AdaptiveGPSService`
-  ```dart
-  Future<int?> _getBatteryLevel() async {
-    final battery = Battery();
-    return await battery.batteryLevel;
-  }
-  ```
-
 - [ ] Mode économie auto si < 20%
-  ```dart
-  if (batteryLevel < 20) {
-    updateDriverStatus('offline'); // Force 5min interval
-  }
-  ```
 
 **Estimation**: 1 jour
 
 ---
 
-### 3. Notifications Riches
-**Priorité**: Moyenne  
+### 4. Notifications Riches
+
+**Priorité**: Basse  
 **Impact**: UX améliorée
 
 - [ ] Images dans notifications FCM
-  ```json
-  {
-    "notification": {
-      "title": "Nouvelle livraison",
-      "body": "Colis à récupérer",
-      "image": "https://cloudinary.com/image.jpg"
-    }
-  }
-  ```
-
-- [ ] Actions rapides
-  ```dart
-  // Boutons "Accepter" / "Refuser" dans notification
-  ```
+- [ ] Actions rapides (boutons "Accepter" / "Refuser")
 
 **Estimation**: 2 jours
 
 ---
 
-### 4. Offline Mode
-**Priorité**: Haute  
+### 5. Offline Mode
+
+**Priorité**: Moyenne  
 **Impact**: Fonctionnement sans connexion
 
 - [ ] Local database: `Hive` ou `Isar`
-  ```yaml
-  dependencies:
-    hive: ^2.2.3
-    hive_flutter: ^1.1.0
-  ```
-
-- [ ] Sync automatique
-  ```dart
-  // Queue des requêtes échouées
-  // Retry quand connexion retrouvée
-  ```
-
+- [ ] Sync automatique et queue des requêtes
 - [ ] Cache données critiques
-  ```dart
-  // Profile driver
-  // Dernières livraisons
-  // Analytics récentes
-  ```
 
 **Estimation**: 5-7 jours
 
 ---
 
-### 5. Geofencing
+### 6. Geofencing
+
 **Priorité**: Basse  
 **Impact**: Notifications géolocalisées
 
 - [ ] Package: `geofence_service`
-  ```yaml
-  dependencies:
-    geofence_service: ^5.0.0
-  ```
-
-- [ ] Zones de livraison
-  ```dart
-  // Alerte quand driver entre dans zone
-  // Alerte quand driver sort de zone
-  ```
+- [ ] Zones de livraison avec alertes
 
 **Estimation**: 3-4 jours
 
 ---
 
-### 6. Analytics Temps Réel
+### 7. Analytics Temps Réel
+
 **Priorité**: Basse  
 **Impact**: Dashboard live
 
-- [ ] WebSocket backend
-  ```python
-  # Django Channels
-  pip install channels channels-redis
-  ```
-
-- [ ] Flutter WebSocket
-  ```dart
-  // web_socket_channel
-  // Connexion WebSocket au dashboard
-  ```
+- [ ] WebSocket backend (Django Channels)
+- [ ] Flutter WebSocket client
 
 **Estimation**: 5-7 jours
 
@@ -344,27 +284,38 @@ coverage report
 
 ## 📊 RÉSUMÉ DES PRIORITÉS
 
+### IMMÉDIAT (Cette semaine)
+
+1. ⭐ **URGENT** : Intégrer les widgets de géolocalisation dans les formulaires
+   - Voir `driver_app/GEOLOCATION_INTEGRATION_GUIDE.md`
+   - Temps estimé : 1 jour
+
 ### Avant Production (1-2 semaines)
+
 1. ✅ Tests backend critiques
-2. ✅ Vérifier permissions GPS
+2. ✅ Permissions GPS vérifiées
 3. ✅ Build release Android/iOS
 4. ✅ Task Celery cleanup GPS
 
 ### Court Terme (1 mois)
-1. ⭐ Background GPS Service
-2. ⭐ Détection Batterie
-3. ⭐ Offline Mode
+
+1. Background GPS Service
+2. Offline Mode
+3. Tests complets
 
 ### Long Terme (2-3 mois)
-1. Notifications Riches
-2. Geofencing
-3. Analytics Temps Réel
+
+1. Détection Batterie
+2. Notifications Riches
+3. Geofencing
+4. Analytics Temps Réel
 
 ---
 
 ## ✅ CHECKLIST FINALE AVANT PRODUCTION
 
 ### Backend
+
 - [ ] Tests unitaires (Coverage > 70%)
 - [ ] Variables d'environnement production vérifiées
 - [ ] HTTPS activé (SECURE_SSL_REDIRECT = True)
@@ -377,6 +328,7 @@ coverage report
 - [ ] Monitoring (Sentry) configuré
 
 ### Flutter
+
 - [ ] Permissions GPS vérifiées (iOS + Android)
 - [ ] Firebase configuré (FCM + Realtime DB)
 - [ ] Build release testé
@@ -386,6 +338,7 @@ coverage report
 - [ ] Version number mis à jour
 
 ### Déploiement
+
 - [ ] Backend déployé sur Render.com
 - [ ] Base de données production (PostgreSQL)
 - [ ] Redis pour Celery
