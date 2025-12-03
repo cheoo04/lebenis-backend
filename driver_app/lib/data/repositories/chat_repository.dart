@@ -44,7 +44,7 @@ class ChatRepository {
       if (includeArchived) queryParams['include_archived'] = 'true';
 
       final response = await _dioClient.get(
-        '/chat/rooms/',
+        '/api/v1/chat/rooms/',
         queryParameters: queryParams,
       );
 
@@ -58,7 +58,7 @@ class ChatRepository {
   /// Récupère le nombre total de messages non lus
   Future<int> getUnreadCount() async {
     try {
-      final response = await _dioClient.get('/chat/rooms/unread_count/');
+      final response = await _dioClient.get('/api/v1/chat/rooms/unread_count/');
       return response.data['unread_count'] as int;
     } catch (e) {
       throw _handleError(e);
@@ -74,7 +74,7 @@ class ChatRepository {
   }) async {
     try {
       final response = await _dioClient.post(
-        '/chat/rooms/',
+        '/api/v1/chat/rooms/',
         data: {
           'other_user_id': otherUserId,
           if (deliveryId != null) 'delivery_id': deliveryId,
@@ -92,7 +92,7 @@ class ChatRepository {
   /// Marque une conversation comme lue
   Future<void> markRoomAsRead(String roomId) async {
     try {
-      await _dioClient.post('/chat/rooms/$roomId/mark_as_read/');
+      await _dioClient.post('/api/v1/chat/rooms/$roomId/mark_as_read/');
     } catch (e) {
       throw _handleError(e);
     }
@@ -102,7 +102,7 @@ class ChatRepository {
   Future<void> archiveChatRoom(String roomId, {required bool archive}) async {
     try {
       await _dioClient.post(
-        '/chat/rooms/$roomId/archive/',
+        '/api/v1/chat/rooms/$roomId/archive/',
         data: {'archive': archive},
       );
     } catch (e) {
@@ -115,7 +115,7 @@ class ChatRepository {
     try {
       final currentUserId = await _getCurrentUserId();
       final response = await _dioClient.get(
-        '/chat/messages/',
+        '/api/v1/chat/messages/',
         queryParameters: {'chat_room_id': chatRoomId},
       );
 
@@ -141,7 +141,7 @@ class ChatRepository {
   }) async {
     try {
       final response = await _dioClient.post(
-        '/chat/messages/',
+        '/api/v1/chat/messages/',
         data: {
           'chat_room_id': chatRoomId,
           'message_type': messageType.name,
@@ -168,7 +168,7 @@ class ChatRepository {
   }) async {
     try {
       await _dioClient.post(
-        '/chat/messages/mark_as_read/',
+        '/api/v1/chat/messages/mark_as_read/',
         data: {
           if (messageIds != null) 'message_ids': messageIds,
           if (chatRoomId != null) 'chat_room_id': chatRoomId,
