@@ -31,6 +31,7 @@
 - [x] Rapports PDF (8 fichiers)
 - [x] GPS Adaptatif (12 fichiers)
 - [x] Géolocalisation Automatique (9 fichiers backend + 7 fichiers Flutter)
+- [x] Intégration Flutter GPS (GpsInfoCard dans écrans delivery + test screen) ✅
 
 ---
 
