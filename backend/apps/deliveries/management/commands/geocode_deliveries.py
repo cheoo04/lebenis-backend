@@ -26,11 +26,12 @@ class Command(BaseCommand):
                 # Géocoder l'adresse de récupération si manquante
                 if not delivery.pickup_latitude and delivery.pickup_address:
                     pickup_coords = location_service.geocode_address(
-                        f"{delivery.pickup_address.address}, {delivery.pickup_commune}"
+                        f"{delivery.pickup_address.street_address}, {delivery.pickup_commune}"
                     )
                     if pickup_coords:
-                        delivery.pickup_latitude = pickup_coords['lat']
-                        delivery.pickup_longitude = pickup_coords['lon']
+                        lat, lon = pickup_coords  # Tuple unpacking
+                        delivery.pickup_latitude = lat
+                        delivery.pickup_longitude = lon
                 
                 # Géocoder l'adresse de livraison si manquante
                 if not delivery.delivery_latitude:
@@ -38,8 +39,9 @@ class Command(BaseCommand):
                         f"{delivery.delivery_address}, {delivery.delivery_commune}"
                     )
                     if delivery_coords:
-                        delivery.delivery_latitude = delivery_coords['lat']
-                        delivery.delivery_longitude = delivery_coords['lon']
+                        lat, lon = delivery_coords  # Tuple unpacking
+                        delivery.delivery_latitude = lat
+                        delivery.delivery_longitude = lon
                 
                 delivery.save()
                 geocoded += 1

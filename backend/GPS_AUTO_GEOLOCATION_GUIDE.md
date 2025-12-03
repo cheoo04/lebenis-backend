@@ -5,6 +5,7 @@
 Le système de géolocalisation automatique est maintenant complet :
 
 ### ✅ Backend
+
 1. **Signal automatique** : Géocode les adresses lors de la création de livraison
 2. **Coordonnées par commune** : Chaque commune a des coordonnées GPS par défaut
 3. **API de géocodage** : Endpoints pour obtenir les coordonnées d'adresses
@@ -14,6 +15,7 @@ Le système de géolocalisation automatique est maintenant complet :
 #### 1. À la création d'une livraison dans l'admin Django
 
 **Automatique** :
+
 - Le signal `pre_save` intercepte la livraison avant sauvegarde
 - Essaie de géocoder l'adresse complète avec OpenRouteService
 - Si échec, utilise les coordonnées par défaut de la commune
@@ -28,19 +30,23 @@ Le système de géolocalisation automatique est maintenant complet :
 ### Sur le serveur (une seule fois)
 
 #### Étape 1 : Appliquer la migration
+
 ```bash
 python manage.py migrate
 ```
 
 #### Étape 2 : Remplir les coordonnées des communes
+
 ```bash
 python manage.py populate_commune_gps
 ```
 
 Cela va créer/mettre à jour les coordonnées GPS pour :
+
 - Cocody, Plateau, Marcory, Yopougon, Abobo, Adjamé, Treichville, Port-Bouët, Attécoubé, Koumassi, Bingerville, Anyama, Songon
 
 #### Étape 3 : Géocoder les livraisons existantes (optionnel)
+
 ```bash
 python manage.py geocode_deliveries
 ```
@@ -50,11 +56,13 @@ python manage.py geocode_deliveries
 ## 📡 Nouveaux endpoints API
 
 ### 1. Liste des communes avec coordonnées
+
 ```http
 GET /api/v1/pricing/communes/
 ```
 
 **Réponse** :
+
 ```json
 {
   "count": 13,
@@ -77,6 +85,7 @@ GET /api/v1/pricing/communes/
 ```
 
 **Utilisation Flutter** :
+
 ```dart
 // Lors du chargement de la liste des communes
 Future<List<Commune>> fetchCommunes() async {
@@ -91,11 +100,13 @@ Future<List<Commune>> fetchCommunes() async {
 ---
 
 ### 2. Coordonnées d'une commune spécifique
+
 ```http
 GET /api/v1/pricing/communes/coordinates/?commune=Cocody
 ```
 
 **Réponse** :
+
 ```json
 {
   "commune": "Cocody",
@@ -106,6 +117,7 @@ GET /api/v1/pricing/communes/coordinates/?commune=Cocody
 ```
 
 **Utilisation Flutter** :
+
 ```dart
 // Quand l'utilisateur sélectionne une commune
 Future<LatLng?> getCommuneCoordinates(String commune) async {
@@ -127,6 +139,7 @@ Future<LatLng?> getCommuneCoordinates(String commune) async {
 ---
 
 ### 3. Géocoder une adresse complète
+
 ```http
 POST /api/v1/pricing/geocode/
 Content-Type: application/json
@@ -138,6 +151,7 @@ Content-Type: application/json
 ```
 
 **Réponse** :
+
 ```json
 {
   "address": "Rue des Jardins, Cocody",
@@ -147,6 +161,7 @@ Content-Type: application/json
 ```
 
 **Utilisation Flutter** :
+
 ```dart
 // Géocoder une adresse entrée par l'utilisateur
 Future<LatLng?> geocodeAddress(String address) async {
@@ -184,20 +199,20 @@ class CommuneSelector extends StatefulWidget {
 class _CommuneSelectorState extends State<CommuneSelector> {
   List<Commune> _communes = [];
   Commune? _selectedCommune;
-  
+
   @override
   void initState() {
     super.initState();
     _loadCommunes();
   }
-  
+
   Future<void> _loadCommunes() async {
     final communes = await _apiService.fetchCommunes();
     setState(() {
       _communes = communes;
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return DropdownButton<Commune>(
@@ -229,9 +244,9 @@ class _CommuneSelectorState extends State<CommuneSelector> {
 ```dart
 class AddressInput extends StatefulWidget {
   final Function(LatLng) onLocationSelected;
-  
+
   AddressInput({required this.onLocationSelected});
-  
+
   @override
   _AddressInputState createState() => _AddressInputState();
 }
@@ -239,11 +254,11 @@ class AddressInput extends StatefulWidget {
 class _AddressInputState extends State<AddressInput> {
   final TextEditingController _addressController = TextEditingController();
   LatLng? _coordinates;
-  
+
   Future<void> _geocodeAddress() async {
     final address = _addressController.text;
     if (address.isEmpty) return;
-    
+
     final coords = await _apiService.geocodeAddress(address);
     if (coords != null) {
       setState(() {
@@ -259,7 +274,7 @@ class _AddressInputState extends State<AddressInput> {
       );
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -295,9 +310,9 @@ import 'package:geolocator/geolocator.dart';
 
 class LocationPicker extends StatefulWidget {
   final Function(LatLng) onLocationPicked;
-  
+
   LocationPicker({required this.onLocationPicked});
-  
+
   @override
   _LocationPickerState createState() => _LocationPickerState();
 }
@@ -305,37 +320,37 @@ class LocationPicker extends StatefulWidget {
 class _LocationPickerState extends State<LocationPicker> {
   LatLng? _currentLocation;
   bool _loading = false;
-  
+
   Future<void> _getCurrentLocation() async {
     setState(() {
       _loading = true;
     });
-    
+
     try {
       // Vérifier les permissions
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
-      
+
       if (permission == LocationPermission.deniedForever) {
         throw Exception('Permissions GPS refusées');
       }
-      
+
       // Obtenir la position
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      
+
       final location = LatLng(position.latitude, position.longitude);
-      
+
       setState(() {
         _currentLocation = location;
         _loading = false;
       });
-      
+
       widget.onLocationPicked(location);
-      
+
     } catch (e) {
       setState(() {
         _loading = false;
@@ -345,7 +360,7 @@ class _LocationPickerState extends State<LocationPicker> {
       );
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -377,6 +392,7 @@ class _LocationPickerState extends State<LocationPicker> {
 ## ✅ Checklist d'intégration
 
 ### Backend
+
 - [x] Ajouter champs GPS dans `PricingZone`
 - [x] Créer migration
 - [x] Créer command `populate_commune_gps`
@@ -387,6 +403,7 @@ class _LocationPickerState extends State<LocationPicker> {
 - [ ] Redéployer sur Render
 
 ### Frontend Flutter
+
 - [ ] Créer modèle `Commune` avec coordonnées
 - [ ] Créer service API pour géolocalisation
 - [ ] Intégrer sélection de commune avec coordonnées
@@ -399,11 +416,13 @@ class _LocationPickerState extends State<LocationPicker> {
 ## 🎯 Résultat final
 
 **Avant** :
+
 - Distance = 0m
 - Navigation ne fonctionne pas
 - Calculs de prix incorrects
 
 **Après** :
+
 - ✅ Distance calculée automatiquement
 - ✅ Navigation Google Maps fonctionne
 - ✅ Prix correct basé sur la distance réelle
