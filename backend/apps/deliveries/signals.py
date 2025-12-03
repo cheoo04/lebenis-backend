@@ -23,7 +23,7 @@ def auto_geocode_and_calculate_distance(sender, instance, **kwargs):
     if not instance.pickup_latitude or not instance.pickup_longitude:
         # Essayer d'abord avec l'adresse complète si disponible
         if instance.pickup_address:
-            pickup_full_address = f"{instance.pickup_address.address}, {instance.pickup_commune}"
+            pickup_full_address = f"{instance.pickup_address.street_address}, {instance.pickup_commune}"
             coords = location_service.geocode_address(pickup_full_address)
             if coords:
                 instance.pickup_latitude, instance.pickup_longitude = coords
