@@ -1,8 +1,9 @@
 // lib/shared/widgets/location_picker_widget.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 
 /// Widget pour obtenir la position GPS actuelle de l'appareil
 class LocationPickerWidget extends StatefulWidget {

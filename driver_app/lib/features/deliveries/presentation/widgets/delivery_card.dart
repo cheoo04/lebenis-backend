@@ -72,37 +72,76 @@ class DeliveryCard extends StatelessWidget {
               
               const SizedBox(height: AppSpacing.sm),
               
-              // Footer: Price & Date
+              // Footer: Price, Distance & Payment Method
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.attach_money,
-                        size: 20,
-                        color: AppColors.green,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        Formatters.formatPrice(delivery.price),
-                        style: AppTypography.price.copyWith(fontSize: 16),
-                      ),
-                    ],
+                  // Price
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.attach_money,
+                          size: 18,
+                          color: AppColors.green,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            Formatters.formatPrice(delivery.price),
+                            style: AppTypography.price.copyWith(fontSize: 15),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 16,
-                        color: AppColors.textSecondary,
+                  
+                  // Distance
+                  if (delivery.distanceKm > 0)
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.route,
+                            size: 18,
+                            color: AppColors.info,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              Formatters.formatDistance(delivery.distanceKm),
+                              style: AppTypography.caption.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        Formatters.formatRelativeTime(delivery.createdAt),
-                        style: AppTypography.caption,
-                      ),
-                    ],
+                    ),
+                  
+                  // Payment Method
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(
+                          delivery.paymentMethod == 'cod' ? Icons.money : Icons.check_circle,
+                          size: 18,
+                          color: delivery.paymentMethod == 'cod' ? AppColors.warning : AppColors.success,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            delivery.paymentMethod == 'cod' ? 'COD' : 'Prépayé',
+                            style: AppTypography.caption.copyWith(
+                              color: delivery.paymentMethod == 'cod' ? AppColors.warning : AppColors.success,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

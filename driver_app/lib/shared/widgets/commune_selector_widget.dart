@@ -70,14 +70,14 @@ class _CommuneSelectorWidgetState extends ConsumerState<CommuneSelectorWidget> {
               : null,
         );
       },
-      loading: () => const DropdownButtonFormField<String>(
-        decoration: InputDecoration(
+      loading: () => DropdownButtonFormField<String>(
+        decoration: const InputDecoration(
           labelText: 'Commune',
           hintText: 'Chargement...',
           border: OutlineInputBorder(),
           prefixIcon: CircularProgressIndicator(),
         ),
-        items: [],
+        items: const [],
         onChanged: null,
       ),
       error: (error, stack) => DropdownButtonFormField<String>(

@@ -7,8 +7,12 @@ class DeliveryRepository {
 
   DeliveryRepository(this.dioClient);
 
-  Future<List<DeliveryModel>> getDeliveries() async {
-    final response = await dioClient.get(ApiConstants.deliveries);
+  Future<List<DeliveryModel>> getDeliveries({String? status}) async {
+    final queryParams = status != null ? {'status': status} : null;
+    final response = await dioClient.get(
+      ApiConstants.deliveries,
+      queryParameters: queryParams,
+    );
     final list = response.data as List;
     return list.map((e) => DeliveryModel.fromJson(e)).toList();
   }
@@ -28,5 +32,18 @@ class DeliveryRepository {
     return true;
   }
 
-  // Ajoutez ici d'autres méthodes (update, tracking, etc.) selon vos besoins
+  Future<DeliveryModel> cancelDelivery(int id) async {
+    final response = await dioClient.patch(
+      '${ApiConstants.deliveries}/$id/cancel',
+    );
+    return DeliveryModel.fromJson(response.data);
+  }
+
+  Future<DeliveryModel> updateDelivery(int id, Map<String, dynamic> data) async {
+    final response = await dioClient.patch(
+      '${ApiConstants.deliveries}/$id',
+      data: data,
+    );
+    return DeliveryModel.fromJson(response.data);
+  }
 }

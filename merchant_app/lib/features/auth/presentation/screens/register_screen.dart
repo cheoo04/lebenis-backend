@@ -75,8 +75,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      authState.whenOrNull(
+    ref.listen<AsyncValue<dynamic>>(authStateProvider, (previous, next) {
+      next.when(
+        data: (user) {
+          if (user != null && previous?.value == null) {
+            // Inscription réussie - rediriger vers waiting-approval
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('✅ Inscription réussie ! Votre compte est en attente de validation.'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.pushReplacementNamed(context, '/waiting-approval');
+          }
+        },
+        loading: () {},
         error: (err, _) {
           String msg;
           if (err is Map) {
@@ -85,11 +98,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             msg = err.toString();
           }
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(msg)),
+            SnackBar(
+              content: Text(msg),
+              backgroundColor: Colors.red,
+            ),
           );
         },
       );
     });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inscription'),

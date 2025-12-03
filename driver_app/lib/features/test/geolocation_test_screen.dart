@@ -1,10 +1,8 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../shared/widgets/commune_selector_widget.dart';
-import '../shared/widgets/address_geocoder_widget.dart';
-import '../shared/widgets/location_picker_widget.dart';
-import '../data/models/commune/commune_model.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 
 /// Écran de test pour les widgets de géolocalisation
 /// Utile pour tester les fonctionnalités sans créer de vraie livraison
@@ -17,8 +15,8 @@ class GeolocationTestScreen extends ConsumerStatefulWidget {
 
 class _GeolocationTestScreenState extends ConsumerState<GeolocationTestScreen> {
   // État du formulaire
-  CommuneModel? _selectedPickupCommune;
-  CommuneModel? _selectedDeliveryCommune;
+  String? _selectedPickupCommune;
+  String? _selectedDeliveryCommune;
   LatLng? _pickupCoordinates;
   LatLng? _deliveryCoordinates;
   String _locationMethod = 'commune';
@@ -136,40 +134,34 @@ class _GeolocationTestScreenState extends ConsumerState<GeolocationTestScreen> {
 
             // Widget selon la méthode
             if (_locationMethod == 'commune')
-              CommuneSelectorWidget(
-                label: 'Commune de récupération',
-                onCommuneSelected: (commune) {
-                  setState(() {
-                    _selectedPickupCommune = commune;
-                    _pickupCoordinates = LatLng(
-                      double.parse(commune.latitude),
-                      double.parse(commune.longitude),
-                    );
-                  });
-                  _showSnackBar('✅ Commune: ${commune.commune} sélectionnée');
-                },
+              const Center(
+                child: Text(
+                  'CommuneSelectorWidget non disponible\n(voir merchant_app pour référence)',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
               )
             else if (_locationMethod == 'address')
-              AddressGeocoderWidget(
-                label: 'Adresse de récupération',
-                hint: 'Ex: Boulevard de Marseille, Marcory, Abidjan',
-                onLocationSelected: (coordinates) {
-                  setState(() {
-                    _pickupCoordinates = coordinates;
-                  });
-                  _showSnackBar('✅ Adresse géocodée avec succès');
-                },
+              const Center(
+                child: Text(
+                  'AddressGeocoderWidget non disponible\n(voir merchant_app pour référence)',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
               )
             else
-              LocationPickerWidget(
-                buttonText: 'Utiliser ma position actuelle',
-                showCoordinates: true,
-                onLocationPicked: (coordinates) {
-                  setState(() {
-                    _pickupCoordinates = coordinates;
-                  });
-                  _showSnackBar('✅ Position GPS obtenue');
-                },
+              Center(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.my_location),
+                  label: const Text('Utiliser ma position actuelle'),
+                  onPressed: () {
+                    // Simulation pour test
+                    setState(() {
+                      _pickupCoordinates = const LatLng(5.3364, -4.0267); // Abidjan
+                    });
+                    _showSnackBar('✅ Position GPS simulée (Abidjan)');
+                  },
+                ),
               ),
 
             // Affichage des coordonnées
@@ -206,15 +198,18 @@ class _GeolocationTestScreenState extends ConsumerState<GeolocationTestScreen> {
             ),
             const SizedBox(height: 8),
 
-            AddressGeocoderWidget(
-              label: 'Adresse de livraison',
-              hint: 'Ex: Rue des Jardins, Cocody, Abidjan',
-              onLocationSelected: (coordinates) {
-                setState(() {
-                  _deliveryCoordinates = coordinates;
-                });
-                _showSnackBar('✅ Adresse de livraison géocodée');
-              },
+            Center(
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.location_on),
+                label: const Text('Définir adresse de livraison'),
+                onPressed: () {
+                  // Simulation pour test
+                  setState(() {
+                    _deliveryCoordinates = const LatLng(5.3500, -4.0100); // Cocody
+                  });
+                  _showSnackBar('✅ Adresse de livraison simulée (Cocody)');
+                },
+              ),
             ),
 
             if (_deliveryCoordinates != null) ...[
@@ -371,12 +366,12 @@ class _GeolocationTestScreenState extends ConsumerState<GeolocationTestScreen> {
     final dLat = _degreesToRadians(point2.latitude - point1.latitude);
     final dLng = _degreesToRadians(point2.longitude - point1.longitude);
     
-    final a = (dLat / 2).sin() * (dLat / 2).sin() +
-        _degreesToRadians(point1.latitude).cos() *
-        _degreesToRadians(point2.latitude).cos() *
-        (dLng / 2).sin() * (dLng / 2).sin();
+    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(_degreesToRadians(point1.latitude)) *
+        math.cos(_degreesToRadians(point2.latitude)) *
+        math.sin(dLng / 2) * math.sin(dLng / 2);
     
-    final c = 2 * (a.sqrt()).asin();
+    final c = 2 * math.asin(math.sqrt(a));
     
     return earthRadiusKm * c;
   }
