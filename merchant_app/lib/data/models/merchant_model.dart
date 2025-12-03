@@ -46,6 +46,9 @@ class MerchantModel {
     };
   }
 
+  // Alias pour compatibilité
+  String get phoneNumber => phone;
+
   String get statusLabel {
     switch (verificationStatus) {
       case 'approved':

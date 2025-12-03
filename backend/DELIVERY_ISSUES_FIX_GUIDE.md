@@ -8,7 +8,8 @@
 
 ### 2. Distance = 0m / Navigation / GPS
 
-**Status** : ✅ RÉSOLU  
+**Status** : ✅ RÉSOLU
+
 - Système de géolocalisation automatique complet
 - GpsInfoCard intégré dans écrans delivery
 - Tracking GPS adaptatif opérationnel
@@ -16,6 +17,7 @@
 ### 3. Boutons d'appel ne fonctionnent pas
 
 **Status** : ✅ RÉSOLU
+
 - AndroidManifest.xml: Permission CALL_PHONE ajoutée
 - AndroidManifest.xml: Intent queries pour tel:// ajouté
 - Info.plist: LSApplicationQueriesSchemes avec tel configuré
@@ -23,6 +25,7 @@
 ### 4. Code de vérification
 
 **Status** : ✅ RÉSOLU
+
 - Backend génère automatiquement code 4 chiffres via signal post_save
 - Validation stricte dans confirm_delivery endpoint
 - Email envoyé au merchant avec le code PIN
@@ -30,6 +33,7 @@
 ### 5. Paiement (Prépayé vs COD)
 
 **Status** : ✅ RÉSOLU
+
 - Affichage payment_method dans delivery_details_screen
 - Montant COD affiché en orange avec icône money
 - Badge de couleur selon type de paiement
@@ -37,6 +41,7 @@
 ### 6. Affichage signature et photo
 
 **Status** : ✅ RÉSOLU
+
 - Affichage photo de livraison (Image.network)
 - Affichage signature du destinataire
 - Section "Preuves de livraison" pour status delivered

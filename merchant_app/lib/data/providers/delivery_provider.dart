@@ -11,6 +11,12 @@ final deliveriesProvider = FutureProvider<List<DeliveryModel>>((ref) async {
   return repo.getDeliveries();
 });
 
+// Provider pour liste avec filtre de statut
+final deliveryListProvider = FutureProvider.family<List<DeliveryModel>, String?>((ref, status) async {
+  final repo = ref.watch(deliveryRepositoryProvider);
+  return repo.getDeliveries(status: status);
+});
+
 final deliveryDetailProvider = FutureProvider.family<DeliveryModel, int>((ref, id) async {
   final repo = ref.watch(deliveryRepositoryProvider);
   return repo.getDeliveryDetail(id);

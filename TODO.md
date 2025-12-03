@@ -1,7 +1,7 @@
 # 📋 TODO - Lebenis Project
 
-**Date**: 6 Novembre 2025  
-**Status**: Phase 3 complète - Production Ready ✅
+**Date**: 3 Décembre 2025  
+**Status**: Phase 4 - Merchant App Complete ✅
 
 ---
 
@@ -30,6 +30,18 @@
 - [x] Analytics Flutter (17 fichiers)
 - [x] Rapports PDF (8 fichiers)
 - [x] GPS Adaptatif & Géolocalisation (backend + Flutter 100%)
+
+### Phase 4 - MERCHANT APP (100%) ⭐ NOUVEAU
+
+- [x] Widgets de géolocalisation (commune_selector, models, repositories)
+- [x] Formulaire création livraison COMPLET (tous les champs + GPS + estimation prix)
+- [x] Liste des livraisons avec API (filtres status, pull-to-refresh, cards modernes)
+- [x] Détail de livraison (toutes infos + boutons actions)
+- [x] Tracking temps réel Google Maps (markers, polyline, auto-refresh 10s)
+- [x] Édition profil merchant (formulaire complet avec sauvegarde)
+- [x] Widgets UI modernes (stat_card, status_badge, info_card)
+- [x] Dashboard moderne (gradient header, grid stats, quick actions)
+- [x] Documentation complète (3 guides MD)
 
 ---
 

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'dart:async';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_radius.dart';
+import '../../../../shared/widgets/osm_map_widget.dart';
 
 class DeliveryMap extends StatefulWidget {
   final LatLng pickupLocation;
@@ -29,128 +31,74 @@ class DeliveryMap extends StatefulWidget {
 }
 
 class _DeliveryMapState extends State<DeliveryMap> {
-  GoogleMapController? _mapController;
-  final Completer<GoogleMapController> _controllerCompleter = Completer();
+  final MapController _mapController = MapController();
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => _animateToShowAllMarkers());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fitBounds();
+      widget.onMapCreated?.call();
+    });
   }
 
-  @override
-  void dispose() {
-    _mapController?.dispose();
-    super.dispose();
-  }
-
-  void _onMapCreated(GoogleMapController controller) {
-    if (!_controllerCompleter.isCompleted) {
-      _controllerCompleter.complete(controller);
-    }
-    _mapController = controller;
-    widget.onMapCreated?.call();
-    _animateToShowAllMarkers();
-  }
-
-  Future<void> _animateToShowAllMarkers() async {
-    if (_mapController == null) {
-      final controller = await _controllerCompleter.future;
-      _mapController = controller;
-    }
-
-    final bounds = _calculateBounds();
-    _mapController?.animateCamera(
-      CameraUpdate.newLatLngBounds(bounds, 50),
-    );
-  }
-
-  LatLngBounds _calculateBounds() {
+  void _fitBounds() {
     final points = [
       widget.pickupLocation,
       widget.deliveryLocation,
       if (widget.currentLocation != null) widget.currentLocation!,
     ];
 
-    double minLat = points[0].latitude;
-    double maxLat = points[0].latitude;
-    double minLng = points[0].longitude;
-    double maxLng = points[0].longitude;
-
-    for (final point in points) {
-      if (point.latitude < minLat) minLat = point.latitude;
-      if (point.latitude > maxLat) maxLat = point.latitude;
-      if (point.longitude < minLng) minLng = point.longitude;
-      if (point.longitude > maxLng) maxLng = point.longitude;
+    if (points.length == 1) {
+      _mapController.move(points[0], 15);
+      return;
     }
 
-    return LatLngBounds(
-      southwest: LatLng(minLat, minLng),
-      northeast: LatLng(maxLat, maxLng),
-    );
+    final bounds = LatLngBounds.fromPoints(points);
+    _mapController.fitCamera(CameraFit.bounds(
+      bounds: bounds,
+      padding: const EdgeInsets.all(50),
+    ));
   }
 
-  Set<Marker> _buildMarkers() {
-    final markers = <Marker>{};
+  List<Marker> _buildMarkers() {
+    final markers = <Marker>[];
 
     // Pickup marker
-    markers.add(
-      Marker(
-        markerId: const MarkerId('pickup'),
-        position: widget.pickupLocation,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-        infoWindow: const InfoWindow(
-          title: 'Point de récupération',
-        ),
-      ),
-    );
+    markers.add(OsmMarkerHelper.pickup(
+      position: widget.pickupLocation,
+      label: 'Récup',
+    ));
 
     // Delivery marker
-    markers.add(
-      Marker(
-        markerId: const MarkerId('delivery'),
-        position: widget.deliveryLocation,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-        infoWindow: const InfoWindow(
-          title: 'Point de livraison',
-        ),
-      ),
-    );
+    markers.add(OsmMarkerHelper.delivery(
+      position: widget.deliveryLocation,
+      label: 'Livr',
+    ));
 
     // Current location marker
     if (widget.currentLocation != null) {
-      markers.add(
-        Marker(
-          markerId: const MarkerId('current'),
-          position: widget.currentLocation!,
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-          infoWindow: const InfoWindow(
-            title: 'Ma position',
-          ),
-        ),
-      );
+      markers.add(OsmMarkerHelper.driver(
+        position: widget.currentLocation!,
+        label: 'Moi',
+      ));
     }
 
     return markers;
   }
 
-  Set<Polyline> _buildPolylines() {
+  List<Polyline> _buildPolylines() {
     if (widget.routePoints == null || widget.routePoints!.isEmpty) {
-      return {};
+      return [];
     }
 
-    return {
-      Polyline(
-        polylineId: const PolylineId('route'),
+    return [
+      OsmMarkerHelper.route(
         points: widget.routePoints!,
         color: AppColors.primary,
         width: 4,
-        patterns: [
-          PatternItem.dash(20),
-          PatternItem.gap(10),
-        ],
       ),
-    };
+    ];
   }
 
   @override
@@ -169,20 +117,12 @@ class _DeliveryMapState extends State<DeliveryMap> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        child: GoogleMap(
-          onMapCreated: _onMapCreated,
-          initialCameraPosition: CameraPosition(
-            target: widget.pickupLocation,
-            zoom: 14,
-          ),
+        child: OsmMapWidget(
+          center: widget.pickupLocation,
+          zoom: 14,
           markers: _buildMarkers(),
           polylines: _buildPolylines(),
-          myLocationEnabled: true,
-          myLocationButtonEnabled: true,
-          zoomControlsEnabled: false,
-          mapToolbarEnabled: false,
-          compassEnabled: true,
-          mapType: MapType.normal,
+          mapController: _mapController,
         ),
       ),
     );

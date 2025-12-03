@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../theme/app_theme.dart';
 import '../../../../data/providers/merchant_provider.dart';
+import '../../../../shared/widgets/modern_stat_card.dart';
+import '../../../../shared/widgets/modern_info_card.dart';
+import '../../../../shared/widgets/status_badge.dart';
+import '../../../deliveries/presentation/screens/delivery_list_screen.dart';
+import '../../../deliveries/presentation/screens/create_delivery_screen.dart';
+import '../../../profile/presentation/screens/edit_profile_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -11,17 +18,17 @@ class DashboardScreen extends ConsumerWidget {
     final statsAsync = ref.watch(merchantStatsProvider);
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text('Dashboard'),
-        centerTitle: true,
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
-              // ignore: unused_result
-              ref.refresh(merchantProfileProvider);
-              // ignore: unused_result
-              ref.refresh(merchantStatsProvider);
+              // TODO: Navigate to notifications
             },
           ),
         ],
@@ -33,221 +40,257 @@ class DashboardScreen extends ConsumerWidget {
           // ignore: unused_result
           ref.refresh(merchantStatsProvider);
         },
+        color: AppTheme.primaryColor,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with gradient
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.accentColor],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+                child: profileAsync.when(
+                  data: (profile) {
+                    if (profile == null) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Bienvenue,',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          profile.businessName ?? 'Merchant',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        StatusBadge.fromStatus(profile.verificationStatus ?? 'pending'),
+                      ],
+                    );
+                  },
+                  loading: () => const SizedBox(height: 80),
+                  error: (err, st) => const SizedBox(height: 80),
+                ),
+              ),
+
+              Transform.translate(
+                offset: const Offset(0, -20),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Stats Grid
+                      statsAsync.when(
+                        data: (stats) => _buildStatsGrid(context, stats),
+                        loading: () => _buildLoadingGrid(),
+                        error: (err, st) => _buildErrorCard(err.toString()),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Quick Actions
+                      const Text(
+                        'Actions rapides',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      ModernInfoCard(
+                        icon: Icons.add_circle,
+                        title: 'Créer une livraison',
+                        subtitle: 'Nouvelle demande de livraison',
+                        iconColor: AppTheme.primaryColor,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const CreateDeliveryScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      ModernInfoCard(
+                        icon: Icons.list_alt,
+                        title: 'Mes livraisons',
+                        subtitle: 'Voir toutes les livraisons',
+                        iconColor: Colors.blue,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const DeliveryListScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      ModernInfoCard(
+                        icon: Icons.edit,
+                        title: 'Modifier mon profil',
+                        subtitle: 'Informations du commerce',
+                        iconColor: Colors.purple,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const EditProfileScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CreateDeliveryScreen()),
+          );
+        },
+        backgroundColor: AppTheme.accentColor,
+        icon: const Icon(Icons.add),
+        label: const Text('Nouvelle livraison'),
+      ),
+    );
+  }
+
+  Widget _buildStatsGrid(BuildContext context, dynamic stats) {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 1.1,
+      children: [
+        ModernStatCard(
+          title: 'Livraisons',
+          value: '${stats.periodDeliveries ?? 0}',
+          icon: Icons.local_shipping,
+          color: Colors.blue,
+          subtitle: 'Ce mois',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const DeliveryListScreen()),
+            );
+          },
+        ),
+        ModernStatCard(
+          title: 'Taux succès',
+          value: '${(stats.successRate ?? 0).toStringAsFixed(1)}%',
+          icon: Icons.check_circle,
+          color: Colors.green,
+          subtitle: 'Livraisons réussies',
+        ),
+        ModernStatCard(
+          title: 'Revenus',
+          value: '${(stats.totalRevenue ?? 0).toStringAsFixed(0)}',
+          icon: Icons.attach_money,
+          color: Colors.orange,
+          subtitle: 'FCFA',
+        ),
+        ModernStatCard(
+          title: 'En cours',
+          value: '${stats.activeDeliveries ?? 0}',
+          icon: Icons.pending_actions,
+          color: Colors.purple,
+          subtitle: 'Livraisons actives',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingGrid() {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 1.1,
+      children: List.generate(
+        4,
+        (index) => Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorCard(String error) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.red[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.red[200]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, color: Colors.red[700], size: 32),
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Profil
-                profileAsync.when(
-                  data: (profile) => _buildProfileCard(context, profile),
-                  loading: () => const _LoadingCard(),
-                  error: (err, st) => _ErrorCard(error: err.toString()),
+                Text(
+                  'Erreur de chargement',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.red[900],
+                  ),
                 ),
-                const SizedBox(height: 24),
-                // Statistiques
-                statsAsync.when(
-                  data: (stats) => _buildStatsCard(context, stats),
-                  loading: () => const _LoadingCard(),
-                  error: (err, st) => _ErrorCard(error: err.toString()),
+                const SizedBox(height: 4),
+                Text(
+                  error,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.red[800],
+                  ),
                 ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileCard(BuildContext context, dynamic profile) {
-    if (profile == null) {
-      return const Card(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('Aucun profil trouvé', style: TextStyle(color: Colors.red)),
-        ),
-      );
-    }
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Profil Marchand',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            ListTile(
-              leading: const Icon(Icons.store),
-              title: const Text('Commerce'),
-              subtitle: Text(profile.businessName),
-            ),
-            ListTile(
-              leading: const Icon(Icons.email),
-              title: const Text('Email'),
-              subtitle: Text(profile.email),
-            ),
-            ListTile(
-              leading: const Icon(Icons.phone),
-              title: const Text('Téléphone'),
-              subtitle: Text(profile.phone),
-            ),
-            ListTile(
-              leading: const Icon(Icons.location_on),
-              title: const Text('Adresse'),
-              subtitle: Text(profile.address),
-            ),
-            ListTile(
-              leading: const Icon(Icons.verified),
-              title: const Text('Statut'),
-              subtitle: Text(profile.statusLabel),
-              trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: profile.verificationStatus == 'approved'
-                      ? Colors.green.shade100
-                      : Colors.orange.shade100,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  profile.statusLabel,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: profile.verificationStatus == 'approved'
-                        ? Colors.green
-                        : Colors.orange,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/edit-profile');
-              },
-              child: const Text('Modifier le profil'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsCard(BuildContext context, dynamic stats) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Statistiques (30 derniers jours)',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            // Livraisons
-            _StatRow(
-              icon: Icons.local_shipping,
-              label: 'Livraisons',
-              value: '${stats.periodDeliveries}',
-              subLabel: 'Taux de succès: ${stats.successRate.toStringAsFixed(1)}%',
-            ),
-            const SizedBox(height: 12),
-            // Revenus
-            _StatRow(
-              icon: Icons.attach_money,
-              label: 'Revenus',
-              value: stats.formattedRevenue,
-              subLabel: 'Payé: ${stats.paid.toStringAsFixed(0)} FCFA',
-            ),
-            const SizedBox(height: 12),
-            // Factures
-            _StatRow(
-              icon: Icons.receipt,
-              label: 'Factures',
-              value: '${stats.invoicesPaid}/${stats.invoicesTotal}',
-              subLabel: 'Payées',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StatRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final String subLabel;
-
-  const _StatRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.subLabel,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 24, color: Colors.blue),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(fontSize: 14)),
-              Text(subLabel, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-            ],
-          ),
-        ),
-        Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-      ],
-    );
-  }
-}
-
-class _LoadingCard extends StatelessWidget {
-  const _LoadingCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Card(
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: SizedBox(
-          height: 100,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorCard extends StatelessWidget {
-  final String error;
-
-  const _ErrorCard({required this.error});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: Colors.red.shade50,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Icon(Icons.error, color: Colors.red.shade700, size: 32),
-            const SizedBox(height: 8),
-            Text('Erreur: $error', textAlign: TextAlign.center),
-          ],
-        ),
+        ],
       ),
     );
   }

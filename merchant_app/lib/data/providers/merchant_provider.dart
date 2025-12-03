@@ -74,6 +74,9 @@ class MerchantNotifier extends Notifier<AsyncValue<MerchantModel?>> {
     }
   }
 
+  // Alias pour compatibilité
+  Future<void> fetchProfile() => loadProfile();
+
   Future<void> refresh() async {
     await loadProfile();
   }

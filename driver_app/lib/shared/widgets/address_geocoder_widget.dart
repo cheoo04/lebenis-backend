@@ -2,7 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:dio/dio.dart';
+import 'package:latlong2/latlong.dart';
 import '../../data/providers/geolocation_provider.dart';
 
 /// Widget pour saisir une adresse et la géocoder automatiquement
@@ -40,6 +41,8 @@ class _AddressGeocoderWidgetState extends ConsumerState<AddressGeocoderWidget> {
     super.dispose();
   }
 
+  bool _isLoading = false;
+
   Future<void> _geocodeAddress() async {
     final address = _addressController.text.trim();
     if (address.isEmpty) {
@@ -49,49 +52,52 @@ class _AddressGeocoderWidgetState extends ConsumerState<AddressGeocoderWidget> {
       return;
     }
 
-    // Appeler le provider pour géocoder
-    await ref.read(geocodeAddressProvider.notifier).geocodeAddress(address);
+    setState(() => _isLoading = true);
 
-    // Observer le résultat
-    ref.listen<AsyncValue<LatLng?>>(geocodeAddressProvider, (previous, next) {
-      next.when(
-        data: (coords) {
-          if (coords != null) {
-            setState(() {
-              _coordinates = coords;
-            });
-            widget.onLocationSelected(coords);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('✅ Adresse géocodée avec succès'),
-                backgroundColor: Colors.green,
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('❌ Impossible de localiser cette adresse'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
-        loading: () {},
-        error: (error, stack) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erreur: $error'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        },
+    try {
+      // Appeler le provider avec les paramètres
+      final result = await ref.read(geocodeAddressProvider({
+        'address': address,
+        'city': 'Abidjan',
+      }).future);
+
+      if (!mounted) return;
+
+      if (result != null) {
+        setState(() {
+          _coordinates = result;
+          _isLoading = false;
+        });
+        widget.onLocationSelected(result);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Adresse géocodée avec succès'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ Impossible de localiser cette adresse'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur: $error'),
+          backgroundColor: Colors.red,
+        ),
       );
-    });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final geocodeState = ref.watch(geocodeAddressProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +109,7 @@ class _AddressGeocoderWidgetState extends ConsumerState<AddressGeocoderWidget> {
             hintText: widget.hint ?? 'Ex: Rue des Jardins, Cocody',
             border: const OutlineInputBorder(),
             prefixIcon: const Icon(Icons.location_on),
-            suffixIcon: geocodeState.isLoading
+            suffixIcon: _isLoading
                 ? const Padding(
                     padding: EdgeInsets.all(12.0),
                     child: SizedBox(

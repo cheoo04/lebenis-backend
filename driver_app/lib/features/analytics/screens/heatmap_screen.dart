@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../data/models/analytics/heatmap_point_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class HeatmapScreen extends StatefulWidget {
   final List<HeatmapPointModel> heatmapPoints;
@@ -15,9 +17,8 @@ class HeatmapScreen extends StatefulWidget {
 }
 
 class _HeatmapScreenState extends State<HeatmapScreen> {
-  GoogleMapController? _mapController;
-  Set<Marker> _markers = {};
-  Set<Circle> _circles = {};
+  final MapController _mapController = MapController();
+  List<CircleMarker> _circles = [];
 
   @override
   void initState() {
@@ -39,57 +40,29 @@ class _HeatmapScreenState extends State<HeatmapScreen> {
       final radius = 50.0 + (normalizedWeight * 150.0); // 50-200m radius
       final opacity = 0.3 + (normalizedWeight * 0.4); // 0.3-0.7 opacity
 
-      return Circle(
-        circleId: CircleId('circle_${point.lat}_${point.lng}'),
-        center: LatLng(point.lat, point.lng),
+      return CircleMarker(
+        point: LatLng(point.lat, point.lng),
         radius: radius,
-        fillColor: Colors.red.withValues(alpha: opacity),
-        strokeColor: Colors.red.withValues(alpha: opacity * 0.5),
-        strokeWidth: 2,
+        color: Colors.red.withValues(alpha: opacity),
+        borderColor: Colors.red.withValues(alpha: opacity * 0.5),
+        borderStrokeWidth: 2,
+        useRadiusInMeter: true,
       );
-    }).toSet();
-
-    // Create markers for high-weight points (top 20%)
-    final threshold = maxWeight * 0.8;
-    _markers = widget.heatmapPoints
-        .where((point) => point.weight >= threshold)
-        .map((point) {
-      return Marker(
-        markerId: MarkerId('marker_${point.lat}_${point.lng}'),
-        position: LatLng(point.lat, point.lng),
-        infoWindow: InfoWindow(
-          title: 'Hot Zone',
-          snippet: '${point.weight} deliveries',
-        ),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-      );
-    }).toSet();
+    }).toList();
 
     setState(() {});
   }
 
-  LatLngBounds _calculateBounds() {
-    double? minLat, maxLat, minLng, maxLng;
-
-    for (var point in widget.heatmapPoints) {
-      if (minLat == null || point.lat < minLat) minLat = point.lat;
-      if (maxLat == null || point.lat > maxLat) maxLat = point.lat;
-      if (minLng == null || point.lng < minLng) minLng = point.lng;
-      if (maxLng == null || point.lng > maxLng) maxLng = point.lng;
-    }
-
-    return LatLngBounds(
-      southwest: LatLng(minLat!, minLng!),
-      northeast: LatLng(maxLat!, maxLng!),
-    );
-  }
-
   void _fitBounds() {
-    if (_mapController != null && widget.heatmapPoints.isNotEmpty) {
-      final bounds = _calculateBounds();
-      _mapController!.animateCamera(
-        CameraUpdate.newLatLngBounds(bounds, 50), // 50px padding
-      );
+    if (widget.heatmapPoints.isNotEmpty) {
+      final points = widget.heatmapPoints
+          .map((p) => LatLng(p.lat, p.lng))
+          .toList();
+      final bounds = LatLngBounds.fromPoints(points);
+      _mapController.fitCamera(CameraFit.bounds(
+        bounds: bounds,
+        padding: const EdgeInsets.all(50),
+      ));
     }
   }
 
@@ -118,10 +91,7 @@ class _HeatmapScreenState extends State<HeatmapScreen> {
 
     // Calculate center point
     final centerPoint = widget.heatmapPoints.first;
-    final initialPosition = CameraPosition(
-      target: LatLng(centerPoint.lat, centerPoint.lng),
-      zoom: 12,
-    );
+    final initialCenter = LatLng(centerPoint.lat, centerPoint.lng);
 
     return Scaffold(
       appBar: AppBar(
@@ -136,19 +106,22 @@ class _HeatmapScreenState extends State<HeatmapScreen> {
       ),
       body: Stack(
         children: [
-          GoogleMap(
-            initialCameraPosition: initialPosition,
-            onMapCreated: (controller) {
-              _mapController = controller;
-              // Fit bounds after map is created
-              Future.delayed(const Duration(milliseconds: 500), _fitBounds);
-            },
-            markers: _markers,
-            circles: _circles,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: true,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: initialCenter,
+              initialZoom: 12,
+              onMapReady: () {
+                Future.delayed(const Duration(milliseconds: 500), _fitBounds);
+              },
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.lebenis.driver_app',
+              ),
+              CircleLayer(circles: _circles),
+            ],
           ),
           // Legend
           Positioned(

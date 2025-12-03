@@ -40,6 +40,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
 
+    ref.listen<AsyncValue<dynamic>>(authStateProvider, (previous, next) {
+      next.when(
+        data: (user) {
+          if (user != null && previous?.value == null) {
+            // Connexion réussie - rediriger vers splash qui va gérer le statut
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('✅ Connexion réussie !'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.pushReplacementNamed(context, '/');
+          }
+        },
+        loading: () {},
+        error: (err, _) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ Erreur: ${err.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+      );
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Connexion'),

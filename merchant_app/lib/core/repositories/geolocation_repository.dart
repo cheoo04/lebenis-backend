@@ -1,9 +1,8 @@
-// lib/data/repositories/geolocation_repository.dart
+// lib/core/repositories/geolocation_repository.dart
 
-import 'package:dio/dio.dart';
 import 'package:latlong2/latlong.dart';
-import '../../core/network/dio_client.dart';
-import '../models/commune/commune_model.dart';
+import '../network/dio_client.dart';
+import '../models/commune_model.dart';
 
 class GeolocationRepository {
   final DioClient _dioClient;

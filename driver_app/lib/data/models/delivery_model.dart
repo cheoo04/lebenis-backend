@@ -45,6 +45,15 @@ class DeliveryModel {
   final String? deliveryPhoto;
   final String? recipientSignature;
   final String? cancellationReason;
+  
+  // Payment fields
+  final String? paymentMethod;
+  final double? codAmount;
+  
+  // Delivery proof (aliases for compatibility)
+  String? get photoUrl => deliveryPhoto;
+  String? get signatureUrl => recipientSignature;
+  String? get deliveryNotes => notes;
 
   DeliveryModel({
     required this.id,
@@ -74,6 +83,8 @@ class DeliveryModel {
     this.deliveryPhoto,
     this.recipientSignature,
     this.cancellationReason,
+    this.paymentMethod,
+    this.codAmount,
   });
 
   /// Créer depuis JSON
@@ -140,6 +151,11 @@ class DeliveryModel {
       deliveryPhoto: json['photo_url']?.toString(),
       recipientSignature: json['signature_url']?.toString(),
       cancellationReason: json['cancellation_reason']?.toString(),
+      // Payment
+      paymentMethod: json['payment_method']?.toString(),
+      codAmount: json['cod_amount'] != null
+          ? double.tryParse(json['cod_amount'].toString())
+          : null,
     );
   }
 
@@ -239,6 +255,8 @@ class DeliveryModel {
       deliveryPhoto: deliveryPhoto ?? this.deliveryPhoto,
       recipientSignature: recipientSignature ?? this.recipientSignature,
       cancellationReason: cancellationReason,
+      paymentMethod: paymentMethod,
+      codAmount: codAmount,
     );
   }
 

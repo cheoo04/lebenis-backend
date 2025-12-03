@@ -1,6 +1,31 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
+// Classe helper pour accéder aux constantes de thème
+class AppTheme {
+  // Couleurs
+  static const Color primaryColor = AppColors.primary;
+  static const Color secondaryColor = AppColors.secondary;
+  static const Color accentColor = AppColors.accent;
+  static const Color backgroundColor = AppColors.background;
+  static const Color textColor = AppColors.text;
+  static const Color textSecondaryColor = AppColors.textSecondary;
+  static const Color errorColor = AppColors.error;
+  static const Color successColor = AppColors.success;
+  static const Color warningColor = AppColors.warning;
+  static const Color infoColor = AppColors.info;
+  
+  // Rayons
+  static const double radiusSmall = 8.0;
+  static const double radiusMedium = 12.0;
+  static const double radiusLarge = 16.0;
+  
+  // Espacements
+  static const double spacingSmall = 8.0;
+  static const double spacingMedium = 16.0;
+  static const double spacingLarge = 24.0;
+}
+
 final ThemeData appTheme = ThemeData(
   colorScheme: ColorScheme.fromSeed(
     seedColor: AppColors.primary,

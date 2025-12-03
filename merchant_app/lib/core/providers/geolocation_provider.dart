@@ -1,11 +1,10 @@
-// lib/data/providers/geolocation_provider.dart
+// lib/core/providers/geolocation_provider.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import '../../core/network/dio_client.dart';
-import '../models/commune/commune_model.dart';
+import '../../data/providers/pricing_provider.dart'; // Pour dioClientProvider
+import '../models/commune_model.dart';
 import '../repositories/geolocation_repository.dart';
-import 'auth_provider.dart';
 
 // Provider du repository
 final geolocationRepositoryProvider = Provider<GeolocationRepository>((ref) {

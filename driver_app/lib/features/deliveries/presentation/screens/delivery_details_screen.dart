@@ -294,7 +294,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     icon: Icons.payment,
                     label: 'Mode de paiement',
                     value: delivery.paymentMethod == 'cod' 
-                        ? 'Paiement à la livraison (COD)' 
+                        ? 'Paiement à la livraison' 
                         : 'Prépayé',
                     valueStyle: TextStyle(
                       color: delivery.paymentMethod == 'cod' 
@@ -304,11 +304,11 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     ),
                   ),
 
-                  if (delivery.paymentMethod == 'cod' && delivery.codAmount > 0)
+                  if (delivery.paymentMethod == 'cod' && (delivery.codAmount ?? 0) > 0)
                     _DetailRow(
                       icon: Icons.money,
                       label: 'Montant à collecter',
-                      value: Formatters.formatPrice(delivery.codAmount),
+                      value: Formatters.formatPrice(delivery.codAmount ?? 0),
                       valueStyle: TextStyle(
                         color: AppColors.warning,
                         fontWeight: FontWeight.bold,
@@ -401,7 +401,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     const SizedBox(height: AppSpacing.md),
                     
                     if (delivery.photoUrl != null && delivery.photoUrl!.isNotEmpty) ...[
-                      Text('Photo de livraison', style: AppTypography.subtitle),
+                      const Text('Photo de livraison', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                       const SizedBox(height: AppSpacing.sm),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
@@ -423,7 +423,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     ],
                     
                     if (delivery.signatureUrl != null && delivery.signatureUrl!.isNotEmpty) ...[
-                      Text('Signature du destinataire', style: AppTypography.subtitle),
+                      const Text('Signature du destinataire', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                       const SizedBox(height: AppSpacing.sm),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
