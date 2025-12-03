@@ -8,6 +8,17 @@ class PricingZone(models.Model):
     commune = models.CharField(max_length=100)
     quartier = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(blank=True)
+    
+    # Coordonnées GPS par défaut du centre de la commune
+    default_latitude = models.DecimalField(
+        max_digits=10, decimal_places=8, null=True, blank=True,
+        help_text="Latitude du centre de la commune (ex: 5.3599517 pour Cocody)"
+    )
+    default_longitude = models.DecimalField(
+        max_digits=11, decimal_places=8, null=True, blank=True,
+        help_text="Longitude du centre de la commune (ex: -4.0082563 pour Cocody)"
+    )
+    
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
