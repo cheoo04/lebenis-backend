@@ -291,6 +291,32 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                   ),
 
                   _DetailRow(
+                    icon: Icons.payment,
+                    label: 'Mode de paiement',
+                    value: delivery.paymentMethod == 'cod' 
+                        ? 'Paiement à la livraison (COD)' 
+                        : 'Prépayé',
+                    valueStyle: TextStyle(
+                      color: delivery.paymentMethod == 'cod' 
+                          ? AppColors.warning 
+                          : AppColors.success,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+
+                  if (delivery.paymentMethod == 'cod' && delivery.codAmount > 0)
+                    _DetailRow(
+                      icon: Icons.money,
+                      label: 'Montant à collecter',
+                      value: Formatters.formatPrice(delivery.codAmount),
+                      valueStyle: TextStyle(
+                        color: AppColors.warning,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+
+                  _DetailRow(
                     icon: Icons.route,
                     label: 'Distance',
                     value: Formatters.formatDistance(delivery.distanceKm),
@@ -368,6 +394,63 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                       icon: Icons.verified,
                       type: ModernButtonType.success,
                     ),
+                  ] else if (delivery.status == BackendConstants.deliveryStatusDelivered) ...[
+                    // Afficher photo et signature si disponibles
+                    const SizedBox(height: AppSpacing.xl),
+                    _SectionTitle(title: 'Preuves de livraison'),
+                    const SizedBox(height: AppSpacing.md),
+                    
+                    if (delivery.photoUrl != null && delivery.photoUrl!.isNotEmpty) ...[
+                      Text('Photo de livraison', style: AppTypography.subtitle),
+                      const SizedBox(height: AppSpacing.sm),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          delivery.photoUrl!,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 200,
+                              color: Colors.grey[200],
+                              child: const Icon(Icons.error, size: 50),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+                    
+                    if (delivery.signatureUrl != null && delivery.signatureUrl!.isNotEmpty) ...[
+                      Text('Signature du destinataire', style: AppTypography.subtitle),
+                      const SizedBox(height: AppSpacing.sm),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          delivery.signatureUrl!,
+                          height: 150,
+                          width: double.infinity,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 150,
+                              color: Colors.grey[200],
+                              child: const Icon(Icons.error, size: 50),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+                    
+                    if (delivery.deliveryNotes != null && delivery.deliveryNotes!.isNotEmpty) ...[
+                      _DetailRow(
+                        icon: Icons.note_outlined,
+                        label: 'Notes de livraison',
+                        value: delivery.deliveryNotes!,
+                      ),
+                    ],
                   ],
                 ],
               ),
