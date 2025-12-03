@@ -1,17 +1,16 @@
 // driver_app/lib/features/profile/presentation/screens/profile_screen.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../../zones/presentation/screens/zone_selection_screen.dart';
+import '../../../test/geolocation_test_screen.dart';
 import '../../../../core/constants/backend_constants.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../data/providers/driver_provider.dart';
-import '../../../../data/models/driver_model.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
-import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/modern_button.dart';
 import '../../../../shared/widgets/modern_card.dart';
 import '../../../../shared/widgets/modern_list_tile.dart';
@@ -331,6 +330,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 size: ModernButtonSize.large,
                 fullWidth: true,
               ),
+
+              // Bouton test géolocalisation (mode debug uniquement)
+              if (kDebugMode) ...[
+                const SizedBox(height: AppSpacing.md),
+                ModernButton(
+                  text: 'Test Géolocalisation',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const GeolocationTestScreen(),
+                      ),
+                    );
+                  },
+                  icon: Icons.bug_report,
+                  type: ModernButtonType.outlined,
+                  size: ModernButtonSize.large,
+                  fullWidth: true,
+                ),
+              ],
 
               // Actions
               const SizedBox(height: AppSpacing.lg),
