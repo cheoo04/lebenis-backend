@@ -35,6 +35,7 @@ import 'features/test/geolocation_test_screen.dart';
 ```
 
 Puis depuis n'importe où dans l'app :
+
 ```dart
 Navigator.pushNamed(context, '/geolocation-test');
 ```
@@ -66,11 +67,13 @@ if (kDebugMode) // Nécessite: import 'package:flutter/foundation.dart';
 Une fois dans l'écran de test :
 
 1. **Méthode Commune** :
+
    - Tapez sur le bouton "Commune"
    - Sélectionnez "Cocody" dans le dropdown
    - Vérifiez que les coordonnées apparaissent
 
 2. **Méthode Adresse** :
+
    - Tapez sur le bouton "Adresse"
    - Entrez "Rue des Jardins, Cocody, Abidjan"
    - Cliquez sur le bouton de recherche (loupe)
@@ -94,6 +97,7 @@ Une fois dans l'écran de test :
 1. **Ouvrir Render Dashboard** : https://dashboard.render.com
 
 2. **Vérifier les logs** (onglet "Logs") :
+
 ```
 ✅ "Build successful"
 ✅ "Celery worker started"
@@ -116,6 +120,7 @@ python manage.py populate_commune_gps
 ```
 
 Output attendu :
+
 ```
 ✅ Cocody: (5.3676810, -3.8714600)
 ✅ Plateau: (5.3226160, -4.0142390)
@@ -160,6 +165,7 @@ curl -X POST $BACKEND_URL/api/v1/pricing/geocode/ \
 5. Cliquer sur "Save"
 
 **Vérification** :
+
 - Ouvrir la livraison créée
 - Vérifier que `pickup_latitude`, `pickup_longitude`, `delivery_latitude`, `delivery_longitude` sont remplis
 - Vérifier que `distance` est > 0 (ex: 8.56 km)
@@ -172,6 +178,7 @@ curl -X POST $BACKEND_URL/api/v1/pricing/geocode/ \
 4. Ouvrir les détails
 
 **Résultat attendu** :
+
 - Adresses affichées
 - Distance affichée (ex: "8.56 km")
 - Bouton "Navigation" fonctionnel (si coordonnées présentes)
@@ -210,6 +217,7 @@ GpsInfoCard(
 ## ✅ Checklist de Validation
 
 ### Backend
+
 - [ ] Migrations appliquées (`python manage.py showmigrations`)
 - [ ] 13 communes avec GPS (`python manage.py populate_commune_gps`)
 - [ ] Endpoint `/communes/` retourne 13 communes
@@ -217,6 +225,7 @@ GpsInfoCard(
 - [ ] Livraison test créée avec distance > 0
 
 ### Flutter
+
 - [ ] `flutter pub get` sans erreur
 - [ ] `flutter run` démarre l'app
 - [ ] Écran de test accessible
@@ -226,6 +235,7 @@ GpsInfoCard(
 - [ ] Distance calculée entre 2 points
 
 ### Intégration
+
 - [ ] GpsInfoCard affiche correctement les coordonnées
 - [ ] Bouton navigation fonctionne (ouvre Google Maps)
 - [ ] Livraison créée dans admin a ses coordonnées
@@ -236,18 +246,22 @@ GpsInfoCard(
 ## 🐛 Problèmes Courants
 
 ### "Impossible de charger les communes"
+
 → Vérifier que l'endpoint `/api/v1/pricing/communes/` fonctionne  
 → Vérifier `backend/config/urls.py` inclut `path('api/v1/pricing/', ...)`
 
 ### "Géocodage échoue"
+
 → Vérifier la clé API OpenRouteService dans `.env` backend  
 → Vérifier la limite de 40 req/min n'est pas dépassée
 
 ### "Permission GPS refusée"
+
 → Vérifier `AndroidManifest.xml` et `Info.plist`  
 → Désinstaller/réinstaller l'app pour redemander les permissions
 
 ### "Distance = 0 km"
+
 → Exécuter `python manage.py geocode_deliveries`  
 → Vérifier que le signal `pre_save` est actif
 
@@ -265,6 +279,7 @@ GpsInfoCard(
 ## 🎯 Prochaine Étape
 
 Une fois ces tests validés, vous pourrez :
+
 1. Intégrer définitivement les widgets dans vos formulaires
 2. Ajouter une carte Google Maps pour visualiser les trajets
 3. Supprimer l'écran de test (ou le garder en mode debug)

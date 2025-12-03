@@ -352,7 +352,8 @@ class DeliveryAssignmentService:
     @transaction.atomic
     def driver_accept_delivery(self, delivery_id, driver):
         """
-        Le livreur accepte une livraison qui lui a été assignée.
+        Le livreur accepte une livraison.
+        Peut accepter une livraison en 'pending_assignment' (auto-assignation) ou 'assigned'.
         
         Args:
             delivery_id: UUID de la livraison
@@ -364,20 +365,26 @@ class DeliveryAssignmentService:
         try:
             delivery = Delivery.objects.select_for_update().get(id=delivery_id)
             
-            # Vérifications
-            if delivery.driver != driver:
-                raise ValidationError("Cette livraison n'est pas assignée à vous")
-            
-            if delivery.status != 'assigned':
-                raise ValidationError(f"Statut invalide: {delivery.status}")
-            
-            # Vérifier que le driver est toujours vérifié
+            # Vérifier que le driver est vérifié
             if driver.verification_status != 'verified':
                 raise ValidationError("Votre compte n'est pas encore vérifié. Veuillez attendre la validation de votre profil.")
             
-            # Vérifier que le driver est toujours disponible
+            # Vérifier que le driver est disponible
             if not driver.is_available:
                 raise ValidationError("Vous devez être en ligne (disponible) pour accepter une livraison. Veuillez passer en mode 'Disponible' dans votre profil.")
+            
+            # Gérer selon le statut actuel
+            if delivery.status == 'pending_assignment':
+                # Auto-assignation : le driver accepte une livraison non encore assignée
+                delivery.driver = driver
+                delivery.status = 'pickup_in_progress'
+            elif delivery.status == 'assigned':
+                # Acceptation normale : la livraison était déjà assignée à ce driver
+                if delivery.driver != driver:
+                    raise ValidationError("Cette livraison est assignée à un autre driver")
+                delivery.status = 'pickup_in_progress'
+            else:
+                raise ValidationError(f"Impossible d'accepter une livraison en statut '{delivery.status}'")
             
             # Passer au statut suivant
             delivery.status = 'pickup_in_progress'
