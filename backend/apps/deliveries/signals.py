@@ -13,11 +13,12 @@ def ensure_pin_and_send_email(sender, instance, created, **kwargs):
         instance.delivery_confirmation_code = instance.generate_confirmation_code()
         instance.save(update_fields=["delivery_confirmation_code"])
     
-    # Try to send the PIN by email, but don't crash if SMTP fails
-    try:
-        send_delivery_pin_email(instance.delivery_confirmation_code, "yahmardocheek@gmail.com", instance)
-        logger.info(f"✅ Email de confirmation envoyé pour la livraison {instance.tracking_number}")
-    except Exception as e:
-        # Log l'erreur mais ne bloque pas la création de la livraison
-        logger.error(f"❌ Erreur envoi email pour {instance.tracking_number}: {e}")
-        # L'erreur est ignorée, la livraison est créée quand même
+    # Send email ONLY on creation (not on updates)
+    if created:
+        try:
+            send_delivery_pin_email(instance.delivery_confirmation_code, "yahmardocheek@gmail.com", instance)
+            logger.info(f"✅ Email de confirmation envoyé pour la livraison {instance.tracking_number}")
+        except Exception as e:
+            # Log l'erreur mais ne bloque pas la création de la livraison
+            logger.error(f"❌ Erreur envoi email pour {instance.tracking_number}: {e}")
+            # L'erreur est ignorée, la livraison est créée quand même
