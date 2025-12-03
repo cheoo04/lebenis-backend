@@ -7,12 +7,8 @@ import '../../../../data/providers/driver_provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
-import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/modern_button.dart';
-import '../../../../shared/widgets/modern_card.dart';
-import '../../../../shared/widgets/modern_text_field.dart';
-import '../../../../shared/widgets/modern_list_tile.dart';
-import '../../../../shared/widgets/status_chip.dart';
+import '../../../../shared/widgets/gps_info_card.dart';
 import '../../../../shared/utils/formatters.dart';
 import '../../../../shared/utils/helpers.dart';
 import '../../../../core/utils/navigation_utils.dart';
@@ -250,32 +246,31 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Addresses Section
+                  // Addresses Section with GPS Info
                   _SectionTitle(title: 'Itinéraire'),
                   const SizedBox(height: AppSpacing.md),
-                  _AddressCard(
-                    icon: Icons.circle_outlined,
-                    iconColor: AppColors.success,
+                  
+                  // Point de récupération avec GPS
+                  GpsInfoCard(
                     title: 'Point de récupération',
                     address: delivery.pickupAddress,
-                    contactName: delivery.merchantName,
-                    contactPhone: null,
+                    latitude: delivery.pickupLatitude,
+                    longitude: delivery.pickupLongitude,
+                    color: AppColors.success,
                   ),
+                  
                   const SizedBox(height: AppSpacing.md),
-                  _AddressCard(
-                    icon: Icons.location_on,
-                    iconColor: AppColors.error,
+                  
+                  // Point de livraison avec GPS
+                  GpsInfoCard(
                     title: 'Point de livraison',
                     address: delivery.deliveryAddress,
-                    contactName: delivery.recipientName,
-                    contactPhone: delivery.recipientPhone,
+                    latitude: delivery.deliveryLatitude,
+                    longitude: delivery.deliveryLongitude,
+                    distanceKm: delivery.distanceKm,
+                    color: AppColors.error,
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  ModernButton(
-                    text: 'Naviguer',
-                    icon: Icons.navigation,
-                    onPressed: _openNavigation,
-                  ),
+                  
                   const SizedBox(height: AppSpacing.xl),
 
                   // Delivery Details Section
