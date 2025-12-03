@@ -66,47 +66,19 @@ coverage report
 
 #### Tâches Celery
 
-- [ ] Créer task cleanup GPS
-
-  ```python
-  # backend/apps/drivers/tasks.py
-  @shared_task
-  def cleanup_old_gps_data():
-      from .gps_tracking_service import GPSTrackingService
-      deleted_count = GPSTrackingService.cleanup_old_locations(days_to_keep=30)
-      return f"Deleted {deleted_count} old location records"
-  ```
-
-- [ ] Planifier dans Celery Beat
-  ```python
-  # backend/config/celery.py
-  app.conf.beat_schedule = {
-      'cleanup-gps-daily': {
-          'task': 'drivers.tasks.cleanup_old_gps_data',
-          'schedule': crontab(hour=2, minute=0),  # 2h du matin
-      },
-  }
-  ```
+- [x] Task cleanup GPS créée
+- [x] Planifié dans Celery Beat (2h quotidien)
+- [x] Task tracking statistics (6h quotidien)
 
 #### Sécurité
 
-- [ ] Rate limiting
-  ```bash
-  pip install django-ratelimit
-  ```
-- [ ] Vérifier ALLOWED_HOSTS production
-
-  ```python
-  # config/settings/production.py
-  ALLOWED_HOSTS = ['lebenis-backend.onrender.com', 'api.lebenis.com']
-  ```
-
-- [ ] Activer HTTPS strict
-  ```python
-  SECURE_SSL_REDIRECT = True
-  SESSION_COOKIE_SECURE = True
-  CSRF_COOKIE_SECURE = True
-  ```
+- [x] Rate limiting configuré (1000/h anon, 5000/h auth)
+- [x] ALLOWED_HOSTS production vérifié
+- [x] HTTPS strict activé (SECURE_SSL_REDIRECT, cookies secure)
+- [x] DEBUG = False en production
+- [x] SECRET_KEY unique configuré
+- [x] HSTS activé (1 an)
+- [x] Sentry monitoring configuré (optionnel)
 
 #### Monitoring (Optionnel)
 
