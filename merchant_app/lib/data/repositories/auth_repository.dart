@@ -10,7 +10,7 @@ class AuthRepository {
 
   AuthRepository(this.dioClient, this.authService);
 
-  // Inscription marchand
+  // Inscription marchand (sans documents - upload après connexion)
   Future<UserModel> registerMerchant({
     required String email,
     required String password,
@@ -21,37 +21,21 @@ class AuthRepository {
     required String businessName,
     required String businessType,
     required String businessAddress,
-    String? rccmDocumentPath,
-    String? idDocumentPath,
   }) async {
-    final formData = FormData();
-    formData.fields
-      ..add(MapEntry('email', email))
-      ..add(MapEntry('password', password))
-      ..add(MapEntry('password2', password2))
-      ..add(MapEntry('first_name', firstName))
-      ..add(MapEntry('last_name', lastName))
-      ..add(MapEntry('phone', phone))
-      ..add(MapEntry('user_type', 'merchant'))
-      ..add(MapEntry('merchant_data[business_name]', businessName))
-      ..add(MapEntry('merchant_data[business_type]', businessType))
-      ..add(MapEntry('merchant_data[business_address]', businessAddress));
-    if (rccmDocumentPath != null) {
-      formData.files.add(MapEntry(
-        'merchant_data[rccm_document]',
-        await MultipartFile.fromFile(rccmDocumentPath, filename: 'rccm_document.pdf'),
-      ));
-    }
-    if (idDocumentPath != null) {
-      formData.files.add(MapEntry(
-        'merchant_data[id_document]',
-        await MultipartFile.fromFile(idDocumentPath, filename: 'id_document.pdf'),
-      ));
-    }
-
-    final response = await dioClient.upload(
+    final response = await dioClient.post(
       ApiConstants.register,
-      data: formData,
+      data: {
+        'email': email,
+        'password': password,
+        'password2': password2,
+        'first_name': firstName,
+        'last_name': lastName,
+        'phone': phone,
+        'user_type': 'merchant',
+        'business_name': businessName,
+        'business_type': businessType,
+        'business_address': businessAddress,
+      },
     );
 
     await authService.saveTokens(

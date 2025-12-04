@@ -48,6 +48,13 @@ class MerchantModel {
 
   // Alias pour compatibilité
   String get phoneNumber => phone;
+  
+  // Vérifier si le compte est vérifié
+  bool get isVerified => verificationStatus == 'approved';
+  
+  bool get isPending => verificationStatus == 'pending';
+  
+  bool get isRejected => verificationStatus == 'rejected';
 
   String get statusLabel {
     switch (verificationStatus) {

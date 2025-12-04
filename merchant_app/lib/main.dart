@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'theme/app_theme.dart';
 import 'core/routes/app_router.dart';
 import 'core/providers.dart';
 
@@ -31,11 +32,9 @@ class MyApp extends ConsumerWidget {
     });
 
     return MaterialApp(
-      title: 'LeBeni Marchand',
+      title: 'LeBeni Marchands',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      theme: appTheme,
       initialRoute: '/',
       onGenerateRoute: AppRouter.generateRoute,
     );
