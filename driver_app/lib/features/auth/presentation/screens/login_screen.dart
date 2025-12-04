@@ -9,6 +9,7 @@ import '../../../../shared/widgets/modern_button.dart';
 import '../../../../shared/widgets/modern_text_field.dart';
 import '../../../../shared/utils/validators.dart';
 import '../../../../shared/utils/helpers.dart';
+import '../../../chat/providers/chat_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -49,6 +50,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final authState = ref.read(authProvider);
 
       if (authState.isLoggedIn) {
+        // Enregistrer le token FCM après connexion réussie
+        ref.read(chatNotificationServiceProvider).registerTokenAfterLogin();
+        
         Helpers.showSuccessSnackBar(context, 'Connexion réussie!');
         Navigator.of(context).pushReplacementNamed('/home');
       } else if (authState.error != null) {

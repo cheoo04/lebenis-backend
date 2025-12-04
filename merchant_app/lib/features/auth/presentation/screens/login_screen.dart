@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/providers/auth_provider.dart';
+import '../../../../core/providers.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -44,7 +45,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       next.when(
         data: (user) {
           if (user != null && previous?.value == null) {
-            // Connexion réussie - rediriger vers splash qui va gérer le statut
+            // Connexion réussie - enregistrer le token FCM
+            ref.read(notificationServiceProvider).registerTokenAfterLogin();
+            
+            // Rediriger vers splash qui va gérer le statut
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('✅ Connexion réussie !'),

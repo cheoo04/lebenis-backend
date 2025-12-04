@@ -24,20 +24,52 @@ class UserSerializer(serializers.ModelSerializer):
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password], style={'input_type': 'password'}, label="Mot de passe")
     password2 = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'}, label="Confirmer mot de passe")
+    
+    # Champs spécifiques pour merchant
+    business_name = serializers.CharField(write_only=True, required=False)
+    business_type = serializers.CharField(write_only=True, required=False)
+    business_address = serializers.CharField(write_only=True, required=False)
+    
+    # Champs spécifiques pour driver
+    vehicle_type = serializers.CharField(write_only=True, required=False)
+    driver_license = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ['email', 'phone', 'first_name', 'last_name', 'user_type', 'password', 'password2']
+        fields = ['email', 'phone', 'first_name', 'last_name', 'user_type', 'password', 'password2', 
+                  'business_name', 'business_type', 'business_address',
+                  'vehicle_type', 'driver_license']
 
     def validate(self, data):
         if data['password'] != data['password2']:
             raise serializers.ValidationError({"password": "Les mots de passe ne correspondent pas."})
+        
+        # Validation spécifique selon user_type
+        if data.get('user_type') == 'merchant':
+            if not data.get('business_name'):
+                raise serializers.ValidationError({"business_name": "Le nom du commerce est requis pour les marchands."})
+        
+        if data.get('user_type') == 'driver':
+            if not data.get('vehicle_type'):
+                raise serializers.ValidationError({"vehicle_type": "Le type de véhicule est requis pour les chauffeurs."})
+        
         return data
 
     def create(self, validated_data):
+        from apps.merchants.models import Merchant, MerchantAddress
+        from apps.drivers.models import Driver
+        
+        # Extraire les champs spécifiques
+        business_name = validated_data.pop('business_name', None)
+        business_type = validated_data.pop('business_type', None)
+        business_address = validated_data.pop('business_address', None)
+        vehicle_type = validated_data.pop('vehicle_type', None)
+        driver_license = validated_data.pop('driver_license', None)
+        
         # Retire password2 car non nécessaire pour la création
         validated_data.pop('password2')
-        # ✅ Crée l'utilisateur avec create_user (du UserManager personnalisé)
+        
+        # Crée l'utilisateur avec create_user (du UserManager personnalisé)
         user = User.objects.create_user(
             email=validated_data['email'],
             phone=validated_data['phone'],
@@ -46,7 +78,31 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             user_type=validated_data['user_type'],
             password=validated_data['password'],
         )
-        # L'utilisateur est créé avec succès
+        
+        # Créer le profil Merchant si user_type = 'merchant'
+        if user.user_type == 'merchant' and business_name:
+            merchant = Merchant.objects.create(
+                user=user,
+                business_name=business_name,
+                business_type=business_type or '',
+            )
+            # Créer l'adresse principale si fournie
+            if business_address:
+                MerchantAddress.objects.create(
+                    merchant=merchant,
+                    address_name='Adresse principale',
+                    street_address=business_address,
+                    is_primary=True
+                )
+        
+        # Créer le profil Driver si user_type = 'driver'
+        if user.user_type == 'driver' and vehicle_type:
+            Driver.objects.create(
+                user=user,
+                vehicle_type=vehicle_type,
+                driver_license=driver_license or '',
+            )
+        
         return user
 
 
