@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dashboard_screen.dart';
+import 'waiting_verification_screen.dart';
 import '../../../deliveries/presentation/screens/delivery_list_screen.dart';
 import '../../../profile/presentation/screens/profile_screen.dart';
 import '../../../earnings/presentation/screens/earnings_screen.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../chat/screens/conversations_list_screen.dart';
 import '../../../../core/providers/auth_provider.dart';
+import '../../../../data/providers/driver_provider.dart';
 
 /// Écran principal avec navigation moderne par tabs
 class HomeScreen extends ConsumerStatefulWidget {
@@ -65,6 +67,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final driverState = ref.watch(driverProvider);
+    
+    // Si le driver n'est pas vérifié, afficher l'écran d'attente
+    if (driverState.driver != null && !driverState.driver!.isVerified) {
+      return const WaitingVerificationScreen();
+    }
+    
     return Scaffold(
       body: _buildCurrentScreen(),
       bottomNavigationBar: Container(

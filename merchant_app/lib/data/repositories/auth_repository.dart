@@ -63,7 +63,7 @@ class AuthRepository {
     await authService.saveTokens(
       accessToken: response.data['access'],
       refreshToken: response.data['refresh'],
-      userType: response.data['user_type'],
+      userType: response.data['user']['user_type'],
     );
 
     return UserModel.fromJson(response.data['user']);
