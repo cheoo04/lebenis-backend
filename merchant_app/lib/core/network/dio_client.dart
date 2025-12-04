@@ -18,9 +18,9 @@ class DioClient {
     }
   }
 
-  Future<Response> post(String path, {dynamic data}) async {
+  Future<Response> post(String path, {dynamic data, Options? options}) async {
     try {
-      return await dio.post(path, data: data);
+      return await dio.post(path, data: data, options: options);
     } on DioException catch (e) {
       throw ApiException(
         e.message ?? 'Erreur réseau',
@@ -60,6 +60,27 @@ class DioClient {
     } on DioException catch (e) {
       throw ApiException(
         e.message ?? 'Erreur réseau',
+        code: e.response?.statusCode ?? 0,
+        details: e.response?.data,
+      );
+    }
+  }
+
+  /// Download a file to local storage
+  Future<Response> download(
+    String path,
+    String savePath, {
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    try {
+      return await dio.download(
+        path,
+        savePath,
+        onReceiveProgress: onReceiveProgress,
+      );
+    } on DioException catch (e) {
+      throw ApiException(
+        e.message ?? 'Erreur de téléchargement',
         code: e.response?.statusCode ?? 0,
         details: e.response?.data,
       );

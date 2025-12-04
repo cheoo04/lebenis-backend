@@ -1,10 +1,11 @@
 """
 PDF Report Generation Service
-Generates professional PDF reports for driver analytics
+Generates professional PDF reports for driver analytics and delivery receipts
 """
 from datetime import datetime
 from io import BytesIO
 from django.template.loader import render_to_string
+from django.utils import timezone
 from weasyprint import HTML, CSS
 from weasyprint.text.fonts import FontConfiguration
 from .analytics_service import AnalyticsService
@@ -273,5 +274,264 @@ class PDFReportService:
         .badge.info {
             background: #2196F3;
             color: white;
+        }
+        """
+    
+    @staticmethod
+    def generate_delivery_report(delivery):
+        """
+        Generate a delivery receipt/report PDF
+        
+        Args:
+            delivery: Delivery instance
+            
+        Returns:
+            BytesIO: PDF file content
+        """
+        # Prepare context data
+        context = {
+            'delivery': delivery,
+            'generated_at': timezone.now(),
+        }
+        
+        # Render HTML template
+        html_string = render_to_string('reports/delivery_report.html', context)
+        
+        # Generate PDF
+        pdf_file = BytesIO()
+        
+        # Configure fonts
+        font_config = FontConfiguration()
+        HTML(string=html_string).write_pdf(
+            pdf_file,
+            stylesheets=[CSS(string=PDFReportService._get_delivery_css())],
+            font_config=font_config
+        )
+        
+        pdf_file.seek(0)
+        return pdf_file
+    
+    @staticmethod
+    def generate_delivery_filename(delivery):
+        """Generate a standardized filename for the delivery PDF"""
+        date_str = timezone.now().strftime('%Y%m%d_%H%M%S')
+        return f'delivery_{delivery.tracking_number}_{date_str}.pdf'
+    
+    @staticmethod
+    def _get_delivery_css():
+        """Return CSS styles for the delivery PDF report"""
+        return """
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+        
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #4CAF50;
+        }
+        
+        .header h1 {
+            margin: 0;
+            color: #4CAF50;
+            font-size: 24pt;
+        }
+        
+        .header .subtitle {
+            color: #666;
+            font-size: 12pt;
+            margin-top: 5px;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .value {
+            color: #333;
+        }
+        
+        .tracking-number {
+            font-family: 'Courier New', monospace;
+            font-size: 12pt;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            color: #4CAF50;
+            font-size: 14pt;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .info-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .info-item.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .item-label {
+            display: block;
+            font-size: 9pt;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .item-value {
+            display: block;
+            font-size: 11pt;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .pricing-table {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .pricing-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .pricing-row:last-child {
+            border-bottom: none;
+        }
+        
+        .pricing-row.total {
+            background: #4CAF50;
+            color: white;
+            font-size: 12pt;
+        }
+        
+        .instructions-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 15px;
+            color: #856404;
+        }
+        
+        .rating-container {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .rating-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .rating-row:last-child {
+            border-bottom: none;
+        }
+        
+        .rating-stars {
+            color: #FFC107;
+            font-size: 12pt;
+            font-weight: bold;
+        }
+        
+        .rating-comment {
+            margin-top: 15px;
+            padding: 10px;
+            background: white;
+            border-left: 4px solid #4CAF50;
+            font-style: italic;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 9pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .badge.success {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .badge.warning {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .badge.danger {
+            background: #F44336;
+            color: white;
+        }
+        
+        .badge.info {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 10pt;
+        }
+        
+        .footer p {
+            margin: 5px 0;
         }
         """

@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../data/providers/auth_provider.dart';
+import '../../../../core/providers.dart';
 
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -22,8 +24,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   late final TextEditingController _businessTypeController;
   late final TextEditingController _businessAddressController;
   String? _rccmDocumentPath;
+  String? _rccmDocumentUrl; // URL après upload
   String? _idDocumentPath;
+  String? _idDocumentUrl; // URL après upload
   bool _obscurePassword = true;
+  bool _isUploadingDocs = false;
 
   @override
   void initState() {
@@ -54,21 +59,62 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
 
-  void _register() async {
-    final authNotifier = ref.read(authStateProvider.notifier);
-    await authNotifier.register(
-      email: _emailController.text,
-      password: _passwordController.text,
-      password2: _password2Controller.text,
-      firstName: _firstNameController.text,
-      lastName: _lastNameController.text,
-      phone: _phoneController.text,
-      businessName: _businessNameController.text,
-      businessType: _businessTypeController.text,
-      businessAddress: _businessAddressController.text,
-      rccmDocumentPath: _rccmDocumentPath,
-      idDocumentPath: _idDocumentPath,
-    );
+  Future<void> _register() async {
+    // Validation
+    if (_rccmDocumentPath == null || _idDocumentPath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ Veuillez télécharger tous les documents requis'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isUploadingDocs = true);
+
+    try {
+      // 1. Upload RCCM
+      final uploadService = ref.read(uploadServiceProvider);
+      _rccmDocumentUrl = await uploadService.uploadDocument(
+        file: File(_rccmDocumentPath!),
+        documentType: 'rccm',
+      );
+
+      // 2. Upload ID
+      _idDocumentUrl = await uploadService.uploadDocument(
+        file: File(_idDocumentPath!),
+        documentType: 'id_card',
+      );
+
+      setState(() => _isUploadingDocs = false);
+
+      // 3. Inscription avec les URLs des documents
+      final authNotifier = ref.read(authStateProvider.notifier);
+      await authNotifier.register(
+        email: _emailController.text,
+        password: _passwordController.text,
+        password2: _password2Controller.text,
+        firstName: _firstNameController.text,
+        lastName: _lastNameController.text,
+        phone: _phoneController.text,
+        businessName: _businessNameController.text,
+        businessType: _businessTypeController.text,
+        businessAddress: _businessAddressController.text,
+        rccmDocumentPath: _rccmDocumentUrl,
+        idDocumentPath: _idDocumentUrl,
+      );
+    } catch (e) {
+      setState(() => _isUploadingDocs = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Erreur upload: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -253,16 +299,44 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
               const SizedBox(height: 24),
               // Bouton Inscription
-              authState.maybeWhen(
-                loading: () => const ElevatedButton(
+              if (_isUploadingDocs)
+                const ElevatedButton(
                   onPressed: null,
-                  child: CircularProgressIndicator(),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      SizedBox(width: 12),
+                      Text('Upload des documents...'),
+                    ],
+                  ),
+                )
+              else
+                authState.maybeWhen(
+                  loading: () => const ElevatedButton(
+                    onPressed: null,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 12),
+                        Text('Inscription en cours...'),
+                      ],
+                    ),
+                  ),
+                  orElse: () => ElevatedButton(
+                    onPressed: _register,
+                    child: const Text('S\'inscrire'),
+                  ),
                 ),
-                orElse: () => ElevatedButton(
-                  onPressed: _register,
-                  child: const Text('S\'inscrire'),
-                ),
-              ),
             ],
           ),
         ),

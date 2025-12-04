@@ -7,9 +7,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from datetime import datetime, timedelta
 from .analytics_serializers import DateRangeSerializer
 from .pdf_service import PDFReportService
+from .models import Delivery
+from core.permissions import IsMerchant
 
 
 @api_view(['POST'])
@@ -125,6 +128,54 @@ def test_pdf_generation(request):
         
         filename = f'test_report_{driver.id}.pdf'
         
+        response = HttpResponse(pdf_file.read(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response['Access-Control-Expose-Headers'] = 'Content-Disposition'
+        
+        return response
+        
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to generate PDF: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsMerchant])
+def generate_delivery_pdf(request, delivery_id):
+    """
+    Generate and download a delivery receipt/report PDF
+    
+    GET /api/v1/deliveries/{delivery_id}/generate-pdf/
+    
+    Response: PDF file download
+    
+    Permissions:
+    - Only the merchant who owns the delivery can download it
+    """
+    # Get the delivery
+    delivery = get_object_or_404(Delivery, id=delivery_id)
+    
+    # Check if the merchant owns this delivery
+    if not hasattr(request.user, 'merchant_profile'):
+        return Response(
+            {'error': 'Only merchants can download delivery reports'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    if delivery.merchant.id != request.user.merchant_profile.id:
+        return Response(
+            {'error': 'You can only download reports for your own deliveries'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    try:
+        # Generate PDF
+        pdf_file = PDFReportService.generate_delivery_report(delivery)
+        filename = PDFReportService.generate_delivery_filename(delivery)
+        
+        # Return PDF response
         response = HttpResponse(pdf_file.read(), content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         response['Access-Control-Expose-Headers'] = 'Content-Disposition'
