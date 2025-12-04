@@ -7,9 +7,12 @@ import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/modern_card.dart';
+import '../../../../core/widgets/modern_button.dart';
 import '../../../../core/providers/delivery_provider.dart';
 import '../../../../data/providers/payment_provider.dart';
+import '../../../../data/providers/driver_provider.dart';
 import '../../../../data/models/delivery_model.dart';
+import '../widgets/widgets.dart';
 
 /// Dashboard moderne avec grille de cartes colorées (style maquette)
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -62,6 +65,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     final deliveryState = ref.watch(deliveryProvider);
     final paymentState = ref.watch(paymentProvider);
+    final driverState = ref.watch(driverProvider);
+    
+    // Vérifier le statut de vérification
+    if (driverState.driver != null && !driverState.driver!.isVerified) {
+      return _buildWaitingScreen(context);
+    }
+    
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -281,83 +291,166 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     required Color color,
     VoidCallback? onTap,
   }) {
-    return ModernCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+    return ActivityCard(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      color: color,
       onTap: onTap,
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
+    );
+  }
+
+  /// Écran d'attente pour les chauffeurs non vérifiés
+  Widget _buildWaitingScreen(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Compte en attente'),
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  title,
-                  style: AppTypography.label,
+                // Icône de sablier
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.hourglass_empty,
+                    size: 60,
+                    color: AppColors.warning,
+                  ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xxl),
+                
+                // Titre
                 Text(
-                  subtitle,
-                  style: AppTypography.caption,
+                  'Compte en cours de vérification',
+                  style: AppTypography.h3,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                
+                // Sous-titre
+                Text(
+                  'Votre compte chauffeur est en attente de vérification par notre équipe. Vous pourrez accéder aux livraisons une fois approuvé.',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.xxxl),
+                
+                // Processus de vérification
+                ModernCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Processus de vérification',
+                          style: AppTypography.label,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        _buildVerificationStep(
+                          '1',
+                          'Création du compte',
+                          'Complétée',
+                          true,
+                        ),
+                        _buildVerificationStep(
+                          '2',
+                          'Vérification des documents',
+                          'En cours',
+                          false,
+                        ),
+                        _buildVerificationStep(
+                          '3',
+                          'Validation du permis',
+                          'En attente',
+                          false,
+                        ),
+                        _buildVerificationStep(
+                          '4',
+                          'Activation du compte',
+                          'En attente',
+                          false,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+                
+                // Bouton pour vérifier le statut
+                SizedBox(
+                  width: double.infinity,
+                  child: ModernButton(
+                    text: 'Vérifier le statut',
+                    onPressed: () {
+                      ref.invalidate(driverProvider);
+                    },
+                    variant: ButtonVariant.primary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                
+                // Info de contact
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.info.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        color: AppColors.info,
+                        size: 20,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          'Des questions? Contactez-nous à support@lebenis.com',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.info,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: AppColors.textSecondary,
-          ),
-        ],
+        ),
       ),
     );
   }
-}
 
-/// AppBar personnalisée pour le dashboard
-class SliverToLayerAppBar extends StatelessWidget {
-  final String title;
-
-  const SliverToLayerAppBar({
-    super.key,
-    required this.title,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverAppBar(
-      floating: true,
-      snap: true,
-      backgroundColor: AppColors.surface,
-      elevation: 0,
-      title: Text(
-        title,
-        style: AppTypography.h4,
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.search, color: AppColors.textPrimary),
-          onPressed: () {
-            Navigator.pushNamed(context, '/deliveries');
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
-          onPressed: () {
-            Navigator.pushNamed(context, '/notifications');
-          },
-        ),
-        const SizedBox(width: AppSpacing.sm),
-      ],
+  /// Widget pour une étape de vérification
+  Widget _buildVerificationStep(
+    String number,
+    String title,
+    String status,
+    bool isCompleted,
+  ) {
+    return VerificationStep(
+      number: number,
+      title: title,
+      status: status,
+      isCompleted: isCompleted,
     );
   }
 }

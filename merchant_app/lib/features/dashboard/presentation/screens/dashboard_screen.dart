@@ -17,6 +17,90 @@ class DashboardScreen extends ConsumerWidget {
     final profileAsync = ref.watch(merchantProfileProvider);
     final statsAsync = ref.watch(merchantStatsProvider);
 
+    // Vérifier le statut de vérification
+    return profileAsync.when(
+      data: (profile) {
+        if (profile == null) {
+          return const Scaffold(
+            body: Center(child: Text('Erreur: Profil non trouvé')),
+          );
+        }
+        
+        // Si le compte n'est pas vérifié, afficher l'écran d'attente
+        if (!profile.isVerified) {
+          return _buildWaitingScreen(context, profile);
+        }
+        
+        // Compte vérifié: afficher le dashboard normal
+        return _buildDashboard(context, ref, profileAsync, statsAsync);
+      },
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (err, stack) => Scaffold(
+        body: Center(
+          child: Text('Erreur: $err'),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWaitingScreen(BuildContext context, merchant) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mon Compte'),
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.hourglass_empty,
+                  size: 50,
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Compte en attente de vérification',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Votre compte est en cours de vérification par notre équipe. Vous recevrez une notification une fois approuvé.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/waiting-approval');
+                },
+                child: const Text('Voir les détails'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDashboard(BuildContext context, WidgetRef ref, profileAsync, statsAsync) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -28,16 +112,14 @@ class DashboardScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
-              // TODO: Navigate to notifications
+              Navigator.pushNamed(context, '/notifications');
             },
           ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // ignore: unused_result
           ref.refresh(merchantProfileProvider);
-          // ignore: unused_result
           ref.refresh(merchantStatsProvider);
         },
         color: AppTheme.primaryColor,

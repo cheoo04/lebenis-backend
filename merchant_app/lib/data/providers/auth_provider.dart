@@ -46,14 +46,9 @@ class AuthNotifier extends Notifier<AsyncValue<UserModel?>> {
     required String businessName,
     required String businessType,
     required String businessAddress,
-    String? rccmDocumentPath,
-    String? idDocumentPath,
   }) async {
-    // DEBUG
-    print('register called');
     state = const AsyncValue.loading();
     try {
-      print('before repository.registerMerchant');
       final user = await repository.registerMerchant(
         email: email,
         password: password,
@@ -64,10 +59,7 @@ class AuthNotifier extends Notifier<AsyncValue<UserModel?>> {
         businessName: businessName,
         businessType: businessType,
         businessAddress: businessAddress,
-        rccmDocumentPath: rccmDocumentPath,
-        idDocumentPath: idDocumentPath,
       );
-      print('after repository.registerMerchant');
       state = AsyncValue.data(user);
     } on DioException catch (dioErr, st) {
       print('DioException catch');

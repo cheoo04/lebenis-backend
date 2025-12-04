@@ -60,61 +60,45 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
 
   Future<void> _register() async {
-    // Validation
-    if (_rccmDocumentPath == null || _idDocumentPath == null) {
+    // Validation basique
+    if (_emailController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _firstNameController.text.isEmpty ||
+        _lastNameController.text.isEmpty ||
+        _phoneController.text.isEmpty ||
+        _businessNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('⚠️ Veuillez télécharger tous les documents requis'),
+          content: Text('⚠️ Veuillez remplir tous les champs obligatoires'),
           backgroundColor: Colors.orange,
         ),
       );
       return;
     }
 
-    setState(() => _isUploadingDocs = true);
-
-    try {
-      // 1. Upload RCCM
-      final uploadService = ref.read(uploadServiceProvider);
-      _rccmDocumentUrl = await uploadService.uploadDocument(
-        file: File(_rccmDocumentPath!),
-        documentType: 'rccm',
+    if (_passwordController.text != _password2Controller.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ Les mots de passe ne correspondent pas'),
+          backgroundColor: Colors.orange,
+        ),
       );
-
-      // 2. Upload ID
-      _idDocumentUrl = await uploadService.uploadDocument(
-        file: File(_idDocumentPath!),
-        documentType: 'id_card',
-      );
-
-      setState(() => _isUploadingDocs = false);
-
-      // 3. Inscription avec les URLs des documents
-      final authNotifier = ref.read(authStateProvider.notifier);
-      await authNotifier.register(
-        email: _emailController.text,
-        password: _passwordController.text,
-        password2: _password2Controller.text,
-        firstName: _firstNameController.text,
-        lastName: _lastNameController.text,
-        phone: _phoneController.text,
-        businessName: _businessNameController.text,
-        businessType: _businessTypeController.text,
-        businessAddress: _businessAddressController.text,
-        rccmDocumentPath: _rccmDocumentUrl,
-        idDocumentPath: _idDocumentUrl,
-      );
-    } catch (e) {
-      setState(() => _isUploadingDocs = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Erreur upload: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      return;
     }
+
+    // Inscription sans documents (upload après connexion)
+    final authNotifier = ref.read(authStateProvider.notifier);
+    await authNotifier.register(
+      email: _emailController.text,
+      password: _passwordController.text,
+      password2: _password2Controller.text,
+      firstName: _firstNameController.text,
+      lastName: _lastNameController.text,
+      phone: _phoneController.text,
+      businessName: _businessNameController.text,
+      businessType: _businessTypeController.text,
+      businessAddress: _businessAddressController.text,
+    );
   }
 
   @override
@@ -265,58 +249,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   prefixIcon: Icon(Icons.location_on),
                 ),
               ),
-              const SizedBox(height: 16),
-              // Upload RCCM
-              ElevatedButton(
-                onPressed: () async {
-                  final picker = ImagePicker();
-                  final rccm = await picker.pickImage(source: ImageSource.gallery);
-                  if (rccm != null) {
-                    setState(() => _rccmDocumentPath = rccm.path);
-                  }
-                },
-                child: Text(
-                  _rccmDocumentPath == null
-                      ? 'Télécharger RCCM'
-                      : 'RCCM sélectionné ✓',
+              const SizedBox(height: 24),
+              // Note d'information
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.shade200),
                 ),
-              ),
-              const SizedBox(height: 16),
-              // Upload pièce d'identité
-              ElevatedButton(
-                onPressed: () async {
-                  final picker = ImagePicker();
-                  final idDoc = await picker.pickImage(source: ImageSource.gallery);
-                  if (idDoc != null) {
-                    setState(() => _idDocumentPath = idDoc.path);
-                  }
-                },
-                child: Text(
-                  _idDocumentPath == null
-                      ? "Télécharger pièce d'identité"
-                      : "Pièce d'identité sélectionnée ✓",
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Vous pourrez uploader vos documents (RCCM, pièce d\'identité) après connexion depuis votre profil.',
+                        style: TextStyle(fontSize: 13, color: Colors.black87),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
               // Bouton Inscription
-              if (_isUploadingDocs)
-                const ElevatedButton(
-                  onPressed: null,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      SizedBox(width: 12),
-                      Text('Upload des documents...'),
-                    ],
-                  ),
-                )
-              else
-                authState.maybeWhen(
+              authState.maybeWhen(
                   loading: () => const ElevatedButton(
                     onPressed: null,
                     child: Row(
