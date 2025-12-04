@@ -61,8 +61,8 @@ class AuthRepository {
     required String password,
     required String phone,
     required String vehicleType,
-    String? firstName,
-    String? lastName,
+    required String firstName,
+    required String lastName,
   }) async {
     try {
       final response = await _dioClient.post(
@@ -74,8 +74,8 @@ class AuthRepository {
           'phone': phone,
           'vehicle_type': vehicleType,
           'user_type': 'driver',
-          if (firstName != null && firstName.isNotEmpty) 'first_name': firstName,
-          if (lastName != null && lastName.isNotEmpty) 'last_name': lastName,
+          'first_name': firstName,
+          'last_name': lastName,
         },
       );
       

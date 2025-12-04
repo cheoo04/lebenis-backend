@@ -100,8 +100,8 @@ class AuthNotifier extends Notifier<AuthState> {
     required String password,
     required String phone,
     required String vehicleType,
-    String? firstName,
-    String? lastName,
+    required String firstName,
+    required String lastName,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {

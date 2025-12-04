@@ -51,6 +51,33 @@ class ChatNotificationService {
     }
   }
 
+  /// Enregistrer le token FCM après connexion (méthode publique)
+  Future<void> registerTokenAfterLogin() async {
+    try {
+      final token = await _notificationService.getFcmToken();
+      
+      if (token != null) {
+        _currentFcmToken = token;
+        await _sendTokenToBackend(token);
+        await _subscribeToTopics();
+        
+        // Écouter les changements de token
+        _notificationService.onTokenRefresh().listen((newToken) {
+          _currentFcmToken = newToken;
+          _sendTokenToBackend(newToken);
+        });
+        
+        if (kDebugMode) {
+          debugPrint('✅ Token FCM enregistré après connexion');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ Erreur enregistrement token après connexion: $e');
+      }
+    }
+  }
+
   /// Envoyer le token FCM au backend
   Future<void> _sendTokenToBackend(String token) async {
     try {

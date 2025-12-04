@@ -22,7 +22,7 @@ class NotificationService {
 
   // ========== INITIALISATION ==========
 
-  /// Initialiser le service de notifications
+  /// Initialiser le service de notifications (sans enregistrer le token)
   Future<void> initialize({bool firebaseEnabled = true}) async {
     if (!firebaseEnabled) {
       if (kDebugMode) {
@@ -36,10 +36,32 @@ class NotificationService {
       await _requestPermissions();
       await _initializeLocalNotifications();
       _configureFirebaseHandlers();
-      await _registerToken();
+      // Ne pas enregistrer le token ici car l'utilisateur n'est pas authentifié
+      // Le token sera enregistré après login via registerTokenAfterLogin()
     } catch (e) {
       if (kDebugMode) {
         debugPrint('⚠️ Erreur initialisation NotificationService: $e');
+      }
+    }
+  }
+
+  /// Enregistrer le token FCM après connexion réussie
+  Future<void> registerTokenAfterLogin() async {
+    if (_fcm == null) {
+      if (kDebugMode) {
+        debugPrint('⚠️ Firebase Messaging non initialisé');
+      }
+      return;
+    }
+    
+    try {
+      await _registerToken();
+      if (kDebugMode) {
+        debugPrint('✅ Token FCM enregistré après connexion');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ Erreur enregistrement token après connexion: $e');
       }
     }
   }

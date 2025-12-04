@@ -139,8 +139,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         password: _passwordController.text,
         phone: _phoneController.text.trim(),
         vehicleType: _selectedVehicleType,
-        firstName: _firstNameController.text.trim().isEmpty ? null : _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim().isEmpty ? null : _lastNameController.text.trim(),
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
       );
 
       if (!mounted) return;
