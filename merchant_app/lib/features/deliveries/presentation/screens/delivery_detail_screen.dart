@@ -4,7 +4,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../theme/app_theme.dart';
 import '../../../../data/providers/delivery_provider.dart';
 import '../../../../shared/widgets/modern_button.dart';
+import '../../../../core/providers.dart';
 import 'tracking_screen.dart';
+import '../../../chat/screens/chat_screen.dart';
+import '../../../chat/providers/chat_provider.dart';
 
 class DeliveryDetailScreen extends ConsumerStatefulWidget {
   final int deliveryId;
@@ -17,6 +20,32 @@ class DeliveryDetailScreen extends ConsumerStatefulWidget {
 
 class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
   bool _isCancelling = false;
+  bool _isDownloadingPDF = false;
+  double _downloadProgress = 0.0;
+
+  Future<void> _openChat(int driverId, String deliveryRef) async {
+    try {
+      final chatRoom = await ref.read(chatRoomsProvider.notifier).createOrGetChatRoom(
+        driverId: driverId.toString(),
+        deliveryId: deliveryRef,
+      );
+
+      if (chatRoom != null && mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(chatRoom: chatRoom),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: ${e.toString()}')),
+        );
+      }
+    }
+  }
 
   Future<void> _callDriver(String? phone) async {
     if (phone == null || phone.isEmpty) {
@@ -33,6 +62,206 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Impossible d\'appeler')),
+        );
+      }
+    }
+  }
+
+  Future<void> _downloadPDF() async {
+    setState(() {
+      _isDownloadingPDF = true;
+      _downloadProgress = 0.0;
+    });
+
+    try {
+      final pdfService = ref.read(pdfReportServiceProvider);
+      final filePath = await pdfService.downloadDeliveryPDF(
+        deliveryId: widget.deliveryId,
+        onProgress: (progress) {
+          setState(() => _downloadProgress = progress);
+        },
+      );
+
+      if (mounted) {
+        // Show success and ask to open/share
+        final action = await showDialog<String>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('✅ PDF téléchargé'),
+            content: const Text('Que voulez-vous faire ?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'close'),
+                child: const Text('Fermer'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'share'),
+                child: const Text('Partager'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'open'),
+                child: const Text('Ouvrir'),
+              ),
+            ],
+          ),
+        );
+
+        if (action == 'share') {
+          await pdfService.sharePDF(filePath);
+        } else if (action == 'open') {
+          await pdfService.openPDF(filePath);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDownloadingPDF = false;
+          _downloadProgress = 0.0;
+        });
+      }
+    }
+  }
+
+  Future<void> _showRatingDialog(int deliveryId, String driverName) async {
+    double rating = 5.0;
+    double punctuality = 5.0;
+    double professionalism = 5.0;
+    double care = 5.0;
+    final commentController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text('Noter $driverName'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Note globale', style: TextStyle(fontWeight: FontWeight.bold)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (index) {
+                    return IconButton(
+                      icon: Icon(
+                        index < rating ? Icons.star : Icons.star_border,
+                        color: Colors.amber,
+                        size: 32,
+                      ),
+                      onPressed: () => setState(() => rating = index + 1.0),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 16),
+                _buildRatingSlider('Ponctualité', punctuality, (val) => setState(() => punctuality = val)),
+                _buildRatingSlider('Professionnalisme', professionalism, (val) => setState(() => professionalism = val)),
+                _buildRatingSlider('Soin du colis', care, (val) => setState(() => care = val)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: commentController,
+                  decoration: const InputDecoration(
+                    labelText: 'Commentaire (optionnel)',
+                    border: OutlineInputBorder(),
+                    hintText: 'Partagez votre expérience...',
+                  ),
+                  maxLines: 3,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _submitRating(
+                  deliveryId: deliveryId,
+                  rating: rating,
+                  comment: commentController.text,
+                  punctualityRating: punctuality,
+                  professionalismRating: professionalism,
+                  careRating: care,
+                );
+              },
+              child: const Text('Envoyer'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRatingSlider(String label, double value, ValueChanged<double> onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 13)),
+            Text('${value.toStringAsFixed(1)} / 5.0', style: const TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        Slider(
+          value: value,
+          min: 1.0,
+          max: 5.0,
+          divisions: 8,
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _submitRating({
+    required int deliveryId,
+    required double rating,
+    String? comment,
+    double? punctualityRating,
+    double? professionalismRating,
+    double? careRating,
+  }) async {
+    try {
+      final repository = ref.read(deliveryRepositoryProvider);
+      await repository.rateDriver(
+        deliveryId: deliveryId,
+        rating: rating,
+        comment: comment,
+        punctualityRating: punctualityRating,
+        professionalismRating: professionalismRating,
+        careRating: careRating,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⭐ Merci pour votre évaluation !'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Recharger les détails
+        ref.invalidate(deliveryDetailProvider(deliveryId));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -241,6 +470,19 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                 const SizedBox(height: 32),
 
                 // Actions
+                // Download PDF Button (always visible)
+                ModernButton(
+                  text: _isDownloadingPDF 
+                    ? 'Téléchargement... ${(_downloadProgress * 100).toInt()}%'
+                    : 'Télécharger le PDF',
+                  icon: Icons.picture_as_pdf,
+                  onPressed: _isDownloadingPDF ? null : _downloadPDF,
+                  isLoading: _isDownloadingPDF,
+                  backgroundColor: Colors.deepPurple,
+                ),
+
+                const SizedBox(height: 12),
+
                 if (delivery.driver != null)
                   ModernButton(
                     text: 'Appeler le livreur',
@@ -250,6 +492,33 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                   ),
 
                 if (delivery.driver != null) const SizedBox(height: 12),
+
+                if (delivery.driver != null)
+                  ModernButton(
+                    text: 'Contacter le livreur',
+                    icon: Icons.chat,
+                    onPressed: () => _openChat(
+                      delivery.driver!.id!,
+                      delivery.trackingNumber,
+                    ),
+                    backgroundColor: Colors.blue,
+                  ),
+
+                if (delivery.driver != null) const SizedBox(height: 12),
+
+                // Bouton Noter le livreur (seulement si livraison terminée)
+                if (status == 'delivered' && delivery.driver != null)
+                  ModernButton(
+                    text: 'Noter le livreur',
+                    icon: Icons.star,
+                    onPressed: () => _showRatingDialog(
+                      delivery.id,
+                      delivery.driver!.firstName ?? 'le livreur',
+                    ),
+                    backgroundColor: Colors.amber,
+                  ),
+
+                if (status == 'delivered' && delivery.driver != null) const SizedBox(height: 12),
 
                 if (status == 'in_transit' || status == 'assigned' || status == 'pickup_confirmed')
                   ModernButton(

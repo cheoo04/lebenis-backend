@@ -27,31 +27,32 @@ class ModernButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = backgroundColor ?? AppTheme.primaryColor;
+    final bgColor = backgroundColor ?? AppTheme.accentColor; // Orange par défaut
     final txtColor = textColor ?? Colors.white;
 
     return SizedBox(
       width: width ?? double.infinity,
-      height: 56,
+      height: 52,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: isOutlined ? Colors.white : bgColor,
+          backgroundColor: isOutlined ? Colors.transparent : bgColor,
           foregroundColor: isOutlined ? bgColor : txtColor,
-          elevation: isOutlined ? 0 : 2,
-          shadowColor: bgColor.withOpacity(0.3),
+          elevation: 0,
+          shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppTheme.radiusPill), // Pill shape
             side: isOutlined
                 ? BorderSide(color: bgColor, width: 2)
                 : BorderSide.none,
           ),
           disabledBackgroundColor: Colors.grey[300],
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         ),
         child: isLoading
             ? SizedBox(
-                width: 24,
-                height: 24,
+                width: 22,
+                height: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
                   valueColor: AlwaysStoppedAnimation<Color>(txtColor),
@@ -61,8 +62,8 @@ class ModernButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (icon != null) ...[
-                    Icon(icon, size: 22),
-                    const SizedBox(width: 8),
+                    Icon(icon, size: 20),
+                    const SizedBox(width: 10),
                   ],
                   Text(
                     text,
@@ -70,6 +71,7 @@ class ModernButton extends StatelessWidget {
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: isOutlined ? bgColor : txtColor,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ],

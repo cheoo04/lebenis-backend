@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Delivery Report - {{ delivery.tracking_number }}</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>📦 LeBeni's Delivery Report</h1>
+        <div class="subtitle">Delivery Receipt & Details</div>
+    </div>
+
+    <!-- Delivery Information -->
+    <div class="info-section">
+        <div class="info-row">
+            <span class="label">Tracking Number:</span>
+            <span class="value tracking-number">{{ delivery.tracking_number }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Status:</span>
+            <span class="value">
+                {% if delivery.status == 'delivered' %}
+                    <span class="badge success">DELIVERED</span>
+                {% elif delivery.status == 'cancelled' %}
+                    <span class="badge danger">CANCELLED</span>
+                {% elif delivery.status == 'in_transit' %}
+                    <span class="badge info">IN TRANSIT</span>
+                {% elif delivery.status == 'picked_up' %}
+                    <span class="badge warning">PICKED UP</span>
+                {% else %}
+                    <span class="badge">{{ delivery.status|upper }}</span>
+                {% endif %}
+            </span>
+        </div>
+        <div class="info-row">
+            <span class="label">Created:</span>
+            <span class="value">{{ delivery.created_at|date:"d/m/Y H:i" }}</span>
+        </div>
+        {% if delivery.delivered_at %}
+        <div class="info-row">
+            <span class="label">Delivered:</span>
+            <span class="value">{{ delivery.delivered_at|date:"d/m/Y H:i" }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Merchant Information -->
+    <div class="section">
+        <h2 class="section-title">🏪 Merchant Information</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="item-label">Business Name</span>
+                <span class="item-value">{{ delivery.merchant.business_name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="item-label">Contact</span>
+                <span class="item-value">{{ delivery.merchant.phone_number }}</span>
+            </div>
+            <div class="info-item">
+                <span class="item-label">Address</span>
+                <span class="item-value">{{ delivery.merchant.address }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recipient Information -->
+    <div class="section">
+        <h2 class="section-title">👤 Recipient Information</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="item-label">Name</span>
+                <span class="item-value">{{ delivery.recipient_name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="item-label">Phone</span>
+                <span class="item-value">{{ delivery.recipient_phone }}</span>
+            </div>
+            <div class="info-item full-width">
+                <span class="item-label">Delivery Address</span>
+                <span class="item-value">{{ delivery.recipient_address }}</span>
+            </div>
+            <div class="info-item">
+                <span class="item-label">Commune</span>
+                <span class="item-value">{{ delivery.commune.name }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Package Details -->
+    <div class="section">
+        <h2 class="section-title">📦 Package Details</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="item-label">Type</span>
+                <span class="item-value">
+                    {% if delivery.package_type == 'document' %}📄 Document
+                    {% elif delivery.package_type == 'package' %}📦 Package
+                    {% elif delivery.package_type == 'fragile' %}⚠️ Fragile
+                    {% elif delivery.package_type == 'food' %}🍔 Food
+                    {% else %}{{ delivery.package_type|title }}
+                    {% endif %}
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="item-label">Weight</span>
+                <span class="item-value">{{ delivery.package_weight|floatformat:2 }} kg</span>
+            </div>
+            {% if delivery.package_description %}
+            <div class="info-item full-width">
+                <span class="item-label">Description</span>
+                <span class="item-value">{{ delivery.package_description }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Driver Information -->
+    {% if delivery.driver %}
+    <div class="section">
+        <h2 class="section-title">🚗 Driver Information</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="item-label">Name</span>
+                <span class="item-value">{{ delivery.driver.user.first_name }} {{ delivery.driver.user.last_name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="item-label">Phone</span>
+                <span class="item-value">{{ delivery.driver.phone_number }}</span>
+            </div>
+            <div class="info-item">
+                <span class="item-label">Vehicle</span>
+                <span class="item-value">{{ delivery.driver.vehicle_type|title }}</span>
+            </div>
+            {% if delivery.driver.license_plate %}
+            <div class="info-item">
+                <span class="item-label">License Plate</span>
+                <span class="item-value">{{ delivery.driver.license_plate }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pricing Information -->
+    <div class="section">
+        <h2 class="section-title">💰 Pricing Details</h2>
+        <div class="pricing-table">
+            <div class="pricing-row">
+                <span>Distance</span>
+                <span>{{ delivery.distance_km|floatformat:2 }} km</span>
+            </div>
+            <div class="pricing-row">
+                <span>Base Price</span>
+                <span>{{ delivery.price|floatformat:0 }} DA</span>
+            </div>
+            {% if delivery.special_instructions %}
+            <div class="pricing-row">
+                <span>Special Instructions Fee</span>
+                <span>50 DA</span>
+            </div>
+            {% endif %}
+            <div class="pricing-row total">
+                <span><strong>Total Amount</strong></span>
+                <span><strong>{{ delivery.price|floatformat:0 }} DA</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Special Instructions -->
+    {% if delivery.special_instructions %}
+    <div class="section">
+        <h2 class="section-title">📝 Special Instructions</h2>
+        <div class="instructions-box">
+            {{ delivery.special_instructions }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Rating -->
+    {% if delivery.rating %}
+    <div class="section">
+        <h2 class="section-title">⭐ Delivery Rating</h2>
+        <div class="rating-container">
+            <div class="rating-row">
+                <span>Overall Rating:</span>
+                <span class="rating-stars">{{ delivery.rating.rating }}/5 ⭐</span>
+            </div>
+            {% if delivery.rating.punctuality_rating %}
+            <div class="rating-row">
+                <span>Punctuality:</span>
+                <span>{{ delivery.rating.punctuality_rating }}/5</span>
+            </div>
+            {% endif %}
+            {% if delivery.rating.professionalism_rating %}
+            <div class="rating-row">
+                <span>Professionalism:</span>
+                <span>{{ delivery.rating.professionalism_rating }}/5</span>
+            </div>
+            {% endif %}
+            {% if delivery.rating.care_rating %}
+            <div class="rating-row">
+                <span>Package Care:</span>
+                <span>{{ delivery.rating.care_rating }}/5</span>
+            </div>
+            {% endif %}
+            {% if delivery.rating.comment %}
+            <div class="rating-comment">
+                <strong>Comment:</strong> {{ delivery.rating.comment }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer">
+        <p><strong>LeBeni's</strong> - Fast & Reliable Delivery Service</p>
+        <p>Generated on {{ generated_at|date:"d/m/Y H:i" }}</p>
+        <p>Contact: support@lebenis.dz | +213 XXX XXX XXX</p>
+    </div>
+</body>
+</html>

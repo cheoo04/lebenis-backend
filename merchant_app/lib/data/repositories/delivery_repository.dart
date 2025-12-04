@@ -1,6 +1,7 @@
 import '../../core/network/dio_client.dart';
 import '../../core/constants/api_constants.dart';
 import '../models/delivery_model.dart';
+import '../models/rating_model.dart';
 
 class DeliveryRepository {
   final DioClient dioClient;
@@ -45,5 +46,29 @@ class DeliveryRepository {
       data: data,
     );
     return DeliveryModel.fromJson(response.data);
+  }
+
+  /// POST /api/v1/deliveries/{id}/rate-driver/
+  Future<DeliveryRatingModel> rateDriver({
+    required int deliveryId,
+    required double rating,
+    String? comment,
+    double? punctualityRating,
+    double? professionalismRating,
+    double? careRating,
+  }) async {
+    final response = await dioClient.post(
+      '${ApiConstants.deliveries}$deliveryId/rate-driver/',
+      data: {
+        'rating': rating,
+        if (comment != null && comment.isNotEmpty) 'comment': comment,
+        if (punctualityRating != null) 'punctuality_rating': punctualityRating,
+        if (professionalismRating != null) 'professionalism_rating': professionalismRating,
+        if (careRating != null) 'care_rating': careRating,
+      },
+    );
+
+    // L'API retourne { success: true, message: '...', rating: {...} }
+    return DeliveryRatingModel.fromJson(response.data['rating']);
   }
 }
