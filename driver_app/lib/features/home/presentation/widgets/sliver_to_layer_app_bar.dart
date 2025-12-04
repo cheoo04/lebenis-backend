@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_spacing.dart';
 
 /// AppBar personnalisée pour le dashboard
 class SliverToLayerAppBar extends StatelessWidget {

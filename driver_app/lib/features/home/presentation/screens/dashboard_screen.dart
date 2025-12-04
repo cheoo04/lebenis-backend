@@ -7,7 +7,7 @@ import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/modern_card.dart';
-import '../../../../core/widgets/modern_button.dart';
+import '../../../../shared/widgets/modern_button.dart';
 import '../../../../core/providers/delivery_provider.dart';
 import '../../../../data/providers/payment_provider.dart';
 import '../../../../data/providers/driver_provider.dart';
@@ -191,7 +191,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   /// Construire les activités récentes dynamiquement
-  List<Widget> _buildRecentActivities(deliveryState, paymentState) {
+  List<Widget> _buildRecentActivities(dynamic deliveryState, dynamic paymentState) {
     final activities = <Widget>[];
     
     // Récupérer les dernières livraisons terminées
@@ -400,7 +400,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     onPressed: () {
                       ref.invalidate(driverProvider);
                     },
-                    variant: ButtonVariant.primary,
+                    type: ModernButtonType.primary,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),

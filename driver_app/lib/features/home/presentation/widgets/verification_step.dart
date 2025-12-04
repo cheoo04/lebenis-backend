@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../theme/app_typography.dart';
+import '../../../../theme/app_spacing.dart';
 
 /// Widget pour une étape de vérification
 class VerificationStep extends StatelessWidget {
