@@ -181,57 +181,8 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
                             constraints: BoxConstraints(
                               minHeight: constraints.maxHeight,
                             ),
-                            child: Column(
-                              children: [
-                                // Message si driver non vérifié
-                                if (driver != null && !driver.isVerified)
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(AppSpacing.md),
-                                    margin: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.orange.withValues(alpha: 0.1),
-                                      border: Border.all(color: AppColors.orange, width: 1),
-                                      borderRadius: BorderRadius.circular(AppRadius.md),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.info_outline,
-                                          color: AppColors.orange,
-                                          size: 24,
-                                        ),
-                                        const SizedBox(width: AppSpacing.md),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Compte en attente de vérification',
-                                                style: AppTypography.label.copyWith(
-                                                  color: AppColors.textPrimary,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              const SizedBox(height: AppSpacing.xs),
-                                              Text(
-                                                'Votre compte sera activé prochainement. Vous pourrez accepter des livraisons une fois vérifié.',
-                                                style: AppTypography.caption.copyWith(
-                                                  color: AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                
-                                // État vide centré
-                                const Center(
-                                  child: EmptyDeliveriesWidget(),
-                                ),
-                              ],
+                            child: const Center(
+                              child: EmptyDeliveriesWidget(),
                             ),
                           ),
                         ),
@@ -244,52 +195,6 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
                       child: CustomScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         slivers: [
-                          // Message de vérification
-                          if (driver != null && !driver.isVerified)
-                            SliverToBoxAdapter(
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(AppSpacing.md),
-                                margin: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
-                                decoration: BoxDecoration(
-                                  color: AppColors.orange.withValues(alpha: 0.1),
-                                  border: Border.all(color: AppColors.orange, width: 1),
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.info_outline,
-                                      color: AppColors.orange,
-                                      size: 24,
-                                    ),
-                                    const SizedBox(width: AppSpacing.md),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Compte en attente de vérification',
-                                            style: AppTypography.label.copyWith(
-                                              color: AppColors.textPrimary,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(height: AppSpacing.xs),
-                                          Text(
-                                            'Votre compte sera activé prochainement. Vous pourrez accepter des livraisons une fois vérifié.',
-                                            style: AppTypography.caption.copyWith(
-                                              color: AppColors.textSecondary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          
                           // Liste des livraisons
                           SliverPadding(
                             padding: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
