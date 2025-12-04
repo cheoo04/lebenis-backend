@@ -59,7 +59,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         from apps.merchants.models import Merchant, MerchantAddress
         from apps.drivers.models import Driver
         
-        # Extraire les champs spécifiques
+        # Extraire les champs spécifiques (seront utilisés pour mise à jour)
         business_name = validated_data.pop('business_name', None)
         business_type = validated_data.pop('business_type', None)
         business_address = validated_data.pop('business_address', None)
@@ -70,6 +70,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         validated_data.pop('password2')
         
         # Crée l'utilisateur avec create_user (du UserManager personnalisé)
+        # Les signals post_save créeront automatiquement Merchant ou Driver
         user = User.objects.create_user(
             email=validated_data['email'],
             phone=validated_data['phone'],
@@ -79,13 +80,13 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
         )
         
-        # Créer le profil Merchant si user_type = 'merchant'
+        # Mettre à jour le profil Merchant (créé automatiquement par signal)
         if user.user_type == 'merchant' and business_name:
-            merchant = Merchant.objects.create(
-                user=user,
-                business_name=business_name,
-                business_type=business_type or '',
-            )
+            merchant = Merchant.objects.get(user=user)
+            merchant.business_name = business_name
+            merchant.business_type = business_type or ''
+            merchant.save(update_fields=['business_name', 'business_type'])
+            
             # Créer l'adresse principale si fournie
             if business_address:
                 MerchantAddress.objects.create(
@@ -95,13 +96,13 @@ class UserRegisterSerializer(serializers.ModelSerializer):
                     is_primary=True
                 )
         
-        # Créer le profil Driver si user_type = 'driver'
+        # Mettre à jour le profil Driver (créé automatiquement par signal)
         if user.user_type == 'driver' and vehicle_type:
-            Driver.objects.create(
-                user=user,
-                vehicle_type=vehicle_type,
-                driver_license=driver_license or '',
-            )
+            driver = Driver.objects.get(user=user)
+            driver.vehicle_type = vehicle_type
+            if driver_license:
+                driver.driver_license = driver_license
+            driver.save(update_fields=['vehicle_type', 'driver_license'])
         
         return user
 
