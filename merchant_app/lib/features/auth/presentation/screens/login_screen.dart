@@ -94,7 +94,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 32),
               // Logo/Titre
               Text(
-                'LeBeni Marchands',
+                'LeBeni',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
