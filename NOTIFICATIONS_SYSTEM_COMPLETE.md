@@ -3,7 +3,9 @@
 ## ✅ État d'Implémentation
 
 ### 📱 **Driver App** : ✅ COMPLET
-### 📦 **Merchant App** : ✅ COMPLET  
+
+### 📦 **Merchant App** : ✅ COMPLET
+
 ### 🖥️ **Backend** : ✅ COMPLET
 
 ---
@@ -38,33 +40,35 @@
 ### 1. **Initialisation Firebase**
 
 #### Driver App
+
 ```dart
 // driver_app/lib/main.dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialiser Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
+
   // Handler background messages
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  
+
   runApp(ProviderScope(child: LeBenisDriverApp()));
 }
 ```
 
 #### Merchant App
+
 ```dart
 // merchant_app/lib/main.dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
+
   runApp(const ProviderScope(child: MyApp()));
 }
 ```
@@ -77,14 +81,14 @@ Les deux apps utilisent le même pattern :
 // lib/core/services/notification_service.dart
 class NotificationService {
   FirebaseMessaging? _fcm;
-  
+
   Future<void> initialize({bool firebaseEnabled = true}) async {
     _fcm = FirebaseMessaging.instance;
     await _requestPermissions();
     await _initializeLocalNotifications();
     _configureFirebaseHandlers();
   }
-  
+
   // Enregistrer le token après login
   Future<void> registerTokenAfterLogin() async {
     final token = await _fcm!.getToken();
@@ -99,6 +103,7 @@ class NotificationService {
 ### 3. **Navigation sur Tap de Notification**
 
 #### Driver App
+
 ```dart
 // main.dart
 _notificationService.onNotificationTap = (data) {
@@ -107,7 +112,7 @@ _notificationService.onNotificationTap = (data) {
       Navigator.of(context).pushNamed('/deliveries');
       break;
     case 'delivery_update':
-      Navigator.of(context).pushNamed('/delivery-details', 
+      Navigator.of(context).pushNamed('/delivery-details',
         arguments: data['delivery_id']);
       break;
   }
@@ -115,6 +120,7 @@ _notificationService.onNotificationTap = (data) {
 ```
 
 #### Merchant App
+
 ```dart
 // main.dart
 _notificationService.onNotificationTap = (data) {
@@ -171,7 +177,7 @@ class FirebaseService:
             data=data or {},
             token=fcm_token,
         )
-        
+
         response = messaging.send(message)
         return True
 ```
@@ -183,7 +189,7 @@ class FirebaseService:
 class RegisterFCMTokenView(APIView):
     """POST /api/v1/auth/register-fcm-token/"""
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         token = request.data.get('token')
         request.user.fcm_token = token
@@ -198,6 +204,7 @@ class RegisterFCMTokenView(APIView):
 ### Pour les **Drivers** 🚗
 
 #### 1. Nouvelle Livraison Assignée
+
 ```python
 # apps/notifications/services.py
 def notify_new_delivery_assignment(driver, delivery):
@@ -214,6 +221,7 @@ def notify_new_delivery_assignment(driver, delivery):
 ```
 
 #### 2. Changement de Statut
+
 ```python
 def notify_delivery_status_change(user, delivery, new_status):
     status_messages = {
@@ -229,6 +237,7 @@ def notify_delivery_status_change(user, delivery, new_status):
 ### Pour les **Merchants** 🏪
 
 #### 1. Compte Approuvé ✅
+
 ```python
 # apps/merchants/utils.py
 def notify_merchant_approved(merchant):
@@ -247,6 +256,7 @@ def notify_merchant_approved(merchant):
 **Quand ?** : Admin approuve le merchant via `/api/v1/merchants/{id}/approve/`
 
 #### 2. Compte Rejeté ❌
+
 ```python
 def notify_merchant_rejected(merchant, rejection_reason):
     return send_merchant_notification(
@@ -264,6 +274,7 @@ def notify_merchant_rejected(merchant, rejection_reason):
 **Quand ?** : Admin rejette le merchant via `/api/v1/merchants/{id}/reject/`
 
 #### 3. Documents Reçus 📄
+
 ```python
 def notify_merchant_documents_received(merchant):
     return send_merchant_notification(
@@ -278,6 +289,7 @@ def notify_merchant_documents_received(merchant):
 **Quand ?** : Merchant uploade documents via `/api/v1/merchants/update-documents/`
 
 #### 4. Livraison Assignée 🚚
+
 ```python
 def notify_merchant_new_delivery_assigned(merchant, delivery):
     driver_name = delivery.driver.user.get_full_name()
@@ -296,6 +308,7 @@ def notify_merchant_new_delivery_assigned(merchant, delivery):
 **Quand ?** : Driver accepte une livraison
 
 #### 5. Facture Payée 💰
+
 ```python
 def notify_merchant_invoice_paid(merchant, invoice):
     return send_merchant_notification(
@@ -347,6 +360,7 @@ def notify_merchant_invoice_paid(merchant, invoice):
 ## 📝 Checklist de Configuration
 
 ### Backend ✅
+
 - [x] Firebase Admin SDK initialisé
 - [x] Fichier `config/firebase/service-account.json` présent
 - [x] Modèle User avec champ `fcm_token`
@@ -356,6 +370,7 @@ def notify_merchant_invoice_paid(merchant, invoice):
 - [x] Appels aux fonctions de notification dans les vues
 
 ### Driver App ✅
+
 - [x] Firebase initialisé dans `main.dart`
 - [x] `NotificationService` configuré
 - [x] Permissions demandées
@@ -364,6 +379,7 @@ def notify_merchant_invoice_paid(merchant, invoice):
 - [x] Navigation selon type de notification
 
 ### Merchant App ✅
+
 - [x] Firebase initialisé dans `main.dart`
 - [x] `NotificationService` configuré
 - [x] Permissions demandées
@@ -411,12 +427,14 @@ print('FCM Token: ${await notificationService.getFcmToken()}')
 ### Notification non reçue ?
 
 1. **Vérifier le token FCM est enregistré**
+
    ```python
    user = User.objects.get(email='merchant@example.com')
    print(user.fcm_token)  # Doit afficher un token
    ```
 
 2. **Vérifier Firebase est initialisé**
+
    ```python
    from apps.notifications.firebase_service import FirebaseService
    FirebaseService.initialize()
@@ -424,6 +442,7 @@ print('FCM Token: ${await notificationService.getFcmToken()}')
    ```
 
 3. **Vérifier les permissions mobile**
+
    - Android: `AndroidManifest.xml` avec permissions
    - iOS: Capabilities > Push Notifications activé
 
