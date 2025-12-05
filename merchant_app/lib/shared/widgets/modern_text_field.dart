@@ -18,6 +18,7 @@ class ModernTextField extends StatelessWidget {
   final VoidCallback? onTap;
   final bool readOnly;
   final List<TextInputFormatter>? inputFormatters;
+  final ValueChanged<String>? onChanged;
 
   const ModernTextField({
     Key? key,
@@ -34,6 +35,7 @@ class ModernTextField extends StatelessWidget {
     this.onTap,
     this.readOnly = false,
     this.inputFormatters,
+    this.onChanged,
   }) : super(key: key);
 
   @override
@@ -60,6 +62,7 @@ class ModernTextField extends StatelessWidget {
           onTap: onTap,
           readOnly: readOnly,
           inputFormatters: inputFormatters,
+          onChanged: onChanged,
           style: const TextStyle(
             fontSize: 15,
             color: Color(0xFF1E293B),
