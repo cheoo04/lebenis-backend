@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/merchant_model.dart';
+import '../models/user_model.dart';
 import '../repositories/merchant_repository.dart';
-import '../repositories/auth_repository.dart';
 import '../../core/providers.dart';
 import 'auth_provider.dart';
+import 'merchant_provider.dart';
 
 /// Provider générique qui charge le profil en fonction du type d'utilisateur
 class UserProfileNotifier extends Notifier<AsyncValue<dynamic>> {
@@ -23,8 +24,8 @@ class UserProfileNotifier extends Notifier<AsyncValue<dynamic>> {
         return;
       }
 
-      // Récupérer le userType depuis le token ou l'API
-      final userType = user['user_type'] ?? user['userType'];
+      // Récupérer le userType depuis UserModel
+      final userType = user.userType;
       
       if (userType == 'merchant') {
         // Charger le profil merchant
@@ -36,10 +37,10 @@ class UserProfileNotifier extends Notifier<AsyncValue<dynamic>> {
         // TODO: créer un IndividualRepository si besoin
         state = AsyncValue.data({
           'user_type': 'individual',
-          'email': user['email'],
-          'first_name': user['first_name'],
-          'last_name': user['last_name'],
-          'phone': user['phone'],
+          'email': user.email,
+          'first_name': user.firstName,
+          'last_name': user.lastName,
+          'phone': '',
         });
       } else {
         state = AsyncValue.error('Type d\'utilisateur inconnu: $userType', StackTrace.current);
