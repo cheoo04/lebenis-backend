@@ -187,7 +187,7 @@ class NotificationService {
       await _dioClient.post(
         ApiConstants.registerFcmToken,
         data: {
-          'token': token,
+          'fcm_token': token,
           'platform': _getPlatform(),
         },
       );

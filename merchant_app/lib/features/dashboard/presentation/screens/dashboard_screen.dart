@@ -59,7 +59,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         }
         
         // Si le compte n'est pas vérifié, afficher l'écran d'attente
-        if (!profile.isVerified) {
+        if (profile.verificationStatus != 'approved') {
           return _buildWaitingScreen(context, profile);
         }
         

@@ -192,7 +192,7 @@ class _UploadDocumentsScreenState extends ConsumerState<UploadDocumentsScreen> {
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: Border.all(
-          color: file != null ? AppColors.success : AppColors.border,
+          color: file != null ? AppColors.success : AppColors.textSecondary.withOpacity(0.3),
           width: 2,
         ),
         boxShadow: AppTheme.cardShadow,

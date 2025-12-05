@@ -26,15 +26,18 @@ class MerchantViewSet(viewsets.ModelViewSet):
     
     def get_permissions(self):
         """
-        Permissions :
-        - List/Retrieve : Tous les users authentifiés
-        - Create/Update/Delete : Admins uniquement
-        - approve/reject/pending_verification : Admins uniquement
+        Permissions adaptées :
+        - Actions merchant: update_documents, my_stats
+        - Actions admin: approve, reject, pending_verification
+        - list/retrieve : Authentifié
+        - create/update/delete : Admin uniquement
         """
-        if self.action in ['list', 'retrieve']:
-            permission_classes = [permissions.IsAuthenticated]
+        if self.action in ['update_documents', 'my_stats']:
+            permission_classes = [IsMerchant]
         elif self.action in ['approve', 'reject', 'pending_verification']:
             permission_classes = [IsAdmin]
+        elif self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.IsAuthenticated]
         else:
             permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
@@ -155,7 +158,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
         serializer = MerchantSerializer(pending_merchants, many=True)
         return Response(serializer.data)
     
-    @action(detail=False, methods=['PATCH'], permission_classes=[IsMerchant])
+    @action(detail=False, methods=['PATCH'])
     def update_documents(self, request):
         """
         PATCH /api/v1/merchants/update-documents/

@@ -1,7 +1,7 @@
 class ApiConstants {
   static const String baseUrl = 'https://lebenis-backend.onrender.com'; // URL backend de l'API
   static const String merchantProfile = '/api/v1/merchants/';
-  static const String merchantStats = '/api/v1/merchants/my-stats/';
+  static const String merchantStats = '/api/v1/merchants/my_stats/';
   static const String register = '/api/v1/auth/register/';
   static const String login = '/api/v1/auth/login/';
   static const String logout = '/api/v1/auth/logout/';
