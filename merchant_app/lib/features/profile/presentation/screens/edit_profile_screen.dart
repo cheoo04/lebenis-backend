@@ -143,10 +143,22 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     setState(() => _isSaving = true);
 
     try {
+      // Récupérer l'ID du merchant depuis le profil
+      final merchantAsync = ref.read(merchantProfileProvider);
+      String? merchantId;
+      merchantAsync.whenData((merchant) {
+        merchantId = merchant?.id;
+      });
+      
+      if (merchantId == null) {
+        throw Exception('Impossible de récupérer l\'ID du merchant');
+      }
+      
       await ref.read(merchantRepositoryProvider).updateProfile(
+        merchantId: merchantId!,
         businessName: _businessNameController.text.trim(),
         phone: _phoneController.text.trim(),
-        address: _addressController.text.trim(),
+        businessAddress: _addressController.text.trim(),
       );
 
       if (mounted) {

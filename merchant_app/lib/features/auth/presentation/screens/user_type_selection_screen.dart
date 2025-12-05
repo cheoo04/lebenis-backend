@@ -103,7 +103,7 @@ class UserTypeSelectionScreen extends StatelessWidget {
                   },
                 ),
                 
-                const Spacer(),
+                const SizedBox(height: 60),
                 
                 // Lien connexion
                 Row(

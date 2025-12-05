@@ -38,9 +38,11 @@ class NotificationRepository {
 
   Future<int> getUnreadCount() async {
     try {
-      final response = await dioClient.get('${ApiConstants.notifications}unread-count/');
+      // Utiliser le endpoint history au lieu de main
+      final response = await dioClient.get('/api/v1/notifications/history/unread_count/');
       return response.data['unread_count'] ?? 0;
     } catch (e) {
+      print('Erreur récupération unread count: $e');
       return 0;
     }
   }

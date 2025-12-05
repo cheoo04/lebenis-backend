@@ -22,20 +22,25 @@ class MerchantRepository {
 
   // Mettre à jour le profil
   Future<MerchantModel> updateProfile({
+    String? merchantId,
     String? businessName,
+    String? businessType,
+    String? businessAddress,
     String? phone,
-    String? address,
   }) async {
     final data = <String, dynamic>{};
     if (businessName != null) data['business_name'] = businessName;
+    if (businessType != null) data['business_type'] = businessType;
+    if (businessAddress != null) data['business_address'] = businessAddress;
     if (phone != null) data['phone'] = phone;
-    if (address != null) data['address'] = address;
 
+    // Utiliser PATCH avec l'ID du merchant
     final response = await dioClient.patch(
-      ApiConstants.merchantProfile,
+      '${ApiConstants.merchantProfile}$merchantId/',
       data: data,
     );
 
+    // Le backend renvoie directement le merchant mis à jour
     return MerchantModel.fromJson(response.data);
   }
 
