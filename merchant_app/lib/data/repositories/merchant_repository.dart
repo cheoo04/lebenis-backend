@@ -43,7 +43,7 @@ class MerchantRepository {
   Future<MerchantStatsModel> getStats({int periodDays = 30}) async {
     final response = await dioClient.get(
       ApiConstants.merchantStats,
-      queryParameters: {'period_days': periodDays},
+      queryParameters: {'period': periodDays},
     );
     return MerchantStatsModel.fromJson(response.data);
   }
