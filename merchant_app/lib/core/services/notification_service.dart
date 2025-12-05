@@ -185,11 +185,10 @@ class NotificationService {
       _fcmToken = token;
 
       await _dioClient.post(
-        '${ApiConstants.notifications}register-token/',
+        ApiConstants.registerFcmToken,
         data: {
           'token': token,
           'platform': _getPlatform(),
-          'device_name': 'Merchant App',
         },
       );
 

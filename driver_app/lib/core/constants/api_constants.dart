@@ -32,7 +32,7 @@ class ApiConstants {
   static String cancelDelivery(String id) => '/api/v1/deliveries/$id/cancel/';
 
   // ========== NOTIFICATIONS ==========
-  static const String registerFcmToken = '/api/v1/notifications/register-token/';
+  static const String registerFcmToken = '/api/v1/auth/register-fcm-token/';
   static const String unregisterFcmToken = '/api/v1/notifications/delete-token/';
   static const String notificationHistory = '/api/v1/notifications/history/';
   static const String markNotificationAsRead = '/api/v1/notifications/mark-as-read/';

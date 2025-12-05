@@ -9,6 +9,7 @@ class ApiConstants {
   static const String pricingEstimate = '/api/v1/pricing/zones/calculate/';
   static const String cloudinaryUpload = '/api/v1/cloudinary/upload/';
   static const String notifications = '/api/v1/notifications/main/';
+  static const String registerFcmToken = '/api/v1/auth/register-fcm-token/';
   static const String invoices = '/api/v1/payments/invoices/';
   // ... autres endpoints
 }
