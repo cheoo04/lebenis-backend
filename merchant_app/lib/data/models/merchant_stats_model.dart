@@ -15,6 +15,7 @@ class MerchantStatsModel {
   
   // Revenus
   final double periodRevenue;
+  final double totalRevenue;
   final double totalBilled;
   final double paid;
   final double pendingPayment;
@@ -23,6 +24,9 @@ class MerchantStatsModel {
   final int invoicesTotal;
   final int invoicesPaid;
   final int invoicesPending;
+  
+  // Livraisons actives
+  final int activeDeliveries;
 
   MerchantStatsModel({
     required this.id,
@@ -37,12 +41,14 @@ class MerchantStatsModel {
     required this.cancelled,
     required this.successRate,
     required this.periodRevenue,
+    required this.totalRevenue,
     required this.totalBilled,
     required this.paid,
     required this.pendingPayment,
     required this.invoicesTotal,
     required this.invoicesPaid,
     required this.invoicesPending,
+    required this.activeDeliveries,
   });
 
   factory MerchantStatsModel.fromJson(Map<String, dynamic> json) {
@@ -64,12 +70,14 @@ class MerchantStatsModel {
       cancelled: deliveries['cancelled'] ?? 0,
       successRate: _parseDouble(deliveries['success_rate']),
       periodRevenue: _parseDouble(revenue['period_revenue']),
+      totalRevenue: _parseDouble(revenue['total_revenue']) ?? _parseDouble(revenue['total_billed']),
       totalBilled: _parseDouble(revenue['total_billed']),
       paid: _parseDouble(revenue['paid']),
       pendingPayment: _parseDouble(revenue['pending_payment']),
       invoicesTotal: invoices['total'] ?? 0,
       invoicesPaid: invoices['paid'] ?? 0,
       invoicesPending: invoices['pending'] ?? 0,
+      activeDeliveries: (deliveries['in_progress'] ?? 0) + (deliveries['pending'] ?? 0),
     );
   }
 
