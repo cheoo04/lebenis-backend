@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/providers/auth_provider.dart';
-import '../../../../data/providers/merchant_provider.dart';
+import '../../../../data/providers/user_profile_provider.dart';
+import '../../../../data/models/merchant_model.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
 	const SplashScreen({super.key});
@@ -29,15 +30,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 				return;
 			}
 			
-			// Charger le profil marchand
-			await ref.read(merchantProfileProvider.notifier).loadProfile();
-			
-			// Attendre un peu pour que le provider soit mis à jour
-			await Future.delayed(const Duration(milliseconds: 100));
-			
-			final profileState = ref.read(merchantProfileProvider);
-			
-		// Gérer les erreurs de chargement du profil
+		// Charger le profil utilisateur (merchant ou individual)
+		await ref.read(userProfileProvider.notifier).loadProfile();
+		
+		// Attendre un peu pour que le provider soit mis à jour
+		await Future.delayed(const Duration(milliseconds: 100));
+		
+		final profileState = ref.read(userProfileProvider);		// Gérer les erreurs de chargement du profil
 		if (profileState.hasError) {
 			debugPrint('Erreur chargement profil: ${profileState.error}');
 			if (mounted) {
@@ -58,16 +57,24 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 			}
 			
 			final profile = profileState.value!;
-			debugPrint('Profil chargé - statut: ${profile.verificationStatus}');
 			
-			if (profile.verificationStatus == 'approved' || profile.verificationStatus == 'verified') {
-				if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
-			} else if (profile.verificationStatus == 'pending') {
-				if (mounted) Navigator.pushReplacementNamed(context, '/waiting-approval');
-			} else if (profile.verificationStatus == 'rejected') {
-				if (mounted) Navigator.pushReplacementNamed(context, '/rejected');
+			// Cas merchant: vérifier le statut de vérification
+			if (profile is MerchantModel) {
+				debugPrint('Profil merchant chargé - statut: ${profile.verificationStatus}');
+				
+				if (profile.verificationStatus == 'approved' || profile.verificationStatus == 'verified') {
+					if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+				} else if (profile.verificationStatus == 'pending') {
+					if (mounted) Navigator.pushReplacementNamed(context, '/waiting-approval');
+				} else if (profile.verificationStatus == 'rejected') {
+					if (mounted) Navigator.pushReplacementNamed(context, '/rejected');
+				} else {
+					if (mounted) Navigator.pushReplacementNamed(context, '/login');
+				}
 			} else {
-				if (mounted) Navigator.pushReplacementNamed(context, '/login');
+				// Cas particulier: aller directement au dashboard
+				debugPrint('Profil individual chargé');
+				if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
 			}
 		} catch (e) {
 			debugPrint('Erreur lors de la vérification: $e');

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../theme/app_theme.dart';
 import '../../../../data/providers/merchant_provider.dart';
+import '../../../../data/providers/user_profile_provider.dart';
+import '../../../../data/models/merchant_model.dart';
 import '../../../../shared/widgets/modern_stat_card.dart';
 import '../../../../shared/widgets/modern_info_card.dart';
 import '../../../../shared/widgets/status_badge.dart';
@@ -20,20 +22,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // Charger le profil et les stats au démarrage
+    // Charger le profil utilisateur au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final profile = ref.read(merchantProfileProvider);
+      final profile = ref.read(userProfileProvider);
       if (profile.value == null) {
-        ref.read(merchantProfileProvider.notifier).loadProfile();
+        ref.read(userProfileProvider.notifier).loadProfile();
       }
-      ref.read(merchantStatsProvider.notifier).loadStats();
+      
+      // Charger les stats uniquement pour les merchants
+      final isMerchant = ref.read(isMerchantProvider);
+      if (isMerchant) {
+        ref.read(merchantStatsProvider.notifier).loadStats();
+      }
     });
   }
   
   @override
   Widget build(BuildContext context) {
-    final profileAsync = ref.watch(merchantProfileProvider);
-    final statsAsync = ref.watch(merchantStatsProvider);
+    final profileAsync = ref.watch(userProfileProvider);
+    final isMerchant = ref.watch(isMerchantProvider);
 
     // Vérifier le statut de vérification
     return profileAsync.when(
@@ -48,7 +55,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      ref.read(merchantProfileProvider.notifier).loadProfile();
+                      ref.read(userProfileProvider.notifier).loadProfile();
                     },
                     child: const Text('Réessayer'),
                   ),
@@ -58,13 +65,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           );
         }
         
-        // Si le compte n'est pas vérifié, afficher l'écran d'attente
-        if (profile.verificationStatus != 'approved') {
-          return _buildWaitingScreen(context, profile);
+        // Cas merchant: vérifier le statut de vérification
+        if (profile is MerchantModel) {
+          if (profile.verificationStatus != 'approved') {
+            return _buildWaitingScreen(context, profile);
+          }
+          return _buildDashboard(context, ref, profile);
         }
         
-        // Compte vérifié: afficher le dashboard normal
-        return _buildDashboard(context, ref, profile);
+        // Cas particulier: dashboard simplifié
+        return _buildIndividualDashboard(context, ref, profile);
       },
       loading: () => const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -419,6 +429,156 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildIndividualDashboard(BuildContext context, WidgetRef ref, dynamic profile) {
+    final fullName = '${profile['first_name'] ?? ''} ${profile['last_name'] ?? ''}'.trim();
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Dashboard'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.pushNamed(context, '/notifications');
+            },
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.refresh(userProfileProvider);
+        },
+        color: AppTheme.primaryColor,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with gradient
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.accentColor],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Bienvenue,',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      fullName.isNotEmpty ? fullName : 'Utilisateur',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Particulier',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Transform.translate(
+                offset: const Offset(0, -20),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Actions rapides
+                      const Text(
+                        'Actions rapides',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      ModernInfoCard(
+                        icon: Icons.add_circle,
+                        title: 'Créer une livraison',
+                        subtitle: 'Nouvelle demande de livraison',
+                        iconColor: AppTheme.primaryColor,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const CreateDeliveryScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      ModernInfoCard(
+                        icon: Icons.list_alt,
+                        title: 'Mes livraisons',
+                        subtitle: 'Voir toutes mes livraisons',
+                        iconColor: Colors.blue,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const DeliveryListScreen()),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      ModernInfoCard(
+                        icon: Icons.person,
+                        title: 'Mon profil',
+                        subtitle: 'Gérer mes informations',
+                        iconColor: Colors.purple,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
