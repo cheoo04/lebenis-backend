@@ -120,20 +120,6 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen> with Si
           error: (error, stack) => _buildErrorState(error.toString()),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const CreateDeliveryScreen()),
-          );
-          if (result == true) {
-            _refresh();
-          }
-        },
-        backgroundColor: AppTheme.primaryColor,
-        icon: const Icon(Icons.add),
-        label: const Text('Nouvelle livraison'),
-      ),
     );
   }
 
