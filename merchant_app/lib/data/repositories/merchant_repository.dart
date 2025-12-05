@@ -50,12 +50,35 @@ class MerchantRepository {
 
   // Mettre à jour les documents (RCCM, pièce d'identité)
   Future<MerchantModel> updateDocuments({
-    String? rccmDocumentUrl,
-    String? idDocumentUrl,
+    dynamic rccmDocument,
+    dynamic idDocument,
   }) async {
+    // 1. Uploader les fichiers vers Cloudinary
+    String? rccmUrl;
+    String? idUrl;
+
+    if (rccmDocument != null) {
+      final rccmResponse = await dioClient.uploadFile(
+        ApiConstants.cloudinaryUpload,
+        rccmDocument,
+        fileKey: 'file',
+      );
+      rccmUrl = rccmResponse.data['url'];
+    }
+
+    if (idDocument != null) {
+      final idResponse = await dioClient.uploadFile(
+        ApiConstants.cloudinaryUpload,
+        idDocument,
+        fileKey: 'file',
+      );
+      idUrl = idResponse.data['url'];
+    }
+
+    // 2. Mettre à jour les URLs dans le backend
     final data = <String, dynamic>{};
-    if (rccmDocumentUrl != null) data['rccm_document'] = rccmDocumentUrl;
-    if (idDocumentUrl != null) data['id_document'] = idDocumentUrl;
+    if (rccmUrl != null) data['rccm_document'] = rccmUrl;
+    if (idUrl != null) data['id_document'] = idUrl;
 
     final response = await dioClient.patch(
       '${ApiConstants.merchantProfile}update-documents/',

@@ -11,11 +11,12 @@ class WaitingApprovalScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const SizedBox(height: 40),
               // Icône d'attente
               Container(
                 width: 120,
@@ -111,8 +112,8 @@ class WaitingApprovalScreen extends ConsumerWidget {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () async {
-                        // Aller au profil pour uploader les documents
-                        Navigator.pushNamed(context, '/profile');
+                        // Aller à l'écran d'upload de documents
+                        Navigator.pushNamed(context, '/upload-documents');
                       },
                       icon: const Icon(Icons.upload_file),
                       label: const Text('Uploader mes documents'),

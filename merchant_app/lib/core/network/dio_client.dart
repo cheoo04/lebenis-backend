@@ -129,6 +129,32 @@ class DioClient {
     }
   }
 
+  /// Upload a single file
+  Future<Response> uploadFile(
+    String path,
+    dynamic file, {
+    String fileKey = 'file',
+    Map<String, dynamic>? additionalData,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        fileKey: await MultipartFile.fromFile(
+          file.path,
+          filename: file.path.split('/').last,
+        ),
+        ...?additionalData,
+      });
+
+      return await dio.post(path, data: formData);
+    } on DioException catch (e) {
+      throw ApiException(
+        _formatErrorMessage(e),
+        code: e.response?.statusCode ?? 0,
+        details: e.response?.data,
+      );
+    }
+  }
+
   /// Download a file to local storage
   Future<Response> download(
     String path,
