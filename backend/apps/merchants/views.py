@@ -27,12 +27,12 @@ class MerchantViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Permissions adaptées :
-        - Actions merchant: update_documents, my_stats
+        - Actions merchant: update, partial_update, update_documents, my_stats
         - Actions admin: approve, reject, pending_verification
         - list/retrieve : Authentifié
-        - create/update/delete : Admin uniquement
+        - create/delete : Admin uniquement
         """
-        if self.action in ['update_documents', 'my_stats']:
+        if self.action in ['update', 'partial_update', 'update_documents', 'my_stats']:
             permission_classes = [permissions.IsAuthenticated, IsMerchant]
         elif self.action in ['approve', 'reject', 'pending_verification']:
             permission_classes = [permissions.IsAuthenticated, IsAdmin]
@@ -157,6 +157,20 @@ class MerchantViewSet(viewsets.ModelViewSet):
         
         serializer = MerchantSerializer(pending_merchants, many=True)
         return Response(serializer.data)
+    
+    def perform_update(self, serializer):
+        """
+        Surcharge pour s'assurer qu'un merchant ne peut modifier QUE son propre profil
+        """
+        # Vérifier que l'utilisateur modifie bien son propre profil
+        merchant = self.get_object()
+        if hasattr(self.request.user, 'merchant_profile') and self.request.user.merchant_profile == merchant:
+            # Empêcher la modification du statut de vérification par le merchant
+            if 'verification_status' in serializer.validated_data:
+                del serializer.validated_data['verification_status']
+            serializer.save()
+        else:
+            raise ValidationError("Vous ne pouvez modifier que votre propre profil")
     
     @action(detail=False, methods=['PATCH'])
     def update_documents(self, request):

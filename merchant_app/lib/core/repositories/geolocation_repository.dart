@@ -58,4 +58,43 @@ class GeolocationRepository {
       return null;
     }
   }
+
+  /// Trouve la commune la plus proche d'une position GPS donnée
+  Future<String?> getNearestCommune(double latitude, double longitude) async {
+    try {
+      print('🔍 Recherche commune proche de: $latitude, $longitude');
+      final communes = await fetchCommunes();
+      print('📍 ${communes.length} communes chargées');
+      
+      if (communes.isEmpty) {
+        print('❌ Aucune commune disponible');
+        return null;
+      }
+
+      // Calculer la distance pour chaque commune
+      final Distance distance = const Distance();
+      String? nearestCommune;
+      double minDistance = double.infinity;
+
+      for (final commune in communes) {
+        final dist = distance.as(
+          LengthUnit.Kilometer,
+          LatLng(latitude, longitude),
+          LatLng(commune.latitude, commune.longitude),
+        );
+
+        if (dist < minDistance) {
+          minDistance = dist;
+          nearestCommune = commune.commune;
+        }
+      }
+
+      print('✓ Commune la plus proche: $nearestCommune (distance: ${minDistance.toStringAsFixed(2)} km)');
+      return nearestCommune;
+    } catch (e, stackTrace) {
+      print('❌ Erreur lors de la recherche de la commune la plus proche: $e');
+      print('Stack trace: $stackTrace');
+      return null;
+    }
+  }
 }

@@ -47,6 +47,7 @@ class MerchantNotifier extends Notifier<AsyncValue<MerchantModel?>> {
   }
 
   Future<void> updateProfile({
+    required String merchantId,
     String? businessName,
     String? phone,
     String? address,
@@ -54,6 +55,7 @@ class MerchantNotifier extends Notifier<AsyncValue<MerchantModel?>> {
     state = const AsyncValue.loading();
     try {
       final updated = await repository.updateProfile(
+        merchantId: merchantId,
         businessName: businessName,
         phone: phone,
         address: address,

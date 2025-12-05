@@ -180,9 +180,23 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     
-    if (_pickupCommune == null || _deliveryCommune == null) {
+    // Validation stricte des communes
+    if (_pickupCommune == null || _pickupCommune!.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez sélectionner les communes'), backgroundColor: Colors.orange),
+        const SnackBar(
+          content: Text('⚠️ Veuillez sélectionner la commune de recupération'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    
+    if (_deliveryCommune == null || _deliveryCommune!.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ Veuillez sélectionner la commune de livraison'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -315,6 +329,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
                     'D\'où voulez-vous envoyer ?',
@@ -322,28 +337,32 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
                   ),
                   const SizedBox(height: 8),
                   Wrap(
-                    spacing: 8,
+                    spacing: 6,
+                    runSpacing: 6,
                     children: [
                       ChoiceChip(
-                        label: const Text('📍 Position GPS'),
+                        label: const Text('📍 GPS', style: TextStyle(fontSize: 13)),
                         selected: _pickupMode == 'gps',
                         onSelected: (selected) {
                           if (selected) setState(() => _pickupMode = 'gps');
                         },
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       ChoiceChip(
-                        label: const Text('🏢 Adresse sauvegardée'),
+                        label: const Text('🏢 Sauvegardée', style: TextStyle(fontSize: 13)),
                         selected: _pickupMode == 'saved',
                         onSelected: (selected) {
                           if (selected) setState(() => _pickupMode = 'saved');
                         },
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       ChoiceChip(
-                        label: const Text('✏️ Adresse personnalisée'),
+                        label: const Text('✏️ Personnalisée', style: TextStyle(fontSize: 13)),
                         selected: _pickupMode == 'custom',
                         onSelected: (selected) {
                           if (selected) setState(() => _pickupMode = 'custom');
                         },
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ],
                   ),
@@ -354,17 +373,25 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             
             CommuneSelectorWidget(
               selectedCommune: _pickupCommune,
-              label: 'Sélectionner la commune de pickup',
+              label: 'Sélectionner la commune de récupération *',
               onCommuneSelected: (commune, lat, lng) {
                 setState(() {
-                  _pickupCommune = commune;
+                  _pickupCommune = commune.trim();
                   _pickupLat = lat;
                   _pickupLng = lng;
                 });
                 _estimatePrice();
               },
             ),
-            const SizedBox(height: 16),
+            if (_pickupCommune != null && _pickupCommune!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  '✓ Commune sélectionnée : $_pickupCommune',
+                  style: TextStyle(color: Colors.green[700], fontSize: 12),
+                ),
+              ),
+            const SizedBox(height: 12),
             
             // Affichage conditionnel selon le mode
             if (_pickupMode == 'gps') ...[
@@ -375,7 +402,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
                 backgroundColor: _pickupLat != null ? Colors.green : AppTheme.accentColor,
                 isOutlined: true,
               ),
-              if (_pickupLat != null)
+              if (_pickupLat != null) ...[
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
@@ -383,6 +410,32 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
                     style: TextStyle(color: Colors.green[700], fontSize: 12),
                   ),
                 ),
+                // Avertissement si GPS activé mais commune pas détectée
+                if (_pickupCommune == null || _pickupCommune!.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange[300]!),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.orange[700], size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Commune non détectée automatiquement. Veuillez la sélectionner manuellement ci-dessus.',
+                              style: TextStyle(color: Colors.orange[900], fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ],
             
             if (_pickupMode == 'saved') ...[
@@ -417,16 +470,24 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             const SizedBox(height: 12),
             CommuneSelectorWidget(
               selectedCommune: _deliveryCommune,
-              label: 'Sélectionner la commune de livraison',
+              label: 'Sélectionner la commune de livraison *',
               onCommuneSelected: (commune, lat, lng) {
                 setState(() {
-                  _deliveryCommune = commune;
+                  _deliveryCommune = commune.trim();
                   _deliveryLat = lat;
                   _deliveryLng = lng;
                 });
                 _estimatePrice();
               },
             ),
+            if (_deliveryCommune != null && _deliveryCommune!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  '✓ Commune sélectionnée : $_deliveryCommune',
+                  style: TextStyle(color: Colors.green[700], fontSize: 12),
+                ),
+              ),
             const SizedBox(height: 16),
             ModernTextField(
               controller: TextEditingController(text: _deliveryQuartier),
