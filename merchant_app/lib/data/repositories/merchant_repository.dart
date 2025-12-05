@@ -47,4 +47,21 @@ class MerchantRepository {
     );
     return MerchantStatsModel.fromJson(response.data);
   }
+
+  // Mettre à jour les documents (RCCM, pièce d'identité)
+  Future<MerchantModel> updateDocuments({
+    String? rccmDocumentUrl,
+    String? idDocumentUrl,
+  }) async {
+    final data = <String, dynamic>{};
+    if (rccmDocumentUrl != null) data['rccm_document'] = rccmDocumentUrl;
+    if (idDocumentUrl != null) data['id_document'] = idDocumentUrl;
+
+    final response = await dioClient.patch(
+      '${ApiConstants.merchantProfile}update-documents/',
+      data: data,
+    );
+
+    return MerchantModel.fromJson(response.data['merchant']);
+  }
 }

@@ -7,6 +7,7 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Merchant
 from .serializers import MerchantSerializer
+from .utils import notify_merchant_approved, notify_merchant_rejected, notify_merchant_documents_received
 from apps.deliveries.models import Delivery
 from apps.payments.models import Invoice
 from core.permissions import IsAdmin, IsMerchant
@@ -83,6 +84,9 @@ class MerchantViewSet(viewsets.ModelViewSet):
         
         logger.info(f"✅ Merchant approuvé: {merchant.business_name} ({merchant.user.email})")
         
+        # Envoyer notification push au merchant
+        notify_merchant_approved(merchant)
+        
         serializer = MerchantSerializer(merchant)
         return Response({
             'success': True,
@@ -122,6 +126,9 @@ class MerchantViewSet(viewsets.ModelViewSet):
         
         logger.info(f"❌ Merchant rejeté: {merchant.business_name} - Raison: {rejection_reason}")
         
+        # Envoyer notification push au merchant
+        notify_merchant_rejected(merchant, rejection_reason)
+        
         serializer = MerchantSerializer(merchant)
         return Response({
             'success': True,
@@ -147,6 +154,47 @@ class MerchantViewSet(viewsets.ModelViewSet):
         
         serializer = MerchantSerializer(pending_merchants, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['PATCH'], permission_classes=[IsMerchant])
+    def update_documents(self, request):
+        """
+        PATCH /api/v1/merchants/update-documents/
+        
+        Mettre à jour les documents du merchant connecté.
+        
+        Body: {
+            "rccm_document": "https://cloudinary.com/...",
+            "id_document": "https://cloudinary.com/..."
+        }
+        """
+        try:
+            merchant = Merchant.objects.get(user=request.user)
+        except Merchant.DoesNotExist:
+            return Response(
+                {'error': 'Profil merchant introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        rccm_document = request.data.get('rccm_document')
+        id_document = request.data.get('id_document')
+        
+        if rccm_document:
+            merchant.rccm_document = rccm_document
+        if id_document:
+            merchant.id_document = id_document
+        
+        merchant.save()
+        
+        # Notifier que les documents ont été reçus
+        if rccm_document or id_document:
+            notify_merchant_documents_received(merchant)
+        
+        serializer = MerchantSerializer(merchant)
+        return Response({
+            'success': True,
+            'message': 'Documents mis à jour avec succès',
+            'merchant': serializer.data
+        })
     
     @action(detail=False, methods=['GET'], permission_classes=[IsMerchant])
     def my_stats(self, request):
