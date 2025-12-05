@@ -241,36 +241,42 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Nom du commerce
-              TextField(
-                controller: _businessNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nom du commerce',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.store),
+              
+              // Champs spécifiques aux commerçants
+              if (_isMerchant) ...[
+                // Nom du commerce
+                TextField(
+                  controller: _businessNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nom du commerce',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.store),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              // Type de commerce
-              TextField(
-                controller: _businessTypeController,
-                decoration: const InputDecoration(
-                  labelText: 'Type de commerce',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.category),
+                const SizedBox(height: 16),
+                // Type de commerce
+                TextField(
+                  controller: _businessTypeController,
+                  decoration: const InputDecoration(
+                    labelText: 'Type de commerce',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.category),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              // Adresse du commerce
-              TextField(
-                controller: _businessAddressController,
-                decoration: const InputDecoration(
-                  labelText: 'Adresse du commerce',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.location_on),
+                const SizedBox(height: 16),
+                // Adresse du commerce
+                TextField(
+                  controller: _businessAddressController,
+                  decoration: const InputDecoration(
+                    labelText: 'Adresse du commerce',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.location_on),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 16),
+              ],
+              
+              const SizedBox(height: 8),
               // Bouton Inscription
               authState.maybeWhen(
                   loading: () => const ElevatedButton(

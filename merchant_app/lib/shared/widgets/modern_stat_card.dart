@@ -36,7 +36,7 @@ class ModernStatCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
               gradient: LinearGradient(
@@ -52,45 +52,46 @@ class ModernStatCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                       ),
-                      child: Icon(icon, color: color, size: 30),
+                      child: Icon(icon, color: color, size: 24),
                     ),
                     if (onTap != null)
-                      Icon(Icons.arrow_forward_ios_rounded, size: 18, color: AppColors.textSecondary),
+                      Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textSecondary),
                   ],
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 12,
                     color: AppColors.textSecondary,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.3,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   value,
                   style: TextStyle(
-                    fontSize: 32,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: color,
                     height: 1.2,
                   ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle!,
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 11,
                       color: AppColors.textSecondary,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ],
