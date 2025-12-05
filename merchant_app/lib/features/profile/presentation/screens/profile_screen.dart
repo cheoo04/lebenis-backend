@@ -26,8 +26,13 @@ class ProfileScreen extends ConsumerWidget {
           if (merchant == null) {
             return const Center(child: Text('Aucun profil trouvé'));
           }
-          // Cast explicite si nécessaire
-          final m = merchant as dynamic;
+          
+          // Extraire les informations de l'utilisateur
+          final userName = merchant.user?['first_name'] ?? '';
+          final userLastName = merchant.user?['last_name'] ?? '';
+          final userEmail = merchant.user?['email'] ?? '';
+          final fullName = '$userName $userLastName'.trim();
+          
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -35,30 +40,28 @@ class ProfileScreen extends ConsumerWidget {
                 // En-tête profil : avatar, nom, email, bouton éditer
                 CircleAvatar(
                   radius: 60,
-                  backgroundImage: m.profilePhoto != null ? NetworkImage(m.profilePhoto!) : null,
-                  child: m.profilePhoto == null ? const Icon(Icons.store, size: 60) : null,
+                  backgroundColor: Colors.orange.shade100,
+                  child: Text(
+                    merchant.businessName.isNotEmpty ? merchant.businessName[0].toUpperCase() : 'M',
+                    style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.orange),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  m.businessName ?? '-',
+                  merchant.businessName,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 Text(
-                  m.email ?? '-',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                TextButton.icon(
-                  onPressed: () {
-                    // TODO: Naviguer vers l'édition du profil
-                  },
-                  icon: const Icon(Icons.edit),
-                  label: const Text('Modifier'),
+                  userEmail,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 8),
-                VerificationStatus(isVerified: m.isVerified == true),
-                _buildInfoCard(context, icon: Icons.phone, title: 'Téléphone', value: m.phone ?? '-'),
-                _buildInfoCard(context, icon: Icons.location_on, title: 'Adresse', value: m.address ?? '-'),
-                _buildInfoCard(context, icon: Icons.category, title: 'Type de commerce', value: m.businessType ?? '-'),
+                VerificationStatus(isVerified: merchant.verificationStatus == 'approved'),
+                const SizedBox(height: 16),
+                _buildInfoCard(context, icon: Icons.person, title: 'Nom complet', value: fullName.isNotEmpty ? fullName : '-'),
+                _buildInfoCard(context, icon: Icons.phone, title: 'Téléphone', value: merchant.user?['phone'] ?? '-'),
+                _buildInfoCard(context, icon: Icons.category, title: 'Type de commerce', value: merchant.businessType ?? '-'),
+                _buildInfoCard(context, icon: Icons.numbers, title: 'Numéro RCCM', value: merchant.registrationNumber ?? '-'),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
                   onPressed: () {

@@ -64,6 +64,22 @@ class MerchantNotifier extends Notifier<AsyncValue<MerchantModel?>> {
     }
   }
 
+  Future<void> updateDocuments({
+    required dynamic rccmDocument,
+    required dynamic idDocument,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final updated = await repository.updateDocuments(
+        rccmDocument: rccmDocument,
+        idDocument: idDocument,
+      );
+      state = AsyncValue.data(updated);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
   Future<void> loadProfile() async {
     state = const AsyncValue.loading();
     try {
