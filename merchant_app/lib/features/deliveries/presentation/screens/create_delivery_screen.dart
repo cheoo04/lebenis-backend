@@ -39,6 +39,15 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   // Package info
   final _packageDescController = TextEditingController();
   final _packageWeightController = TextEditingController();
+  final _packageLengthController = TextEditingController();
+  final _packageWidthController = TextEditingController();
+  final _packageHeightController = TextEditingController();
+  final _packageValueController = TextEditingController();
+  bool _isFragile = false;
+  
+  // Recipient additional info
+  final _recipientAltPhoneController = TextEditingController();
+  String? _deliveryQuartier;
   
   // Payment
   String _paymentMethod = 'prepaid';
@@ -53,10 +62,15 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   void dispose() {
     _recipientNameController.dispose();
     _recipientPhoneController.dispose();
+    _recipientAltPhoneController.dispose();
     _pickupAddressController.dispose();
     _deliveryAddressController.dispose();
     _packageDescController.dispose();
     _packageWeightController.dispose();
+    _packageLengthController.dispose();
+    _packageWidthController.dispose();
+    _packageHeightController.dispose();
+    _packageValueController.dispose();
     _codAmountController.dispose();
     super.dispose();
   }
@@ -116,18 +130,36 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
 
     try {
       final deliveryData = {
+        // Recipient
         'recipient_name': _recipientNameController.text.trim(),
         'recipient_phone': _recipientPhoneController.text.trim(),
+        if (_recipientAltPhoneController.text.isNotEmpty)
+          'recipient_alternative_phone': _recipientAltPhoneController.text.trim(),
+        // Pickup
         'pickup_commune': _pickupCommune!,
         'pickup_address': _pickupAddressController.text.trim(),
-        'pickup_latitude': _pickupLat,
-        'pickup_longitude': _pickupLng,
+        if (_pickupLat != null) 'pickup_latitude': _pickupLat,
+        if (_pickupLng != null) 'pickup_longitude': _pickupLng,
+        // Delivery
         'delivery_commune': _deliveryCommune!,
+        if (_deliveryQuartier != null && _deliveryQuartier!.isNotEmpty)
+          'delivery_quartier': _deliveryQuartier,
         'delivery_address': _deliveryAddressController.text.trim(),
-        'delivery_latitude': _deliveryLat,
-        'delivery_longitude': _deliveryLng,
+        if (_deliveryLat != null) 'delivery_latitude': _deliveryLat,
+        if (_deliveryLng != null) 'delivery_longitude': _deliveryLng,
+        // Package
         'package_description': _packageDescController.text.trim(),
         'package_weight_kg': double.tryParse(_packageWeightController.text) ?? 1.0,
+        'is_fragile': _isFragile,
+        if (_packageLengthController.text.isNotEmpty)
+          'package_length_cm': double.tryParse(_packageLengthController.text),
+        if (_packageWidthController.text.isNotEmpty)
+          'package_width_cm': double.tryParse(_packageWidthController.text),
+        if (_packageHeightController.text.isNotEmpty)
+          'package_height_cm': double.tryParse(_packageHeightController.text),
+        if (_packageValueController.text.isNotEmpty)
+          'package_value': double.tryParse(_packageValueController.text),
+        // Payment
         'payment_method': _paymentMethod,
       };
 
@@ -194,6 +226,14 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
                 return null;
               },
             ),
+            const SizedBox(height: 16),
+            ModernTextField(
+              controller: _recipientAltPhoneController,
+              label: 'Téléphone alternatif (optionnel)',
+              hint: '+225 05 XX XX XX XX',
+              prefixIcon: Icons.phone_android,
+              keyboardType: TextInputType.phone,
+            ),
 
             const SizedBox(height: 32),
 
@@ -249,6 +289,14 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             ),
             const SizedBox(height: 16),
             ModernTextField(
+              controller: TextEditingController(text: _deliveryQuartier),
+              label: 'Quartier (optionnel)',
+              hint: 'Ex: Cocody Riviera, Marcory Zone 4...',
+              prefixIcon: Icons.location_city,
+              onChanged: (value) => _deliveryQuartier = value,
+            ),
+            const SizedBox(height: 16),
+            ModernTextField(
               controller: _deliveryAddressController,
               label: 'Adresse complète',
               hint: 'Rue, immeuble, point de repère...',
@@ -276,7 +324,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
               label: 'Poids estimé (kg)',
               hint: '1.5',
               prefixIcon: Icons.scale,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
@@ -286,12 +334,91 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
                 if (weight == null || weight <= 0) return 'Poids invalide';
                 return null;
               },
+              onChanged: (_) => _estimatePrice(),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Dimensions (optionnel)
+            Row(
+              children: [
+                Expanded(
+                  child: ModernTextField(
+                    controller: _packageLengthController,
+                    label: 'Longueur (cm)',
+                    hint: '30',
+                    prefixIcon: Icons.straighten,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ModernTextField(
+                    controller: _packageWidthController,
+                    label: 'Largeur (cm)',
+                    hint: '20',
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            Row(
+              children: [
+                Expanded(
+                  child: ModernTextField(
+                    controller: _packageHeightController,
+                    label: 'Hauteur (cm)',
+                    hint: '10',
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ModernTextField(
+                    controller: _packageValueController,
+                    label: 'Valeur (FCFA)',
+                    hint: '50000',
+                    prefixIcon: Icons.monetization_on,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Checkbox fragile
+            CheckboxListTile(
+              value: _isFragile,
+              onChanged: (value) {
+                setState(() => _isFragile = value ?? false);
+                _estimatePrice();
+              },
+              title: const Text('Colis fragile'),
+              subtitle: const Text('Nécessite une manipulation délicate'),
+              activeColor: AppTheme.primaryColor,
+              contentPadding: EdgeInsets.zero,
             ),
 
             const SizedBox(height: 32),
 
             // Section Paiement
-            _buildSectionTitle('💳 Mode de paiement'),
+            _buildSectionTitle('Mode de paiement'),
             const SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(

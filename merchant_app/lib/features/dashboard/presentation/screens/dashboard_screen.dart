@@ -296,24 +296,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
 
                       const SizedBox(height: 20),
-                    ],
-                  ),
+      const SizedBox(height: 20),
+                  ],
                 ),
               ),
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const CreateDeliveryScreen()),
-          );
-        },
-        backgroundColor: AppTheme.accentColor,
-        icon: const Icon(Icons.add),
-        label: const Text('Nouvelle livraison'),
       ),
     );
   }
