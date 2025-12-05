@@ -18,8 +18,8 @@ class DeliveryRepository {
     return list.map((e) => DeliveryModel.fromJson(e)).toList();
   }
 
-  Future<DeliveryModel> getDeliveryDetail(int id) async {
-    final response = await dioClient.get('${ApiConstants.deliveries}/$id');
+  Future<DeliveryModel> getDeliveryDetail(String id) async {
+    final response = await dioClient.get('${ApiConstants.deliveries}$id/');
     return DeliveryModel.fromJson(response.data);
   }
 
@@ -28,21 +28,21 @@ class DeliveryRepository {
     return DeliveryModel.fromJson(response.data);
   }
 
-  Future<bool> deleteDelivery(int id) async {
-    await dioClient.delete('${ApiConstants.deliveries}/$id');
+  Future<bool> deleteDelivery(String id) async {
+    await dioClient.delete('${ApiConstants.deliveries}$id/');
     return true;
   }
 
-  Future<DeliveryModel> cancelDelivery(int id) async {
+  Future<DeliveryModel> cancelDelivery(String id) async {
     final response = await dioClient.patch(
       '${ApiConstants.deliveries}/$id/cancel',
     );
     return DeliveryModel.fromJson(response.data);
   }
 
-  Future<DeliveryModel> updateDelivery(int id, Map<String, dynamic> data) async {
+  Future<DeliveryModel> updateDelivery(String id, Map<String, dynamic> data) async {
     final response = await dioClient.patch(
-      '${ApiConstants.deliveries}/$id',
+      '${ApiConstants.deliveries}$id/',
       data: data,
     );
     return DeliveryModel.fromJson(response.data);
@@ -50,7 +50,7 @@ class DeliveryRepository {
 
   /// POST /api/v1/deliveries/{id}/rate-driver/
   Future<DeliveryRatingModel> rateDriver({
-    required int deliveryId,
+    required String deliveryId,
     required double rating,
     String? comment,
     double? punctualityRating,

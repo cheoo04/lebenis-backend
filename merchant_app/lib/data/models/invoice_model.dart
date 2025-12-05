@@ -1,6 +1,6 @@
 class InvoiceItemModel {
-  final int id;
-  final int deliveryId;
+  final String id; // UUID
+  final String deliveryId; // UUID
   final String description;
   final double amount;
   final DateTime createdAt;
@@ -15,8 +15,8 @@ class InvoiceItemModel {
 
   factory InvoiceItemModel.fromJson(Map<String, dynamic> json) {
     return InvoiceItemModel(
-      id: json['id'],
-      deliveryId: json['delivery']?['id'] ?? 0,
+      id: json['id']?.toString() ?? '',
+      deliveryId: json['delivery']?['id']?.toString() ?? '',
       description: json['description'] ?? '',
       amount: double.parse(json['amount'].toString()),
       createdAt: DateTime.parse(json['created_at']),
@@ -25,7 +25,7 @@ class InvoiceItemModel {
 }
 
 class InvoiceModel {
-  final int id;
+  final String id; // UUID
   final String invoiceNumber;
   final DateTime periodStart;
   final DateTime periodEnd;
@@ -71,7 +71,7 @@ class InvoiceModel {
 
   factory InvoiceModel.fromJson(Map<String, dynamic> json) {
     return InvoiceModel(
-      id: json['id'],
+      id: json['id']?.toString() ?? '',
       invoiceNumber: json['invoice_number'],
       periodStart: DateTime.parse(json['period_start']),
       periodEnd: DateTime.parse(json['period_end']),

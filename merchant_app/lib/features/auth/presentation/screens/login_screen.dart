@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/providers/auth_provider.dart';
+import '../../../../data/providers/merchant_provider.dart';
 import '../../../../core/providers.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -45,24 +47,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       next.when(
         data: (user) {
           if (user != null && previous?.value == null) {
-            // Connexion réussie - enregistrer le token FCM
-            ref.read(notificationServiceProvider).registerTokenAfterLogin();
-            
-            // Rediriger vers splash qui va gérer le statut
+            // Connexion réussie
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('✅ Connexion réussie !'),
                 backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
               ),
             );
-            Navigator.pushReplacementNamed(context, '/');
+            
+            // Attendre un peu pour que le token soit bien sauvegardé et disponible
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                // Enregistrer le token FCM
+                ref.read(notificationServiceProvider).registerTokenAfterLogin();
+                
+                // Rediriger vers le dashboard qui va charger le profil
+                Navigator.pushReplacementNamed(context, '/dashboard');
+              }
+            });
           }
         },
         loading: () {},
         error: (err, _) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('❌ Erreur: ${err.toString()}'),
+              content: Text('❌ ${err.toString()}'),
               backgroundColor: Colors.red,
             ),
           );

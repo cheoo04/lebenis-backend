@@ -62,7 +62,7 @@ class InvoicesNotifier extends Notifier<InvoicesState> {
   }
 
   Future<Map<String, dynamic>?> payInvoice({
-    required int invoiceId,
+    required String invoiceId, // UUID
     required String paymentMethod,
     required String phoneNumber,
   }) async {
@@ -84,7 +84,7 @@ class InvoicesNotifier extends Notifier<InvoicesState> {
     }
   }
 
-  Future<String?> downloadInvoicePDF(int invoiceId, String savePath) async {
+  Future<String?> downloadInvoicePDF(String invoiceId, String savePath) async {
     try {
       final repository = ref.read(invoiceRepositoryProvider);
       final path = await repository.downloadInvoicePDF(invoiceId, savePath);
@@ -102,7 +102,7 @@ final invoicesProvider = NotifierProvider<InvoicesNotifier, InvoicesState>(() {
 });
 
 // Provider pour le détail d'une facture
-final invoiceDetailProvider = FutureProvider.family<InvoiceModel, int>((ref, invoiceId) async {
+final invoiceDetailProvider = FutureProvider.family<InvoiceModel, String>((ref, invoiceId) async {
   final repository = ref.watch(invoiceRepositoryProvider);
   return repository.getInvoiceDetail(invoiceId);
 });

@@ -10,7 +10,7 @@ import '../../../chat/screens/chat_screen.dart';
 import '../../../chat/providers/chat_provider.dart';
 
 class DeliveryDetailScreen extends ConsumerStatefulWidget {
-  final int deliveryId;
+  final String deliveryId;
 
   const DeliveryDetailScreen({super.key, required this.deliveryId});
 
@@ -23,10 +23,10 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
   bool _isDownloadingPDF = false;
   double _downloadProgress = 0.0;
 
-  Future<void> _openChat(int driverId, String deliveryRef) async {
+  Future<void> _openChat(String driverId, String deliveryRef) async {
     try {
       final chatRoom = await ref.read(chatRoomsProvider.notifier).createOrGetChatRoom(
-        driverId: driverId.toString(),
+        driverId: driverId,
         deliveryId: deliveryRef,
       );
 
@@ -131,7 +131,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
     }
   }
 
-  Future<void> _showRatingDialog(int deliveryId, String driverName) async {
+  Future<void> _showRatingDialog(String deliveryId, String driverName) async {
     double rating = 5.0;
     double punctuality = 5.0;
     double professionalism = 5.0;
@@ -227,7 +227,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
   }
 
   Future<void> _submitRating({
-    required int deliveryId,
+    required String deliveryId,
     required double rating,
     String? comment,
     double? punctualityRating,
@@ -498,7 +498,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                     text: 'Contacter le livreur',
                     icon: Icons.chat,
                     onPressed: () => _openChat(
-                      delivery.driver!.id!,
+                      delivery.driver!.id,
                       delivery.trackingNumber,
                     ),
                     backgroundColor: Colors.blue,

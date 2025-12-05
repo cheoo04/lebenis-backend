@@ -77,17 +77,30 @@ class ApiException implements Exception {
         final errors = <String>[];
         data.forEach((field, value) {
           if (value is List && value.isNotEmpty) {
-            // Prendre toutes les erreurs pour ce champ
-            for (var err in value) {
-              errors.add(err.toString());
+            // Messages personnalisés pour les champs courants
+            if (field == 'email') {
+              errors.add('Email existe déjà');
+            } else if (field == 'phone') {
+              errors.add('Numéro de téléphone existe déjà');
+            } else if (field == 'password' || field == 'password2') {
+              for (var err in value) {
+                errors.add(err.toString());
+              }
+            } else if (field == 'non_field_errors') {
+              for (var err in value) {
+                errors.add(err.toString());
+              }
+            } else {
+              for (var err in value) {
+                errors.add(err.toString());
+              }
             }
           } else if (value is String) {
             errors.add(value);
           }
         });
         if (errors.isNotEmpty) {
-          // Joindre toutes les erreurs avec un point-virgule
-          errorMessage = errors.join('; ');
+          errorMessage = errors.join('\n');
         }
       } else {
         // Essayer différentes clés possibles pour le message
@@ -125,7 +138,9 @@ class ApiException implements Exception {
 
       case 401:
         return ApiException(
-          message: 'Session expirée. Reconnectez-vous.',
+          message: errorMessage.isNotEmpty && errorMessage != 'Erreur inconnue' 
+              ? errorMessage 
+              : 'Email ou mot de passe incorrect.',
           statusCode: 401,
           data: data,
         );

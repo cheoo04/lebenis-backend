@@ -5,7 +5,7 @@ import '../widgets/photo_picker.dart';
 import '../widgets/signature_capture.dart';
 
 class ConfirmDeliveryScreen extends StatefulWidget {
-  final int deliveryId;
+  final String deliveryId; // UUID
   const ConfirmDeliveryScreen({super.key, required this.deliveryId});
 
   @override

@@ -11,6 +11,12 @@ class MerchantRepository {
   // Récupérer le profil du marchand connecté
   Future<MerchantModel> getProfile() async {
     final response = await dioClient.get(ApiConstants.merchantProfile);
+    // Backend retourne une liste avec un seul élément (le merchant connecté)
+    final results = response.data['results'] ?? response.data;
+    if (results is List && results.isNotEmpty) {
+      return MerchantModel.fromJson(results[0]);
+    }
+    // Fallback si réponse directe (pour compatibilité)
     return MerchantModel.fromJson(response.data);
   }
 

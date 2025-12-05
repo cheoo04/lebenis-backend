@@ -9,7 +9,7 @@ import '../../../../data/models/invoice_model.dart';
 import '../../../../shared/widgets/modern_button.dart';
 
 class InvoiceDetailScreen extends ConsumerStatefulWidget {
-  final int invoiceId;
+  final String invoiceId; // UUID
 
   const InvoiceDetailScreen({super.key, required this.invoiceId});
 

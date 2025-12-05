@@ -13,7 +13,47 @@ final dioProvider = Provider<Dio>((ref) {
 });
 
 final dioClientProvider = Provider<DioClient>((ref) {
+  final authService = ref.watch(authServiceProvider);
   final dio = ref.watch(dioProvider);
+  
+  // Ajouter un intercepteur pour inclure le token JWT automatiquement
+  dio.interceptors.clear(); // Nettoyer les anciens intercepteurs
+  dio.interceptors.add(
+    InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        // Ne pas ajouter le token pour les endpoints publics
+        final publicEndpoints = ['/auth/register/', '/auth/login/', '/auth/refresh/'];
+        final isPublicEndpoint = publicEndpoints.any((endpoint) => options.path.contains(endpoint));
+        
+        if (!isPublicEndpoint) {
+          final token = await authService.getAccessToken();
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+        }
+        return handler.next(options);
+      },
+      onError: (error, handler) async {
+        // Si erreur 401, essayer de rafraîchir le token
+        if (error.response?.statusCode == 401) {
+          try {
+            final newToken = await authService.refreshAccessToken();
+            if (newToken != null && newToken.isNotEmpty) {
+              // Réessayer la requête avec le nouveau token
+              error.requestOptions.headers['Authorization'] = 'Bearer $newToken';
+              final response = await dio.fetch(error.requestOptions);
+              return handler.resolve(response);
+            }
+          } catch (e) {
+            // Si le refresh échoue, déconnecter l'utilisateur
+            await authService.logout();
+          }
+        }
+        return handler.next(error);
+      },
+    ),
+  );
+  
   return DioClient(dio);
 });
 

@@ -14,7 +14,7 @@ class PDFReportService {
   ///
   /// Returns the local file path where the PDF was saved
   Future<String> downloadDeliveryPDF({
-    required int deliveryId,
+    required String deliveryId,
     Function(double)? onProgress,
   }) async {
     try {
