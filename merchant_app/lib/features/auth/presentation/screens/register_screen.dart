@@ -142,12 +142,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SnackBar(
                 content: Text('✅ Inscription réussie ! Chargement...'),
                 backgroundColor: Colors.green,
-                duration: Duration(seconds: 2),
+                duration: Duration(seconds: 1),
               ),
             );
             
-            // Rediriger immédiatement vers splash qui gère la logique
-            Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+            // Attendre un peu pour que le message s'affiche
+            await Future.delayed(const Duration(milliseconds: 1200));
+            
+            if (!mounted) return;
+            
+            // Rediriger selon le type d'utilisateur
+            if (_isMerchant) {
+              // Merchant → waiting approval
+              Navigator.of(context).pushNamedAndRemoveUntil('/waiting-approval', (route) => false);
+            } else {
+              // Individual → dashboard directement
+              Navigator.of(context).pushNamedAndRemoveUntil('/dashboard', (route) => false);
+            }
           }
         },
         loading: () {},
