@@ -104,3 +104,34 @@ class IsMerchantOrDriver(BasePermission):
             request.user.is_authenticated and 
             request.user.user_type in ['merchant', 'driver']
         )
+
+
+# ============================================================================
+# PERMISSION : PARTICULIER (INDIVIDUAL)
+# ============================================================================
+
+class IsIndividual(BasePermission):
+    """
+    Permission qui autorise uniquement les utilisateurs de type 'individual' (particulier).
+    """
+    
+    def has_permission(self, request, view):
+        return (
+            request.user and 
+            request.user.is_authenticated and 
+            request.user.user_type == 'individual'
+        )
+
+
+class IsMerchantOrIndividual(BasePermission):
+    """
+    Permission qui autorise les merchants ET les particuliers.
+    Les deux peuvent créer des livraisons.
+    """
+    
+    def has_permission(self, request, view):
+        return (
+            request.user and 
+            request.user.is_authenticated and 
+            request.user.user_type in ['merchant', 'individual']
+        )

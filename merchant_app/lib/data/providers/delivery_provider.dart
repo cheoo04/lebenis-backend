@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/delivery_repository.dart';
 import '../models/delivery_model.dart';
+import '../../core/providers.dart';
 
 final deliveryRepositoryProvider = Provider<DeliveryRepository>((ref) {
-  throw UnimplementedError(); // À injecter dans main.dart
+  final dioClient = ref.watch(dioClientProvider);
+  return DeliveryRepository(dioClient);
 });
 
 final deliveriesProvider = FutureProvider<List<DeliveryModel>>((ref) async {

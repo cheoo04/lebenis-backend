@@ -11,6 +11,48 @@ class AuthRepository {
   AuthRepository(this.dioClient, this.authService);
 
   // Inscription marchand (sans documents - upload après connexion)
+  Future<UserModel> register({
+    required String email,
+    required String password,
+    required String password2,
+    required String firstName,
+    required String lastName,
+    required String phone,
+    required String userType,
+    String? businessName,
+    String? businessType,
+    String? businessAddress,
+  }) async {
+    final data = {
+      'email': email,
+      'password': password,
+      'password2': password2,
+      'first_name': firstName,
+      'last_name': lastName,
+      'phone': phone,
+      'user_type': userType,
+    };
+    
+    // Ajouter les champs spécifiques aux commerçants
+    if (userType == 'merchant') {
+      if (businessName != null) data['business_name'] = businessName;
+      if (businessType != null) data['business_type'] = businessType;
+      if (businessAddress != null) data['business_address'] = businessAddress;
+    }
+    
+    final response = await dioClient.post(ApiConstants.register, data: data);
+
+    await authService.saveTokens(
+      accessToken: response.data['access'],
+      refreshToken: response.data['refresh'],
+      userType: userType,
+    );
+
+    return UserModel.fromJson(response.data['user']);
+  }
+  
+  // Alias pour compatibilité (déprécié)
+  @deprecated
   Future<UserModel> registerMerchant({
     required String email,
     required String password,
@@ -22,29 +64,18 @@ class AuthRepository {
     required String businessType,
     required String businessAddress,
   }) async {
-    final response = await dioClient.post(
-      ApiConstants.register,
-      data: {
-        'email': email,
-        'password': password,
-        'password2': password2,
-        'first_name': firstName,
-        'last_name': lastName,
-        'phone': phone,
-        'user_type': 'merchant',
-        'business_name': businessName,
-        'business_type': businessType,
-        'business_address': businessAddress,
-      },
-    );
-
-    await authService.saveTokens(
-      accessToken: response.data['access'],
-      refreshToken: response.data['refresh'],
+    return register(
+      email: email,
+      password: password,
+      password2: password2,
+      firstName: firstName,
+      lastName: lastName,
+      phone: phone,
       userType: 'merchant',
+      businessName: businessName,
+      businessType: businessType,
+      businessAddress: businessAddress,
     );
-
-    return UserModel.fromJson(response.data['user']);
   }
 
   // Connexion

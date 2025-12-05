@@ -43,19 +43,21 @@ class AuthNotifier extends Notifier<AsyncValue<UserModel?>> {
     required String firstName,
     required String lastName,
     required String phone,
-    required String businessName,
-    required String businessType,
-    required String businessAddress,
+    required String userType,
+    String? businessName,
+    String? businessType,
+    String? businessAddress,
   }) async {
     state = const AsyncValue.loading();
     try {
-      final user = await repository.registerMerchant(
+      final user = await repository.register(
         email: email,
         password: password,
         password2: password2,
         firstName: firstName,
         lastName: lastName,
         phone: phone,
+        userType: userType,
         businessName: businessName,
         businessType: businessType,
         businessAddress: businessAddress,

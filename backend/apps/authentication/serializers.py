@@ -58,6 +58,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         from apps.merchants.models import Merchant, MerchantAddress
         from apps.drivers.models import Driver
+        from apps.individuals.models import Individual
         
         # Extraire les champs spécifiques (seront utilisés pour mise à jour)
         business_name = validated_data.pop('business_name', None)
@@ -70,7 +71,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         validated_data.pop('password2')
         
         # Crée l'utilisateur avec create_user (du UserManager personnalisé)
-        # Les signals post_save créeront automatiquement Merchant ou Driver
+        # Les signals post_save créeront automatiquement Merchant, Driver ou Individual
         user = User.objects.create_user(
             email=validated_data['email'],
             phone=validated_data['phone'],
@@ -97,12 +98,16 @@ class UserRegisterSerializer(serializers.ModelSerializer):
                 )
         
         # Mettre à jour le profil Driver (créé automatiquement par signal)
-        if user.user_type == 'driver' and vehicle_type:
+        elif user.user_type == 'driver' and vehicle_type:
             driver = Driver.objects.get(user=user)
             driver.vehicle_type = vehicle_type
             if driver_license:
                 driver.driver_license = driver_license
             driver.save(update_fields=['vehicle_type', 'driver_license'])
+        
+        # Les particuliers sont créés automatiquement par signal, pas de mise à jour spéciale
+        # elif user.user_type == 'individual':
+        #     Individual.objects.get(user=user)  # Juste vérifier qu'il existe
         
         return user
 

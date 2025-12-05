@@ -64,7 +64,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         }
         
         // Compte vérifié: afficher le dashboard normal
-        return _buildDashboard(context, ref, profileAsync, statsAsync);
+        return _buildDashboard(context, ref, profile);
       },
       loading: () => const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -144,7 +144,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildDashboard(BuildContext context, WidgetRef ref, profileAsync, statsAsync) {
+  Widget _buildDashboard(BuildContext context, WidgetRef ref, profile) {
+    final statsAsync = ref.watch(merchantStatsProvider);
+    
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -182,35 +184,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 ),
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-                child: profileAsync.when(
-                  data: (profile) {
-                    if (profile == null) return const SizedBox.shrink();
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Bienvenue,',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          profile.businessName ?? 'Merchant',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        StatusBadge.fromStatus(profile.verificationStatus ?? 'pending'),
-                      ],
-                    );
-                  },
-                  loading: () => const SizedBox(height: 80),
-                  error: (err, st) => const SizedBox(height: 80),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Bienvenue,',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      profile.businessName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    StatusBadge.fromStatus(profile.verificationStatus),
+                  ],
                 ),
               ),
 
