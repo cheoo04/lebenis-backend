@@ -44,6 +44,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authStateProvider);
 
     ref.listen<AsyncValue<dynamic>>(authStateProvider, (previous, next) {
+      // Éviter les doublons de navigation
+      if (!mounted) return;
+      
       next.when(
         data: (user) {
           if (user != null && previous?.value == null) {
@@ -52,24 +55,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SnackBar(
                 content: Text('✅ Connexion réussie !'),
                 backgroundColor: Colors.green,
-                duration: Duration(seconds: 2),
+                duration: Duration(seconds: 1),
               ),
             );
             
-            // Attendre un peu pour que le token soit bien sauvegardé et disponible
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted) {
-                // Enregistrer le token FCM
-                ref.read(notificationServiceProvider).registerTokenAfterLogin();
-                
-                // Rediriger vers le dashboard qui va charger le profil
-                Navigator.pushReplacementNamed(context, '/dashboard');
-              }
-            });
+            // Enregistrer le token FCM
+            ref.read(notificationServiceProvider).registerTokenAfterLogin();
+            
+            // Rediriger immédiatement vers splash qui gère la logique
+            Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
           }
         },
         loading: () {},
         error: (err, _) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('❌ ${err.toString()}'),
