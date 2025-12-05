@@ -110,16 +110,51 @@ class WaitingApprovalScreen extends ConsumerWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        ref.invalidate(merchantProfileProvider);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Vérification du statut...')),
-                        );
+                      onPressed: () async {
+                        // Aller au profil pour uploader les documents
+                        Navigator.pushNamed(context, '/profile');
+                      },
+                      icon: const Icon(Icons.upload_file),
+                      label: const Text('Uploader mes documents'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        // Recharger le profil pour vérifier le statut
+                        await ref.read(merchantProfileProvider.notifier).loadProfile();
+                        final profile = ref.read(merchantProfileProvider).value;
+                        
+                        if (context.mounted) {
+                          if (profile?.verificationStatus == 'approved') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('✅ Votre compte a été approuvé !'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            Navigator.pushReplacementNamed(context, '/dashboard');
+                          } else if (profile?.verificationStatus == 'rejected') {
+                            Navigator.pushReplacementNamed(context, '/rejected');
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('⏳ Votre compte est toujours en attente'),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                          }
+                        }
                       },
                       icon: const Icon(Icons.refresh),
                       label: const Text('Vérifier le statut'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent,
+                      style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                     ),

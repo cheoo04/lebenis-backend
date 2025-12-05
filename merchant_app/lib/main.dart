@@ -21,20 +21,96 @@ void main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Initialiser les notifications au démarrage
-    ref.read(notificationServiceProvider).initialize().catchError((e) {
-      debugPrint('⚠️ Erreur init notifications: $e');
-    });
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
 
+class _MyAppState extends ConsumerState<MyApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeNotifications();
+  }
+
+  Future<void> _initializeNotifications() async {
+    try {
+      final notificationService = ref.read(notificationServiceProvider);
+      await notificationService.initialize();
+
+      // Configurer le handler de navigation pour les notifications
+      notificationService.onNotificationTap = (data) {
+        _handleNotificationNavigation(data);
+      };
+    } catch (e) {
+      debugPrint('⚠️ Erreur init notifications: $e');
+    }
+  }
+
+  void _handleNotificationNavigation(Map<String, dynamic> data) {
+    final action = data['action'] as String?;
+    final type = data['type'] as String?;
+
+    debugPrint('📱 Navigation notification: $action, type: $type');
+
+    final context = _navigatorKey.currentContext;
+    if (context == null) return;
+
+    // Router selon le type de notification
+    switch (type) {
+      case 'merchant_approved':
+        Navigator.pushReplacementNamed(context, '/dashboard');
+        break;
+      
+      case 'merchant_rejected':
+        Navigator.pushReplacementNamed(context, '/rejected');
+        break;
+      
+      case 'merchant_documents_received':
+        Navigator.pushNamed(context, '/profile');
+        break;
+      
+      case 'merchant_delivery_assigned':
+        final deliveryId = data['delivery_id'] as String?;
+        if (deliveryId != null) {
+          Navigator.pushNamed(
+            context,
+            '/delivery-detail',
+            arguments: deliveryId,
+          );
+        }
+        break;
+      
+      case 'merchant_invoice_paid':
+        final invoiceId = data['invoice_id'] as String?;
+        if (invoiceId != null) {
+          Navigator.pushNamed(
+            context,
+            '/invoice-detail',
+            arguments: invoiceId,
+          );
+        }
+        break;
+      
+      default:
+        // Action par défaut: ouvrir le dashboard
+        if (action == 'open_dashboard') {
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp(
       title: 'LeBeni Marchands',
       debugShowCheckedModeBanner: false,
       theme: appTheme,
+      navigatorKey: _navigatorKey,
       initialRoute: '/',
       onGenerateRoute: AppRouter.generateRoute,
     );
