@@ -39,6 +39,14 @@ class AuthService {
     return await storage.read(key: _userTypeKey);
   }
 
+  // Rafraîchir le token d'accès
+  Future<String?> refreshAccessToken() async {
+    // Note: Cette méthode devrait appeler l'API de refresh token
+    // Pour l'instant, on retourne null car le refresh n'est pas implémenté côté client
+    // TODO: Implémenter l'appel API pour rafraîchir le token
+    return null;
+  }
+
   // Déconnexion
   Future<void> logout() async {
     await storage.delete(key: _accessTokenKey);

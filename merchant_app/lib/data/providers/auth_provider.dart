@@ -61,56 +61,9 @@ class AuthNotifier extends Notifier<AsyncValue<UserModel?>> {
         businessAddress: businessAddress,
       );
       state = AsyncValue.data(user);
-    } on DioException catch (dioErr, st) {
-      print('DioException catch');
-      if (dioErr.type == DioExceptionType.connectionTimeout || dioErr.type == DioExceptionType.receiveTimeout) {
-        state = AsyncValue.error('Le serveur ne répond pas. Veuillez vérifier votre connexion ou réessayer plus tard.', st);
-      } else if (dioErr.response != null && dioErr.response?.data != null) {
-        print('DioException backend response:');
-        print(dioErr.response?.data);
-        final data = dioErr.response?.data;
-        String msg = 'Erreur inconnue';
-        if (data is Map && data.isNotEmpty) {
-          msg = data.toString();
-        } else if (data is String) {
-          msg = data;
-        } else {
-          msg = data.toString();
-        }
-        state = AsyncValue.error(msg, st);
-      } else {
-        state = AsyncValue.error('Erreur réseau ou serveur inattendue.', st);
-      }
     } catch (e, st) {
-      print('catch global error: $e');
-      print('exception type: \'${e.runtimeType}\'');
-      print('exception details: ${e.toString()}');
-      // Affiche le champ details si présent (ApiException)
-      dynamic details;
-      try {
-        details = (e as dynamic).details;
-        print('exception.details: $details');
-      } catch (_) {}
-      String msg = e.toString();
-      if (details != null) {
-        if (details is Map && details.isNotEmpty) {
-          msg = details.entries.map((entry) {
-            final value = entry.value;
-            if (value is List && value.isNotEmpty) {
-              return "${entry.key}: ${value.join(", ")}";
-            } else {
-              return "${entry.key}: $value";
-            }
-          }).join("\n");
-        } else if (details is List && details.isNotEmpty) {
-          msg = details.join("\n");
-        } else if (details is String) {
-          msg = details;
-        } else {
-          msg = details.toString();
-        }
-      }
-      state = AsyncValue.error(msg, st);
+      // DioClient a déjà formaté l'erreur dans ApiException
+      state = AsyncValue.error(e.toString().replaceFirst('ApiException(0): ', ''), st);
     }
   }
 

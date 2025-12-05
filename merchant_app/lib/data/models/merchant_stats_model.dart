@@ -1,5 +1,5 @@
 class MerchantStatsModel {
-  final int id;
+  final String id; // UUID
   final String businessName;
   final String verificationStatus;
   final int periodDays;
@@ -46,26 +46,39 @@ class MerchantStatsModel {
   });
 
   factory MerchantStatsModel.fromJson(Map<String, dynamic> json) {
+    final merchant = json['merchant'] ?? {};
+    final deliveries = json['deliveries'] ?? {};
+    final revenue = json['revenue'] ?? {};
+    final invoices = json['invoices'] ?? {};
+    
     return MerchantStatsModel(
-      id: json['id'],
-      businessName: json['business_name'],
-      verificationStatus: json['verification_status'],
+      id: merchant['id']?.toString() ?? '',
+      businessName: merchant['business_name'] ?? '',
+      verificationStatus: merchant['verification_status'] ?? 'pending',
       periodDays: json['period_days'] ?? 30,
-      totalDeliveries: json['deliveries']['total_all_time'] ?? 0,
-      periodDeliveries: json['deliveries']['period_total'] ?? 0,
-      delivered: json['deliveries']['delivered'] ?? 0,
-      inProgress: json['deliveries']['in_progress'] ?? 0,
-      pending: json['deliveries']['pending'] ?? 0,
-      cancelled: json['deliveries']['cancelled'] ?? 0,
-      successRate: (json['deliveries']['success_rate'] ?? 0.0).toDouble(),
-      periodRevenue: (json['revenue']['period_revenue'] ?? 0.0).toDouble(),
-      totalBilled: (json['revenue']['total_billed'] ?? 0.0).toDouble(),
-      paid: (json['revenue']['paid'] ?? 0.0).toDouble(),
-      pendingPayment: (json['revenue']['pending_payment'] ?? 0.0).toDouble(),
-      invoicesTotal: json['invoices']['total'] ?? 0,
-      invoicesPaid: json['invoices']['paid'] ?? 0,
-      invoicesPending: json['invoices']['pending'] ?? 0,
+      totalDeliveries: deliveries['total_all_time'] ?? 0,
+      periodDeliveries: deliveries['period_total'] ?? 0,
+      delivered: deliveries['delivered'] ?? 0,
+      inProgress: deliveries['in_progress'] ?? 0,
+      pending: deliveries['pending'] ?? 0,
+      cancelled: deliveries['cancelled'] ?? 0,
+      successRate: _parseDouble(deliveries['success_rate']),
+      periodRevenue: _parseDouble(revenue['period_revenue']),
+      totalBilled: _parseDouble(revenue['total_billed']),
+      paid: _parseDouble(revenue['paid']),
+      pendingPayment: _parseDouble(revenue['pending_payment']),
+      invoicesTotal: invoices['total'] ?? 0,
+      invoicesPaid: invoices['paid'] ?? 0,
+      invoicesPending: invoices['pending'] ?? 0,
     );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 
   String get formattedRevenue => '${periodRevenue.toStringAsFixed(0)} FCFA';

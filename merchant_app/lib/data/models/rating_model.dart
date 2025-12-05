@@ -1,7 +1,7 @@
 class DeliveryRatingModel {
-  final int id;
-  final int deliveryId;
-  final int driverId;
+  final String id; // UUID
+  final String deliveryId; // UUID
+  final String driverId; // UUID
   final double rating; // 1-5
   final String? comment;
   final double? punctualityRating;
@@ -23,9 +23,9 @@ class DeliveryRatingModel {
 
   factory DeliveryRatingModel.fromJson(Map<String, dynamic> json) {
     return DeliveryRatingModel(
-      id: json['id'],
-      deliveryId: json['delivery'],
-      driverId: json['driver'],
+      id: json['id']?.toString() ?? '',
+      deliveryId: json['delivery']?.toString() ?? '',
+      driverId: json['driver']?.toString() ?? '',
       rating: double.parse(json['rating'].toString()),
       comment: json['comment'],
       punctualityRating: json['punctuality_rating'] != null

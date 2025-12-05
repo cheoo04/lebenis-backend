@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../data/providers/auth_provider.dart';
+import '../../../../data/providers/merchant_provider.dart';
 import '../../../../core/providers.dart';
 
 
@@ -109,24 +111,27 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       next.when(
         data: (user) {
           if (user != null && previous?.value == null) {
-            // Inscription réussie - rediriger vers waiting-approval
+            // Inscription réussie
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('✅ Inscription réussie ! Votre compte est en attente de validation.'),
                 backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
               ),
             );
-            Navigator.pushReplacementNamed(context, '/waiting-approval');
+            
+            // Attendre un peu pour que le token soit bien sauvegardé
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                // Rediriger vers le dashboard qui va charger le profil
+                Navigator.pushReplacementNamed(context, '/dashboard');
+              }
+            });
           }
         },
         loading: () {},
         error: (err, _) {
-          String msg;
-          if (err is Map) {
-            msg = err.entries.map((e) => "${e.key}: ${e.value}").join("\n");
-          } else {
-            msg = err.toString();
-          }
+          String msg = err.toString();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(msg),
@@ -247,28 +252,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   labelText: 'Adresse du commerce',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.location_on),
-                ),
-              ),
-              const SizedBox(height: 24),
-              // Note d'information
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.blue, size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Vous pourrez uploader vos documents (RCCM, pièce d\'identité) après connexion depuis votre profil.',
-                        style: TextStyle(fontSize: 13, color: Colors.black87),
-                      ),
-                    ),
-                  ],
                 ),
               ),
               const SizedBox(height: 24),

@@ -9,7 +9,7 @@ import '../../../../data/providers/delivery_provider.dart';
 import '../../../../shared/widgets/osm_map_widget.dart';
 
 class TrackingScreen extends ConsumerStatefulWidget {
-  final int deliveryId;
+  final String deliveryId;
 
   const TrackingScreen({super.key, required this.deliveryId});
 

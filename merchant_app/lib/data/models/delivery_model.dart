@@ -1,7 +1,7 @@
 import 'driver_model.dart';
 
 class DeliveryModel {
-	final int id;
+	final String id; // UUID
 	final String trackingNumber;
 	final String status; // e.g. "pending", "in_progress", "delivered", "cancelled"
 	final String recipientName;
@@ -51,7 +51,7 @@ class DeliveryModel {
 
 	factory DeliveryModel.fromJson(Map<String, dynamic> json) {
 		return DeliveryModel(
-			id: json['id'],
+			id: json['id']?.toString() ?? '',
 			trackingNumber: json['tracking_number'],
 			status: json['status'],
 			recipientName: json['recipient_name'],

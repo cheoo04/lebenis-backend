@@ -9,11 +9,29 @@ import '../../../deliveries/presentation/screens/delivery_list_screen.dart';
 import '../../../deliveries/presentation/screens/create_delivery_screen.dart';
 import '../../../profile/presentation/screens/edit_profile_screen.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
   
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Charger le profil et les stats au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profile = ref.read(merchantProfileProvider);
+      if (profile.value == null) {
+        ref.read(merchantProfileProvider.notifier).loadProfile();
+      }
+      ref.read(merchantStatsProvider.notifier).loadStats();
+    });
+  }
+  
+  @override
+  Widget build(BuildContext context) {
     final profileAsync = ref.watch(merchantProfileProvider);
     final statsAsync = ref.watch(merchantStatsProvider);
 
@@ -21,8 +39,22 @@ class DashboardScreen extends ConsumerWidget {
     return profileAsync.when(
       data: (profile) {
         if (profile == null) {
-          return const Scaffold(
-            body: Center(child: Text('Erreur: Profil non trouvé')),
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Erreur: Profil non trouvé'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      ref.read(merchantProfileProvider.notifier).loadProfile();
+                    },
+                    child: const Text('Réessayer'),
+                  ),
+                ],
+              ),
+            ),
           );
         }
         
@@ -39,7 +71,19 @@ class DashboardScreen extends ConsumerWidget {
       ),
       error: (err, stack) => Scaffold(
         body: Center(
-          child: Text('Erreur: $err'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Erreur: $err'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  ref.read(merchantProfileProvider.notifier).loadProfile();
+                },
+                child: const Text('Réessayer'),
+              ),
+            ],
+          ),
         ),
       ),
     );

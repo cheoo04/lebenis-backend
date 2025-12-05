@@ -1,5 +1,5 @@
 class DriverModel {
-  final int id;
+  final String id; // UUID
   final String name;
   final String phone;
   final String? photo;
@@ -21,7 +21,7 @@ class DriverModel {
 
   factory DriverModel.fromJson(Map<String, dynamic> json) {
     return DriverModel(
-      id: json['id'],
+      id: json['id']?.toString() ?? '',
       name: json['name'] ?? json['user']?['first_name'] ?? 'Chauffeur',
       phone: json['phone'] ?? json['user']?['phone_number'] ?? '',
       photo: json['photo'],

@@ -17,7 +17,7 @@ final deliveryListProvider = FutureProvider.family<List<DeliveryModel>, String?>
   return repo.getDeliveries(status: status);
 });
 
-final deliveryDetailProvider = FutureProvider.family<DeliveryModel, int>((ref, id) async {
+final deliveryDetailProvider = FutureProvider.family<DeliveryModel, String>((ref, id) async {
   final repo = ref.watch(deliveryRepositoryProvider);
   return repo.getDeliveryDetail(id);
 });
@@ -27,7 +27,7 @@ final createDeliveryProvider = FutureProvider.family<DeliveryModel, Map<String, 
   return repo.createDelivery(data);
 });
 
-final deleteDeliveryProvider = FutureProvider.family<bool, int>((ref, id) async {
+final deleteDeliveryProvider = FutureProvider.family<bool, String>((ref, id) async {
   final repo = ref.watch(deliveryRepositoryProvider);
   return repo.deleteDelivery(id);
 });

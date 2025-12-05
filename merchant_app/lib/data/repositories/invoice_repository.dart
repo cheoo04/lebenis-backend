@@ -39,7 +39,7 @@ class InvoiceRepository {
   }
 
   /// GET /api/v1/payments/invoices/{id}/
-  Future<InvoiceModel> getInvoiceDetail(int invoiceId) async {
+  Future<InvoiceModel> getInvoiceDetail(String invoiceId) async {
     try {
       final response = await dioClient.get('${ApiConstants.invoices}$invoiceId/');
       return InvoiceModel.fromJson(response.data);
@@ -51,7 +51,7 @@ class InvoiceRepository {
   /// POST /api/v1/payments/invoices/{id}/pay/
   /// Payer une facture via Mobile Money
   Future<Map<String, dynamic>> payInvoice({
-    required int invoiceId,
+    required String invoiceId, // UUID
     required String paymentMethod, // 'orange_money' ou 'mtn_momo'
     required String phoneNumber,
   }) async {
@@ -75,7 +75,7 @@ class InvoiceRepository {
   }
 
   /// GET /api/v1/payments/invoices/{id}/download-pdf/
-  Future<String> downloadInvoicePDF(int invoiceId, String savePath) async {
+  Future<String> downloadInvoicePDF(String invoiceId, String savePath) async {
     try {
       await dioClient.download(
         '${ApiConstants.invoices}$invoiceId/download-pdf/',
