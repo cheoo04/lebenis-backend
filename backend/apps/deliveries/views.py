@@ -22,7 +22,7 @@ from .serializers_rating import DeliveryRatingSerializer
 from .services import DeliveryAssignmentService, RouteOptimizationService
 from apps.merchants.models import Merchant
 from apps.drivers.models import Driver
-from core.permissions import IsMerchant, IsDriver, IsAdmin
+from core.permissions import IsMerchant, IsDriver, IsAdmin, IsMerchantOrIndividual
 from apps.notifications.services import notify_delivery_status_change
 
 logger = logging.getLogger(__name__)
@@ -45,13 +45,13 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Permissions adaptées par action :
-        - create: Merchants uniquement
+        - create: Merchants et Particuliers
         - assign/reassign: Admins uniquement
         - accept/reject: Drivers uniquement
         - list/retrieve: Tous authentifiés
         """
         if self.action == 'create':
-            permission_classes = [IsMerchant]
+            permission_classes = [IsMerchantOrIndividual]
         elif self.action in ['assign', 'auto_assign', 'reassign']:
             permission_classes = [IsAdmin]
         elif self.action in ['accept', 'reject']:
@@ -66,20 +66,31 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Calcule le prix automatiquement lors de la création et envoie le code PIN par email."""
         try:
-            # Récupère le merchant
+            # Récupère le merchant ou l'individual
             merchant = Merchant.objects.filter(user=self.request.user).first()
-            if not merchant:
-                raise ValidationError("Vous n'avez pas de profil merchant")
-
-            # Récupère l'adresse principale
-            pickup_address = merchant.addresses.filter(is_primary=True).first()
-            if not pickup_address:
-                raise ValidationError("Vous devez avoir une adresse principale")
+            
+            if merchant:
+                # Cas merchant : utilise l'adresse principale
+                pickup_address = merchant.addresses.filter(is_primary=True).first()
+                if not pickup_address:
+                    raise ValidationError("Vous devez avoir une adresse principale")
+                pickup_commune = pickup_address.commune
+            else:
+                # Cas particulier : utilise pickup_commune fourni dans les données
+                from apps.individuals.models import Individual
+                individual = Individual.objects.filter(user=self.request.user).first()
+                if not individual:
+                    raise ValidationError("Vous n'avez pas de profil")
+                
+                delivery_data = serializer.validated_data
+                pickup_commune = delivery_data.get('pickup_commune')
+                if not pickup_commune:
+                    raise ValidationError("pickup_commune est requis pour les particuliers")
 
             # Prépare les données pour le calcul
             delivery_data = serializer.validated_data
             pricing_data = {
-                'pickup_commune': pickup_address.commune,
+                'pickup_commune': pickup_commune,
                 'delivery_commune': delivery_data.get('delivery_commune'),
                 'package_weight_kg': float(delivery_data.get('package_weight_kg', 0)),
                 'is_fragile': delivery_data.get('is_fragile', False),
@@ -99,7 +110,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             delivery_confirmation_code = Delivery().generate_confirmation_code()
             # Sauvegarde la livraison
             serializer.save(
-                merchant=merchant,
+                merchant=merchant,  # Sera None pour les particuliers
                 calculated_price=calculated_price,
                 delivery_confirmation_code=delivery_confirmation_code
             )

@@ -145,8 +145,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    // Naviguer vers RegisterScreen
-                    Navigator.pushNamed(context, '/register');
+                    // Naviguer vers UserTypeSelectionScreen
+                    Navigator.pushNamed(context, '/user-type-selection');
                   },
                   child: const Text('Créer un compte'),
                 ),

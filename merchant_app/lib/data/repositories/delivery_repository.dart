@@ -14,6 +14,13 @@ class DeliveryRepository {
       ApiConstants.deliveries,
       queryParameters: queryParams,
     );
+    // L'API retourne un objet paginé avec 'results'
+    final data = response.data;
+    if (data is Map<String, dynamic> && data.containsKey('results')) {
+      final list = data['results'] as List;
+      return list.map((e) => DeliveryModel.fromJson(e)).toList();
+    }
+    // Fallback si c'est une liste directe
     final list = response.data as List;
     return list.map((e) => DeliveryModel.fromJson(e)).toList();
   }

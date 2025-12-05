@@ -9,7 +9,9 @@ import '../../../../core/providers.dart';
 
 
 class RegisterScreen extends ConsumerStatefulWidget {
-  const RegisterScreen({super.key});
+  final String userType; // 'individual' ou 'merchant'
+  
+  const RegisterScreen({super.key, required this.userType});
 
   @override
   ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
@@ -61,17 +63,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
 
+  bool get _isMerchant => widget.userType == 'merchant';
+  bool get _isIndividual => widget.userType == 'individual';
+
   Future<void> _register() async {
-    // Validation basique
+    // Validation basique commune
     if (_emailController.text.isEmpty ||
         _passwordController.text.isEmpty ||
         _firstNameController.text.isEmpty ||
         _lastNameController.text.isEmpty ||
-        _phoneController.text.isEmpty ||
-        _businessNameController.text.isEmpty) {
+        _phoneController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('⚠️ Veuillez remplir tous les champs obligatoires'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    
+    // Validation spécifique aux commerçants
+    if (_isMerchant && _businessNameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ Le nom du commerce est obligatoire'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -97,9 +112,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       firstName: _firstNameController.text,
       lastName: _lastNameController.text,
       phone: _phoneController.text,
-      businessName: _businessNameController.text,
-      businessType: _businessTypeController.text,
-      businessAddress: _businessAddressController.text,
+      userType: widget.userType,
+      businessName: _isMerchant ? _businessNameController.text : null,
+      businessType: _isMerchant ? _businessTypeController.text : null,
+      businessAddress: _isMerchant ? _businessAddressController.text : null,
     );
   }
 

@@ -1,82 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import '../../../../core/network/dio_client.dart';
-import '../../../../core/constants/api_constants.dart';
-import '../../../../core/providers.dart';
+import '../../../../theme/app_theme.dart';
+import '../../../../data/models/notification_model.dart';
+import '../../../../data/providers/notification_provider.dart';
 
-// Model pour les notifications
-class NotificationModel {
-  final int id;
-  final String title;
-  final String message;
-  final String type;
-  final bool isRead;
-  final DateTime sentAt;
-  final DateTime? readAt;
-
-  NotificationModel({
-    required this.id,
-    required this.title,
-    required this.message,
-    required this.type,
-    required this.isRead,
-    required this.sentAt,
-    this.readAt,
-  });
-
-  factory NotificationModel.fromJson(Map<String, dynamic> json) {
-    return NotificationModel(
-      id: json['id'],
-      title: json['title'] ?? '',
-      message: json['message'] ?? '',
-      type: json['type'] ?? 'info',
-      isRead: json['is_read'] ?? false,
-      sentAt: DateTime.parse(json['sent_at']),
-      readAt: json['read_at'] != null ? DateTime.parse(json['read_at']) : null,
-    );
-  }
-}
-
-// Provider pour charger les notifications
-final notificationsProvider = FutureProvider<List<NotificationModel>>((ref) async {
-  final dioClient = ref.watch(dioClientProvider);
-  
-  try {
-    final response = await dioClient.get(ApiConstants.notifications);
-    final List data = response.data['results'] ?? response.data;
-    return data.map((json) => NotificationModel.fromJson(json)).toList();
-  } catch (e) {
-    throw Exception('Erreur chargement notifications: $e');
-  }
-});
-
-// Provider pour le compteur de non-lues
-final unreadCountProvider = FutureProvider<int>((ref) async {
-  final dioClient = ref.watch(dioClientProvider);
-  
-  try {
-    final response = await dioClient.get('${ApiConstants.notifications}unread-count/');
-    return response.data['unread_count'] ?? 0;
-  } catch (e) {
-    return 0;
-  }
-});
-
-class NotificationsScreen extends ConsumerWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final notificationsAsync = ref.watch(notificationsProvider);
-    final unreadCountAsync = ref.watch(unreadCountProvider);
+  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => ref.read(notificationListProvider.notifier).loadNotifications());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final notificationsAsync = ref.watch(notificationListProvider);
+    final unreadCountAsync = ref.watch(unreadNotificationsCountProvider);
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text('Notifications'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.check_circle_outline),
+            tooltip: 'Tout marquer comme lu',
+            onPressed: () {
+              ref.read(notificationListProvider.notifier).markAllAsRead();
+            },
+          ),
           unreadCountAsync.when(
             data: (count) => count > 0
                 ? Padding(
@@ -113,24 +74,21 @@ class NotificationsScreen extends ConsumerWidget {
 
           return RefreshIndicator(
             onRefresh: () async {
-              ref.invalidate(notificationsProvider);
-              ref.invalidate(unreadCountProvider);
+              await ref.read(notificationListProvider.notifier).loadNotifications();
             },
-            child: ListView.separated(
+            color: AppTheme.primaryColor,
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
               itemCount: notifications.length,
-              separatorBuilder: (context, index) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final notification = notifications[index];
-                return _NotificationTile(
-                  notification: notification,
-                  onTap: () => _markAsRead(context, ref, notification),
-                );
+                return _buildNotificationCard(notification);
               },
             ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => _buildErrorState(error.toString(), ref),
+        error: (error, stack) => _buildErrorState(error.toString()),
       ),
     );
   }
@@ -156,7 +114,7 @@ class NotificationsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorState(String error, WidgetRef ref) {
+  Widget _buildErrorState(String error) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -178,11 +136,14 @@ class NotificationsScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
-                ref.invalidate(notificationsProvider);
-                ref.invalidate(unreadCountProvider);
+                ref.read(notificationListProvider.notifier).loadNotifications();
               },
               icon: const Icon(Icons.refresh),
               label: const Text('Réessayer'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),
@@ -190,112 +151,161 @@ class NotificationsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _markAsRead(
-    BuildContext context,
-    WidgetRef ref,
-    NotificationModel notification,
-  ) async {
-    if (notification.isRead) return;
-
-    try {
-      final dioClient = ref.read(dioClientProvider);
-      await dioClient.post('${ApiConstants.notifications}${notification.id}/mark-as-read/');
-      
-      // Rafraîchir les listes
-      ref.invalidate(notificationsProvider);
-      ref.invalidate(unreadCountProvider);
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
-      }
-    }
-  }
-}
-
-class _NotificationTile extends StatelessWidget {
-  final NotificationModel notification;
-  final VoidCallback onTap;
-
-  const _NotificationTile({
-    required this.notification,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final timeAgo = _getTimeAgo(notification.sentAt);
-
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: _getTypeColor(),
-        child: Icon(_getTypeIcon(), color: Colors.white, size: 20),
+  Widget _buildNotificationCard(NotificationModel notification) {
+    final isUnread = !notification.isRead;
+    
+    return Dismissible(
+      key: Key(notification.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: const Icon(Icons.delete, color: Colors.white),
       ),
-      title: Text(
-        notification.title,
-        style: TextStyle(
-          fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
+      onDismissed: (direction) {
+        ref.read(notificationListProvider.notifier).deleteNotification(notification.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notification supprimée')),
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        elevation: isUnread ? 3 : 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: isUnread
+              ? BorderSide(color: AppTheme.primaryColor.withOpacity(0.3), width: 2)
+              : BorderSide.none,
+        ),
+        color: isUnread ? AppTheme.primaryColor.withOpacity(0.05) : Colors.white,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            if (isUnread) {
+              ref.read(notificationListProvider.notifier).markAsRead(notification.id);
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: _getNotificationColor(notification.type).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _getNotificationIcon(notification.type),
+                    color: _getNotificationColor(notification.type),
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              notification.title,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
+                                color: Colors.grey[900],
+                              ),
+                            ),
+                          ),
+                          if (isUnread)
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.primaryColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        notification.message,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[700],
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _getTimeAgo(notification.createdAt),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 4),
-          Text(
-            notification.message,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            timeAgo,
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
-        ],
-      ),
-      trailing: notification.isRead
-          ? null
-          : Container(
-              width: 10,
-              height: 10,
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-                shape: BoxShape.circle,
-              ),
-            ),
-      onTap: onTap,
-      tileColor: notification.isRead ? null : Colors.blue.withOpacity(0.05),
     );
   }
 
-  Color _getTypeColor() {
-    switch (notification.type) {
-      case 'delivery_assigned':
-        return Colors.blue;
-      case 'delivery_delivered':
-        return Colors.green;
-      case 'delivery_cancelled':
-        return Colors.red;
-      case 'driver_accepted':
-        return Colors.orange;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getTypeIcon() {
-    switch (notification.type) {
+  IconData _getNotificationIcon(String type) {
+    switch (type) {
+      case 'delivery':
       case 'delivery_assigned':
         return Icons.local_shipping;
+      case 'payment':
+        return Icons.payment;
+      case 'account':
+      case 'merchant_approved':
+      case 'merchant_rejected':
+        return Icons.account_circle;
       case 'delivery_delivered':
         return Icons.check_circle;
       case 'delivery_cancelled':
         return Icons.cancel;
-      case 'driver_accepted':
-        return Icons.check_circle_outline;
+      case 'system':
+        return Icons.info_outline;
       default:
         return Icons.notifications;
+    }
+  }
+
+  Color _getNotificationColor(String type) {
+    switch (type) {
+      case 'delivery':
+      case 'delivery_assigned':
+        return Colors.blue;
+      case 'payment':
+        return Colors.green;
+      case 'account':
+      case 'merchant_approved':
+        return Colors.orange;
+      case 'merchant_rejected':
+        return Colors.red;
+      case 'delivery_delivered':
+        return Colors.green;
+      case 'delivery_cancelled':
+        return Colors.red;
+      case 'system':
+        return Colors.purple;
+      default:
+        return AppTheme.primaryColor;
     }
   }
 
@@ -303,7 +313,9 @@ class _NotificationTile extends StatelessWidget {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
 
-    if (difference.inDays > 0) {
+    if (difference.inDays > 7) {
+      return '${(difference.inDays / 7).floor()}sem';
+    } else if (difference.inDays > 0) {
       return '${difference.inDays}j';
     } else if (difference.inHours > 0) {
       return '${difference.inHours}h';

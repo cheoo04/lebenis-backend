@@ -33,9 +33,9 @@ class MerchantViewSet(viewsets.ModelViewSet):
         - create/update/delete : Admin uniquement
         """
         if self.action in ['update_documents', 'my_stats']:
-            permission_classes = [IsMerchant]
+            permission_classes = [permissions.IsAuthenticated, IsMerchant]
         elif self.action in ['approve', 'reject', 'pending_verification']:
-            permission_classes = [IsAdmin]
+            permission_classes = [permissions.IsAuthenticated, IsAdmin]
         elif self.action in ['list', 'retrieve']:
             permission_classes = [permissions.IsAuthenticated]
         else:

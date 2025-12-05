@@ -1,0 +1,40 @@
+from django.db import models
+from apps.authentication.models import User
+import uuid
+
+
+class Individual(models.Model):
+    """
+    Modèle pour les particuliers (clients individuels) qui peuvent demander des livraisons.
+    Contrairement aux marchands, ils n'ont pas de documents professionnels à fournir.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='individual_profile')
+    
+    # Informations personnelles (certaines viennent déjà du User)
+    address = models.TextField(blank=True, null=True, help_text="Adresse principale du particulier")
+    
+    # Métadonnées
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'individuals'
+        verbose_name = 'Particulier'
+        verbose_name_plural = 'Particuliers'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.user.email}"
+    
+    @property
+    def full_name(self):
+        return self.user.get_full_name()
+    
+    @property
+    def phone(self):
+        return self.user.phone
+    
+    @property
+    def email(self):
+        return self.user.email

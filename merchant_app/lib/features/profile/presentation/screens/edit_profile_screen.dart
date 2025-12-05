@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../../../theme/app_theme.dart';
 import '../../../../data/providers/merchant_provider.dart';
 import '../../../../shared/widgets/modern_text_field.dart';
@@ -20,11 +22,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _addressController = TextEditingController();
   bool _isLoading = false;
   bool _isSaving = false;
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    // Charger les données dans un Future microtask pour éviter l'erreur de provider
+    Future.microtask(() => _loadProfile());
   }
 
   @override
@@ -36,18 +41,87 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la sélection de l\'image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Choisir une photo'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Prendre une photo'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choisir depuis la galerie'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _loadProfile() async {
+    if (!mounted) return;
+    
     setState(() => _isLoading = true);
     try {
-      await ref.read(merchantProfileProvider.notifier).fetchProfile();
-      final merchantState = ref.read(merchantProfileProvider);
-
-      merchantState.whenData((merchant) {
-        if (merchant != null) {
-          _businessNameController.text = merchant.businessName ?? '';
-          _emailController.text = merchant.email ?? '';
-          _phoneController.text = merchant.phoneNumber ?? '';
-          _addressController.text = merchant.address ?? '';
+      // Charger le profil
+      await ref.read(merchantProfileProvider.notifier).loadProfile();
+      
+      // Attendre un frame pour que le provider soit mis à jour
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      if (!mounted) return;
+      
+      // Lire les données du profil
+      final merchantAsync = ref.read(merchantProfileProvider);
+      
+      merchantAsync.whenData((merchant) {
+        if (merchant != null && mounted) {
+          _businessNameController.text = merchant.businessName;
+          if (merchant.user != null) {
+            _emailController.text = merchant.user!['email'] ?? '';
+            _phoneController.text = merchant.user!['phone'] ?? '';
+          }
         }
       });
     } catch (e) {
@@ -131,27 +205,38 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               color: AppTheme.primaryColor,
                               width: 3,
                             ),
+                            image: _selectedImage != null
+                                ? DecorationImage(
+                                    image: FileImage(_selectedImage!),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null,
                           ),
-                          child: const Icon(
-                            Icons.store,
-                            size: 50,
-                            color: AppTheme.primaryColor,
-                          ),
+                          child: _selectedImage == null
+                              ? const Icon(
+                                  Icons.store,
+                                  size: 50,
+                                  color: AppTheme.primaryColor,
+                                )
+                              : null,
                         ),
                         Positioned(
                           bottom: 0,
                           right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppTheme.accentColor,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              size: 18,
-                              color: Colors.white,
+                          child: GestureDetector(
+                            onTap: _showImageSourceDialog,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                size: 18,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),

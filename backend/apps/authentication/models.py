@@ -31,6 +31,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     USER_TYPE_CHOICES = [
         ('merchant', 'Commerçant'),
         ('driver', 'Livreur'),
+        ('individual', 'Particulier'),
         ('admin', 'Administrateur'),
     ]
     

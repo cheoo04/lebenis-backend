@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     'apps.authentication',
     'apps.merchants',
     'apps.drivers',
+    'apps.individuals',  # Particuliers
     'apps.deliveries',
     'apps.pricing',
     'apps.notifications',
