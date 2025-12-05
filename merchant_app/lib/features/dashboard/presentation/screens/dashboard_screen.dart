@@ -233,7 +233,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         error: (err, st) => _buildErrorCard(err.toString()),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
                       // Quick Actions
                       const Text(
@@ -261,7 +261,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
 
                       ModernInfoCard(
                         icon: Icons.list_alt,
@@ -278,7 +278,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
 
                       ModernInfoCard(
                         icon: Icons.edit,
@@ -295,7 +295,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
@@ -498,7 +498,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
 
               Transform.translate(
-                offset: const Offset(0, -20),
+                offset: const Offset(0, -15),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
@@ -530,7 +530,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
 
                       ModernInfoCard(
                         icon: Icons.list_alt,
@@ -545,7 +545,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
 
                       ModernInfoCard(
                         icon: Icons.person,
@@ -560,7 +560,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),

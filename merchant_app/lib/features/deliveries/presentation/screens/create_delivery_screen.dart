@@ -25,10 +25,12 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   final _recipientPhoneController = TextEditingController();
   
   // Pickup info
+  String _pickupMode = 'gps'; // 'gps', 'saved', 'custom'
+  String? _selectedSavedAddressId; // UUID de l'adresse sauvegardée
+  final _customPickupAddressController = TextEditingController(); // Adresse personnalisée
   String? _pickupCommune;
   double? _pickupLat;
   double? _pickupLng;
-  final _pickupAddressController = TextEditingController();
   
   // Delivery info
   String? _deliveryCommune;
@@ -63,7 +65,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
     _recipientNameController.dispose();
     _recipientPhoneController.dispose();
     _recipientAltPhoneController.dispose();
-    _pickupAddressController.dispose();
+    _customPickupAddressController.dispose();
     _deliveryAddressController.dispose();
     _packageDescController.dispose();
     _packageWeightController.dispose();
@@ -77,19 +79,78 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
 
   Future<void> _getCurrentLocation() async {
     try {
-      final position = await Geolocator.getCurrentPosition();
-      setState(() {
-        _pickupLat = position.latitude;
-        _pickupLng = position.longitude;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Position GPS récupérée ✓'), backgroundColor: Colors.green),
+      // Vérifier les permissions d'abord
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Permission GPS refusée. La position GPS est optionnelle.'),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+          return;
+        }
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Permission GPS désactivée dans les paramètres. Vous pouvez continuer sans GPS.'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+        timeLimit: const Duration(seconds: 10),
       );
-      _estimatePrice();
+      
+      if (mounted) {
+        // Détecter la commune la plus proche
+        final commune = await ref.read(geolocationRepositoryProvider).getNearestCommune(
+          position.latitude,
+          position.longitude,
+        );
+        
+        setState(() {
+          _pickupLat = position.latitude;
+          _pickupLng = position.longitude;
+          if (commune != null) {
+            _pickupCommune = commune;
+          }
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(commune != null 
+              ? '✓ Position GPS récupérée - $commune'
+              : '✓ Position GPS récupérée'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        _estimatePrice();
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur GPS: $e'), backgroundColor: Colors.red),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('GPS non disponible. Vous pouvez continuer sans.'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -135,9 +196,12 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
         'recipient_phone': _recipientPhoneController.text.trim(),
         if (_recipientAltPhoneController.text.isNotEmpty)
           'recipient_alternative_phone': _recipientAltPhoneController.text.trim(),
-        // Pickup
+        // Pickup - 3 modes : GPS (automatique), Adresse sauvegardée (UUID), Personnalisée (texte)
         'pickup_commune': _pickupCommune!,
-        'pickup_address': _pickupAddressController.text.trim(),
+        if (_pickupMode == 'saved' && _selectedSavedAddressId != null)
+          'pickup_address': _selectedSavedAddressId, // UUID
+        if (_pickupMode == 'custom' && _customPickupAddressController.text.isNotEmpty)
+          'pickup_address_details': _customPickupAddressController.text.trim(), // Texte
         if (_pickupLat != null) 'pickup_latitude': _pickupLat,
         if (_pickupLng != null) 'pickup_longitude': _pickupLng,
         // Delivery
@@ -240,6 +304,54 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             // Section Récupération
             _buildSectionTitle('📍 Point de récupération'),
             const SizedBox(height: 12),
+            
+            // Sélecteur de mode de pickup
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'D\'où voulez-vous envoyer ?',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      ChoiceChip(
+                        label: const Text('📍 Position GPS'),
+                        selected: _pickupMode == 'gps',
+                        onSelected: (selected) {
+                          if (selected) setState(() => _pickupMode = 'gps');
+                        },
+                      ),
+                      ChoiceChip(
+                        label: const Text('🏢 Adresse sauvegardée'),
+                        selected: _pickupMode == 'saved',
+                        onSelected: (selected) {
+                          if (selected) setState(() => _pickupMode = 'saved');
+                        },
+                      ),
+                      ChoiceChip(
+                        label: const Text('✏️ Adresse personnalisée'),
+                        selected: _pickupMode == 'custom',
+                        onSelected: (selected) {
+                          if (selected) setState(() => _pickupMode = 'custom');
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            
             CommuneSelectorWidget(
               selectedCommune: _pickupCommune,
               label: 'Sélectionner la commune de pickup',
@@ -253,22 +365,50 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
               },
             ),
             const SizedBox(height: 16),
-            ModernTextField(
-              controller: _pickupAddressController,
-              label: 'Adresse complète',
-              hint: 'Rue, immeuble, point de repère...',
-              prefixIcon: Icons.location_on,
-              maxLines: 2,
-              validator: (v) => v == null || v.isEmpty ? 'Adresse requise' : null,
-            ),
-            const SizedBox(height: 12),
-            ModernButton(
-              text: _pickupLat != null ? 'GPS activé ✓' : 'Utiliser ma position GPS',
-              icon: Icons.my_location,
-              onPressed: _getCurrentLocation,
-              backgroundColor: _pickupLat != null ? Colors.green : AppTheme.accentColor,
-              isOutlined: true,
-            ),
+            
+            // Affichage conditionnel selon le mode
+            if (_pickupMode == 'gps') ...[
+              ModernButton(
+                text: _pickupLat != null ? 'GPS activé ✓' : 'Utiliser ma position GPS',
+                icon: Icons.my_location,
+                onPressed: _getCurrentLocation,
+                backgroundColor: _pickupLat != null ? Colors.green : AppTheme.accentColor,
+                isOutlined: true,
+              ),
+              if (_pickupLat != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    '✓ Position enregistrée : ${_pickupLat!.toStringAsFixed(4)}, ${_pickupLng!.toStringAsFixed(4)}',
+                    style: TextStyle(color: Colors.green[700], fontSize: 12),
+                  ),
+                ),
+            ],
+            
+            if (_pickupMode == 'saved') ...[
+              _buildSavedAddressesDropdown(),
+              const SizedBox(height: 8),
+              Text(
+                '💡 Vous pouvez créer des adresses sauvegardées dans votre profil',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12, fontStyle: FontStyle.italic),
+              ),
+            ],
+            
+            if (_pickupMode == 'custom') ...[
+              ModernTextField(
+                controller: _customPickupAddressController,
+                label: 'Adresse personnalisée *',
+                hint: 'Ex: Rue des jardins, Immeuble CCIA, 3ème étage',
+                prefixIcon: Icons.location_on,
+                maxLines: 2,
+                validator: (v) => v == null || v.isEmpty ? 'Adresse requise' : null,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '💡 Cette adresse est pour une livraison ponctuelle',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12, fontStyle: FontStyle.italic),
+              ),
+            ],
 
             const SizedBox(height: 32),
 
@@ -571,6 +711,44 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
         const SizedBox(width: 8),
         Expanded(child: Divider(color: Colors.grey[300])),
       ],
+    );
+  }
+
+  Widget _buildSavedAddressesDropdown() {
+    // TODO: Implémenter la récupération des adresses sauvegardées depuis le backend
+    // Pour l'instant, affichage d'un placeholder
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.business, color: Colors.grey[600]),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Aucune adresse sauvegardée',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[700],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Créez des adresses dans votre profil pour les réutiliser',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

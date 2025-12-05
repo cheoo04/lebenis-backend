@@ -43,6 +43,7 @@ class Delivery(models.Model):
     
     # Adresse d'enlèvement
     pickup_address = models.ForeignKey(MerchantAddress, on_delete=models.SET_NULL, null=True, blank=True)
+    pickup_address_details = models.CharField(max_length=255, blank=True, help_text="Adresse complète si différente des adresses sauvegardées")
     pickup_commune = models.CharField(max_length=100, blank=True, help_text="Commune de départ (ex: Cocody)")
     pickup_latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
     pickup_longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)

@@ -52,7 +52,7 @@ class CommuneSelectorWidget extends ConsumerWidget {
             return DropdownMenuItem<String>(
               value: commune.commune,
               child: Text(
-                '${commune.commune} - ${commune.zoneName}',
+                commune.commune,
                 style: const TextStyle(fontSize: 14),
               ),
             );

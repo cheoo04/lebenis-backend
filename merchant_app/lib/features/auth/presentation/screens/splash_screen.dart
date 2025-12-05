@@ -33,8 +33,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 		// Charger le profil utilisateur (merchant ou individual)
 		await ref.read(userProfileProvider.notifier).loadProfile();
 		
-		// Attendre un peu pour que le provider soit mis à jour
-		await Future.delayed(const Duration(milliseconds: 100));
+		// Attendre un peu plus pour que le provider soit mis à jour
+		await Future.delayed(const Duration(milliseconds: 300));
 		
 		final profileState = ref.read(userProfileProvider);		// Gérer les erreurs de chargement du profil
 		if (profileState.hasError) {

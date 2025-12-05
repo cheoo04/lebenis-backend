@@ -103,50 +103,56 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
-    // Inscription sans documents (upload après connexion)
-    final authNotifier = ref.read(authStateProvider.notifier);
-    await authNotifier.register(
-      email: _emailController.text,
-      password: _passwordController.text,
-      password2: _password2Controller.text,
-      firstName: _firstNameController.text,
-      lastName: _lastNameController.text,
-      phone: _phoneController.text,
-      userType: widget.userType,
-      businessName: _isMerchant ? _businessNameController.text : null,
-      businessType: _isMerchant ? _businessTypeController.text : null,
-      businessAddress: _isMerchant ? _businessAddressController.text : null,
-    );
+    try {
+      // Inscription sans documents (upload après connexion)
+      final authNotifier = ref.read(authStateProvider.notifier);
+      await authNotifier.register(
+        email: _emailController.text,
+        password: _passwordController.text,
+        password2: _password2Controller.text,
+        firstName: _firstNameController.text,
+        lastName: _lastNameController.text,
+        phone: _phoneController.text,
+        userType: widget.userType,
+        businessName: _isMerchant ? _businessNameController.text : null,
+        businessType: _isMerchant ? _businessTypeController.text : null,
+        businessAddress: _isMerchant ? _businessAddressController.text : null,
+      );
+    } catch (e) {
+      // L'erreur sera gérée par le listener
+      debugPrint('Erreur inscription: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
 
-    ref.listen<AsyncValue<dynamic>>(authStateProvider, (previous, next) {
+    ref.listen<AsyncValue<dynamic>>(authStateProvider, (previous, next) async {
+      // Éviter les doublons de navigation
+      if (!mounted) return;
+      
       next.when(
-        data: (user) {
+        data: (user) async {
           if (user != null && previous?.value == null) {
             // Inscription réussie
+            if (!mounted) return;
+            
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('✅ Inscription réussie ! Votre compte est en attente de validation.'),
+                content: Text('✅ Inscription réussie ! Chargement...'),
                 backgroundColor: Colors.green,
                 duration: Duration(seconds: 2),
               ),
             );
             
-            // Attendre un peu pour que le token soit bien sauvegardé
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted) {
-                // Rediriger vers le dashboard qui va charger le profil
-                Navigator.pushReplacementNamed(context, '/dashboard');
-              }
-            });
+            // Rediriger immédiatement vers splash qui gère la logique
+            Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
           }
         },
         loading: () {},
         error: (err, _) {
+          if (!mounted) return;
           String msg = err.toString();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
