@@ -2,6 +2,7 @@
 from django.db import models
 from apps.merchants.models import Merchant, MerchantAddress
 from apps.drivers.models import Driver
+from apps.authentication.models import User
 import uuid
 import random
 import string
@@ -38,6 +39,8 @@ class Delivery(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tracking_number = models.CharField(max_length=50, unique=True, default=generate_tracking_number)
     
+    # Créateur de la livraison (peut être merchant ou individual)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_deliveries', null=True, blank=True)
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='deliveries', null=True, blank=True)
     driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, related_name='deliveries')
     
