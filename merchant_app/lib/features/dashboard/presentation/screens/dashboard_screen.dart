@@ -450,7 +450,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ),
                   ),
                 ),
-                centerAlign: true,
               ),
 
               Transform.translate(
@@ -460,9 +459,72 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Quick action cards in a grid
-                      const ActionCardsGrid(),
-                      const SizedBox(height: 24),
+                      // Stats Grid simple pour particulier
+                      _buildIndividualStatsGrid(context),
+
+                      const SizedBox(height: 16),
+
+                      // Section Actions rapides
+                      const Text(
+                        'Actions rapides',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      ModernInfoCard(
+                        icon: Icons.add_circle,
+                        title: 'Créer une livraison',
+                        subtitle: 'Nouvelle demande de livraison',
+                        iconColor: AppTheme.primaryColor,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const CreateDeliveryScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      ModernInfoCard(
+                        icon: Icons.list_alt,
+                        title: 'Mes livraisons',
+                        subtitle: 'Voir toutes les livraisons',
+                        iconColor: Colors.blue,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const DeliveryListScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      ModernInfoCard(
+                        icon: Icons.edit,
+                        title: 'Modifier mon profil',
+                        subtitle: 'Informations personnelles',
+                        iconColor: Colors.purple,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const EditProfileScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
@@ -471,6 +533,59 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildIndividualStatsGrid(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final crossAxisCount = screenWidth > 600 ? 4 : 2;
+    final childAspectRatio = screenWidth > 600 ? 1.1 : 0.95;
+    final spacing = screenWidth > 600 ? 12.0 : 10.0;
+    
+    // Stats simplifiées pour particulier (statiques pour l'instant)
+    return GridView.count(
+      crossAxisCount: crossAxisCount,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: spacing,
+      crossAxisSpacing: spacing,
+      childAspectRatio: childAspectRatio,
+      children: [
+        ModernStatCard(
+          title: 'Livraisons',
+          value: '0',
+          icon: Icons.local_shipping,
+          color: Colors.blue,
+          subtitle: 'Ce mois',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const DeliveryListScreen()),
+            );
+          },
+        ),
+        ModernStatCard(
+          title: 'Taux succès',
+          value: '0.0%',
+          icon: Icons.check_circle,
+          color: Colors.green,
+          subtitle: 'Livraisons réussies',
+        ),
+        ModernStatCard(
+          title: 'Dépenses',
+          value: '0',
+          icon: Icons.payments,
+          color: Colors.orange,
+          subtitle: 'FCFA',
+        ),
+        ModernStatCard(
+          title: 'En cours',
+          value: '0',
+          icon: Icons.pending_actions,
+          color: Colors.purple,
+          subtitle: 'Livraisons actives',
+        ),
+      ],
     );
   }
 }
