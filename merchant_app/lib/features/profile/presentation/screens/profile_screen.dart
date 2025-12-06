@@ -141,8 +141,8 @@ class ProfileScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           _buildInfoCard(context, icon: Icons.person, title: 'Nom complet', value: individual.fullName),
-          _buildInfoCard(context, icon: Icons.phone, title: 'Téléphone', value: individual.phone.isNotEmpty ? individual.phone : '-'),
-          _buildInfoCard(context, icon: Icons.location_on, title: 'Adresse', value: individual.address.isNotEmpty ? individual.address : '-'),
+          _buildInfoCard(context, icon: Icons.phone, title: 'Téléphone', value: (individual.phone?.isNotEmpty ?? false) ? individual.phone! : '-'),
+          _buildInfoCard(context, icon: Icons.location_on, title: 'Adresse', value: (individual.address?.isNotEmpty ?? false) ? individual.address! : '-'),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () {

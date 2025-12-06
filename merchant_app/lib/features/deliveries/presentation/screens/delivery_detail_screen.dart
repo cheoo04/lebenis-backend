@@ -520,9 +520,14 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
 
                 if (status == 'delivered' && delivery.driver != null) const SizedBox(height: 12),
 
-                if (status == 'in_transit' || status == 'assigned' || status == 'pickup_confirmed')
+                // Bouton de suivi pour les livraisons en cours (statuts actifs)
+                if (status == 'in_transit' || 
+                    status == 'assigned' || 
+                    status == 'pickup_confirmed' ||
+                    status == 'picked_up' ||
+                    status == 'pickup_in_progress')
                   ModernButton(
-                    text: 'Suivre la livraison en temps réel',
+                    text: 'Suivre la livraison sur la carte',
                     icon: Icons.map,
                     onPressed: () {
                       Navigator.push(
@@ -535,7 +540,11 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                     backgroundColor: AppTheme.accentColor,
                   ),
 
-                if ((status == 'in_transit' || status == 'assigned' || status == 'pickup_confirmed')) 
+                if (status == 'in_transit' || 
+                    status == 'assigned' || 
+                    status == 'pickup_confirmed' ||
+                    status == 'picked_up' ||
+                    status == 'pickup_in_progress') 
                   const SizedBox(height: 12),
 
                 if (canCancel)
