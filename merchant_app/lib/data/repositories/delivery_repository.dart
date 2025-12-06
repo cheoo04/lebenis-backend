@@ -31,8 +31,15 @@ class DeliveryRepository {
   }
 
   Future<DeliveryModel> createDelivery(Map<String, dynamic> data) async {
-    final response = await dioClient.post(ApiConstants.deliveries, data: data);
-    return DeliveryModel.fromJson(response.data);
+    try {
+      print('📦 Création livraison: $data');
+      final response = await dioClient.post(ApiConstants.deliveries, data: data);
+      print('✅ Réponse backend: ${response.data}');
+      return DeliveryModel.fromJson(response.data);
+    } catch (e) {
+      print('❌ Erreur création livraison: $e');
+      rethrow;
+    }
   }
 
   Future<bool> deleteDelivery(String id) async {

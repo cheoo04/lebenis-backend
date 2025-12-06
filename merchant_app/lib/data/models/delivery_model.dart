@@ -50,28 +50,36 @@ class DeliveryModel {
 	});
 
 	factory DeliveryModel.fromJson(Map<String, dynamic> json) {
+		// Helper pour convertir String ou num en double
+		double? parseDouble(dynamic value) {
+			if (value == null) return null;
+			if (value is num) return value.toDouble();
+			if (value is String) return double.tryParse(value);
+			return null;
+		}
+		
 		return DeliveryModel(
 			id: json['id']?.toString() ?? '',
-			trackingNumber: json['tracking_number'],
-			status: json['status'],
-			recipientName: json['recipient_name'],
-			recipientPhone: json['recipient_phone'],
-			pickupAddress: json['pickup_address'],
-			pickupCommune: json['pickup_commune'] ?? '',
-			pickupLatitude: json['pickup_latitude'] != null ? (json['pickup_latitude'] as num).toDouble() : null,
-			pickupLongitude: json['pickup_longitude'] != null ? (json['pickup_longitude'] as num).toDouble() : null,
-			deliveryAddress: json['delivery_address'],
-			deliveryCommune: json['delivery_commune'] ?? '',
-			deliveryLatitude: json['delivery_latitude'] != null ? (json['delivery_latitude'] as num).toDouble() : null,
-			deliveryLongitude: json['delivery_longitude'] != null ? (json['delivery_longitude'] as num).toDouble() : null,
-			packageDescription: json['package_description'] ?? '',
-			packageWeightKg: (json['package_weight_kg'] ?? 0.0).toDouble(),
-			paymentMethod: json['payment_method'] ?? 'prepaid',
-			codAmount: json['cod_amount'] != null ? (json['cod_amount'] as num).toDouble() : null,
-			createdAt: DateTime.parse(json['created_at']),
+			trackingNumber: json['tracking_number']?.toString() ?? '',
+			status: json['status']?.toString() ?? 'pending',
+			recipientName: json['recipient_name']?.toString() ?? '',
+			recipientPhone: json['recipient_phone']?.toString() ?? '',
+			pickupAddress: json['pickup_address']?.toString() ?? json['pickup_address_details']?.toString() ?? '',
+			pickupCommune: json['pickup_commune']?.toString() ?? '',
+			pickupLatitude: parseDouble(json['pickup_latitude']),
+			pickupLongitude: parseDouble(json['pickup_longitude']),
+			deliveryAddress: json['delivery_address']?.toString() ?? '',
+			deliveryCommune: json['delivery_commune']?.toString() ?? '',
+			deliveryLatitude: parseDouble(json['delivery_latitude']),
+			deliveryLongitude: parseDouble(json['delivery_longitude']),
+			packageDescription: json['package_description']?.toString() ?? '',
+			packageWeightKg: parseDouble(json['package_weight_kg']) ?? 0.0,
+			paymentMethod: json['payment_method']?.toString() ?? 'prepaid',
+			codAmount: parseDouble(json['cod_amount']),
+			createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
 			deliveredAt: json['delivered_at'] != null ? DateTime.parse(json['delivered_at']) : null,
-			price: (json['price'] ?? 0.0).toDouble(),
-			notes: json['notes'],
+			price: parseDouble(json['calculated_price']) ?? parseDouble(json['actual_price']) ?? parseDouble(json['price']) ?? 0.0,
+			notes: json['notes']?.toString(),
 			driver: json['driver'] != null ? DriverModel.fromJson(json['driver']) : null,
 		);
 	}

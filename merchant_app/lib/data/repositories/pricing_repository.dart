@@ -7,7 +7,18 @@ class PricingRepository {
   PricingRepository(this.dioClient);
 
   Future<PricingEstimateModel> estimatePrice(Map<String, dynamic> data) async {
-    final response = await dioClient.post(ApiConstants.pricingEstimate, data: data);
-    return PricingEstimateModel.fromJson(response.data);
+    try {
+      final response = await dioClient.post(ApiConstants.pricingEstimate, data: data);
+      
+      // Vérifier si la réponse contient une erreur
+      if (response.data is Map && response.data.containsKey('error')) {
+        throw Exception(response.data['error'] ?? 'Erreur de calcul de prix');
+      }
+      
+      return PricingEstimateModel.fromJson(response.data);
+    } catch (e) {
+      print('Erreur estimatePrice: $e');
+      rethrow;
+    }
   }
 }

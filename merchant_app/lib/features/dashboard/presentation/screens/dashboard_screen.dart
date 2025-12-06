@@ -5,12 +5,16 @@ import '../../../../data/providers/merchant_provider.dart';
 import '../../../../data/providers/user_profile_provider.dart';
 import '../../../../data/providers/auth_provider.dart';
 import '../../../../data/models/merchant_model.dart';
+import '../../../../data/models/individual_model.dart';
 import '../../../../shared/widgets/modern_stat_card.dart';
 import '../../../../shared/widgets/modern_info_card.dart';
 import '../../../../shared/widgets/status_badge.dart';
 import '../../../deliveries/presentation/screens/delivery_list_screen.dart';
 import '../../../deliveries/presentation/screens/create_delivery_screen.dart';
 import '../../../profile/presentation/screens/edit_profile_screen.dart';
+import '../widgets/dashboard_app_bar.dart';
+import '../widgets/dashboard_header.dart';
+import '../widgets/action_cards_grid.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -180,50 +184,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              Navigator.pushNamed(context, '/notifications');
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              // Afficher un dialogue de confirmation
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Déconnexion'),
-                  content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Annuler'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Déconnecter'),
-                    ),
-                  ],
-                ),
-              );
-              
-              if (confirm == true && context.mounted) {
-                await ref.read(authStateProvider.notifier).logout();
-                if (context.mounted) {
-                  Navigator.pushReplacementNamed(context, '/login');
-                }
-              }
-            },
-          ),
-        ],
-      ),
+      appBar: const DashboardAppBar(),
       body: RefreshIndicator(
         onRefresh: () async {
           await ref.read(merchantProfileProvider.notifier).refresh();
@@ -236,38 +197,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header with gradient
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppTheme.primaryColor, AppTheme.accentColor],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Bienvenue,',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      profile.businessName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    StatusBadge.fromStatus(profile.verificationStatus),
-                  ],
-                ),
+              DashboardHeader(
+                name: profile.businessName,
+                badge: StatusBadge.fromStatus(profile.verificationStatus),
               ),
 
               Transform.translate(
@@ -476,51 +408,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildIndividualDashboard(BuildContext context, WidgetRef ref, dynamic profile) {
-    final fullName = '${profile['first_name'] ?? ''} ${profile['last_name'] ?? ''}'.trim();
+    // Gérer à la fois IndividualModel et Map
+    final String fullName;
+    if (profile is IndividualModel) {
+      fullName = profile.fullName;
+    } else if (profile is Map) {
+      fullName = '${profile['first_name'] ?? ''} ${profile['last_name'] ?? ''}'.trim();
+    } else {
+      fullName = 'Utilisateur';
+    }
     
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              Navigator.pushNamed(context, '/notifications');
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              // Afficher un dialogue de confirmation
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Déconnexion'),
-                  content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Annuler'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Déconnecter'),
-                    ),
-                  ],
-                ),
-              );
-              
-              if (confirm == true && context.mounted) {
-                await ref.read(authStateProvider.notifier).logout();
-                if (context.mounted) {
-                  Navigator.pushReplacementNamed(context, '/login');
-                }
-              }
-            },
-          ),
-        ],
-      ),
+      backgroundColor: Colors.grey[50],
+      appBar: const DashboardAppBar(),
       body: RefreshIndicator(
         onRefresh: () async {
           await ref.read(userProfileProvider.notifier).refresh();
@@ -532,118 +432,37 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header with gradient
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppTheme.primaryColor, AppTheme.accentColor],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              DashboardHeader(
+                name: fullName.isNotEmpty ? fullName : 'Utilisateur',
+                badge: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white30, width: 1),
+                  ),
+                  child: const Text(
+                    'Particulier',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Bienvenue,',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      fullName.isNotEmpty ? fullName : 'Utilisateur',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'Particulier',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                centerAlign: true,
               ),
 
               Transform.translate(
-                offset: const Offset(0, -15),
+                offset: const Offset(0, -20),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Actions rapides
-                      const Text(
-                        'Actions rapides',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      ModernInfoCard(
-                        icon: Icons.add_circle,
-                        title: 'Créer une livraison',
-                        subtitle: 'Nouvelle demande de livraison',
-                        iconColor: AppTheme.primaryColor,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const CreateDeliveryScreen(),
-                            ),
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      ModernInfoCard(
-                        icon: Icons.list_alt,
-                        title: 'Mes livraisons',
-                        subtitle: 'Voir toutes mes livraisons',
-                        iconColor: Colors.blue,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const DeliveryListScreen()),
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      ModernInfoCard(
-                        icon: Icons.person,
-                        title: 'Mon profil',
-                        subtitle: 'Gérer mes informations',
-                        iconColor: Colors.purple,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
+                      // Quick action cards in a grid
+                      const ActionCardsGrid(),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),

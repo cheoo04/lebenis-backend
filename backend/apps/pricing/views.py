@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from django.core.exceptions import ValidationError
 from .assign_permissions import AssignZonesPermissionMixin
 from .permissions import PricingViewSetPermissionMixin
 from .assign_serializers import AssignZonesSerializer
@@ -72,9 +73,12 @@ class PricingZoneViewSet(PricingViewSetPermissionMixin, viewsets.ModelViewSet):
         Endpoint pour calculer le prix d'une livraison.
         Accessible sans authentification pour permettre aux particuliers de calculer les prix.
         """
+        logger = logging.getLogger('django')
         try:
+            logger.info(f"📊 Calcul prix demandé: {request.data}")
             serializer = CalculatePriceSerializer(data=request.data)
             if not serializer.is_valid():
+                logger.error(f"❌ Erreurs validation: {serializer.errors}")
                 return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
             validated_data = serializer.validated_data
             pickup_coords = None
@@ -96,8 +100,9 @@ class PricingZoneViewSet(PricingViewSetPermissionMixin, viewsets.ModelViewSet):
             calculator = PricingCalculator()
             result = calculator.calculate_price(validated_data)
             return Response(result, status=status.HTTP_200_OK)
-        except ValueError as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except (ValueError, ValidationError) as e:
+            error_msg = str(e) if isinstance(e, ValueError) else str(e.detail) if hasattr(e, 'detail') else str(e)
+            return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             import traceback
             return Response({'error': f'Erreur de calcul: {str(e)}', 'details': traceback.format_exc()}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
