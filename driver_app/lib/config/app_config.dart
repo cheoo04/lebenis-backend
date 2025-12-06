@@ -23,8 +23,8 @@ class AppConfig {
 
   // Business Configuration
   static const String currency = 'FCFA';
-  static const String locale = 'fr_SN'; // Français (Sénégal)
-  static const String timezone = 'Africa/Dakar';
+  static const String locale = 'fr_CI'; // Français (Côte d'Ivoire)
+  static const String timezone = 'Africa/Abidjan';
 
   // Delivery Configuration
   static const List<String> packageSizes = [
