@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../../../core/providers/geolocation_provider.dart';
+import '../../../../core/providers/quartier_provider.dart';
 import '../../../../data/providers/delivery_provider.dart';
 import '../../../../data/providers/pricing_provider.dart';
-import '../../../../shared/widgets/commune_selector_widget.dart';
+import '../../../../shared/widgets/quartier_search_widget.dart';
 import '../../../../shared/widgets/modern_text_field.dart';
 import '../../../../shared/widgets/modern_button.dart';
 import '../../../../theme/app_theme.dart';
@@ -29,6 +29,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   String? _selectedSavedAddressId; // UUID de l'adresse sauvegardée
   final _customPickupAddressController = TextEditingController(); // Adresse personnalisée
   String? _pickupCommune;
+  String? _pickupQuartier;
   double? _pickupLat;
   double? _pickupLng;
   
@@ -116,8 +117,8 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
       );
       
       if (mounted) {
-        // Détecter la commune la plus proche
-        final commune = await ref.read(geolocationRepositoryProvider).getNearestCommune(
+        // Utiliser le reverse geocoding pour obtenir l'adresse
+        final address = await ref.read(quartierRepositoryProvider).reverseGeocode(
           position.latitude,
           position.longitude,
         );
@@ -125,15 +126,13 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
         setState(() {
           _pickupLat = position.latitude;
           _pickupLng = position.longitude;
-          if (commune != null) {
-            _pickupCommune = commune;
-          }
+          // L'adresse contient généralement la commune
         });
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(commune != null 
-              ? '✓ Position GPS récupérée - $commune'
+            content: Text(address != null 
+              ? '✓ Position GPS récupérée - $address'
               : '✓ Position GPS récupérée'),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 2),
@@ -383,24 +382,36 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             ),
             const SizedBox(height: 16),
             
-            CommuneSelectorWidget(
-              selectedCommune: _pickupCommune,
-              label: 'Sélectionner la commune de récupération *',
-              onCommuneSelected: (commune, lat, lng) {
+            // Widget intégré Commune + Quartier pour le pickup
+            QuartierSearchWidget(
+              label: 'Localisation de récupération *',
+              initialCommune: _pickupCommune,
+              initialQuartier: _pickupQuartier,
+              showCoordinates: false,
+              onLocationSelected: (commune, quartier, lat, lon) {
                 setState(() {
                   _pickupCommune = commune.trim();
+                  _pickupQuartier = quartier;
                   _pickupLat = lat;
-                  _pickupLng = lng;
+                  _pickupLng = lon;
                 });
                 _estimatePrice();
               },
             ),
-            if (_pickupCommune != null && _pickupCommune!.isNotEmpty)
+            if (_pickupCommune != null && _pickupQuartier != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  '✓ Commune sélectionnée : $_pickupCommune',
-                  style: TextStyle(color: Colors.green[700], fontSize: 12),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle, size: 16, color: Colors.green[700]),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '✓ Récupération: $_pickupQuartier, $_pickupCommune',
+                        style: TextStyle(color: Colors.green[700], fontSize: 12),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             const SizedBox(height: 12),
@@ -480,34 +491,41 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             // Section Livraison
             _buildSectionTitle('🚚 Adresse de livraison'),
             const SizedBox(height: 12),
-            CommuneSelectorWidget(
-              selectedCommune: _deliveryCommune,
-              label: 'Sélectionner la commune de livraison *',
-              onCommuneSelected: (commune, lat, lng) {
+            
+            // Widget intégré Commune + Quartier avec GPS
+            QuartierSearchWidget(
+              label: 'Localisation de livraison *',
+              initialCommune: _deliveryCommune,
+              initialQuartier: _deliveryQuartier,
+              showCoordinates: true,
+              onLocationSelected: (commune, quartier, lat, lon) {
                 setState(() {
                   _deliveryCommune = commune.trim();
+                  _deliveryQuartier = quartier;
                   _deliveryLat = lat;
-                  _deliveryLng = lng;
+                  _deliveryLng = lon;
                 });
                 _estimatePrice();
               },
             ),
-            if (_deliveryCommune != null && _deliveryCommune!.isNotEmpty)
+            
+            if (_deliveryCommune != null && _deliveryQuartier != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  '✓ Commune sélectionnée : $_deliveryCommune',
-                  style: TextStyle(color: Colors.green[700], fontSize: 12),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle, size: 16, color: Colors.green[700]),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '✓ Livraison: $_deliveryQuartier, $_deliveryCommune',
+                        style: TextStyle(color: Colors.green[700], fontSize: 12),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            const SizedBox(height: 16),
-            ModernTextField(
-              controller: TextEditingController(text: _deliveryQuartier),
-              label: 'Quartier (optionnel)',
-              hint: 'Ex: Cocody Riviera, Marcory Zone 4...',
-              prefixIcon: Icons.location_city,
-              onChanged: (value) => _deliveryQuartier = value,
-            ),
+            
             const SizedBox(height: 16),
             ModernTextField(
               controller: _deliveryAddressController,

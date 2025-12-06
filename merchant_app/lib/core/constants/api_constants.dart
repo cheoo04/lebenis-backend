@@ -1,5 +1,7 @@
+import '../../config/env_config.dart';
+
 class ApiConstants {
-  static const String baseUrl = 'http://localhost:8000'; // URL backend de l'API
+  static String get baseUrl => EnvConfig.baseUrl; // Utilise la config d'environnement
   static const String merchantProfile = '/api/v1/merchants/';
   static const String merchantStats = '/api/v1/merchants/my_stats/';
   static const String register = '/api/v1/auth/register/';

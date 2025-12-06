@@ -7,6 +7,8 @@ import '../../../../theme/app_theme.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../data/providers/delivery_provider.dart';
 import '../../../../shared/widgets/osm_map_widget.dart';
+import '../../../../core/providers/routing_provider.dart';
+import '../../../../core/services/routing_service.dart';
 
 class TrackingScreen extends ConsumerStatefulWidget {
   final String deliveryId;
@@ -20,6 +22,8 @@ class TrackingScreen extends ConsumerStatefulWidget {
 class _TrackingScreenState extends ConsumerState<TrackingScreen> {
   late MapController _mapController;
   Timer? _locationTimer;
+  List<LatLng>? _routePoints; // Points de la route réelle
+  bool _routeLoaded = false;
 
   @override
   void initState() {
@@ -39,6 +43,45 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
     _locationTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       ref.invalidate(deliveryDetailProvider(widget.deliveryId));
     });
+  }
+
+  /// Charge l'itinéraire réel depuis l'API
+  Future<void> _loadRealRoute(delivery) async {
+    if (_routeLoaded) return;
+    
+    // Vérifier qu'on a les coordonnées nécessaires
+    if (delivery.pickupLatitude == null || delivery.deliveryLatitude == null) {
+      return;
+    }
+
+    final pickup = LatLng(delivery.pickupLatitude!, delivery.pickupLongitude!);
+    final destination = LatLng(delivery.deliveryLatitude!, delivery.deliveryLongitude!);
+    
+    LatLng? driverPos;
+    if (delivery.driver?.currentLatitude != null) {
+      driverPos = LatLng(
+        delivery.driver!.currentLatitude!,
+        delivery.driver!.currentLongitude!,
+      );
+    }
+
+    try {
+      final routingService = ref.read(routingServiceProvider);
+      final route = await routingService.getDeliveryRoute(
+        pickup: pickup,
+        delivery: destination,
+        driverPosition: driverPos,
+      );
+
+      if (route.success && route.allPoints.isNotEmpty) {
+        setState(() {
+          _routePoints = route.allPoints;
+          _routeLoaded = true;
+        });
+      }
+    } catch (e) {
+      print('❌ Erreur chargement route: $e');
+    }
   }
 
   List<Marker> _buildMarkers(delivery) {
@@ -73,6 +116,12 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
   }
 
   List<Polyline> _buildPolylines(delivery) {
+    // Utiliser la route réelle si disponible
+    if (_routePoints != null && _routePoints!.length >= 2) {
+      return [OsmMarkerHelper.route(_routePoints!, color: AppTheme.primaryColor)];
+    }
+
+    // Fallback: ligne droite entre les points
     final routePoints = <LatLng>[];
 
     if (delivery.pickupLatitude != null && delivery.pickupLongitude != null) {
@@ -125,6 +174,11 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
             data: (delivery) {
               if (delivery == null) {
                 return const Center(child: Text('Livraison introuvable'));
+              }
+
+              // Charger la route réelle (une seule fois)
+              if (!_routeLoaded) {
+                _loadRealRoute(delivery);
               }
 
               // Default center (Abidjan)

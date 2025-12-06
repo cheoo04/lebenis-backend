@@ -65,6 +65,7 @@ urlpatterns = [
     path('api/v1/payments/', include('apps.payments.urls', namespace= 'payments')),
     path('api/v1/chat/', include('apps.chat.urls')),  # Phase 3 - Chat temps réel
     path('api/v1/cloudinary/', include('core.urls')),  # Upload Cloudinary
+    path('api/v1/locations/', include('apps.core.location_urls')),  # Géocodage quartiers Abidjan
 ]
 
 # Endpoints de test (uniquement en développement)
