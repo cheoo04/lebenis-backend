@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../../core/constants/backend_constants.dart';
 import '../../../../core/providers/delivery_provider.dart';
 import '../../../../core/providers/location_provider.dart';
@@ -14,6 +15,7 @@ import '../../../../shared/widgets/modern_card.dart';
 import '../../../../shared/widgets/status_chip.dart';
 import '../../../../shared/utils/formatters.dart';
 import '../../../../shared/utils/helpers.dart';
+import '../widgets/delivery_route_map.dart';
 
 class ActiveDeliveryScreen extends ConsumerStatefulWidget {
   final DeliveryModel delivery;
@@ -172,74 +174,70 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
       ),
       body: Column(
         children: [
-          // Map Section
+          // Map Section with real route
           Expanded(
             flex: 2,
-            child: Container(
-              color: Colors.grey[300],
-              child: Stack(
-                children: [
-                  // Map Placeholder
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+            child: Stack(
+              children: [
+                // Real Map with Route
+                DeliveryRouteMap(
+                  pickupLocation: LatLng(
+                    delivery.pickupLatitude,
+                    delivery.pickupLongitude,
+                  ),
+                  deliveryLocation: LatLng(
+                    delivery.deliveryLatitude,
+                    delivery.deliveryLongitude,
+                  ),
+                  currentLocation: locationState.currentPosition != null
+                      ? LatLng(
+                          locationState.currentPosition!.latitude,
+                          locationState.currentPosition!.longitude,
+                        )
+                      : null,
+                  showRouteInfo: false,
+                  height: double.infinity,
+                ),
+                
+                // GPS Status Indicator
+                Positioned(
+                  top: AppSpacing.md,
+                  right: AppSpacing.md,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isGpsReady ? AppColors.success : AppColors.warning,
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.map_outlined,
-                          size: 80,
-                          color: AppColors.textSecondary,
+                          locationState.isTracking ? Icons.gps_fixed : Icons.gps_off,
+                          color: Colors.white,
+                          size: 20.0,
                         ),
-                        const SizedBox(height: AppSpacing.md),
+                        const SizedBox(width: AppSpacing.xs),
                         Text(
-                          'Carte Google Maps avec suivi GPS',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.textSecondary,
+                          locationState.isTracking ? 'GPS Actif' : 'GPS Inactif',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: Colors.white,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  
-                  // GPS Status Indicator
-                  Positioned(
-                    top: AppSpacing.md,
-                    right: AppSpacing.md,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.sm,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isGpsReady ? AppColors.success : AppColors.warning,
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            locationState.isTracking ? Icons.gps_fixed : Icons.gps_off,
-                            color: Colors.white,
-                            size: 20.0,
-                          ),
-                          const SizedBox(width: AppSpacing.xs),
-                          Text(
-                            locationState.isTracking ? 'GPS Actif' : 'GPS Inactif',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 
