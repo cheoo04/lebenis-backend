@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../theme/app_theme.dart';
 import '../../../../data/providers/merchant_provider.dart';
 import '../../../../data/providers/user_profile_provider.dart';
+import '../../../../data/providers/auth_provider.dart';
 import '../../../../data/models/merchant_model.dart';
 import '../../../../shared/widgets/modern_stat_card.dart';
 import '../../../../shared/widgets/modern_info_card.dart';
@@ -22,14 +23,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // Charger le profil utilisateur au démarrage
+    // Charger les stats uniquement pour les merchants
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final profile = ref.read(userProfileProvider);
-      if (profile.value == null) {
-        ref.read(userProfileProvider.notifier).loadProfile();
-      }
-      
-      // Charger les stats uniquement pour les merchants
       final isMerchant = ref.read(isMerchantProvider);
       if (isMerchant) {
         ref.read(merchantStatsProvider.notifier).loadStats();
@@ -46,19 +41,45 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return profileAsync.when(
       data: (profile) {
         if (profile == null) {
+          // Vérifier si l'utilisateur est authentifié
+          final authState = ref.watch(authStateProvider);
+          final isAuthenticated = authState.value != null;
+          
           return Scaffold(
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Erreur: Profil non trouvé'),
+                  const Icon(Icons.error_outline, size: 64, color: Colors.orange),
                   const SizedBox(height: 16),
+                  const Text('Erreur: Profil non trouvé'),
+                  const SizedBox(height: 8),
+                  Text(
+                    isAuthenticated 
+                      ? 'Impossible de charger votre profil' 
+                      : 'Session expirée',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
-                      ref.read(userProfileProvider.notifier).loadProfile();
+                      if (isAuthenticated) {
+                        ref.read(userProfileProvider.notifier).loadProfile();
+                      } else {
+                        Navigator.pushReplacementNamed(context, '/login');
+                      }
                     },
-                    child: const Text('Réessayer'),
+                    child: Text(isAuthenticated ? 'Réessayer' : 'Se connecter'),
                   ),
+                  if (isAuthenticated) ...[
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/login');
+                      },
+                      child: const Text('Se déconnecter'),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -171,12 +192,42 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               Navigator.pushNamed(context, '/notifications');
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              // Afficher un dialogue de confirmation
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Déconnexion'),
+                  content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Annuler'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Déconnecter'),
+                    ),
+                  ],
+                ),
+              );
+              
+              if (confirm == true && context.mounted) {
+                await ref.read(authStateProvider.notifier).logout();
+                if (context.mounted) {
+                  Navigator.pushReplacementNamed(context, '/login');
+                }
+              }
+            },
+          ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.refresh(merchantProfileProvider);
-          ref.refresh(merchantStatsProvider);
+          await ref.read(merchantProfileProvider.notifier).refresh();
+          ref.invalidate(merchantStatsProvider);
         },
         color: AppTheme.primaryColor,
         child: SingleChildScrollView(
@@ -438,11 +489,41 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               Navigator.pushNamed(context, '/notifications');
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              // Afficher un dialogue de confirmation
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Déconnexion'),
+                  content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Annuler'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Déconnecter'),
+                    ),
+                  ],
+                ),
+              );
+              
+              if (confirm == true && context.mounted) {
+                await ref.read(authStateProvider.notifier).logout();
+                if (context.mounted) {
+                  Navigator.pushReplacementNamed(context, '/login');
+                }
+              }
+            },
+          ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.refresh(userProfileProvider);
+          await ref.read(userProfileProvider.notifier).refresh();
         },
         color: AppTheme.primaryColor,
         child: SingleChildScrollView(

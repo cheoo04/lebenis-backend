@@ -29,11 +29,11 @@ class Individual(models.Model):
     
     @property
     def full_name(self):
-        return self.user.get_full_name()
+        return f"{self.user.first_name} {self.user.last_name}".strip() or self.user.email
     
     @property
     def phone(self):
-        return self.user.phone
+        return getattr(self.user, 'phone', '')
     
     @property
     def email(self):

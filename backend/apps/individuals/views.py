@@ -49,61 +49,82 @@ class IndividualViewSet(viewsets.ModelViewSet):
         # Admins voient tout
         return Individual.objects.all()
     
+    @action(detail=False, methods=['GET'], url_path='profile', permission_classes=[permissions.IsAuthenticated])
+    def profile(self, request):
+        """
+        GET /api/v1/individuals/profile/
+        
+        Récupérer le profil du particulier connecté.
+        Créé automatiquement s'il n'existe pas encore.
+        """
+        try:
+            individual = Individual.objects.get(user=request.user)
+        except Individual.DoesNotExist:
+            # Créer automatiquement le profil si non existant
+            individual = Individual.objects.create(user=request.user)
+            logger.info(f"✅ Profil particulier créé automatiquement pour {request.user.email}")
+        
+        serializer = IndividualSerializer(individual)
+        return Response(serializer.data)
+    
     @action(detail=False, methods=['GET'], permission_classes=[IsIndividual])
     def my_profile(self, request):
         """
         GET /api/v1/individuals/my-profile/
         
-        Récupérer le profil du particulier connecté.
+        Récupérer le profil du particulier connecté (alias de profile).
+        """
+        return self.profile(request)
+    
+    @action(detail=False, methods=['PATCH'], url_path='profile', permission_classes=[permissions.IsAuthenticated])
+    def update_profile_endpoint(self, request):
+        """
+        PATCH /api/v1/individuals/profile/
+        
+        Mettre à jour le profil du particulier connecté.
         """
         try:
             individual = Individual.objects.get(user=request.user)
-            serializer = IndividualSerializer(individual)
-            return Response(serializer.data)
         except Individual.DoesNotExist:
             return Response(
-                {'error': 'Profil particulier introuvable'},
+                {'error': 'Profil particulier introuvable. Veuillez d\'abord créer votre profil.'},
                 status=status.HTTP_404_NOT_FOUND
             )
+        
+        # Mise à jour des champs autorisés
+        if 'address' in request.data:
+            individual.address = request.data['address']
+        
+        individual.save()
+        
+        # Mise à jour des infos user si fournies
+        user = request.user
+        updated_fields = []
+        if 'first_name' in request.data:
+            user.first_name = request.data['first_name']
+            updated_fields.append('first_name')
+        if 'last_name' in request.data:
+            user.last_name = request.data['last_name']
+            updated_fields.append('last_name')
+        if 'phone' in request.data:
+            user.phone = request.data['phone']
+            updated_fields.append('phone')
+        
+        if updated_fields:
+            user.save()
+            logger.info(f"✅ Profil particulier mis à jour: {updated_fields} pour {user.email}")
+        
+        serializer = IndividualSerializer(individual)
+        return Response(serializer.data)
     
     @action(detail=False, methods=['PATCH'], permission_classes=[IsIndividual])
     def update_profile(self, request):
         """
         PATCH /api/v1/individuals/update-profile/
         
-        Mettre à jour le profil du particulier.
+        Mettre à jour le profil du particulier (alias).
         """
-        try:
-            individual = Individual.objects.get(user=request.user)
-            
-            # Mise à jour des champs autorisés
-            if 'address' in request.data:
-                individual.address = request.data['address']
-            
-            individual.save()
-            
-            # Mise à jour des infos user si fournies
-            user = request.user
-            if 'first_name' in request.data:
-                user.first_name = request.data['first_name']
-            if 'last_name' in request.data:
-                user.last_name = request.data['last_name']
-            if 'phone' in request.data:
-                user.phone = request.data['phone']
-            user.save()
-            
-            serializer = IndividualSerializer(individual)
-            return Response({
-                'success': True,
-                'message': 'Profil mis à jour avec succès',
-                'individual': serializer.data
-            })
-            
-        except Individual.DoesNotExist:
-            return Response(
-                {'error': 'Profil particulier introuvable'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        return self.update_profile_endpoint(request)
     
     @action(detail=False, methods=['GET'], permission_classes=[IsIndividual])
     def my_stats(self, request):
