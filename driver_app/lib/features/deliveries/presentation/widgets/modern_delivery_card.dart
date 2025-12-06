@@ -18,6 +18,7 @@ class ModernDeliveryCard extends StatelessWidget {
   final String? amount;
   final String? distance;
   final VoidCallback? onTap;
+  final bool showAcceptButton;
 
   const ModernDeliveryCard({
     super.key,
@@ -29,6 +30,7 @@ class ModernDeliveryCard extends StatelessWidget {
     this.amount,
     this.distance,
     this.onTap,
+    this.showAcceptButton = false,
   });
 
   @override
@@ -141,6 +143,27 @@ class ModernDeliveryCard extends StatelessWidget {
                     style: AppTypography.price.copyWith(fontSize: 18),
                   ),
               ],
+            ),
+          ],
+
+          // Bouton Accepter pour livraisons disponibles
+          if (showAcceptButton) ...[
+            const SizedBox(height: AppSpacing.lg),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: onTap,
+                icon: const Icon(Icons.check_circle_outline, size: 20),
+                label: const Text('Voir les détails'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.success,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.button),
+                  ),
+                ),
+              ),
             ),
           ],
         ],

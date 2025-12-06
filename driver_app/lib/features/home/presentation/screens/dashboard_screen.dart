@@ -5,9 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
-import '../../../../theme/app_radius.dart';
+import '../../../../shared/widgets/modern_stat_card.dart';
 import '../../../../shared/widgets/modern_card.dart';
-import '../../../../shared/widgets/modern_button.dart';
 import '../../../../core/providers/delivery_provider.dart';
 import '../../../../data/providers/payment_provider.dart';
 import '../../../../data/providers/driver_provider.dart';
@@ -30,6 +29,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     Future.microtask(() {
       ref.read(deliveryProvider.notifier).loadMyDeliveries();
       ref.read(paymentProvider.notifier).loadTransactions();
+      ref.read(driverProvider.notifier).loadStats();
+      ref.read(driverProvider.notifier).loadEarnings();
     });
   }
 
@@ -65,6 +66,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     final deliveryState = ref.watch(deliveryProvider);
     final paymentState = ref.watch(paymentProvider);
+    final driverState = ref.watch(driverProvider);
     
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -85,7 +87,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   children: [
                     // Greeting
                     Text(
-                      'Bienvenue! 👋',
+                      'Bienvenue!',
                       style: AppTypography.h3,
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -95,7 +97,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         color: AppColors.textSecondary,
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.lg),
+
+                    // Statistiques en grille
+                    _buildStatsGrid(driverState),
+
                     const SizedBox(height: AppSpacing.xxl),
+
+                    // Section "Actions rapides"
+                    Text(
+                      'Actions rapides',
+                      style: AppTypography.h4,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
 
                     // Grille de cartes 2x3
                     GridView.count(
@@ -181,6 +195,62 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStatsGrid(DriverState driverState) {
+    final stats = driverState.stats;
+    final earnings = driverState.earnings;
+    
+    // Extraire les stats
+    final totalDeliveries = stats?['total_deliveries'] ?? 0;
+    final completedDeliveries = stats?['completed_deliveries'] ?? 0;
+    final averageRating = (stats?['average_rating'] ?? 0.0).toDouble();
+    final todayEarnings = earnings?['today'] ?? 0.0;
+    
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: AppSpacing.md,
+      crossAxisSpacing: AppSpacing.md,
+      childAspectRatio: 1.2,
+      children: [
+        ModernStatCard(
+          title: 'Courses totales',
+          value: '$totalDeliveries',
+          icon: Icons.local_shipping,
+          color: AppColors.blue,
+          subtitle: 'Total',
+          onTap: () {
+            Navigator.pushNamed(context, '/deliveries');
+          },
+        ),
+        ModernStatCard(
+          title: 'Terminées',
+          value: '$completedDeliveries',
+          icon: Icons.check_circle,
+          color: AppColors.green,
+          subtitle: 'Complétées',
+        ),
+        ModernStatCard(
+          title: 'Note moyenne',
+          value: averageRating.toStringAsFixed(1),
+          icon: Icons.star,
+          color: AppColors.orange,
+          subtitle: '/5.0',
+        ),
+        ModernStatCard(
+          title: 'Aujourd\'hui',
+          value: '${todayEarnings.toStringAsFixed(0)}',
+          icon: Icons.attach_money,
+          color: AppColors.purple,
+          subtitle: 'FCFA',
+          onTap: () {
+            Navigator.pushNamed(context, '/earnings');
+          },
+        ),
+      ],
     );
   }
 

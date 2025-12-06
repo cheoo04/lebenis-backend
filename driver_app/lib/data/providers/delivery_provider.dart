@@ -337,3 +337,63 @@ final availableForAcceptanceProvider = Provider<List<DeliveryModel>>((ref) {
 final availableDeliveryCountProvider = Provider<int>((ref) {
   return ref.watch(availableForAcceptanceProvider).length;
 });
+
+// ========== AVAILABLE DELIVERIES PROVIDER (SEPARATE STATE) ==========
+
+/// State pour les livraisons disponibles (via endpoint dédié)
+class AvailableDeliveriesState {
+  final bool isLoading;
+  final List<DeliveryModel> deliveries;
+  final String? error;
+
+  AvailableDeliveriesState({
+    this.isLoading = false,
+    this.deliveries = const [],
+    this.error,
+  });
+
+  AvailableDeliveriesState copyWith({
+    bool? isLoading,
+    List<DeliveryModel>? deliveries,
+    String? error,
+    bool clearError = false,
+  }) {
+    return AvailableDeliveriesState(
+      isLoading: isLoading ?? this.isLoading,
+      deliveries: deliveries ?? this.deliveries,
+      error: clearError ? null : error,
+    );
+  }
+}
+
+class AvailableDeliveriesNotifier extends Notifier<AvailableDeliveriesState> {
+  late final DeliveryRepository _repository;
+
+  @override
+  AvailableDeliveriesState build() {
+    _repository = ref.read(deliveryRepositoryProvider);
+    return AvailableDeliveriesState();
+  }
+
+  Future<void> load() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final deliveries = await _repository.getAvailableDeliveries();
+      state = state.copyWith(isLoading: false, deliveries: deliveries);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> refresh() async => load();
+}
+
+final availableDeliveriesNotifierProvider = 
+    NotifierProvider<AvailableDeliveriesNotifier, AvailableDeliveriesState>(
+      AvailableDeliveriesNotifier.new,
+    );
+
+/// Provider simple pour accéder à la liste des livraisons disponibles
+final availableDeliveriesProvider = Provider<List<DeliveryModel>>((ref) {
+  return ref.watch(availableDeliveriesNotifierProvider).deliveries;
+});
