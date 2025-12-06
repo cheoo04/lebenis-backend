@@ -41,25 +41,8 @@ class AppConfig {
     'tres_grand': 'Très Grand (> 30 kg)',
   };
 
-  // Communes de Dakar (Sénégal)
-  // Communes principales d'Abidjan (Côte d'Ivoire)
-  static const List<String> communes = [
-    'Abobo',
-    'Adjamé',
-    'Attécoubé',
-    'Cocody',
-    'Koumassi',
-    'Marcory',
-    'Plateau',
-    'Port-Bouët',
-    'Treichville',
-    'Yopougon',
-    'Bingerville',
-    'Songon',
-    'Anyama',
-    'Grand-Bassam',
-    'Dabou',
-  ];
+  // ⚠️ Liste obsolète supprimée - utiliser l'API /api/v1/locations/communes/
+  // Les communes sont maintenant gérées par le backend avec coordonnées GPS
 
   // Limites et contraintes
   static const int minPasswordLength = 6;

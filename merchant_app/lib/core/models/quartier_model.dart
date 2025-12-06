@@ -18,11 +18,15 @@ class QuartierModel {
 
   /// Crée un QuartierModel depuis une réponse JSON de l'API
   factory QuartierModel.fromJson(Map<String, dynamic> json) {
+    // Gère les cas où latitude/longitude sont null
+    final lat = json['latitude'];
+    final lng = json['longitude'];
+    
     return QuartierModel(
       nom: json['nom'] as String? ?? json['quartier'] as String? ?? '',
       commune: json['commune'] as String? ?? '',
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
+      latitude: lat != null ? (lat as num).toDouble() : 0.0,
+      longitude: lng != null ? (lng as num).toDouble() : 0.0,
       source: json['source'] as String?,
     );
   }

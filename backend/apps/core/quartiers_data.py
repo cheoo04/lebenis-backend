@@ -400,15 +400,27 @@ def get_all_quartiers() -> list:
     
     Returns:
         Liste de dictionnaires [{nom, commune, latitude, longitude, has_gps}, ...]
+        Ne retourne QUE les quartiers avec coordonnées GPS pour éviter les erreurs de cast
     """
+    from apps.pricing.models import PricingZone
     all_quartiers = []
     
     for commune, quartiers in QUARTIERS_ABIDJAN_COMPLET.items():
         commune_gps = QUARTIERS_GPS.get(commune, {})
         
+        # Récupérer les coordonnées par défaut de la commune depuis PricingZone
+        pricing_zone = PricingZone.objects.filter(commune__iexact=commune).first()
+        default_coords = None
+        if pricing_zone and pricing_zone.default_latitude and pricing_zone.default_longitude:
+            default_coords = (
+                float(pricing_zone.default_latitude),
+                float(pricing_zone.default_longitude)
+            )
+        
         for nom in quartiers:
             coords = commune_gps.get(nom)
             if coords:
+                # Quartier avec GPS spécifique
                 all_quartiers.append({
                     'nom': nom,
                     'commune': commune,
@@ -416,14 +428,16 @@ def get_all_quartiers() -> list:
                     'longitude': coords[1],
                     'has_gps': True,
                 })
-            else:
+            elif default_coords:
+                # Utiliser les coordonnées de la commune par défaut
                 all_quartiers.append({
                     'nom': nom,
                     'commune': commune,
-                    'latitude': None,
-                    'longitude': None,
-                    'has_gps': False,
+                    'latitude': default_coords[0],
+                    'longitude': default_coords[1],
+                    'has_gps': False,  # GPS de la commune, pas du quartier
                 })
+            # Sinon on ignore le quartier (pas de coordonnées disponibles)
     
     return all_quartiers
 
@@ -437,7 +451,9 @@ def get_quartiers_by_commune(commune: str) -> list:
     
     Returns:
         Liste de dictionnaires [{nom, commune, latitude, longitude, has_gps}, ...]
+        Ne retourne QUE les quartiers avec coordonnées GPS pour éviter les erreurs de cast
     """
+    from apps.pricing.models import PricingZone
     commune_upper = commune.upper()
     
     if commune_upper not in QUARTIERS_ABIDJAN_COMPLET:
@@ -446,9 +462,19 @@ def get_quartiers_by_commune(commune: str) -> list:
     commune_gps = QUARTIERS_GPS.get(commune_upper, {})
     quartiers = []
     
+    # Récupérer les coordonnées par défaut de la commune depuis PricingZone
+    pricing_zone = PricingZone.objects.filter(commune__iexact=commune_upper).first()
+    default_coords = None
+    if pricing_zone and pricing_zone.default_latitude and pricing_zone.default_longitude:
+        default_coords = (
+            float(pricing_zone.default_latitude),
+            float(pricing_zone.default_longitude)
+        )
+    
     for nom in QUARTIERS_ABIDJAN_COMPLET[commune_upper]:
         coords = commune_gps.get(nom)
         if coords:
+            # Quartier avec GPS spécifique
             quartiers.append({
                 'nom': nom,
                 'commune': commune_upper,
@@ -456,14 +482,16 @@ def get_quartiers_by_commune(commune: str) -> list:
                 'longitude': coords[1],
                 'has_gps': True,
             })
-        else:
+        elif default_coords:
+            # Utiliser les coordonnées de la commune par défaut
             quartiers.append({
                 'nom': nom,
                 'commune': commune_upper,
-                'latitude': None,
-                'longitude': None,
-                'has_gps': False,
+                'latitude': default_coords[0],
+                'longitude': default_coords[1],
+                'has_gps': False,  # GPS de la commune, pas du quartier
             })
+        # Sinon on ignore le quartier (pas de coordonnées disponibles)
     
     return quartiers
 
