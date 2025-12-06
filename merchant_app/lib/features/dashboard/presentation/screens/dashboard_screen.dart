@@ -12,6 +12,7 @@ import '../../../../shared/widgets/status_badge.dart';
 import '../../../deliveries/presentation/screens/delivery_list_screen.dart';
 import '../../../deliveries/presentation/screens/create_delivery_screen.dart';
 import '../../../profile/presentation/screens/edit_profile_screen.dart';
+import '../../../profile/presentation/screens/edit_individual_profile_screen.dart';
 import '../widgets/dashboard_app_bar.dart';
 import '../widgets/dashboard_header.dart';
 import '../widgets/action_cards_grid.dart';
@@ -515,12 +516,34 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         subtitle: 'Informations personnelles',
                         iconColor: Colors.purple,
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const EditProfileScreen(),
-                            ),
-                          );
+                          if (profile is IndividualModel) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => EditIndividualProfileScreen(individual: profile),
+                              ),
+                            );
+                          } else if (profile is Map) {
+                            final firstName = profile['first_name'] ?? '';
+                            final lastName = profile['last_name'] ?? '';
+                            final individual = IndividualModel(
+                              id: profile['id'] ?? '',
+                              userId: profile['user'] ?? '',
+                              firstName: firstName,
+                              lastName: lastName,
+                              email: profile['email'] ?? '',
+                              phone: profile['phone'],
+                              address: profile['address'],
+                              createdAt: DateTime.now(),
+                              updatedAt: DateTime.now(),
+                            );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => EditIndividualProfileScreen(individual: individual),
+                              ),
+                            );
+                          }
                         },
                       ),
 

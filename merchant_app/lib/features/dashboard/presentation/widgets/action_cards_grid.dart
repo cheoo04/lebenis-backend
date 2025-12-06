@@ -1,12 +1,54 @@
 import 'package:flutter/material.dart';
 import '../../../../theme/app_theme.dart';
+import '../../../../data/models/merchant_model.dart';
+import '../../../../data/models/individual_model.dart';
 import '../../../deliveries/presentation/screens/create_delivery_screen.dart';
 import '../../../deliveries/presentation/screens/delivery_list_screen.dart';
 import '../../../profile/presentation/screens/edit_profile_screen.dart';
+import '../../../profile/presentation/screens/edit_individual_profile_screen.dart';
 import 'action_card.dart';
 
 class ActionCardsGrid extends StatelessWidget {
-  const ActionCardsGrid({super.key});
+  final dynamic profile; // MerchantModel ou IndividualModel
+  
+  const ActionCardsGrid({required this.profile, super.key});
+
+  void _navigateToEditProfile(BuildContext context) {
+    if (profile is MerchantModel) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const EditProfileScreen(),
+        ),
+      );
+    } else if (profile is IndividualModel) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EditIndividualProfileScreen(individual: profile),
+        ),
+      );
+    } else if (profile is Map) {
+      // Fallback pour Map
+      final individual = IndividualModel(
+        id: profile['id'] ?? '',
+        userId: profile['user'] ?? '',
+        firstName: profile['first_name'] ?? '',
+        lastName: profile['last_name'] ?? '',
+        email: profile['email'] ?? '',
+        phone: profile['phone'],
+        address: profile['address'],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EditIndividualProfileScreen(individual: individual),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,14 +90,7 @@ class ActionCardsGrid extends StatelessWidget {
           icon: Icons.person_outline,
           title: 'Mon\nprofil',
           iconColor: Colors.purple,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const EditProfileScreen(),
-              ),
-            );
-          },
+          onTap: () => _navigateToEditProfile(context),
         ),
         ActionCard(
           icon: Icons.notifications,

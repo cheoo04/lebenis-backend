@@ -293,15 +293,11 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen> with Si
   Map<String, dynamic> _getStatusInfo(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
-      case 'pending_assignment':
         return {
           'label': 'En attente',
           'color': Colors.orange,
           'icon': Icons.schedule,
         };
-      case 'assigned':
-      case 'pickup_confirmed':
-      case 'in_transit':
       case 'in_progress':
         return {
           'label': 'En cours',

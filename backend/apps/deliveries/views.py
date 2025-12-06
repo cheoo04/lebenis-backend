@@ -147,6 +147,8 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         - Merchants : voient uniquement leurs livraisons
         - Drivers : voient les livraisons qui leur sont assignées
         - Admins : voient tout
+        
+        Supporte aussi le filtrage par statut via le query parameter 'status'
         """
         # Support pour la génération de schéma Swagger
         if getattr(self, 'swagger_fake_view', False):
@@ -162,7 +164,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             # Merchants voient uniquement leurs livraisons
             try:
                 merchant = Merchant.objects.get(user=user)
-                return Delivery.objects.filter(merchant=merchant).select_related('merchant', 'driver')
+                queryset = Delivery.objects.filter(merchant=merchant).select_related('merchant', 'driver')
             except Merchant.DoesNotExist:
                 return Delivery.objects.none()
         
@@ -170,12 +172,19 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             # Drivers voient leurs livraisons assignées
             try:
                 driver = Driver.objects.get(user=user)
-                return Delivery.objects.filter(driver=driver).select_related('merchant', 'driver')
+                queryset = Delivery.objects.filter(driver=driver).select_related('merchant', 'driver')
             except Driver.DoesNotExist:
                 return Delivery.objects.none()
+        else:
+            # Admins voient tout
+            queryset = Delivery.objects.all().select_related('merchant', 'driver')
         
-        # Admins voient tout
-        return Delivery.objects.all().select_related('merchant', 'driver')
+        # Filtrer par statut si le paramètre est fourni
+        status = self.request.query_params.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+        
+        return queryset
     
     # =========================================================================
     # ENDPOINTS D'ASSIGNATION (ADMIN)

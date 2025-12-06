@@ -396,25 +396,12 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
   Map<String, dynamic> _getStatusInfo(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
-      case 'pending_assignment':
         return {
-          'label': 'En attente d\'assignation',
+          'label': 'En attente',
           'color': Colors.orange,
           'icon': Icons.schedule,
         };
-      case 'assigned':
-        return {
-          'label': 'Livreur en route vers pickup',
-          'color': Colors.blue,
-          'icon': Icons.directions_car,
-        };
-      case 'pickup_confirmed':
-        return {
-          'label': 'Colis récupéré',
-          'color': Colors.indigo,
-          'icon': Icons.check_box,
-        };
-      case 'in_transit':
+      case 'in_progress':
         return {
           'label': 'En cours de livraison',
           'color': Colors.purple,

@@ -332,7 +332,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
 
           final status = delivery.status ?? 'unknown';
           final statusInfo = _getStatusInfo(status);
-          final canCancel = status == 'pending' || status == 'pending_assignment';
+          final canCancel = status == 'pending';
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -716,25 +716,12 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
   Map<String, dynamic> _getStatusInfo(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
-      case 'pending_assignment':
         return {
-          'label': 'En attente d\'assignation',
+          'label': 'En attente',
           'color': Colors.orange,
           'icon': Icons.schedule,
         };
-      case 'assigned':
-        return {
-          'label': 'Livreur assigné',
-          'color': Colors.blue,
-          'icon': Icons.person_pin_circle,
-        };
-      case 'pickup_confirmed':
-        return {
-          'label': 'Colis récupéré',
-          'color': Colors.indigo,
-          'icon': Icons.check_box,
-        };
-      case 'in_transit':
+      case 'in_progress':
         return {
           'label': 'En cours de livraison',
           'color': Colors.purple,

@@ -24,17 +24,17 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   final _recipientNameController = TextEditingController();
   final _recipientPhoneController = TextEditingController();
   
-  // Pickup info
-  String _pickupMode = 'gps'; // 'gps', 'saved', 'custom'
-  String? _selectedSavedAddressId; // UUID de l'adresse sauvegardée
-  final _customPickupAddressController = TextEditingController(); // Adresse personnalisée
+  // Pickup info - SIMPLIFIÉ: juste commune + quartier + GPS optionnel
   String? _pickupCommune;
   String? _pickupQuartier;
+  final _pickupStreetController = TextEditingController(); // Rue/précision
   double? _pickupLat;
   double? _pickupLng;
   
   // Delivery info
   String? _deliveryCommune;
+  String? _deliveryQuartier;
+  final _deliveryStreetController = TextEditingController(); // Rue/précision
   double? _deliveryLat;
   double? _deliveryLng;
   final _deliveryAddressController = TextEditingController();
@@ -50,7 +50,6 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   
   // Recipient additional info
   final _recipientAltPhoneController = TextEditingController();
-  String? _deliveryQuartier;
   
   // Payment
   String _paymentMethod = 'prepaid';
@@ -66,7 +65,8 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
     _recipientNameController.dispose();
     _recipientPhoneController.dispose();
     _recipientAltPhoneController.dispose();
-    _customPickupAddressController.dispose();
+    _pickupStreetController.dispose();
+    _deliveryStreetController.dispose();
     _deliveryAddressController.dispose();
     _packageDescController.dispose();
     _packageWeightController.dispose();
@@ -191,11 +191,21 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     
-    // Validation stricte des communes
+    // Validation stricte des communes et quartiers de pickup
     if (_pickupCommune == null || _pickupCommune!.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('⚠️ Veuillez sélectionner la commune de recupération'),
+          content: Text('⚠️ Veuillez sélectionner la commune de récupération'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (_pickupQuartier == null || _pickupQuartier!.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ Veuillez sélectionner le quartier de récupération'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -221,19 +231,19 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
         'recipient_phone': _recipientPhoneController.text.trim(),
         if (_recipientAltPhoneController.text.isNotEmpty)
           'recipient_alternative_phone': _recipientAltPhoneController.text.trim(),
-        // Pickup - 3 modes : GPS (automatique), Adresse sauvegardée (UUID), Personnalisée (texte)
+        // Pickup - SIMPLIFIÉ: commune + quartier obligatoires, GPS optionnel
         'pickup_commune': _pickupCommune!,
-        if (_pickupMode == 'saved' && _selectedSavedAddressId != null)
-          'pickup_address': _selectedSavedAddressId, // UUID
-        if (_pickupMode == 'custom' && _customPickupAddressController.text.isNotEmpty)
-          'pickup_address_details': _customPickupAddressController.text.trim(), // Texte
+        'pickup_quartier': _pickupQuartier!,
+        if (_pickupStreetController.text.isNotEmpty)
+          'pickup_street': _pickupStreetController.text.trim(),
         if (_pickupLat != null) 'pickup_latitude': _pickupLat,
         if (_pickupLng != null) 'pickup_longitude': _pickupLng,
         // Delivery
         'delivery_commune': _deliveryCommune!,
         if (_deliveryQuartier != null && _deliveryQuartier!.isNotEmpty)
           'delivery_quartier': _deliveryQuartier,
-        'delivery_address': _deliveryAddressController.text.trim(),
+        if (_deliveryStreetController.text.isNotEmpty)
+          'delivery_street': _deliveryStreetController.text.trim(),
         if (_deliveryLat != null) 'delivery_latitude': _deliveryLat,
         if (_deliveryLng != null) 'delivery_longitude': _deliveryLng,
         // Package
@@ -256,6 +266,10 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
         deliveryData['cod_amount'] = double.tryParse(_codAmountController.text) ?? 0.0;
       }
 
+      print('✅ Livraison créée avec:');
+      print('   pickup: ${deliveryData['pickup_quartier']}, ${deliveryData['pickup_commune']}');
+      print('   GPS: ${deliveryData['pickup_latitude']}/${deliveryData['pickup_longitude']}');
+      
       await ref.read(deliveryRepositoryProvider).createDelivery(deliveryData);
 
       if (mounted) {
@@ -330,59 +344,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             _buildSectionTitle('📍 Point de récupération'),
             const SizedBox(height: 12),
             
-            // Sélecteur de mode de pickup
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue[200]!),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'D\'où voulez-vous envoyer ?',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      ChoiceChip(
-                        label: const Text('📍 GPS', style: TextStyle(fontSize: 13)),
-                        selected: _pickupMode == 'gps',
-                        onSelected: (selected) {
-                          if (selected) setState(() => _pickupMode = 'gps');
-                        },
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      ChoiceChip(
-                        label: const Text('🏢 Sauvegardée', style: TextStyle(fontSize: 13)),
-                        selected: _pickupMode == 'saved',
-                        onSelected: (selected) {
-                          if (selected) setState(() => _pickupMode = 'saved');
-                        },
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      ChoiceChip(
-                        label: const Text('✏️ Personnalisée', style: TextStyle(fontSize: 13)),
-                        selected: _pickupMode == 'custom',
-                        onSelected: (selected) {
-                          if (selected) setState(() => _pickupMode = 'custom');
-                        },
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            // Widget intégré Commune + Quartier pour le pickup
+            // Widget intégré Commune + Quartier pour le pickup (OBLIGATOIRE)
             QuartierSearchWidget(
               label: 'Localisation de récupération *',
               initialCommune: _pickupCommune,
@@ -415,75 +377,38 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
                 ),
               ),
             const SizedBox(height: 12),
-            
-            // Affichage conditionnel selon le mode
-            if (_pickupMode == 'gps') ...[
-              ModernButton(
-                text: _pickupLat != null ? 'GPS activé ✓' : 'Utiliser ma position GPS',
-                icon: Icons.my_location,
-                onPressed: _getCurrentLocation,
-                backgroundColor: _pickupLat != null ? Colors.green : AppTheme.accentColor,
-                isOutlined: true,
-              ),
-              if (_pickupLat != null) ...[
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
+            ModernTextField(
+              controller: _pickupStreetController,
+              label: 'Rue ou repère (optionnel)',
+              hint: 'Ex: Rue du marché, à côté de la pharmacie...',
+              prefixIcon: Icons.location_on,
+              maxLines: 2,
+            ),
+            const SizedBox(height: 16),
+
+            // GPS OPTIONNEL pour affiner la localisation exacte
+            _buildSectionTitle('📍 Localisation GPS (optionnel)'),
+            const SizedBox(height: 12),
+            Text(
+              'Utilisez votre GPS actuel si vous êtes le point de récupération',
+              style: TextStyle(color: Colors.grey[600], fontSize: 12, fontStyle: FontStyle.italic),
+            ),
+            const SizedBox(height: 12),
+            ModernButton(
+              text: _pickupLat != null ? 'GPS activé ✓' : 'Activer GPS',
+              icon: Icons.my_location,
+              onPressed: _getCurrentLocation,
+              backgroundColor: _pickupLat != null ? Colors.green : AppTheme.accentColor,
+              isOutlined: true,
+            ),
+            if (_pickupLat != null) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     '✓ Position enregistrée : ${_pickupLat!.toStringAsFixed(4)}, ${_pickupLng!.toStringAsFixed(4)}',
                     style: TextStyle(color: Colors.green[700], fontSize: 12),
                   ),
                 ),
-                // Avertissement si GPS activé mais commune pas détectée
-                if (_pickupCommune == null || _pickupCommune!.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.orange[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange[300]!),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.info_outline, color: Colors.orange[700], size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Commune non détectée automatiquement. Veuillez la sélectionner manuellement ci-dessus.',
-                              style: TextStyle(color: Colors.orange[900], fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ],
-            
-            if (_pickupMode == 'saved') ...[
-              _buildSavedAddressesDropdown(),
-              const SizedBox(height: 8),
-              Text(
-                '💡 Vous pouvez créer des adresses sauvegardées dans votre profil',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12, fontStyle: FontStyle.italic),
-              ),
-            ],
-            
-            if (_pickupMode == 'custom') ...[
-              ModernTextField(
-                controller: _customPickupAddressController,
-                label: 'Adresse personnalisée *',
-                hint: 'Ex: Rue des jardins, Immeuble CCIA, 3ème étage',
-                prefixIcon: Icons.location_on,
-                maxLines: 2,
-                validator: (v) => v == null || v.isEmpty ? 'Adresse requise' : null,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '💡 Cette adresse est pour une livraison ponctuelle',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12, fontStyle: FontStyle.italic),
-              ),
             ],
 
             const SizedBox(height: 32),
@@ -526,14 +451,23 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
                 ),
               ),
             
+            const SizedBox(height: 12),
+            ModernTextField(
+              controller: _deliveryStreetController,
+              label: 'Rue ou repère (optionnel)',
+              hint: 'Ex: Rue principale, en face du marché...',
+              prefixIcon: Icons.location_on,
+              maxLines: 2,
+            ),
+            
             const SizedBox(height: 16),
             ModernTextField(
               controller: _deliveryAddressController,
               label: 'Adresse complète',
-              hint: 'Rue, immeuble, point de repère...',
+              hint: 'Rue, immeuble, point de repère... (optionnel)',
               prefixIcon: Icons.location_on,
               maxLines: 2,
-              validator: (v) => v == null || v.isEmpty ? 'Adresse requise' : null,
+              validator: (v) => null, // Optionnel - la commune et quartier suffisent
             ),
 
             const SizedBox(height: 32),
@@ -802,44 +736,6 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
         const SizedBox(width: 8),
         Expanded(child: Divider(color: Colors.grey[300])),
       ],
-    );
-  }
-
-  Widget _buildSavedAddressesDropdown() {
-    // TODO: Implémenter la récupération des adresses sauvegardées depuis le backend
-    // Pour l'instant, affichage d'un placeholder
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.business, color: Colors.grey[600]),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Aucune adresse sauvegardée',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Créez des adresses dans votre profil pour les réutiliser',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
