@@ -5,11 +5,52 @@ import '../../../../theme/app_theme.dart';
 import '../../../../data/providers/merchant_provider.dart';
 import '../../../../data/providers/user_profile_provider.dart';
 
-class WaitingApprovalScreen extends ConsumerWidget {
+class WaitingApprovalScreen extends ConsumerStatefulWidget {
   const WaitingApprovalScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WaitingApprovalScreen> createState() =>
+      _WaitingApprovalScreenState();
+}
+
+class _WaitingApprovalScreenState extends ConsumerState<WaitingApprovalScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Vérifier automatiquement le statut au chargement
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkVerificationStatus();
+    });
+  }
+
+  Future<void> _checkVerificationStatus() async {
+    try {
+      await ref.read(merchantProfileProvider.notifier).loadProfile();
+      final profile = ref.read(merchantProfileProvider).value;
+      
+      if (mounted) {
+        if (profile?.verificationStatus == 'verified') {
+          // Rafraîchir aussi le userProfileProvider
+          await ref.read(userProfileProvider.notifier).loadProfile();
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Votre compte a été approuvé !'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        } else if (profile?.verificationStatus == 'rejected') {
+          Navigator.pushReplacementNamed(context, '/rejected');
+        }
+      }
+    } catch (e) {
+      print('❌ Erreur vérification statut: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -128,35 +169,7 @@ class WaitingApprovalScreen extends ConsumerWidget {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () async {
-                        // Recharger le profil pour vérifier le statut
-                        await ref.read(merchantProfileProvider.notifier).loadProfile();
-                        final profile = ref.read(merchantProfileProvider).value;
-                        
-                        if (context.mounted) {
-                          if (profile?.verificationStatus == 'approved' || profile?.verificationStatus == 'verified') {
-                            // Rafraîchir aussi le userProfileProvider pour que le dashboard soit à jour
-                            await ref.read(userProfileProvider.notifier).loadProfile();
-                            
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('✅ Votre compte a été approuvé !'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                            Navigator.pushReplacementNamed(context, '/dashboard');
-                          } else if (profile?.verificationStatus == 'rejected') {
-                            Navigator.pushReplacementNamed(context, '/rejected');
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('⏳ Votre compte est toujours en attente'),
-                                backgroundColor: Colors.orange,
-                              ),
-                            );
-                          }
-                        }
-                      },
+                      onPressed: _checkVerificationStatus,
                       icon: const Icon(Icons.refresh),
                       label: const Text('Vérifier le statut'),
                       style: OutlinedButton.styleFrom(
