@@ -46,8 +46,9 @@ class IndividualRepository {
       if (phone != null) data['phone'] = phone;
       if (address != null) data['address'] = address;
 
+      // L'endpoint backend est /api/v1/individuals/profile/ (PATCH sans ID)
       final response = await dioClient.patch(
-        '/api/v1/individuals/profile/${individualId ?? ''}',
+        '/api/v1/individuals/profile/',
         data: data,
       );
 

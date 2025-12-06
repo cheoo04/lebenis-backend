@@ -6,6 +6,8 @@ import '../../../../data/providers/auth_provider.dart';
 import '../../../../data/models/merchant_model.dart';
 import '../../../../data/models/individual_model.dart';
 import '../widgets/verification_status.dart';
+import 'edit_profile_screen.dart';
+import 'edit_individual_profile_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -88,7 +90,12 @@ class ProfileScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () {
-              // TODO: Naviguer vers l'édition du profil
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EditProfileScreen(),
+                ),
+              );
             },
             icon: const Icon(Icons.edit),
             label: const Text('Modifier le profil'),
@@ -146,7 +153,14 @@ class ProfileScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () {
-              // TODO: Naviguer vers l'édition du profil
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditIndividualProfileScreen(
+                    individual: individual,
+                  ),
+                ),
+              );
             },
             icon: const Icon(Icons.edit),
             label: const Text('Modifier le profil'),
@@ -207,7 +221,28 @@ class ProfileScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () {
-              // TODO: Naviguer vers l'édition du profil
+              // Créer un IndividualModel depuis la Map pour la navigation
+              final firstName = profile['first_name'] ?? '';
+              final lastName = profile['last_name'] ?? '';
+              final individual = IndividualModel(
+                id: profile['id'] ?? '',
+                userId: profile['user'] ?? '',
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                phone: phone,
+                address: profile['address'] ?? '',
+                createdAt: DateTime.now(),
+                updatedAt: DateTime.now(),
+              );
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditIndividualProfileScreen(
+                    individual: individual,
+                  ),
+                ),
+              );
             },
             icon: const Icon(Icons.edit),
             label: const Text('Modifier le profil'),
