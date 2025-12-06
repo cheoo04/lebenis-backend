@@ -540,7 +540,11 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         can_cancel = False
         cancelled_by = ""
         
-        if user.user_type == 'driver':
+        # Vérifier d'abord si l'utilisateur a créé la livraison (pour les particuliers)
+        if delivery.created_by == user:
+            can_cancel = True
+            cancelled_by = f"creator {user.email}"
+        elif user.user_type == 'driver':
             try:
                 driver = Driver.objects.get(user=user)
                 if delivery.driver == driver:
@@ -556,11 +560,6 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                     cancelled_by = f"merchant {merchant.business_name}"
             except Merchant.DoesNotExist:
                 pass
-        elif user.user_type == 'individual':
-            # Les particuliers peuvent annuler leurs propres livraisons
-            if delivery.created_by == user:
-                can_cancel = True
-                cancelled_by = f"individual {user.email}"
         
         if not can_cancel:
             return Response(

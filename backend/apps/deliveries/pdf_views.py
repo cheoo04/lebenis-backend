@@ -142,7 +142,7 @@ def test_pdf_generation(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated, IsMerchant])
+@permission_classes([IsAuthenticated])
 def generate_delivery_pdf(request, delivery_id):
     """
     Generate and download a delivery receipt/report PDF
@@ -152,19 +152,24 @@ def generate_delivery_pdf(request, delivery_id):
     Response: PDF file download
     
     Permissions:
-    - Only the merchant who owns the delivery can download it
+    - Merchant who owns the delivery
+    - Individual who created the delivery
     """
     # Get the delivery
     delivery = get_object_or_404(Delivery, id=delivery_id)
     
-    # Check if the merchant owns this delivery
-    if not hasattr(request.user, 'merchant_profile'):
-        return Response(
-            {'error': 'Only merchants can download delivery reports'},
-            status=status.HTTP_403_FORBIDDEN
-        )
+    # Check permissions
+    can_access = False
     
-    if delivery.merchant.id != request.user.merchant_profile.id:
+    # Check if user created the delivery (individual)
+    if delivery.created_by == request.user:
+        can_access = True
+    # Check if merchant owns the delivery
+    elif hasattr(request.user, 'merchant_profile') and delivery.merchant:
+        if delivery.merchant.id == request.user.merchant_profile.id:
+            can_access = True
+    
+    if not can_access:
         return Response(
             {'error': 'You can only download reports for your own deliveries'},
             status=status.HTTP_403_FORBIDDEN
