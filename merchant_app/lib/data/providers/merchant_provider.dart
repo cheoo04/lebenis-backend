@@ -10,17 +10,15 @@ final merchantRepositoryProvider = Provider<MerchantRepository>((ref) {
 });
 
 class MerchantStatsNotifier extends Notifier<AsyncValue<MerchantStatsModel?>> {
-  late final MerchantRepository repository;
-
   @override
   AsyncValue<MerchantStatsModel?> build() {
-    repository = ref.watch(merchantRepositoryProvider);
     return const AsyncValue.loading();
   }
 
   Future<void> loadStats({int periodDays = 30}) async {
     state = const AsyncValue.loading();
     try {
+      final repository = ref.watch(merchantRepositoryProvider);
       final stats = await repository.getStats(periodDays: periodDays);
       state = AsyncValue.data(stats);
     } catch (e, st) {
@@ -38,11 +36,8 @@ final merchantStatsProvider = NotifierProvider<MerchantStatsNotifier, AsyncValue
 );
 
 class MerchantNotifier extends Notifier<AsyncValue<MerchantModel?>> {
-  late final MerchantRepository repository;
-
   @override
   AsyncValue<MerchantModel?> build() {
-    repository = ref.watch(merchantRepositoryProvider);
     return const AsyncValue.data(null);
   }
 
@@ -54,6 +49,7 @@ class MerchantNotifier extends Notifier<AsyncValue<MerchantModel?>> {
   }) async {
     state = const AsyncValue.loading();
     try {
+      final repository = ref.watch(merchantRepositoryProvider);
       final updated = await repository.updateProfile(
         merchantId: merchantId,
         businessName: businessName,
@@ -72,6 +68,7 @@ class MerchantNotifier extends Notifier<AsyncValue<MerchantModel?>> {
   }) async {
     state = const AsyncValue.loading();
     try {
+      final repository = ref.watch(merchantRepositoryProvider);
       final updated = await repository.updateDocuments(
         rccmDocument: rccmDocument,
         idDocument: idDocument,
@@ -85,6 +82,7 @@ class MerchantNotifier extends Notifier<AsyncValue<MerchantModel?>> {
   Future<void> loadProfile() async {
     state = const AsyncValue.loading();
     try {
+      final repository = ref.watch(merchantRepositoryProvider);
       final merchant = await repository.getProfile();
       state = AsyncValue.data(merchant);
     } catch (e, st) {

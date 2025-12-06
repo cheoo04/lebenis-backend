@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../zones/presentation/screens/zone_selection_screen.dart';
-import '../../../test/geolocation_test_screen.dart';
 import '../../../../core/constants/backend_constants.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../data/providers/driver_provider.dart';
@@ -330,26 +329,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 size: ModernButtonSize.large,
                 fullWidth: true,
               ),
-
-              // Bouton test géolocalisation (mode debug uniquement)
-              if (kDebugMode) ...[
-                const SizedBox(height: AppSpacing.md),
-                ModernButton(
-                  text: 'Test Géolocalisation',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const GeolocationTestScreen(),
-                      ),
-                    );
-                  },
-                  icon: Icons.bug_report,
-                  type: ModernButtonType.outlined,
-                  size: ModernButtonSize.large,
-                  fullWidth: true,
-                ),
-              ],
 
               // Actions
               const SizedBox(height: AppSpacing.lg),

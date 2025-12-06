@@ -375,11 +375,8 @@ class BackendValidators {
     }
 
     final validStatuses = [
-      'pending_assignment',
-      'assigned',
-      'pickup_in_progress',
-      'picked_up',
-      'in_transit',
+      'pending',
+      'in_progress',
       'delivered',
       'cancelled',
     ];

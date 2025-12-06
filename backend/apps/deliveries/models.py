@@ -17,11 +17,8 @@ def generate_tracking_number():
 
 class Delivery(models.Model):
     STATUS_CHOICES = [
-        ('pending_assignment', 'En attente d\'assignation'),
-        ('assigned', 'Assigné'),
-        ('pickup_in_progress', 'Enlèvement en cours'),
-        ('picked_up', 'Colis récupéré'),
-        ('in_transit', 'En livraison'),
+        ('pending', 'En attente'),
+        ('in_progress', 'En cours'),
         ('delivered', 'Livré'),
         ('cancelled', 'Annulé'),
     ]
@@ -96,7 +93,7 @@ class Delivery(models.Model):
     payment_status = models.CharField(max_length=20, default='pending')
     
     # Statuts et dates
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending_assignment')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     scheduling_type = models.CharField(max_length=20, choices=SCHEDULING_CHOICES, default='immediate')
     scheduled_pickup_time = models.DateTimeField(null=True, blank=True)
     

@@ -92,7 +92,7 @@ class DeliveryModel {
     return DeliveryModel(
       id: json['id']?.toString() ?? '',
       trackingNumber: json['tracking_number']?.toString() ?? '',
-      status: json['status']?.toString() ?? 'pending_assignment',
+      status: json['status']?.toString() ?? 'pending',
       // Pickup (fallback si vide)
       pickupAddress: json['pickup_address']?.toString() ?? 
                      json['pickup_commune']?.toString() ?? '',

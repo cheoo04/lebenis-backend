@@ -31,27 +31,14 @@ class StatusBadge extends StatelessWidget {
   static Map<String, dynamic> _getStatusInfo(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
-      case 'pending_assignment':
         return {
           'label': 'En attente',
           'color': AppColors.pending,
           'icon': Icons.schedule_rounded,
         };
-      case 'assigned':
+      case 'in_progress':
         return {
-          'label': 'Assignée',
-          'color': AppColors.inTransit,
-          'icon': Icons.person_pin_circle_rounded,
-        };
-      case 'pickup_confirmed':
-        return {
-          'label': 'Récupérée',
-          'color': AppColors.info,
-          'icon': Icons.check_box_rounded,
-        };
-      case 'in_transit':
-        return {
-          'label': 'En transit',
+          'label': 'En cours',
           'color': AppColors.inTransit,
           'icon': Icons.local_shipping_rounded,
         };

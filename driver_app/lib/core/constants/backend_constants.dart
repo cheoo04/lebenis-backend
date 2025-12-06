@@ -8,30 +8,21 @@ import 'package:flutter/material.dart';
 class BackendConstants {
   // ========== DELIVERY STATUS ==========
   
-  static const String deliveryStatusPendingAssignment = 'pending_assignment';
-  static const String deliveryStatusAssigned = 'assigned';
-  static const String deliveryStatusPickupInProgress = 'pickup_in_progress';
-  static const String deliveryStatusPickedUp = 'picked_up';
-  static const String deliveryStatusInTransit = 'in_transit';
+  static const String deliveryStatusPending = 'pending';
+  static const String deliveryStatusInProgress = 'in_progress';
   static const String deliveryStatusDelivered = 'delivered';
   static const String deliveryStatusCancelled = 'cancelled';
 
   static const List<String> deliveryStatusChoices = [
-    deliveryStatusPendingAssignment,
-    deliveryStatusAssigned,
-    deliveryStatusPickupInProgress,
-    deliveryStatusPickedUp,
-    deliveryStatusInTransit,
+    deliveryStatusPending,
+    deliveryStatusInProgress,
     deliveryStatusDelivered,
     deliveryStatusCancelled,
   ];
 
   static const Map<String, String> deliveryStatusLabels = {
-    deliveryStatusPendingAssignment: 'En attente d\'assignation',
-    deliveryStatusAssigned: 'Assigné',
-    deliveryStatusPickupInProgress: 'Enlèvement en cours',
-    deliveryStatusPickedUp: 'Colis récupéré',
-    deliveryStatusInTransit: 'En livraison',
+    deliveryStatusPending: 'En attente',
+    deliveryStatusInProgress: 'En cours',
     deliveryStatusDelivered: 'Livré',
     deliveryStatusCancelled: 'Annulé',
   };
