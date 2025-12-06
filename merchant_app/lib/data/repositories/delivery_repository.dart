@@ -49,9 +49,23 @@ class DeliveryRepository {
 
   Future<DeliveryModel> cancelDelivery(String id) async {
     final response = await dioClient.patch(
-      '${ApiConstants.deliveries}/$id/cancel',
+      '${ApiConstants.deliveries}$id/cancel/',
     );
     return DeliveryModel.fromJson(response.data);
+  }
+
+  Future<String> generatePdf(String id) async {
+    try {
+      // L'endpoint correct est /report-pdf/ pas /generate-pdf/
+      final response = await dioClient.get(
+        '${ApiConstants.deliveries}$id/report-pdf/',
+      );
+      // Le backend retourne l'URL du PDF
+      return response.data['pdf_url'] ?? response.data['url'] ?? '';
+    } catch (e) {
+      print('❌ Erreur génération PDF: $e');
+      rethrow;
+    }
   }
 
   Future<DeliveryModel> updateDelivery(String id, Map<String, dynamic> data) async {
