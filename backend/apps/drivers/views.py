@@ -155,8 +155,8 @@ class DriverViewSet(viewsets.ModelViewSet):
             Q(package_width_cm__isnull=True) | Q(package_width_cm__lte=max_dims['width']),
         )
         
-        # Sélectionner les champs liés et trier
-        deliveries = deliveries.select_related('merchant').order_by('-created_at')
+        # Sélectionner les champs liés et trier (inclut merchant et created_by pour les particuliers)
+        deliveries = deliveries.select_related('merchant', 'created_by').order_by('-created_at')
         
         # Informations de capacité du véhicule
         vehicle_info = {

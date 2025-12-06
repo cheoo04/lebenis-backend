@@ -111,6 +111,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             # Sauvegarde la livraison
             serializer.save(
                 merchant=merchant,  # Sera None pour les particuliers
+                created_by=self.request.user,  # Créateur (merchant ou individual)
                 calculated_price=calculated_price,
                 delivery_confirmation_code=delivery_confirmation_code
             )
@@ -516,12 +517,15 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             'delivery': serializer.data
         }, status=status.HTTP_200_OK)
     
-    @action(detail=True, methods=['POST'], permission_classes=[IsDriver])
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def cancel(self, request, pk=None):
         """
         POST /api/v1/deliveries/{id}/cancel/
         
-        Le livreur annule une livraison.
+        Annuler une livraison.
+        - Driver: peut annuler une livraison assignée à lui
+        - Merchant: peut annuler ses propres livraisons
+        - Individual: peut annuler ses propres livraisons
         
         Body JSON :
         {
@@ -529,20 +533,38 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         }
         """
         delivery = self.get_object()
-        reason = request.data.get('reason', 'Annulé par le livreur')
+        reason = request.data.get('reason', 'Annulé par le client')
+        user = request.user
         
-        try:
-            driver = Driver.objects.get(user=request.user)
-        except Driver.DoesNotExist:
-            return Response(
-                {'error': 'Profil livreur introuvable'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        # Vérifier les permissions selon le type d'utilisateur
+        can_cancel = False
+        cancelled_by = ""
         
-        # Vérifier que c'est bien le driver assigné
-        if delivery.driver != driver:
+        if user.user_type == 'driver':
+            try:
+                driver = Driver.objects.get(user=user)
+                if delivery.driver == driver:
+                    can_cancel = True
+                    cancelled_by = f"driver {driver.user.email}"
+            except Driver.DoesNotExist:
+                pass
+        elif user.user_type == 'merchant':
+            try:
+                merchant = Merchant.objects.get(user=user)
+                if delivery.merchant == merchant:
+                    can_cancel = True
+                    cancelled_by = f"merchant {merchant.business_name}"
+            except Merchant.DoesNotExist:
+                pass
+        elif user.user_type == 'individual':
+            # Les particuliers peuvent annuler leurs propres livraisons
+            if delivery.created_by == user:
+                can_cancel = True
+                cancelled_by = f"individual {user.email}"
+        
+        if not can_cancel:
             return Response(
-                {'error': 'Cette livraison n\'est pas assignée à vous'},
+                {'error': 'Vous n\'avez pas la permission d\'annuler cette livraison'},
                 status=status.HTTP_403_FORBIDDEN
             )
         
@@ -559,7 +581,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         delivery.cancelled_at = timezone.now()
         delivery.save()
         
-        logger.warning(f"⚠️ Livraison {delivery.tracking_number} annulée par driver {driver.user.email}: {reason}")
+        logger.warning(f"⚠️ Livraison {delivery.tracking_number} annulée par {cancelled_by}: {reason}")
         
         serializer = DeliverySerializer(delivery)
         return Response({

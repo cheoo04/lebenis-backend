@@ -47,11 +47,12 @@ class DeliveryRepository {
     return true;
   }
 
-  Future<DeliveryModel> cancelDelivery(String id) async {
-    final response = await dioClient.patch(
+  Future<DeliveryModel> cancelDelivery(String id, {String reason = 'Annulé par le client'}) async {
+    final response = await dioClient.post(
       '${ApiConstants.deliveries}$id/cancel/',
+      data: {'reason': reason},
     );
-    return DeliveryModel.fromJson(response.data);
+    return DeliveryModel.fromJson(response.data['delivery'] ?? response.data);
   }
 
   Future<String> generatePdf(String id) async {

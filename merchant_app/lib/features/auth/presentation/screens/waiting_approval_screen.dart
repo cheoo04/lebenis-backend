@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_theme.dart';
 import '../../../../data/providers/merchant_provider.dart';
+import '../../../../data/providers/user_profile_provider.dart';
 
 class WaitingApprovalScreen extends ConsumerWidget {
   const WaitingApprovalScreen({super.key});
@@ -134,6 +135,9 @@ class WaitingApprovalScreen extends ConsumerWidget {
                         
                         if (context.mounted) {
                           if (profile?.verificationStatus == 'approved' || profile?.verificationStatus == 'verified') {
+                            // Rafraîchir aussi le userProfileProvider pour que le dashboard soit à jour
+                            await ref.read(userProfileProvider.notifier).loadProfile();
+                            
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('✅ Votre compte a été approuvé !'),
