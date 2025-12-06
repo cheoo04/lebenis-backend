@@ -56,7 +56,7 @@ class ProfileScreen extends ConsumerWidget {
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 8),
-                VerificationStatus(isVerified: merchant.verificationStatus == 'approved'),
+                VerificationStatus(isVerified: merchant.isVerified),
                 const SizedBox(height: 16),
                 _buildInfoCard(context, icon: Icons.person, title: 'Nom complet', value: fullName.isNotEmpty ? fullName : '-'),
                 _buildInfoCard(context, icon: Icons.phone, title: 'Téléphone', value: merchant.user?['phone'] ?? '-'),

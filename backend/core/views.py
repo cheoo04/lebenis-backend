@@ -65,7 +65,7 @@ class CloudinaryUploadView(APIView):
                     uploaded_file,
                     user_id=request.user.id
                 )
-            elif upload_type == 'document':
+            elif upload_type == 'document' or upload_type == 'merchant_document':
                 document_type = request.data.get('document_type', 'general')
                 logger.info(f"[CLOUDINARY_UPLOAD] document_type: {document_type}")
                 url = CloudinaryService.upload_document(

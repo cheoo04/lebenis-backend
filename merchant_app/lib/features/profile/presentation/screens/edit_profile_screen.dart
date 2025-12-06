@@ -258,12 +258,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
                   const SizedBox(height: 40),
 
-                  // Business name
+                  // Business name / Nom du commerce
                   ModernTextField(
                     controller: _businessNameController,
-                    label: 'Nom du commerce',
-                    hint: 'Mon magasin',
-                    prefixIcon: Icons.business,
+                    label: 'Nom du commerce / Entreprise',
+                    hint: 'Ex: Boutique Centrale, Shop Plus...',
+                    prefixIcon: Icons.store,
                     validator: (v) => v == null || v.isEmpty ? 'Nom requis' : null,
                   ),
 
