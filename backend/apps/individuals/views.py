@@ -42,20 +42,20 @@ class IndividualViewSet(viewsets.ModelViewSet):
         if not user.is_authenticated:
             return Individual.objects.none()
         
-        # Les particuliers voient uniquement leur propre profil
-        if user.user_type == 'individual':
-            return Individual.objects.filter(user=user)
+        # Les utilisateurs voient uniquement leur propre profil
+        # Sauf si c'est un admin
+        if user.is_staff:
+            return Individual.objects.all()
         
-        # Admins voient tout
-        return Individual.objects.all()
+        return Individual.objects.filter(user=user)
     
-    @action(detail=False, methods=['GET'], url_path='profile', permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False, methods=['GET'], url_path='profile', permission_classes=[permissions.IsAuthenticated], name='profile')
     def profile(self, request):
         """
         GET /api/v1/individuals/profile/
         
         Récupérer le profil du particulier connecté.
-        Créé automatiquement s'il n'existe pas encore.
+        Crée automatiquement s'il n'existe pas encore.
         """
         try:
             individual = Individual.objects.get(user=request.user)
@@ -65,9 +65,18 @@ class IndividualViewSet(viewsets.ModelViewSet):
             logger.info(f"✅ Profil particulier créé automatiquement pour {request.user.email}")
         
         serializer = IndividualSerializer(individual)
-        return Response(serializer.data)
+        data = serializer.data
+        
+        # Ajouter les infos user
+        data['user_id'] = str(request.user.id)
+        data['email'] = request.user.email
+        data['first_name'] = request.user.first_name
+        data['last_name'] = request.user.last_name
+        data['phone'] = getattr(request.user, 'phone', '')
+        
+        return Response(data)
     
-    @action(detail=False, methods=['GET'], permission_classes=[IsIndividual])
+    @action(detail=False, methods=['GET'], url_path='my-profile', permission_classes=[permissions.IsAuthenticated], name='my_profile')
     def my_profile(self, request):
         """
         GET /api/v1/individuals/my-profile/
@@ -76,7 +85,7 @@ class IndividualViewSet(viewsets.ModelViewSet):
         """
         return self.profile(request)
     
-    @action(detail=False, methods=['PATCH'], url_path='profile', permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False, methods=['PATCH'], url_path='profile', permission_classes=[permissions.IsAuthenticated], name='update_profile_endpoint')
     def update_profile_endpoint(self, request):
         """
         PATCH /api/v1/individuals/profile/
