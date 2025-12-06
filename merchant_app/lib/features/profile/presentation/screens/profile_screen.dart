@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../data/providers/merchant_provider.dart';
+import '../../../../data/providers/auth_provider.dart';
 import '../widgets/verification_status.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -69,6 +70,45 @@ class ProfileScreen extends ConsumerWidget {
                   },
                   icon: const Icon(Icons.edit),
                   label: const Text('Modifier le profil'),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      // Afficher un dialogue de confirmation
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Déconnexion'),
+                          content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Annuler'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('Déconnecter'),
+                            ),
+                          ],
+                        ),
+                      );
+                      
+                      if (confirm == true && context.mounted) {
+                        await ref.read(authStateProvider.notifier).logout();
+                        if (context.mounted) {
+                          Navigator.pushReplacementNamed(context, '/login');
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.logout),
+                    label: const Text('Déconnexion'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade600,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
                 ),
               ],
             ),

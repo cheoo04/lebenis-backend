@@ -67,6 +67,29 @@ class NotificationViewSet(viewsets.ModelViewSet):
         
         return Response({'success': True, 'message': 'Notification marquée comme lue'})
     
+    @action(detail=False, methods=['POST'], url_path='mark-all-as-read')
+    def mark_all_as_read(self, request):
+        """
+        POST /api/v1/notifications/main/mark-all-as-read/
+        
+        Marquer toutes les notifications de l'utilisateur comme lues.
+        """
+        updated_count = Notification.objects.filter(
+            user=request.user,
+            is_read=False
+        ).update(
+            is_read=True,
+            read_at=timezone.now()
+        )
+        
+        logger.info(f"✅ {updated_count} notifications marquées comme lues pour {request.user.email}")
+        
+        return Response({
+            'success': True,
+            'message': f'{updated_count} notification(s) marquée(s) comme lue(s)',
+            'count': updated_count
+        })
+    
     @action(detail=False, methods=['POST'])
     def register_token(self, request):
         """

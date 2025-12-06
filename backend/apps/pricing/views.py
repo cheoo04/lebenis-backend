@@ -66,10 +66,11 @@ class PricingZoneViewSet(PricingViewSetPermissionMixin, viewsets.ModelViewSet):
         logger.info(f"[assign_zones] Zones assignées avec succès pour driver.id={driver.id}, zones={zone_ids}")
         return Response({'success': True, 'assigned_zone_ids': zone_ids})
 
-    @action(detail=False, methods=['post'], url_path='calculate')
+    @action(detail=False, methods=['post'], url_path='calculate', permission_classes=[permissions.AllowAny])
     def calculate(self, request):
         """
         Endpoint pour calculer le prix d'une livraison.
+        Accessible sans authentification pour permettre aux particuliers de calculer les prix.
         """
         try:
             serializer = CalculatePriceSerializer(data=request.data)

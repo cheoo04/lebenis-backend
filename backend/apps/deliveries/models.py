@@ -38,7 +38,7 @@ class Delivery(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tracking_number = models.CharField(max_length=50, unique=True, default=generate_tracking_number)
     
-    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='deliveries')
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='deliveries', null=True, blank=True)
     driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, related_name='deliveries')
     
     # Adresse d'enlèvement
