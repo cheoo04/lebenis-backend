@@ -6,11 +6,27 @@ from django.db import models
 from .models import PricingZone, ZonePricingMatrix
 from django.core.exceptions import ValidationError
 from apps.core.location_service import LocationService
+import unicodedata
 
 # ⚠️ IMPORTANT: Vous aviez une mauvaise import
 # from backend.apps.drivers import models
 # Changé pour:
 # from django.db import models
+
+
+def normalize_commune_name(name):
+    """
+    Normalise un nom de commune pour la recherche case-insensitive et sans accents.
+    Exemples:
+    - "PORT-BOUET" -> "port-bouet"
+    - "Port-Bouët" -> "port-bouet"
+    - "COCODY" -> "cocody"
+    """
+    # Supprimer les accents
+    nfkd_form = unicodedata.normalize('NFKD', name)
+    text_without_accents = ''.join([c for c in nfkd_form if not unicodedata.combining(c)])
+    # Convertir en minuscules et supprimer les espaces extras
+    return text_without_accents.lower().strip()
 
 
 class PricingCalculator:
@@ -34,29 +50,35 @@ class PricingCalculator:
     def get_zone_from_commune(self, commune):
         """
         Récupère la zone tarifaire depuis le nom de la commune.
-        Si la zone n'existe pas, la crée automatiquement.
+        Normalise le nom pour ignorer les accents et la casse.
         
         Args:
-            commune (str): Nom de la commune (ex: "Cocody")
+            commune (str): Nom de la commune (ex: "Cocody", "PORT-BOUET", "Port-Bouët")
             
         Returns:
-            PricingZone: Zone trouvée ou créée
+            PricingZone: Zone trouvée
             
         Raises:
-            ValueError: Si impossible de créer/trouver la zone
+            ValidationError: Si la commune n'existe pas
         """
         try:
-            # Cherche la zone avec insensibilité à la casse
-            zone = PricingZone.objects.filter(
-                commune__iexact=commune,  # Case-insensitive
-                is_active=True
-            ).first()
+            # Cherche la zone avec insensibilité à la casse ET aux accents
+            normalized_input = normalize_commune_name(commune)
+            
+            # Récupérer toutes les communes et chercher par normalisation
+            all_zones = PricingZone.objects.filter(is_active=True)
+            zone = None
+            
+            for z in all_zones:
+                if normalize_commune_name(z.commune) == normalized_input:
+                    zone = z
+                    break
             
             if not zone:
                 # REFUSE la commune invalide
-                available_communes = PricingZone.objects.values_list(
-                    'commune', flat=True
-                ).distinct().order_by('commune')
+                available_communes = sorted(set([
+                    z.commune for z in PricingZone.objects.filter(is_active=True).values_list('commune', flat=True)
+                ]))
                 
                 communes_list = ', '.join(available_communes)
                 
@@ -69,6 +91,8 @@ class PricingCalculator:
         
         except PricingZone.DoesNotExist:
             raise ValidationError(f"Commune '{commune}' introuvable")
+        except ValidationError:
+            raise
         except Exception as e:
             raise ValidationError(f"Erreur lors de la recherche de zone: {str(e)}")
     

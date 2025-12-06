@@ -48,12 +48,13 @@ class IndividualModel {
       'last_name': lastName,
       'phone': phone,
       'address': address,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
     };
   }
 
   String get fullName => '$firstName $lastName'.trim();
+
+  @override
+  String toString() => 'IndividualModel(id: $id, email: $email, fullName: $fullName)';
 
   IndividualModel copyWith({
     String? id,

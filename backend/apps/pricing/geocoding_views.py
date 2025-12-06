@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import PricingZone
 from apps.core.location_service import LocationService
+from .calculator import normalize_commune_name
 
 
 @api_view(['GET'])
@@ -15,6 +16,7 @@ def get_commune_coordinates(request):
     
     Retourne les coordonnées GPS d'une commune.
     Utile pour l'app Flutter lors de la sélection d'une commune.
+    Gère les accents et la casse automatiquement.
     """
     commune = request.query_params.get('commune')
     
@@ -24,12 +26,20 @@ def get_commune_coordinates(request):
             status=status.HTTP_400_BAD_REQUEST
         )
     
-    # Chercher la zone avec coordonnées
-    zone = PricingZone.objects.filter(
-        commune__iexact=commune,
+    # Normaliser le nom entré pour la recherche
+    normalized_input = normalize_commune_name(commune)
+    
+    # Chercher la zone en comparant les noms normalisés
+    zone = None
+    all_zones = PricingZone.objects.filter(
         default_latitude__isnull=False,
         default_longitude__isnull=False
-    ).first()
+    )
+    
+    for z in all_zones:
+        if normalize_commune_name(z.commune) == normalized_input:
+            zone = z
+            break
     
     if zone:
         return Response({
