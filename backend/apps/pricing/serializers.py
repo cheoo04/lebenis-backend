@@ -152,12 +152,6 @@ class CalculatePriceSerializer(serializers.Serializer):
         Validation personnalisée des données.
         Vous pouvez ajouter des vérifications métier ici.
         """
-        # Exemple : Vérifier que les communes ne sont pas identiques
-        if data['pickup_commune'].lower() == data['delivery_commune'].lower():
-            raise serializers.ValidationError(
-                "La commune de départ ne peut pas être identique à celle d'arrivée"
-            )
-        
         # Vérifier que le poids est positif
         if data['package_weight_kg'] <= 0:
             raise serializers.ValidationError(

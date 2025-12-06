@@ -230,12 +230,17 @@ class PricingCalculator:
         # ÉTAPE 1 : Identifier les zones tarifaires
         # ═══════════════════════════════════════════════════════════════════
         
-        origin_zone = self.get_zone_from_commune(
-            delivery_data.get('pickup_commune', 'Cocody')
-        )
-        destination_zone = self.get_zone_from_commune(
-            delivery_data['delivery_commune']
-        )
+        # Valider les communes obligatoires
+        pickup_commune = delivery_data.get('pickup_commune')
+        delivery_commune = delivery_data.get('delivery_commune')
+        
+        if not pickup_commune or (isinstance(pickup_commune, str) and not pickup_commune.strip()):
+            raise ValidationError("pickup_commune est obligatoire")
+        if not delivery_commune or (isinstance(delivery_commune, str) and not delivery_commune.strip()):
+            raise ValidationError("delivery_commune est obligatoire")
+        
+        origin_zone = self.get_zone_from_commune(str(pickup_commune))
+        destination_zone = self.get_zone_from_commune(str(delivery_commune))
         
         # ═══════════════════════════════════════════════════════════════════
         # ÉTAPE 2 : Récupérer la matrice tarifaire

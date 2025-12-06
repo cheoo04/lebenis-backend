@@ -156,6 +156,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
 
   Future<void> _estimatePrice() async {
     if (_pickupCommune == null || _deliveryCommune == null || _packageWeightController.text.isEmpty) {
+      print('❌ Estimation impossible: pickup=$_pickupCommune, delivery=$_deliveryCommune, weight=${_packageWeightController.text}');
       setState(() => _estimatedPrice = null);
       return;
     }
@@ -168,10 +169,21 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
         'delivery_commune': _deliveryCommune!,
         'package_weight_kg': weight,
       };
+      print('📊 Estimation prix: $data');
       final estimate = await ref.read(pricingRepositoryProvider).estimatePrice(data);
+      print('✅ Prix estimé: ${estimate.total} FCFA');
       setState(() => _estimatedPrice = estimate.total);
     } catch (e) {
+      print('❌ Erreur estimation: $e');
       setState(() => _estimatedPrice = null);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur de calcul: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
       setState(() => _isLoadingEstimate = false);
     }

@@ -21,11 +21,11 @@ class IndividualViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Permissions adaptées :
-        - Actions individual: my_profile, update_profile, my_stats
+        - Actions individual: my_profile, update_profile, my_stats, profile, update_profile_endpoint
         - list/retrieve : Authentifié
         """
-        if self.action in ['my_profile', 'update_profile', 'my_stats']:
-            permission_classes = [permissions.IsAuthenticated, IsIndividual]
+        if self.action in ['my_profile', 'update_profile', 'my_stats', 'profile', 'update_profile_endpoint', 'my_profile']:
+            permission_classes = [permissions.IsAuthenticated]
         elif self.action in ['list', 'retrieve']:
             permission_classes = [permissions.IsAuthenticated]
         else:
@@ -57,8 +57,15 @@ class IndividualViewSet(viewsets.ModelViewSet):
         Récupérer le profil du particulier connecté.
         Crée automatiquement s'il n'existe pas encore.
         """
+        if not request.user.is_authenticated:
+            return Response(
+                {'error': 'Non authentifié'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
         try:
             individual = Individual.objects.get(user=request.user)
+            logger.info(f"✅ Profil particulier trouvé pour {request.user.email}")
         except Individual.DoesNotExist:
             # Créer automatiquement le profil si non existant
             individual = Individual.objects.create(user=request.user)
