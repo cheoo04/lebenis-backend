@@ -12,5 +12,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('reports/analytics-pdf/', generate_analytics_pdf, name='analytics-pdf'),
     path('reports/test-pdf/', test_pdf_generation, name='test-pdf'),
-    path('<int:delivery_id>/generate-pdf/', generate_delivery_pdf, name='delivery-pdf'),
+    path('<uuid:delivery_id>/generate-pdf/', generate_delivery_pdf, name='delivery-pdf'),
 ]
