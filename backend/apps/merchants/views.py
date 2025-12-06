@@ -70,14 +70,14 @@ class MerchantViewSet(viewsets.ModelViewSet):
         """
         merchant = self.get_object()
         
-        if merchant.verification_status == 'approved':
+        if merchant.verification_status == 'verified':
             return Response(
                 {'error': 'Ce commerçant est déjà approuvé'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
         # Approuver le merchant
-        merchant.verification_status = 'approved'
+        merchant.verification_status = 'verified'
         merchant.rejection_reason = ''  # Réinitialiser le motif de rejet
         merchant.save()
         

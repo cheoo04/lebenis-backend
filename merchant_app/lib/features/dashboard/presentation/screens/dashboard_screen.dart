@@ -67,7 +67,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         
         // Cas merchant: vérifier le statut de vérification
         if (profile is MerchantModel) {
-          if (profile.verificationStatus != 'approved') {
+          if (!profile.isVerified) {
             return _buildWaitingScreen(context, profile);
           }
           return _buildDashboard(context, ref, profile);
@@ -88,7 +88,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  ref.read(merchantProfileProvider.notifier).loadProfile();
+                  ref.read(userProfileProvider.notifier).loadProfile();
                 },
                 child: const Text('Réessayer'),
               ),
@@ -309,15 +309,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _buildStatsGrid(BuildContext context, dynamic stats) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final crossAxisCount = screenWidth > 600 ? 4 : 2;
-    final childAspectRatio = screenWidth > 600 ? 1.2 : 1.0;
+    // Adaptation selon la taille d'écran
+    final crossAxisCount = screenWidth > 900 ? 4 : (screenWidth > 600 ? 3 : 2);
+    final childAspectRatio = screenWidth > 600 ? 1.1 : 0.95;
+    final spacing = screenWidth > 600 ? 12.0 : 10.0;
     
     return GridView.count(
       crossAxisCount: crossAxisCount,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
+      mainAxisSpacing: spacing,
+      crossAxisSpacing: spacing,
       childAspectRatio: childAspectRatio,
       children: [
         ModernStatCard(

@@ -133,7 +133,7 @@ class WaitingApprovalScreen extends ConsumerWidget {
                         final profile = ref.read(merchantProfileProvider).value;
                         
                         if (context.mounted) {
-                          if (profile?.verificationStatus == 'approved') {
+                          if (profile?.verificationStatus == 'approved' || profile?.verificationStatus == 'verified') {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('✅ Votre compte a été approuvé !'),

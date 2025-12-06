@@ -67,6 +67,10 @@ class MerchantRepository {
         ApiConstants.cloudinaryUpload,
         rccmDocument,
         fileKey: 'file',
+        additionalData: {
+          'upload_type': 'document',
+          'document_type': 'rccm',
+        },
       );
       rccmUrl = rccmResponse.data['url'];
     }
@@ -76,6 +80,10 @@ class MerchantRepository {
         ApiConstants.cloudinaryUpload,
         idDocument,
         fileKey: 'file',
+        additionalData: {
+          'upload_type': 'document',
+          'document_type': 'id_card',
+        },
       );
       idUrl = idResponse.data['url'];
     }

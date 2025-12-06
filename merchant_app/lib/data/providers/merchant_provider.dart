@@ -50,7 +50,7 @@ class MerchantNotifier extends Notifier<AsyncValue<MerchantModel?>> {
     required String merchantId,
     String? businessName,
     String? phone,
-    String? address,
+    String? businessAddress,
   }) async {
     state = const AsyncValue.loading();
     try {
@@ -58,7 +58,7 @@ class MerchantNotifier extends Notifier<AsyncValue<MerchantModel?>> {
         merchantId: merchantId,
         businessName: businessName,
         phone: phone,
-        address: address,
+        businessAddress: businessAddress,
       );
       state = AsyncValue.data(updated);
     } catch (e, st) {
