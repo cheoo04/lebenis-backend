@@ -866,3 +866,42 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         serializer.save(delivery=delivery)
         
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    @action(detail=True, methods=['GET'], url_path='report-pdf')
+    def generate_pdf_report(self, request, pk=None):
+        """
+        Génère un rapport PDF pour une livraison.
+        Accessible par le merchant/individual propriétaire ou les admins.
+        """
+        from .pdf_service import PDFReportService
+        from django.http import HttpResponse
+        
+        delivery = self.get_object()
+        
+        # Vérifier les permissions
+        if not request.user.is_staff:
+            # Vérifier que c'est le merchant/individual de la livraison
+            if delivery.merchant and delivery.merchant.user != request.user:
+                return Response(
+                    {'detail': 'Vous n\'avez pas accès à ce rapport'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            elif not delivery.merchant and not hasattr(request.user, 'individual_profile'):
+                return Response(
+                    {'detail': 'Vous n\'avez pas accès à ce rapport'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        
+        try:
+            pdf_content = PDFReportService.generate_delivery_report(delivery)
+            
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="livraison_{delivery.tracking_number}.pdf"'
+            
+            return response
+        except Exception as e:
+            logger.error(f"Erreur génération PDF: {e}", exc_info=True)
+            return Response(
+                {'error': f'Erreur lors de la génération du PDF: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
