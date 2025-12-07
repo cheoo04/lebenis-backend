@@ -1,0 +1,3 @@
+delivery_id,backend_source,backend_distance_km,backend_duration_min,backend_points_count,osrm_distance_km,osrm_duration_min,osrm_points_count,match
+e1ef21db-eadf-4df7-baef-7e88d2220691,osrm,2.05,3.8,64,2.05,3.8,64,True
+2358f768-6a49-4744-a180-8b8a8a5fa01a,osrm,7.48,10.1,249,7.48,10.1,249,True

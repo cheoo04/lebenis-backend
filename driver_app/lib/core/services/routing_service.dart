@@ -2,6 +2,7 @@
 // Service pour calculer les itinéraires réels avec OSRM
 
 import 'package:latlong2/latlong.dart';
+import 'package:dio/dio.dart' as dio_pkg;
 import '../network/dio_client.dart';
 
 /// Modèle pour un point de route
@@ -245,6 +246,12 @@ class RoutingService {
 
       return RouteResult.fromJson(response.data);
     } catch (e) {
+      // If backend failed, try public OSRM as a best-effort before falling back
+      try {
+        final osrm = await _callOsrmRoute(origin, destination, waypoints: waypoints);
+        if (osrm != null) return osrm;
+      } catch (_) {}
+
       // Fallback: retourne une ligne droite
       return _fallbackStraightLine(origin, destination);
     }
@@ -278,11 +285,93 @@ class RoutingService {
         data: data,
       );
 
-      return DeliveryRouteResult.fromJson(response.data);
+      final result = DeliveryRouteResult.fromJson(response.data);
+      // If backend returned no legs / no polyline (approx), try public OSRM
+      if ((result.legs.isEmpty || result.allPolylinePoints.isEmpty)) {
+        try {
+          final osrm = await _callOsrmDeliveryRoute(pickup, delivery, driverPosition);
+          if (osrm != null) return osrm;
+        } catch (_) {}
+      }
+
+      return result;
     } catch (e) {
+      // If backend failed, try public OSRM as a best-effort before falling back
+      try {
+        final osrm = await _callOsrmDeliveryRoute(pickup, delivery, driverPosition);
+        if (osrm != null) return osrm;
+      } catch (_) {}
+
       // Fallback: retourne une ligne droite
       return _fallbackDeliveryRoute(pickup, delivery, driverPosition);
     }
+  }
+
+  /// Try public OSRM demo server to build a route (returns null on failure)
+  Future<RouteResult?> _callOsrmRoute(LatLng origin, LatLng destination, {List<LatLng>? waypoints}) async {
+    final coords = <String>[];
+    coords.add('${origin.longitude},${origin.latitude}');
+    if (waypoints != null && waypoints.isNotEmpty) {
+      for (final w in waypoints) {
+        coords.add('${w.longitude},${w.latitude}');
+      }
+    }
+    coords.add('${destination.longitude},${destination.latitude}');
+
+    final url = 'https://router.project-osrm.org/route/v1/driving/${coords.join(';')}?overview=full&geometries=geojson&steps=true&annotations=true';
+
+    final d = dio_pkg.Dio();
+    final resp = await d.get(url);
+    if (resp.statusCode == 200 && resp.data != null && resp.data['routes'] != null && (resp.data['routes'] as List).isNotEmpty) {
+      final rt = resp.data['routes'][0];
+      final geometry = rt['geometry'];
+      final coordsList = (geometry['coordinates'] as List)
+          .map((c) => RoutePoint(lat: (c[1] as num).toDouble(), lng: (c[0] as num).toDouble()))
+          .toList();
+      final distanceKm = (rt['distance'] as num?)?.toDouble() ?? 0.0;
+      final durationMin = ((rt['duration'] as num?)?.toDouble() ?? 0.0) / 60.0;
+
+      return RouteResult(
+        success: true,
+        source: 'osrm',
+        distanceKm: distanceKm / 1000.0,
+        durationMin: durationMin,
+        polylinePoints: coordsList,
+        encodedPolyline: null,
+      );
+    }
+    return null;
+  }
+
+  /// Try public OSRM for a delivery route (driver -> pickup -> delivery)
+  Future<DeliveryRouteResult?> _callOsrmDeliveryRoute(LatLng pickup, LatLng delivery, LatLng? driverPosition) async {
+    final coords = <String>[];
+    if (driverPosition != null) coords.add('${driverPosition.longitude},${driverPosition.latitude}');
+    coords.add('${pickup.longitude},${pickup.latitude}');
+    coords.add('${delivery.longitude},${delivery.latitude}');
+
+    final url = 'https://router.project-osrm.org/route/v1/driving/${coords.join(';')}?overview=full&geometries=geojson&steps=true&annotations=true';
+    final d = dio_pkg.Dio();
+    final resp = await d.get(url);
+    if (resp.statusCode == 200 && resp.data != null && resp.data['routes'] != null && (resp.data['routes'] as List).isNotEmpty) {
+      final rt = resp.data['routes'][0];
+      final geometry = rt['geometry'];
+      final coordsList = (geometry['coordinates'] as List)
+          .map((c) => RoutePoint(lat: (c[1] as num).toDouble(), lng: (c[0] as num).toDouble()))
+          .toList();
+
+      final distanceKm = (rt['distance'] as num?)?.toDouble() ?? 0.0;
+      final durationMin = ((rt['duration'] as num?)?.toDouble() ?? 0.0) / 60.0;
+
+      return DeliveryRouteResult(
+        success: true,
+        totalDistanceKm: distanceKm / 1000.0,
+        totalDurationMin: durationMin,
+        legs: [],
+        allPolylinePoints: coordsList,
+      );
+    }
+    return null;
   }
 
   /// Fallback: retourne une ligne droite entre 2 points

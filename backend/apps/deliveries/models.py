@@ -87,6 +87,8 @@ class Delivery(models.Model):
     calculated_price = models.DecimalField(max_digits=10, decimal_places=2)
     actual_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     distance_km = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    # Source de la distance calculée: 'osrm', 'openrouteservice', 'fallback_straight_line', 'app_osrm', etc.
+    distance_source = models.CharField(max_length=50, null=True, blank=True)
     
     # Paiement
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
