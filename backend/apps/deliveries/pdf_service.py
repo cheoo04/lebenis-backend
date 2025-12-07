@@ -6,8 +6,19 @@ from datetime import datetime
 from io import BytesIO
 from django.template.loader import render_to_string
 from django.utils import timezone
+# ReportLab used as a robust fallback when WeasyPrint fails in this environment
 from weasyprint import HTML, CSS
 from weasyprint.text.fonts import FontConfiguration
+try:
+    from reportlab.pdfgen import canvas as reportlab_canvas
+    from reportlab.lib.pagesizes import A4 as REPORTLAB_A4
+except Exception:
+    reportlab_canvas = None
+    REPORTLAB_A4 = None
+import importlib
+import pkgutil
+import pydyf as _pydyf
+
 from .analytics_service import AnalyticsService
 import logging
 
@@ -389,6 +400,52 @@ class PDFReportService:
 
             # Configure fonts
             font_config = FontConfiguration()
+            # Defensive check: some pydyf versions used by WeasyPrint lack
+            # the expected Stream.transform implementation which triggers
+            # an AttributeError inside WeasyPrint during rendering. If the
+            # runtime pydyf does not expose `transform` on its Stream class,
+            # skip WeasyPrint and use the ReportLab fallback to avoid a 500.
+            try:
+                pydyf_stream_has_transform = hasattr(_pydyf.Stream, 'transform')
+                pydyf_version = getattr(_pydyf, '__version__', 'unknown')
+            except Exception:
+                pydyf_stream_has_transform = False
+                pydyf_version = 'unknown'
+
+            if not pydyf_stream_has_transform:
+                logger.error("Incompatible pydyf detected for WeasyPrint rendering", extra={
+                    'pydyf_version': pydyf_version,
+                    'delivery_id': getattr(delivery, 'id', None),
+                    'tracking_number': getattr(delivery, 'tracking_number', None),
+                })
+                # Also capture a Sentry message if available so the ops team
+                # can be alerted about the environment mismatch.
+                try:
+                    import sentry_sdk
+                    sentry_sdk.capture_message(f"Incompatible pydyf for WeasyPrint: {pydyf_version} (delivery={getattr(delivery, 'id', None)})")
+                except Exception:
+                    pass
+                # Immediately use ReportLab fallback (avoids repeated WeasyPrint failures)
+                if reportlab_canvas is None or REPORTLAB_A4 is None:
+                    logger.error("ReportLab not available for immediate fallback — will attempt WeasyPrint anyway")
+                else:
+                    try:
+                        c = reportlab_canvas.Canvas(pdf_file, pagesize=REPORTLAB_A4)
+                        width, height = REPORTLAB_A4
+                        c.setFont('Helvetica', 14)
+                        c.drawString(50, height - 50, f"Delivery {getattr(delivery, 'tracking_number', '')}")
+                        c.setFont('Helvetica', 11)
+                        c.drawString(50, height - 80, f"Status: {getattr(delivery, 'status', '')}")
+                        c.drawString(50, height - 100, f"Merchant: {getattr(getattr(delivery, 'merchant', None), 'business_name', '')}")
+                        c.drawString(50, height - 120, f"Recipient: {getattr(delivery, 'recipient_name', '')} - {getattr(delivery, 'recipient_phone', '')}")
+                        c.showPage()
+                        c.save()
+                        pdf_file.seek(0)
+                        logger.info("Immediate ReportLab fallback PDF generated due to pydyf incompatibility", extra={'delivery_id': getattr(delivery, 'id', None)})
+                        return pdf_file
+                    except Exception:
+                        logger.exception("Immediate ReportLab fallback failed; will attempt WeasyPrint as last resort")
+
             HTML(string=html_string).write_pdf(
                 pdf_file,
                 stylesheets=[CSS(string=PDFReportService._get_delivery_css())],
@@ -444,9 +501,50 @@ class PDFReportService:
                 pdf_file.seek(0)
                 return pdf_file
             except Exception:
-                # If fallback fails, re-raise to be handled by caller
-                logger.exception("Fallback PDF generation also failed")
-                raise
+                # If fallback fails, try to generate a very small PDF using
+                # ReportLab (pure-Python, does not depend on Cairo/Pango).
+                logger.exception("Fallback PDF generation also failed — attempting ReportLab fallback")
+
+                if reportlab_canvas is None or REPORTLAB_A4 is None:
+                    logger.error("ReportLab not available for fallback — re-raising")
+                    raise
+
+                try:
+                    pdf_file = BytesIO()
+                    c = reportlab_canvas.Canvas(pdf_file, pagesize=REPORTLAB_A4)
+                    width, height = REPORTLAB_A4
+                    # Simple textual layout — safe and unlikely to fail
+                    tracking = getattr(delivery, 'tracking_number', '')
+                    status = getattr(delivery, 'status', '')
+                    merchant_name = ''
+                    try:
+                        merchant_name = delivery.merchant.business_name
+                    except Exception:
+                        merchant_name = ''
+
+                    driver_name = ''
+                    try:
+                        driver_name = f"{delivery.driver.user.first_name} {delivery.driver.user.last_name}"
+                    except Exception:
+                        driver_name = ''
+
+                    c.setFont('Helvetica', 14)
+                    c.drawString(50, height - 50, f"Delivery {tracking}")
+                    c.setFont('Helvetica', 11)
+                    c.drawString(50, height - 80, f"Status: {status}")
+                    c.drawString(50, height - 100, f"Merchant: {merchant_name}")
+                    c.drawString(50, height - 120, f"Recipient: {getattr(delivery, 'recipient_name', '')} - {getattr(delivery, 'recipient_phone', '')}")
+                    c.drawString(50, height - 140, f"Price: {getattr(delivery, 'calculated_price', '')}")
+                    c.drawString(50, height - 160, f"Distance (km): {getattr(delivery, 'distance_km', '')}")
+                    c.drawString(50, height - 180, f"Driver: {driver_name}")
+                    c.showPage()
+                    c.save()
+                    pdf_file.seek(0)
+                    logger.info("ReportLab fallback PDF generated", extra={'delivery_id': getattr(delivery, 'id', None), 'tracking_number': getattr(delivery, 'tracking_number', None)})
+                    return pdf_file
+                except Exception:
+                    logger.exception("ReportLab fallback also failed — re-raising")
+                    raise
     
     @staticmethod
     def generate_delivery_filename(delivery):
