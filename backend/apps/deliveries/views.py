@@ -69,20 +69,24 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             # Récupère le merchant ou l'individual
             merchant = Merchant.objects.filter(user=self.request.user).first()
             
+            delivery_data = serializer.validated_data
+
             if merchant:
-                # Cas merchant : utilise l'adresse principale
-                pickup_address = merchant.addresses.filter(is_primary=True).first()
-                if not pickup_address:
-                    raise ValidationError("Vous devez avoir une adresse principale")
-                pickup_commune = pickup_address.commune
+                # Cas merchant : privilégier la valeur fournie dans la payload si présente
+                pickup_commune = delivery_data.get('pickup_commune')
+                if not pickup_commune:
+                    # fallback sur l'adresse principale du merchant
+                    pickup_address = merchant.addresses.filter(is_primary=True).first()
+                    if not pickup_address:
+                        raise ValidationError("Vous devez avoir une adresse principale ou fournir 'pickup_commune' dans la requête")
+                    pickup_commune = pickup_address.commune
             else:
                 # Cas particulier : utilise pickup_commune fourni dans les données
                 from apps.individuals.models import Individual
                 individual = Individual.objects.filter(user=self.request.user).first()
                 if not individual:
                     raise ValidationError("Vous n'avez pas de profil")
-                
-                delivery_data = serializer.validated_data
+
                 pickup_commune = delivery_data.get('pickup_commune')
                 if not pickup_commune:
                     raise ValidationError("pickup_commune est requis pour les particuliers")
@@ -98,10 +102,36 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             }
             
             # Ajouter les quartiers optionnels pour plus de précision
-            if delivery_data.get('pickup_quartier'):
-                pricing_data['pickup_quartier'] = delivery_data.get('pickup_quartier')
-            if delivery_data.get('delivery_quartier'):
-                pricing_data['delivery_quartier'] = delivery_data.get('delivery_quartier')
+            # Normaliser / ignorer les valeurs vides ou non-textuelles
+            pk_quartier = delivery_data.get('pickup_quartier')
+            if pk_quartier is not None:
+                if isinstance(pk_quartier, str):
+                    pk_quartier = pk_quartier.strip()
+                if pk_quartier:
+                    pricing_data['pickup_quartier'] = pk_quartier
+
+            dl_quartier = delivery_data.get('delivery_quartier')
+            if dl_quartier is not None:
+                if isinstance(dl_quartier, str):
+                    dl_quartier = dl_quartier.strip()
+                if dl_quartier:
+                    pricing_data['delivery_quartier'] = dl_quartier
+
+            # Si le client fournit des coordonnées GPS, les transmettre au calculateur
+            try:
+                pl = delivery_data.get('pickup_latitude')
+                pr = delivery_data.get('pickup_longitude')
+                dl = delivery_data.get('delivery_latitude')
+                dr = delivery_data.get('delivery_longitude')
+
+                if pl is not None and pr is not None:
+                    # convertir en float si nécessaire
+                    pricing_data['pickup_coords'] = (float(pl), float(pr))
+                if dl is not None and dr is not None:
+                    pricing_data['delivery_coords'] = (float(dl), float(dr))
+            except (TypeError, ValueError):
+                # ignorer si conversion échoue — le calculateur utilisera le fallback
+                logger.warning('Coordonnées GPS fournies invalides; fallback sur zones')
 
             # Calcule le prix
             calculator = PricingCalculator()
@@ -122,9 +152,10 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 delivery_confirmation_code=delivery_confirmation_code
             )
 
-            # Envoie le code PIN par email (manuel pour test)
+            # Envoie le code PIN par email au créateur (merchant ou individual)
             from .email_service import send_delivery_pin_email
-            send_delivery_pin_email(delivery_confirmation_code, "yahmardocheek@gmail.com", serializer.instance)
+            recipient_email = getattr(self.request.user, 'email', None) or 'yahmardoch@gmail.com'
+            send_delivery_pin_email(delivery_confirmation_code, recipient_email, serializer.instance)
 
         except ValidationError as e:
             logger.warning(f"⚠️ Validation error: {str(e)}")
