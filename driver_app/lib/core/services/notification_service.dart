@@ -25,8 +25,6 @@ class NotificationService {
   Future<void> initialize({bool firebaseEnabled = true}) async {
     if (!firebaseEnabled) {
       if (kDebugMode) {
-        debugPrint('💡 Firebase non disponible sur cette plateforme');
-        debugPrint('💡 Les notifications push ne seront pas disponibles');
       }
       return;
     }
@@ -45,8 +43,6 @@ class NotificationService {
       _configureFirebaseHandlers();
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('⚠️ Erreur initialisation NotificationService: $e');
-        debugPrint('💡 Les notifications ne seront pas disponibles');
       }
     }
   }

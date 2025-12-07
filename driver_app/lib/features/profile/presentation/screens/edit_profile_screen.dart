@@ -561,9 +561,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
 
   // Nouvelle méthode centralisée pour upload
   Future<Map<String, String?>> _uploadAllDocuments() async {
-    debugPrint('=== DEBUG UPLOAD ===');
-    debugPrint('Photo de profil: file=$_newProfilePhoto, bytes=${_newProfilePhotoBytes?.length}');
-    debugPrint('Vignette: file=$_newVignettePhoto, bytes=${_newVignettePhotoBytes?.length}');
     final Map<String, String?> uploads = {};
     final List<String> failed = [];
     // Helper to upload and check

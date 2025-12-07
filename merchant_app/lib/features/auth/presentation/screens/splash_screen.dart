@@ -38,7 +38,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 		
 		final profileState = ref.read(userProfileProvider);		// Gérer les erreurs de chargement du profil
 		if (profileState.hasError) {
-			debugPrint('Erreur chargement profil: ${profileState.error}');
 			if (mounted) {
 				ScaffoldMessenger.of(context).showSnackBar(
 					SnackBar(
@@ -60,7 +59,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 			
 			// Cas merchant: vérifier le statut de vérification
 			if (profile is MerchantModel) {
-				debugPrint('Profil merchant chargé - statut: ${profile.verificationStatus}');
 				
 				if (profile.verificationStatus == 'approved' || profile.verificationStatus == 'verified') {
 					if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
@@ -73,11 +71,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 				}
 			} else {
 				// Cas particulier: aller directement au dashboard
-				debugPrint('Profil individual chargé');
 				if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
 			}
 		} catch (e) {
-			debugPrint('Erreur lors de la vérification: $e');
 			if (mounted) Navigator.pushReplacementNamed(context, '/login');
 		}
 	}

@@ -245,7 +245,6 @@ class RoutingService {
 
       return RouteResult.fromJson(response.data);
     } catch (e) {
-      print('❌ Erreur calcul itinéraire: $e');
       // Fallback: retourne une ligne droite
       return _fallbackStraightLine(origin, destination);
     }
@@ -281,7 +280,6 @@ class RoutingService {
 
       return DeliveryRouteResult.fromJson(response.data);
     } catch (e) {
-      print('❌ Erreur calcul itinéraire livraison: $e');
       // Fallback: retourne une ligne droite
       return _fallbackDeliveryRoute(pickup, delivery, driverPosition);
     }

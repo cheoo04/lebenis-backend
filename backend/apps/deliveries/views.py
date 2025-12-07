@@ -96,6 +96,12 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 'is_fragile': delivery_data.get('is_fragile', False),
                 'scheduling_type': delivery_data.get('scheduling_type', 'immediate'),
             }
+            
+            # Ajouter les quartiers optionnels pour plus de précision
+            if delivery_data.get('pickup_quartier'):
+                pricing_data['pickup_quartier'] = delivery_data.get('pickup_quartier')
+            if delivery_data.get('delivery_quartier'):
+                pricing_data['delivery_quartier'] = delivery_data.get('delivery_quartier')
 
             # Calcule le prix
             calculator = PricingCalculator()

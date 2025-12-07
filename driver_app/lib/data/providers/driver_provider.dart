@@ -242,12 +242,9 @@ class DriverNotifier extends Notifier<DriverState> {
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      print('💾 [DEBUG] updateProfile called with: $data');
       final updatedDriver = await _repository.updateProfile(data);
       // 🔄 Recharger le profil depuis le serveur pour obtenir la dernière URL Cloudinary
-      print('🔄 [DEBUG] Profile updated - reloading from server...');
       await loadProfile();
-      print('✅ [DEBUG] Profile reloaded from server');
       state = state.copyWith(
         isLoading: false,
         driver: updatedDriver,
@@ -255,7 +252,6 @@ class DriverNotifier extends Notifier<DriverState> {
       );
       return true;
     } catch (e) {
-      print('❌ [DEBUG] updateProfile error: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),

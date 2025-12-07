@@ -46,7 +46,6 @@ class DeliveryModelSignalTest(TestCase):
             cur.close()
             conn.close()
         except Exception as e:
-            print(f"Erreur lors de la fermeture des connexions à la base de test : {e}")
 
     def test_pin_generated_and_email_sent_on_save(self):
         delivery = Delivery.objects.create(

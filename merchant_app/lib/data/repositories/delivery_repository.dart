@@ -32,12 +32,9 @@ class DeliveryRepository {
 
   Future<DeliveryModel> createDelivery(Map<String, dynamic> data) async {
     try {
-      print('📦 Création livraison: $data');
       final response = await dioClient.post(ApiConstants.deliveries, data: data);
-      print('✅ Réponse backend: ${response.data}');
       return DeliveryModel.fromJson(response.data);
     } catch (e) {
-      print('❌ Erreur création livraison: $e');
       rethrow;
     }
   }
@@ -64,7 +61,6 @@ class DeliveryRepository {
       // Le backend retourne l'URL du PDF
       return response.data['pdf_url'] ?? response.data['url'] ?? '';
     } catch (e) {
-      print('❌ Erreur génération PDF: $e');
       rethrow;
     }
   }

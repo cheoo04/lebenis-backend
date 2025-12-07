@@ -51,7 +51,6 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
           }
         }
       } catch (e) {
-        debugPrint('Error loading deliveries: $e');
         // Si erreur d'authentification, rediriger vers login
         if (e.toString().contains('Token invalide') || 
             e.toString().contains('token_not_valid') ||

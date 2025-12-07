@@ -26,7 +26,6 @@ class NotificationService {
   Future<void> initialize({bool firebaseEnabled = true}) async {
     if (!firebaseEnabled) {
       if (kDebugMode) {
-        debugPrint('💡 Firebase non disponible sur cette plateforme');
       }
       return;
     }
@@ -40,7 +39,6 @@ class NotificationService {
       // Le token sera enregistré après login via registerTokenAfterLogin()
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('⚠️ Erreur initialisation NotificationService: $e');
       }
     }
   }
@@ -49,7 +47,6 @@ class NotificationService {
   Future<void> registerTokenAfterLogin() async {
     if (_fcm == null) {
       if (kDebugMode) {
-        debugPrint('⚠️ Firebase Messaging non initialisé');
       }
       return;
     }
@@ -57,11 +54,9 @@ class NotificationService {
     try {
       await _registerToken();
       if (kDebugMode) {
-        debugPrint('✅ Token FCM enregistré après connexion');
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('❌ Erreur enregistrement token après connexion: $e');
       }
     }
   }
@@ -78,9 +73,7 @@ class NotificationService {
 
     if (kDebugMode) {
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        debugPrint('✅ Permissions notifications accordées');
       } else {
-        debugPrint('❌ Permissions notifications refusées');
       }
     }
   }
@@ -141,7 +134,6 @@ class NotificationService {
   /// Handler pour messages en foreground
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
     if (kDebugMode) {
-      debugPrint('📩 Notification reçue (foreground): ${message.notification?.title}');
     }
 
     // Afficher notification locale
@@ -155,7 +147,6 @@ class NotificationService {
   /// Handler pour tap sur notification (background)
   void _handleBackgroundMessageTap(RemoteMessage message) {
     if (kDebugMode) {
-      debugPrint('👆 Tap sur notification: ${message.data}');
     }
 
     if (onNotificationTap != null) {
@@ -166,7 +157,6 @@ class NotificationService {
   /// Handler pour rafraîchissement du token
   Future<void> _handleTokenRefresh(String newToken) async {
     if (kDebugMode) {
-      debugPrint('🔄 Token FCM rafraîchi');
     }
     _fcmToken = newToken;
     await _registerToken();
@@ -193,11 +183,9 @@ class NotificationService {
       );
 
       if (kDebugMode) {
-        debugPrint('✅ Token FCM enregistré: ${token.substring(0, 20)}...');
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('❌ Erreur enregistrement token: $e');
       }
     }
   }
@@ -213,11 +201,9 @@ class NotificationService {
       );
 
       if (kDebugMode) {
-        debugPrint('✅ Token FCM supprimé');
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('❌ Erreur suppression token: $e');
       }
     }
   }

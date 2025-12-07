@@ -69,10 +69,8 @@ class DeliveryRepository {
       }
       
       // Sinon, retourner une liste vide
-      debugPrint('DEBUG: Unexpected available deliveries format: ${data.runtimeType}');
       return [];
     } catch (e) {
-      debugPrint('DEBUG: Error loading available deliveries: $e');
       rethrow;
     }
   }
@@ -102,8 +100,6 @@ class DeliveryRepository {
       
       // Debug: Afficher la structure complète
       if (data is Map) {
-        debugPrint('DEBUG: Response keys: ${data.keys.toList()}');
-        debugPrint('DEBUG: Has results: ${data.containsKey('results')}');
       }
       
       // Si c'est une Map avec 'results' (pagination Django REST)
@@ -125,13 +121,10 @@ class DeliveryRepository {
       }
       
       // Sinon, retourner une liste vide avec debug
-      debugPrint('DEBUG: Unexpected delivery data format: ${data.runtimeType}');
       if (data is Map) {
-        debugPrint('DEBUG: Map keys: ${data.keys.toList()}');
       }
       return [];
     } catch (e) {
-      debugPrint('DEBUG: Error loading my deliveries: $e');
       rethrow;
     }
   }

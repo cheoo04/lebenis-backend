@@ -51,11 +51,9 @@ class DioClient {
     if (!isPublicEndpoint) {
       final token = await _authService.getAccessToken();
         // Ajout debug : debugPrint du token à chaque requête privée
-        debugPrint('[DIO_CLIENT] Token utilisé pour ${options.path}: $token');
       if (token != null && token.isNotEmpty) {
         options.headers['Authorization'] = 'Bearer $token';
       } else {
-        debugPrint('[DIO_CLIENT] Aucun token trouvé pour ${options.path}');
       }
     }
     
@@ -73,7 +71,6 @@ class DioClient {
       
       // Si le token est invalide ou expiré
       if (code == 'token_not_valid' || code == 'token_expired') {
-        debugPrint('[DIO_CLIENT] Token invalide détecté, déconnexion...');
         await _authService.logout();
         
         // Créer une DioException pour que l'app puisse la gérer

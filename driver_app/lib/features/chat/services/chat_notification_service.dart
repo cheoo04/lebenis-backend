@@ -31,7 +31,6 @@ class ChatNotificationService {
         await _sendTokenToBackend(token);
         
         if (kDebugMode) {
-          debugPrint('✅ Chat notifications initialisées avec token: ${token.substring(0, 20)}...');
         }
       }
       
@@ -46,7 +45,6 @@ class ChatNotificationService {
       
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('⚠️ Erreur initialisation ChatNotificationService: $e');
       }
     }
   }
@@ -68,12 +66,10 @@ class ChatNotificationService {
         });
         
         if (kDebugMode) {
-          debugPrint('✅ Token FCM enregistré après connexion');
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('❌ Erreur enregistrement token après connexion: $e');
       }
     }
   }
@@ -91,11 +87,9 @@ class ChatNotificationService {
       );
       
       if (kDebugMode) {
-        debugPrint('📤 Token FCM envoyé au backend');
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('❌ Erreur envoi token au backend: $e');
       }
     }
   }
@@ -110,11 +104,9 @@ class ChatNotificationService {
       await _notificationService.subscribeToTopic('chat_messages');
       
       if (kDebugMode) {
-        debugPrint('📢 Abonné aux topics de notifications');
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('⚠️ Erreur abonnement topics: $e');
       }
     }
   }
@@ -131,11 +123,9 @@ class ChatNotificationService {
       }
       
       if (kDebugMode) {
-        debugPrint('📢 Désabonné des topics de notifications');
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('⚠️ Erreur désabonnement: $e');
       }
     }
   }
@@ -149,11 +139,9 @@ class ChatNotificationService {
       );
       
       if (kDebugMode) {
-        debugPrint('🗑️ Token FCM supprimé du backend');
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('⚠️ Erreur suppression token: $e');
       }
     }
   }

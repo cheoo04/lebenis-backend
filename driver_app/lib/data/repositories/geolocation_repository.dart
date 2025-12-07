@@ -35,7 +35,6 @@ class GeolocationRepository {
         (response.data['longitude'] as num).toDouble(),
       );
     } catch (e) {
-      print('Erreur lors de la récupération des coordonnées: $e');
       return null;
     }
   }
@@ -55,7 +54,6 @@ class GeolocationRepository {
         (response.data['longitude'] as num).toDouble(),
       );
     } catch (e) {
-      print('Géocodage échoué: $e');
       return null;
     }
   }

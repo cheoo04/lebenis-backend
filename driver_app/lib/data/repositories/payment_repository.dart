@@ -26,7 +26,6 @@ class PaymentRepository {
       required String successUrl,
     }) async {
       try {
-        debugPrint('🌊 [PaymentRepository] createWaveSession: amount=$amount, currency=$currency');
         final response = await _dioClient.post(
           ApiConstants.paymentWaveSession,
           data: {
@@ -43,7 +42,6 @@ class PaymentRepository {
         }
         return url;
       } catch (e) {
-        debugPrint('❌ [PaymentRepository] createWaveSession error: $e');
         rethrow;
       }
     }
@@ -70,14 +68,12 @@ class PaymentRepository {
   /// ```
   Future<Map<String, dynamic>> getMyEarnings({String period = 'week'}) async {
     try {
-      debugPrint('📊 [PaymentRepository] getMyEarnings(period=$period)');
       
       final response = await _dioClient.get(
         ApiConstants.paymentMyEarnings,
         queryParameters: {'period': period},
       );
 
-      debugPrint('✅ [PaymentRepository] My Earnings: ${response.data}');
       
     // Parse les payments dans la réponse
     final data = response.data as Map<String, dynamic>;
@@ -87,7 +83,6 @@ class PaymentRepository {
       .toList();
     return data;
     } catch (e) {
-      debugPrint('❌ [PaymentRepository] getMyEarnings error: $e');
       rethrow;
     }
   }
@@ -107,7 +102,6 @@ class PaymentRepository {
     int pageSize = 20,
   }) async {
     try {
-      debugPrint('💰 [PaymentRepository] getMyPayouts(page=$page)');
       
       final response = await _dioClient.get(
         ApiConstants.paymentMyPayouts,
@@ -117,14 +111,12 @@ class PaymentRepository {
         },
       );
 
-      debugPrint('✅ [PaymentRepository] My Payouts count: ${response.data['count']}');
       
     final results = response.data['results'] ?? [];
     return (results as List)
       .map((p) => DailyPayoutModel.fromJson(p as Map<String, dynamic>))
       .toList();
     } catch (e) {
-      debugPrint('❌ [PaymentRepository] getMyPayouts error: $e');
       rethrow;
     }
   }
@@ -152,14 +144,11 @@ class PaymentRepository {
   /// ```
   Future<Map<String, dynamic>> getStats() async {
     try {
-      debugPrint('📈 [PaymentRepository] getStats()');
       
       final response = await _dioClient.get(ApiConstants.paymentStats);
 
-      debugPrint('✅ [PaymentRepository] Stats: ${response.data}');
       return response.data as Map<String, dynamic>;
     } catch (e) {
-      debugPrint('❌ [PaymentRepository] getStats error: $e');
       rethrow;
     }
   }
@@ -181,7 +170,6 @@ class PaymentRepository {
     String? endDate,
   }) async {
     try {
-      debugPrint('🧾 [PaymentRepository] getTransactions(page=$page, type=$transactionType)');
       
       final queryParams = <String, dynamic>{
         'page': page,
@@ -198,14 +186,12 @@ class PaymentRepository {
         queryParameters: queryParams,
       );
 
-      debugPrint('✅ [PaymentRepository] Transactions count: ${response.data['count']}');
       
     final results = response.data['results'] ?? [];
     return (results as List)
       .map((t) => TransactionHistoryModel.fromJson(t as Map<String, dynamic>))
       .toList();
     } catch (e) {
-      debugPrint('❌ [PaymentRepository] getTransactions error: $e');
       rethrow;
     }
   }

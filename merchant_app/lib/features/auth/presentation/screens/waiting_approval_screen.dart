@@ -45,7 +45,6 @@ class _WaitingApprovalScreenState extends ConsumerState<WaitingApprovalScreen> {
         }
       }
     } catch (e) {
-      print('❌ Erreur vérification statut: $e');
     }
   }
 

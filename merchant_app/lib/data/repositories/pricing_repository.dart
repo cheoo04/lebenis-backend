@@ -17,7 +17,6 @@ class PricingRepository {
       
       return PricingEstimateModel.fromJson(response.data);
     } catch (e) {
-      print('Erreur estimatePrice: $e');
       rethrow;
     }
   }

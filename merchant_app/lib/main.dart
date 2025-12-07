@@ -15,7 +15,6 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   } catch (e) {
-    debugPrint('⚠️ Firebase non initialisé: $e');
   }
   
   runApp(const ProviderScope(child: MyApp()));
@@ -47,7 +46,6 @@ class _MyAppState extends ConsumerState<MyApp> {
         _handleNotificationNavigation(data);
       };
     } catch (e) {
-      debugPrint('⚠️ Erreur init notifications: $e');
     }
   }
 
@@ -55,7 +53,6 @@ class _MyAppState extends ConsumerState<MyApp> {
     final action = data['action'] as String?;
     final type = data['type'] as String?;
 
-    debugPrint('📱 Navigation notification: $action, type: $type');
 
     final context = _navigatorKey.currentContext;
     if (context == null) return;

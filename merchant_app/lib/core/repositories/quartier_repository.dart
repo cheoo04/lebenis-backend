@@ -30,7 +30,6 @@ class QuartierRepository {
 
       return quartiers;
     } catch (e) {
-      print('❌ Erreur lors de la récupération des quartiers: $e');
       throw Exception('Impossible de charger les quartiers');
     }
   }
@@ -52,7 +51,6 @@ class QuartierRepository {
 
       return results;
     } catch (e) {
-      print('❌ Erreur recherche quartiers: $e');
       return [];
     }
   }
@@ -81,7 +79,6 @@ class QuartierRepository {
 
       return null;
     } catch (e) {
-      print('❌ Erreur géocodage quartier: $e');
       return null;
     }
   }
@@ -107,7 +104,6 @@ class QuartierRepository {
 
       return null;
     } catch (e) {
-      print('❌ Erreur géocodage adresse: $e');
       return null;
     }
   }
@@ -130,7 +126,6 @@ class QuartierRepository {
 
       return null;
     } catch (e) {
-      print('❌ Erreur reverse geocoding: $e');
       return null;
     }
   }
@@ -151,7 +146,6 @@ class QuartierRepository {
 
       return suggestions;
     } catch (e) {
-      print('❌ Erreur suggestions: $e');
       return [];
     }
   }
@@ -162,7 +156,6 @@ class QuartierRepository {
       final response = await _dioClient.get('/api/v1/locations/communes/');
       return List<String>.from(response.data['communes']);
     } catch (e) {
-      print('❌ Erreur récupération communes: $e');
       // Fallback sur les communes par défaut
       return [
         'COCODY', 'PLATEAU', 'YOPOUGON', 'MARCORY', 'ABOBO',

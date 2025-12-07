@@ -80,7 +80,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
         });
       }
     } catch (e) {
-      print('❌ Erreur chargement route: $e');
     }
   }
 

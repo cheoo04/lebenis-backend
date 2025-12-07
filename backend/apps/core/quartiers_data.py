@@ -655,35 +655,18 @@ def validate_address(commune: str, quartier: str) -> tuple:
 
 if __name__ == '__main__':
     stats = get_statistics()
-    print("=" * 70)
-    print("STATISTIQUES DES QUARTIERS D'ABIDJAN")
-    print("=" * 70)
-    print(f"Nombre total de communes: {stats['total_communes']}")
-    print(f"Nombre total de quartiers: {stats['total_quartiers']}")
-    print(f"Quartiers avec GPS: {stats['quartiers_avec_gps']}")
-    print()
-    print("Répartition par commune:")
     for commune, count in sorted(stats['par_commune'].items(), key=lambda x: x[1], reverse=True):
         gps_count = len(QUARTIERS_GPS.get(commune, {}))
-        print(f"  {commune:15} : {count:3} quartiers ({gps_count} avec GPS)")
-    print()
     
     # Exemples de recherche
-    print("=" * 70)
-    print("EXEMPLES DE RECHERCHE")
-    print("=" * 70)
     
-    print("\n1. Recherche 'Riviera':")
     results = search_quartiers('Riviera')
     for r in results[:5]:
         gps_icon = "📍" if r['has_gps'] else "❓"
-        print(f"   {gps_icon} {r['nom']} ({r['commune']})")
     
-    print("\n2. Recherche 'Zone 4':")
     results = search_quartiers('Zone 4')
     for r in results:
         gps_icon = "📍" if r['has_gps'] else "❓"
-        print(f"   {gps_icon} {r['nom']} ({r['commune']})")
 
 
 # ============================================================================

@@ -26,7 +26,6 @@ class IndividualRepository {
       
       throw Exception('Format de réponse invalide');
     } catch (e) {
-      print('❌ Erreur lors de la récupération du profil particulier: $e');
       rethrow;
     }
   }
@@ -54,7 +53,6 @@ class IndividualRepository {
 
       return IndividualModel.fromJson(response.data);
     } catch (e) {
-      print('❌ Erreur lors de la mise à jour du profil particulier: $e');
       rethrow;
     }
   }
@@ -76,7 +74,6 @@ class IndividualRepository {
 
       return IndividualModel.fromJson(response.data);
     } catch (e) {
-      print('❌ Erreur lors de la création du profil particulier: $e');
       rethrow;
     }
   }
