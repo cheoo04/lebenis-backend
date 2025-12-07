@@ -212,9 +212,17 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 queryset = Delivery.objects.filter(driver=driver).select_related('merchant', 'driver')
             except Driver.DoesNotExist:
                 return Delivery.objects.none()
-        else:
+        elif user.user_type == 'individual':
+            # Particuliers voient uniquement les livraisons qu'ils ont créées
+            queryset = Delivery.objects.filter(created_by=user).select_related('merchant', 'driver')
+
+        elif user.user_type == 'admin' or getattr(user, 'is_staff', False):
             # Admins voient tout
             queryset = Delivery.objects.all().select_related('merchant', 'driver')
+
+        else:
+            # Tout autre type (sécurité) : ne rien retourner
+            return Delivery.objects.none()
         
         # Filtrer par statut si le paramètre est fourni
         status = self.request.query_params.get('status')

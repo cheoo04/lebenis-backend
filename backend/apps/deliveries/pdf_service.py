@@ -9,6 +9,9 @@ from django.utils import timezone
 from weasyprint import HTML, CSS
 from weasyprint.text.fonts import FontConfiguration
 from .analytics_service import AnalyticsService
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PDFReportService:
@@ -294,22 +297,71 @@ class PDFReportService:
             'generated_at': timezone.now(),
         }
         
-        # Render HTML template
-        html_string = render_to_string('reports/delivery_report.html', context)
-        
-        # Generate PDF
-        pdf_file = BytesIO()
-        
-        # Configure fonts
-        font_config = FontConfiguration()
-        HTML(string=html_string).write_pdf(
-            pdf_file,
-            stylesheets=[CSS(string=PDFReportService._get_delivery_css())],
-            font_config=font_config
-        )
-        
-        pdf_file.seek(0)
-        return pdf_file
+        # Render HTML template and generate PDF. If WeasyPrint or template
+        # rendering fails (occasionally due to CSS/font issues), log the full
+        # exception and attempt a minimal fallback PDF to avoid a 500.
+        try:
+            html_string = render_to_string('reports/delivery_report.html', context)
+
+            # Generate PDF
+            pdf_file = BytesIO()
+
+            # Configure fonts
+            font_config = FontConfiguration()
+            HTML(string=html_string).write_pdf(
+                pdf_file,
+                stylesheets=[CSS(string=PDFReportService._get_delivery_css())],
+                font_config=font_config
+            )
+
+            pdf_file.seek(0)
+            return pdf_file
+
+        except Exception:
+            # Log full traceback for diagnosis
+            logger.exception(f"Error generating delivery PDF for delivery={getattr(delivery, 'id', None)}")
+
+            # Minimal fallback HTML (plain, no advanced CSS) using safe attribute access
+            def safe(obj, attr, default=''):
+                try:
+                    return getattr(obj, attr)
+                except Exception:
+                    return default
+
+            merchant_name = ''
+            try:
+                merchant_name = delivery.merchant.business_name
+            except Exception:
+                merchant_name = ''
+
+            driver_name = ''
+            try:
+                driver_name = f"{delivery.driver.user.first_name} {delivery.driver.user.last_name}"
+            except Exception:
+                driver_name = ''
+
+            minimal_html = f"""
+            <html><body>
+            <h1>Delivery {getattr(delivery, 'tracking_number', '')}</h1>
+            <p>Status: {getattr(delivery, 'status', '')}</p>
+            <p>Merchant: {merchant_name}</p>
+            <p>Recipient: {getattr(delivery, 'recipient_name', '')} - {getattr(delivery, 'recipient_phone', '')}</p>
+            <p>Price: {getattr(delivery, 'calculated_price', '')}</p>
+            <p>Distance (km): {getattr(delivery, 'distance_km', '')}</p>
+            <p>Driver: {driver_name}</p>
+            </body></html>
+            """
+
+            # Try to generate a very small PDF without custom fonts/styles
+            pdf_file = BytesIO()
+            try:
+                HTML(string=minimal_html).write_pdf(pdf_file)
+                pdf_file.seek(0)
+                return pdf_file
+            except Exception:
+                # If fallback fails, re-raise to be handled by caller
+                logger.exception("Fallback PDF generation also failed")
+                raise
     
     @staticmethod
     def generate_delivery_filename(delivery):
