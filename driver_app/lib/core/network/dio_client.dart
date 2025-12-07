@@ -56,7 +56,9 @@ class DioClient {
       } else {
       }
     }
-    
+    if (kDebugMode) {
+      debugPrint('DioClient _onRequest: ${options.method} ${options.path} Authorization: ${options.headers['Authorization'] ?? 'none'}');
+    }
     return handler.next(options);
   }
 
@@ -94,15 +96,43 @@ class DioClient {
   ) async {
     if (error.response?.statusCode == 401) {
       try {
-        final newToken = await _authService.refreshAccessToken();
-        if (newToken != null && newToken.isNotEmpty) {
-          error.requestOptions.headers['Authorization'] = 'Bearer $newToken';
-          final response = await _dio.fetch(error.requestOptions);
-          return handler.resolve(response);
-        } else {
+        // Récupérer le refresh token depuis le service d'auth
+        final refreshToken = await _authService.getRefreshToken();
+        if (refreshToken == null || refreshToken.isEmpty) {
           await _authService.logout();
           return handler.reject(error);
         }
+
+        // Appeler l'endpoint de refresh pour obtenir un nouvel access token
+        final refreshResp = await _dio.post(
+          ApiConstants.refreshToken,
+          data: {'refresh': refreshToken},
+          options: Options(headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          }),
+        );
+
+        if (refreshResp.statusCode == 200 && refreshResp.data != null) {
+          final data = refreshResp.data;
+          final newAccess = data['access'] ?? data['access_token'] ?? data['tokens']?['access'];
+          if (newAccess != null && newAccess.toString().isNotEmpty) {
+            // Mettre à jour le token en local
+            await _authService.updateAccessToken(newAccess.toString());
+
+            // Réessayer la requête originale avec le nouveau token
+            error.requestOptions.headers['Authorization'] = 'Bearer ${newAccess.toString()}';
+            final clonedRequest = error.requestOptions.copyWith(
+              headers: error.requestOptions.headers,
+            );
+            final response = await _dio.fetch(clonedRequest);
+            return handler.resolve(response);
+          }
+        }
+
+        // Si refresh échoue
+        await _authService.logout();
+        return handler.reject(error);
       } catch (e) {
         await _authService.logout();
         return handler.reject(error);

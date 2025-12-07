@@ -173,6 +173,15 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
           'delivery_quartier': _deliveryQuartier,
         'package_weight_kg': weight,
       };
+      // Inclure les coordonnées GPS si elles sont disponibles pour une estimation
+      if (_pickupLat != null && _pickupLng != null) {
+        data['pickup_latitude'] = _pickupLat;
+        data['pickup_longitude'] = _pickupLng;
+      }
+      if (_deliveryLat != null && _deliveryLng != null) {
+        data['delivery_latitude'] = _deliveryLat;
+        data['delivery_longitude'] = _deliveryLng;
+      }
       final estimate = await ref.read(pricingRepositoryProvider).estimatePrice(data);
       setState(() => _estimatedPrice = estimate.total);
     } catch (e) {

@@ -93,6 +93,14 @@ void main() async {
             // Sur les plateformes non supportées, créer un mock ou retourner une instance sans Firebase
             // Pour l'instant, on lance une erreur si l'utilisateur tente d'accéder au chat
             throw UnsupportedError('Chat functionality requires Firebase (not available on this platform)');
+          }
+        }),
+      ],
+      child: const MyApp(),
+    ),
+  );
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -102,18 +110,11 @@ class MyApp extends StatelessWidget {
       title: 'LeBeni Driver',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      initialRoute: AppRouter.initialRoute,
+      initialRoute: AppRouter.splash,
       onGenerateRoute: AppRouter.onGenerateRoute,
       debugShowCheckedModeBanner: false,
     );
   }
-}
-          }
-        }),
-      ],
-      child: const LeBenisDriverApp(),
-    ),
-  );
 }
 
 // Provider pour vérifier si Firebase est activé
