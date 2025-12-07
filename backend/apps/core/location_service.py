@@ -15,6 +15,7 @@ from typing import Tuple, Optional, Dict, List
 import requests
 from django.conf import settings
 from django.core.cache import cache
+import sentry_sdk
 
 logger = logging.getLogger(__name__)
 
@@ -351,6 +352,11 @@ class LocationService:
                 'steps': [],
                 'source': 'fallback_straight_line'
             }
+            # Report to Sentry (non-blocking) to track fallback occurrences in production
+            try:
+                sentry_sdk.capture_message(f"Routing fallback used for route {start_lat},{start_lon}->{end_lat},{end_lon}")
+            except Exception:
+                logger.debug('Sentry capture failed for routing fallback')
         
         # Mettre en cache
         if use_cache and result:
@@ -371,66 +377,83 @@ class LocationService:
         
         OSRM utilise le format: longitude,latitude (inverse de la convention habituelle)
         """
-        try:
-            # OSRM: coordinates format is lon,lat
-            url = f"{cls.OSRM_BASE_URL}/route/v1/driving/{start_lon},{start_lat};{end_lon},{end_lat}"
-            
-            params = {
-                'overview': 'full',
-                'geometries': 'polyline',
-                'steps': 'true',
-                'annotations': 'true'
-            }
-            
-            response = requests.get(url, params=params, timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                if data.get('code') == 'Ok' and data.get('routes'):
-                    route = data['routes'][0]
-                    
-                    # Décoder la polyline
-                    geometry = route.get('geometry', '')
-                    polyline_points = cls._decode_polyline(geometry, precision=5)
-                    
-                    # Extraire les étapes de navigation
-                    steps = []
-                    for leg in route.get('legs', []):
-                        for step in leg.get('steps', []):
-                            if step.get('maneuver'):
-                                steps.append({
-                                    'instruction': step.get('name', ''),
-                                    'distance_m': step.get('distance', 0),
-                                    'duration_s': step.get('duration', 0),
-                                    'maneuver': step['maneuver'].get('type', ''),
-                                    'modifier': step['maneuver'].get('modifier', ''),
-                                })
-                    
-                    result = {
-                        'distance_km': round(route['distance'] / 1000, 2),
-                        'duration_min': round(route['duration'] / 60, 1),
-                        'polyline_points': polyline_points,
-                        'geometry': geometry,
-                        'steps': steps,
-                        'source': 'osrm'
-                    }
-                    
-                    logger.info(f"Route OSRM: {result['distance_km']} km, {result['duration_min']} min, {len(polyline_points)} points")
-                    return result
+        # Add simple retry logic to make OSRM calls more robust in production
+        attempts = int(os.getenv('OSRM_RETRY_ATTEMPTS', '2'))
+        backoff_base = float(os.getenv('OSRM_RETRY_BACKOFF', '0.5'))
+        for attempt in range(1, attempts + 1):
+            try:
+                # OSRM: coordinates format is lon,lat
+                url = f"{cls.OSRM_BASE_URL}/route/v1/driving/{start_lon},{start_lat};{end_lon},{end_lat}"
+
+                params = {
+                    'overview': 'full',
+                    'geometries': 'polyline',
+                    'steps': 'true',
+                    'annotations': 'true'
+                }
+
+                response = requests.get(url, params=params, timeout=10)
+
+                if response.status_code == 200:
+                    data = response.json()
+
+                    if data.get('code') == 'Ok' and data.get('routes'):
+                        route = data['routes'][0]
+
+                        # Décoder la polyline
+                        geometry = route.get('geometry', '')
+                        polyline_points = cls._decode_polyline(geometry, precision=5)
+
+                        # Extraire les étapes de navigation
+                        steps = []
+                        for leg in route.get('legs', []):
+                            for step in leg.get('steps', []):
+                                if step.get('maneuver'):
+                                    steps.append({
+                                        'instruction': step.get('name', ''),
+                                        'distance_m': step.get('distance', 0),
+                                        'duration_s': step.get('duration', 0),
+                                        'maneuver': step['maneuver'].get('type', ''),
+                                        'modifier': step['maneuver'].get('modifier', ''),
+                                    })
+
+                        result = {
+                            'distance_km': round(route['distance'] / 1000, 2),
+                            'duration_min': round(route['duration'] / 60, 1),
+                            'polyline_points': polyline_points,
+                            'geometry': geometry,
+                            'steps': steps,
+                            'source': 'osrm'
+                        }
+
+                        logger.info(f"Route OSRM: {result['distance_km']} km, {result['duration_min']} min, {len(polyline_points)} points")
+                        return result
+                    else:
+                        logger.warning(f"OSRM response invalide: {data.get('code')}")
+                        return None
                 else:
-                    logger.warning(f"OSRM response invalide: {data.get('code')}")
+                    logger.error(f"OSRM erreur HTTP {response.status_code}")
+                    # Continue to retry on 5xx errors
+                    if 500 <= response.status_code < 600 and attempt < attempts:
+                        import time
+                        time.sleep(backoff_base * (2 ** (attempt - 1)))
+                        continue
                     return None
-            else:
-                logger.error(f"OSRM erreur HTTP {response.status_code}")
+
+            except requests.exceptions.Timeout:
+                logger.error(f"OSRM timeout (attempt {attempt}/{attempts})")
+                if attempt < attempts:
+                    import time
+                    time.sleep(backoff_base * (2 ** (attempt - 1)))
+                    continue
                 return None
-                
-        except requests.exceptions.Timeout:
-            logger.error("OSRM timeout")
-            return None
-        except Exception as e:
-            logger.error(f"Erreur OSRM: {e}")
-            return None
+            except Exception as e:
+                logger.error(f"Erreur OSRM (attempt {attempt}/{attempts}): {e}")
+                if attempt < attempts:
+                    import time
+                    time.sleep(backoff_base * (2 ** (attempt - 1)))
+                    continue
+                return None
     
     @classmethod
     def _get_route_ors(
@@ -446,66 +469,77 @@ class LocationService:
         if not cls.ORS_API_KEY:
             return None
             
-        try:
-            url = f"{cls.ORS_BASE_URL}/v2/directions/driving-car"
-            
-            headers = {
-                'Authorization': cls.ORS_API_KEY,
-                'Content-Type': 'application/json'
-            }
-            
-            # ORS utilise [lon, lat]
-            body = {
-                'coordinates': [
-                    [start_lon, start_lat],
-                    [end_lon, end_lat]
-                ],
-                'instructions': True,
-                'geometry': True
-            }
-            
-            response = requests.post(url, headers=headers, json=body, timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                if data.get('routes'):
-                    route = data['routes'][0]
-                    summary = route.get('summary', {})
-                    
-                    # Décoder la géométrie (ORS utilise precision 5)
-                    geometry = route.get('geometry', '')
-                    polyline_points = cls._decode_polyline(geometry, precision=5)
-                    
-                    # Extraire les étapes
-                    steps = []
-                    for segment in route.get('segments', []):
-                        for step in segment.get('steps', []):
-                            steps.append({
-                                'instruction': step.get('instruction', ''),
-                                'distance_m': step.get('distance', 0),
-                                'duration_s': step.get('duration', 0),
-                                'maneuver': step.get('type', 0),
-                            })
-                    
-                    result = {
-                        'distance_km': round(summary.get('distance', 0) / 1000, 2),
-                        'duration_min': round(summary.get('duration', 0) / 60, 1),
-                        'polyline_points': polyline_points,
-                        'geometry': geometry,
-                        'steps': steps,
-                        'source': 'openrouteservice'
-                    }
-                    
-                    logger.info(f"Route ORS: {result['distance_km']} km, {result['duration_min']} min")
-                    return result
-                    
-            logger.error(f"ORS erreur {response.status_code}: {response.text[:200]}")
-            return None
-            
-        except Exception as e:
-            logger.error(f"Erreur OpenRouteService: {e}")
-            return None
+        # Add retries for ORS too (useful when network flaps or rate limits)
+        attempts = int(os.getenv('ORS_RETRY_ATTEMPTS', '2'))
+        backoff_base = float(os.getenv('ORS_RETRY_BACKOFF', '0.5'))
+        url = f"{cls.ORS_BASE_URL}/v2/directions/driving-car"
+        headers = {
+            'Authorization': cls.ORS_API_KEY,
+            'Content-Type': 'application/json'
+        }
+
+        body = {
+            'coordinates': [
+                [start_lon, start_lat],
+                [end_lon, end_lat]
+            ],
+            'instructions': True,
+            'geometry': True
+        }
+
+        for attempt in range(1, attempts + 1):
+            try:
+                response = requests.post(url, headers=headers, json=body, timeout=10)
+
+                if response.status_code == 200:
+                    data = response.json()
+
+                    if data.get('routes'):
+                        route = data['routes'][0]
+                        summary = route.get('summary', {})
+
+                        # Décoder la géométrie (ORS utilise precision 5)
+                        geometry = route.get('geometry', '')
+                        polyline_points = cls._decode_polyline(geometry, precision=5)
+
+                        # Extraire les étapes
+                        steps = []
+                        for segment in route.get('segments', []):
+                            for step in segment.get('steps', []):
+                                steps.append({
+                                    'instruction': step.get('instruction', ''),
+                                    'distance_m': step.get('distance', 0),
+                                    'duration_s': step.get('duration', 0),
+                                    'maneuver': step.get('type', 0),
+                                })
+
+                        result = {
+                            'distance_km': round(summary.get('distance', 0) / 1000, 2),
+                            'duration_min': round(summary.get('duration', 0) / 60, 1),
+                            'polyline_points': polyline_points,
+                            'geometry': geometry,
+                            'steps': steps,
+                            'source': 'openrouteservice'
+                        }
+
+                        logger.info(f"Route ORS: {result['distance_km']} km, {result['duration_min']} min")
+                        return result
+
+                # Non 200 → retry on 5xx
+                logger.error(f"ORS erreur {response.status_code}: {response.text[:200]}")
+                if 500 <= response.status_code < 600 and attempt < attempts:
+                    import time
+                    time.sleep(backoff_base * (2 ** (attempt - 1)))
+                    continue
+                return None
+
+            except Exception as e:
+                logger.error(f"Erreur OpenRouteService (attempt {attempt}/{attempts}): {e}")
+                if attempt < attempts:
+                    import time
+                    time.sleep(backoff_base * (2 ** (attempt - 1)))
+                    continue
+                return None
     
     @classmethod
     def get_delivery_route(
