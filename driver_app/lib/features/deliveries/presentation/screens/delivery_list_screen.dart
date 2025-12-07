@@ -128,17 +128,14 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
     if (_selectedStatus == 'available') {
       // Les livraisons disponibles sont déjà chargées via loadAvailableDeliveries
       return deliveries.where((d) => 
-        d.status == BackendConstants.deliveryStatusPendingAssignment
+        d.status == BackendConstants.deliveryStatusPending
       ).toList();
     }
     
     // Handle in_progress group (multiple statuses)
     if (_selectedStatus == 'in_progress_group') {
       return deliveries.where((d) => 
-        d.status == BackendConstants.deliveryStatusAssigned ||
-        d.status == BackendConstants.deliveryStatusPickupInProgress ||
-        d.status == BackendConstants.deliveryStatusPickedUp ||
-        d.status == BackendConstants.deliveryStatusInTransit
+        d.status == BackendConstants.deliveryStatusInProgress
       ).toList();
     }
     

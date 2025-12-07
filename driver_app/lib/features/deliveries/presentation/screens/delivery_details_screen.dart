@@ -163,12 +163,9 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
 
   Color _getStatusColor() {
     switch (widget.delivery.status) {
-      case BackendConstants.deliveryStatusPendingAssignment:
+      case BackendConstants.deliveryStatusPending:
         return AppColors.warning;
-      case BackendConstants.deliveryStatusAssigned:
-      case BackendConstants.deliveryStatusPickupInProgress:
-      case BackendConstants.deliveryStatusPickedUp:
-      case BackendConstants.deliveryStatusInTransit:
+      case BackendConstants.deliveryStatusInProgress:
         return AppColors.info;
       case BackendConstants.deliveryStatusDelivered:
         return AppColors.success;
@@ -352,7 +349,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                   const SizedBox(height: AppSpacing.xxl),
 
                   // Action Buttons
-                  if (delivery.status == BackendConstants.deliveryStatusPendingAssignment) ...[
+                  if (delivery.status == BackendConstants.deliveryStatusPending) ...[
                     ModernButton(
                       text: 'Accepter la livraison',
                       onPressed: _isProcessing ? null : _acceptDelivery,
@@ -367,14 +364,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                       icon: Icons.cancel,
                       type: ModernButtonType.outlined,
                     ),
-                  ] else if (delivery.status == BackendConstants.deliveryStatusAssigned) ...[
-                    ModernButton(
-                      text: 'Commencer la livraison',
-                      onPressed: _isProcessing ? null : _startDelivery,
-                      isLoading: _isProcessing,
-                      icon: Icons.play_arrow,
-                    ),
-                  ] else if (delivery.status == BackendConstants.deliveryStatusInTransit || delivery.status == BackendConstants.deliveryStatusPickedUp) ...[
+                  ] else if (delivery.status == BackendConstants.deliveryStatusInProgress) ...[
                     const SizedBox(height: AppSpacing.md),
                     TextField(
                       controller: _pinController,

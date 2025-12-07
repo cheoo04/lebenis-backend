@@ -173,7 +173,7 @@ class IndividualViewSet(viewsets.ModelViewSet):
         cancelled_count = period_deliveries.filter(status='cancelled').count()
         pending_count = period_deliveries.filter(status='pending').count()
         in_progress_count = period_deliveries.filter(
-            status__in=['assigned', 'picked_up', 'in_transit']
+            status__in=['in_progress']
         ).count()
         
         # Coût total des livraisons

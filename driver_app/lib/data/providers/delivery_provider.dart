@@ -325,11 +325,11 @@ final activeDeliveryCountProvider = Provider<int>((ref) {
   return ref.watch(activeDeliveriesProvider).length;
 });
 
-/// Livraisons disponibles (pending_assignment) uniquement
+/// Livraisons disponibles (pending) uniquement
 final availableForAcceptanceProvider = Provider<List<DeliveryModel>>((ref) {
   final deliveries = ref.watch(deliveryProvider).deliveries;
   return deliveries.where((d) => 
-    d.status == BackendConstants.deliveryStatusPendingAssignment
+    d.status == BackendConstants.deliveryStatusPending
   ).toList();
 });
 

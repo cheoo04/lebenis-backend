@@ -69,7 +69,7 @@ class DriverViewSet(viewsets.ModelViewSet):
         Retourne toutes les livraisons du livreur connecté.
         
         Query params optionnels :
-        - status: Filtrer par statut (ex: ?status=assigned,pickup_in_progress)
+        - status: Filtrer par statut (ex: ?status=pending,in_progress)
         - date_from: Date de début (ex: ?date_from=2025-01-01)
         - date_to: Date de fin
         """
@@ -118,7 +118,7 @@ class DriverViewSet(viewsets.ModelViewSet):
         Retourne les livraisons compatibles avec le véhicule du livreur.
         
         Critères de filtrage intelligents:
-        1. Statut: pending_assignment uniquement
+        1. Statut: pending uniquement
         2. Zone: Dans les zones de travail du livreur (si définies)
         3. Poids: <= capacité du véhicule
         4. Dimensions: Compatible avec le type de véhicule
@@ -138,8 +138,8 @@ class DriverViewSet(viewsets.ModelViewSet):
         driver_zones = DriverZone.objects.filter(driver=driver).values_list('commune', flat=True)
         show_all = request.query_params.get('show_all', 'false').lower() == 'true'
         
-        # Base query: livraisons non assignées
-        deliveries = Delivery.objects.filter(status='pending_assignment')
+        # Base query: livraisons non assignées (statut 'pending')
+        deliveries = Delivery.objects.filter(status='pending')
         
         # Filtre zone (sauf si show_all)
         if driver_zones and not show_all:
@@ -499,7 +499,7 @@ class DriverViewSet(viewsets.ModelViewSet):
         delivered_count = period_deliveries.filter(status='delivered').count()
         cancelled_count = period_deliveries.filter(status='cancelled').count()
         current_count = period_deliveries.filter(
-            status__in=['assigned', 'picked_up', 'in_transit']
+            status__in=['in_progress']
         ).count()
         
         # Gains
@@ -639,8 +639,7 @@ class DriverViewSet(viewsets.ModelViewSet):
                 'total': period_deliveries.count(),
                 'by_status': {
                     'pending': period_deliveries.filter(status='pending').count(),
-                    'assigned': period_deliveries.filter(status='assigned').count(),
-                    'picked_up': period_deliveries.filter(status='picked_up').count(),
+                    'in_progress': period_deliveries.filter(status='in_progress').count(),
                     'delivered': period_deliveries.filter(status='delivered').count(),
                     'cancelled': period_deliveries.filter(status='cancelled').count()
                 }

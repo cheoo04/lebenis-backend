@@ -57,7 +57,7 @@ class DeliveryAssignmentService:
             delivery = Delivery.objects.select_for_update().get(id=delivery_id)
             
             # 2. Vérifications de statut
-            if delivery.status not in ['pending_assignment', 'assigned']:
+            if delivery.status not in ['pending']:
                 raise ValidationError(
                     f"Impossible d'assigner : statut actuel '{delivery.status}'"
                 )
@@ -86,7 +86,7 @@ class DeliveryAssignmentService:
             # 6. Assigner le livreur
             old_driver = delivery.driver
             delivery.driver = driver
-            delivery.status = 'assigned'
+            delivery.status = 'in_progress'
             delivery.assigned_at = timezone.now()
             delivery.save()
             

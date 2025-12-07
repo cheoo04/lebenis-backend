@@ -19,12 +19,9 @@ class StatusBadge extends StatelessWidget {
 
   Color _getStatusColor() {
     switch (status) {
-      case BackendConstants.deliveryStatusPendingAssignment:
+      case BackendConstants.deliveryStatusPending:
         return AppColors.warning;
-      case BackendConstants.deliveryStatusAssigned:
-      case BackendConstants.deliveryStatusPickupInProgress:
-      case BackendConstants.deliveryStatusPickedUp:
-      case BackendConstants.deliveryStatusInTransit:
+      case BackendConstants.deliveryStatusInProgress:
         return AppColors.info;
       case BackendConstants.deliveryStatusDelivered:
         return AppColors.success;
@@ -41,15 +38,9 @@ class StatusBadge extends StatelessWidget {
 
   IconData _getStatusIcon() {
     switch (status) {
-      case BackendConstants.deliveryStatusPendingAssignment:
+      case BackendConstants.deliveryStatusPending:
         return Icons.schedule;
-      case BackendConstants.deliveryStatusAssigned:
-        return Icons.check_circle_outline;
-      case BackendConstants.deliveryStatusPickupInProgress:
-        return Icons.local_shipping;
-      case BackendConstants.deliveryStatusPickedUp:
-        return Icons.inventory_2;
-      case BackendConstants.deliveryStatusInTransit:
+      case BackendConstants.deliveryStatusInProgress:
         return Icons.local_shipping;
       case BackendConstants.deliveryStatusDelivered:
         return Icons.check_circle;

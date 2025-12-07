@@ -189,10 +189,7 @@ class DeliveryModel {
 
   /// Vérifie si la livraison est en cours
   bool get isActive {
-    return status == 'assigned' || 
-           status == 'accepted' || 
-           status == 'picked_up' || 
-           status == 'in_transit';
+    return status == 'in_progress' || status == 'pending';
   }
 
   /// Vérifie si la livraison est terminée
