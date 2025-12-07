@@ -315,9 +315,9 @@ class MerchantViewSet(viewsets.ModelViewSet):
             'deliveries': {
                 'total': period_deliveries.count(),
                 'by_status': {
-                    'pending': period_deliveries.filter(status='pending').count(),
-                    'assigned': period_deliveries.filter(status='assigned').count(),
-                    'picked_up': period_deliveries.filter(status='picked_up').count(),
+                    'pending': period_deliveries.filter(status__in=['pending', 'pending_assignment']).count(),
+                    'assigned': period_deliveries.filter(status__in=['assigned', 'in_progress', 'pickup_in_progress']).count(),
+                    'picked_up': period_deliveries.filter(status__in=['picked_up', 'in_progress']).count(),
                     'delivered': period_deliveries.filter(status='delivered').count(),
                     'cancelled': period_deliveries.filter(status='cancelled').count()
                 }

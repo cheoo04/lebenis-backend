@@ -149,8 +149,8 @@ class DeliveryAssignmentService:
             # 1. Récupérer la livraison
             delivery = Delivery.objects.select_for_update().get(id=delivery_id)
             
-            # 2. Vérifier le statut
-            if delivery.status != 'pending_assignment':
+            # 2. Vérifier le statut (tolérance pour anciennes valeurs)
+            if delivery.status not in ['pending_assignment', 'pending']:
                 raise ValidationError(
                     f"Statut invalide pour auto-assignation: {delivery.status}"
                 )
@@ -165,7 +165,9 @@ class DeliveryAssignmentService:
             
             # 4. Assigner
             delivery.driver = best_driver
-            delivery.status = 'assigned'
+            # Utiliser le statut normalisé 'in_progress' pour indiquer qu'un driver a
+            # été choisi et que la livraison est en cours de traitement.
+            delivery.status = 'in_progress'
             delivery.assigned_at = timezone.now()
             delivery.save()
             
@@ -221,7 +223,7 @@ class DeliveryAssignmentService:
         try:
             delivery = Delivery.objects.select_for_update().get(id=delivery_id)
             
-            if delivery.status not in ['assigned', 'pickup_in_progress']:
+            if delivery.status not in ['assigned', 'pickup_in_progress', 'in_progress']:
                 raise ValidationError(
                     "Impossible de réassigner : livraison déjà en cours ou terminée"
                 )
@@ -292,13 +294,13 @@ class DeliveryAssignmentService:
             )
             drivers_in_zone = base_query
 
-        # 3. Annoter avec le nombre de livraisons en cours
+        # 3. Annoter avec le nombre de livraisons en cours (inclut anciennes valeurs)
         drivers_with_stats = drivers_in_zone.annotate(
             active_deliveries_count=Count(
                 'deliveries',
                 filter=Q(
                     deliveries__status__in=[
-                        'assigned', 'pickup_in_progress', 'picked_up', 'in_transit'
+                        'in_progress', 'assigned', 'pickup_in_progress', 'picked_up', 'in_transit'
                     ]
                 )
             )
@@ -405,17 +407,16 @@ class DeliveryAssignmentService:
 
                 # Auto-assignation : le driver accepte une livraison non encore assignée
                 delivery.driver = driver
-                delivery.status = 'pickup_in_progress'
+                delivery.status = 'in_progress'
             elif delivery.status == 'assigned':
                 # Acceptation normale : la livraison était déjà assignée à ce driver
                 if delivery.driver != driver:
                     raise ValidationError("Cette livraison est assignée à un autre driver")
-                delivery.status = 'pickup_in_progress'
+                delivery.status = 'in_progress'
             else:
                 raise ValidationError(f"Impossible d'accepter une livraison en statut '{delivery.status}'")
             
-            # Passer au statut suivant
-            delivery.status = 'pickup_in_progress'
+            # Passer au statut suivant (déjà défini ci-dessus)
             delivery.save()
             
             # Notifier le merchant (DB)
@@ -439,7 +440,7 @@ class DeliveryAssignmentService:
             return {
                 'success': True,
                 'message': 'Livraison acceptée avec succès',
-                'new_status': 'pickup_in_progress'
+                'new_status': 'in_progress'
             }
             
         except Delivery.DoesNotExist:
@@ -465,14 +466,15 @@ class DeliveryAssignmentService:
             if delivery.driver != driver:
                 raise ValidationError("Cette livraison n'est pas assignée à vous")
             
-            if delivery.status not in ['assigned', 'pickup_in_progress']:
+            if delivery.status not in ['assigned', 'pickup_in_progress', 'in_progress']:
                 raise ValidationError("Impossible de refuser cette livraison")
             
             # Retirer l'assignation
             old_driver = delivery.driver
             merchant = delivery.merchant
             delivery.driver = None
-            delivery.status = 'pending_assignment'
+            # Normaliser vers le statut actuel 'pending'
+            delivery.status = 'pending'
             delivery.assigned_at = None
             delivery.save()
             
@@ -510,7 +512,7 @@ class DeliveryAssignmentService:
             return {
                 'success': True,
                 'message': 'Livraison refusée',
-                'new_status': 'pending_assignment'
+                'new_status': 'pending'
             }
             
         except Delivery.DoesNotExist:

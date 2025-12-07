@@ -31,7 +31,8 @@ class CustomAdminSite(admin.AdminSite):
         today = now()
         last_7_days = today - timedelta(days=7)
         deliveries_last_week = Delivery.objects.filter(created_at__gte=last_7_days).count()
-        deliveries_pending = Delivery.objects.filter(status='pending_assignment').count()
+        # Inclure les anciennes valeurs 'pending_assignment' pour compatibilité
+        deliveries_pending = Delivery.objects.filter(status__in=['pending', 'pending_assignment']).count()
 
         context = dict(
             self.each_context(request),
