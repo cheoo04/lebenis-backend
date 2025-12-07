@@ -332,13 +332,27 @@ class LocationService:
                 logger.info("Route trouvée en cache")
                 return cached
         
-        # Essayer OSRM d'abord (gratuit, pas de clé API)
-        result = cls._get_route_osrm(start_lat, start_lon, end_lat, end_lon)
-        
-        # Fallback sur OpenRouteService si OSRM échoue
-        if not result and cls.ORS_API_KEY:
-            logger.info("OSRM indisponible, essai OpenRouteService...")
+        # Choix du provider : par défaut OSRM d'abord, fallback ORS.
+        # Si on souhaite prioriser OpenRouteService (par ex. pas d'OSRM local
+        # et vous avez une clé ORS), activez l'env `PREFER_ORS=true`.
+        prefer_ors = os.getenv('PREFER_ORS', '').lower() in ('1', 'true', 'yes')
+
+        result = None
+
+        if prefer_ors and cls.ORS_API_KEY:
+            logger.info("PREFERENCE: utilisation d'OpenRouteService en priorité")
             result = cls._get_route_ors(start_lat, start_lon, end_lat, end_lon)
+            # Si ORS échoue, tenter OSRM ensuite
+            if not result:
+                logger.info("OpenRouteService a échoué, essai OSRM...")
+                result = cls._get_route_osrm(start_lat, start_lon, end_lat, end_lon)
+        else:
+            # Essayer OSRM d'abord (gratuit, pas de clé API)
+            result = cls._get_route_osrm(start_lat, start_lon, end_lat, end_lon)
+            # Fallback sur OpenRouteService si OSRM échoue
+            if not result and cls.ORS_API_KEY:
+                logger.info("OSRM indisponible, essai OpenRouteService...")
+                result = cls._get_route_ors(start_lat, start_lon, end_lat, end_lon)
         
         # Fallback sur ligne droite si tout échoue
         if not result:
