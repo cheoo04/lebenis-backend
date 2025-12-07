@@ -126,3 +126,36 @@ class Delivery(models.Model):
     
     def __str__(self):
         return f"{self.tracking_number} - {self.status}"
+
+    def save(self, *args, **kwargs):
+        """
+        Synchronise les champs `pickup_commune`, `pickup_quartier`, `pickup_latitude` et `pickup_longitude`
+        depuis la `pickup_address` si cette dernière est fournie et que les champs individuels sont absents.
+        Cette logique garantit que le reste du système (prix/zones) dispose toujours des valeurs
+        `pickup_commune`/`pickup_quartier` attendues.
+        """
+        try:
+            # Si une adresse merchant est liée, copier les valeurs manquantes
+            if self.pickup_address:
+                if not self.pickup_commune:
+                    self.pickup_commune = (self.pickup_address.commune or '').strip()
+                if not self.pickup_quartier:
+                    self.pickup_quartier = (self.pickup_address.quartier or '').strip()
+                # Copier les coords si elles existent et que le delivery n'en a pas
+                try:
+                    if (self.pickup_address.latitude is not None and self.pickup_address.longitude is not None) and (
+                        (self.pickup_latitude is None) or (self.pickup_longitude is None)
+                    ):
+                        self.pickup_latitude = self.pickup_address.latitude
+                        self.pickup_longitude = self.pickup_address.longitude
+                except Exception:
+                    # Ne pas bloquer la sauvegarde pour une adresse mal formée
+                    pass
+
+            # Si delivery_address is present but delivery_commune empty, try to leave as-is
+            # (nous n'écrasons pas delivery_commune automatiquement ici)
+        except Exception:
+            # Défensive : en cas d'erreur, continuer la sauvegarde normale
+            pass
+
+        super().save(*args, **kwargs)
