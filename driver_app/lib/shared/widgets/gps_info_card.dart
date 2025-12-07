@@ -187,15 +187,21 @@ class GpsInfoCard extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: onNavigate ?? () async {
+                  onPressed: onNavigate ?? () {
+                    // Default behavior: open internal map with provided coordinates
                     try {
-                      await openNavigationApp(
-                        latitude: latitude,
-                        longitude: longitude,
-                        label: address,
+                      Navigator.of(context).pushNamed(
+                        '/delivery-map',
+                        arguments: {
+                          'pickupLat': latitude,
+                          'pickupLng': longitude,
+                          'destLat': latitude,
+                          'destLng': longitude,
+                          'destLabel': address,
+                        },
                       );
                     } catch (e) {
-                      // Silently fail
+                      // silent fail
                     }
                   },
                   icon: const Icon(Icons.navigation, size: 20),

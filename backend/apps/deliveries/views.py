@@ -174,6 +174,11 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             # Calcule le prix (réutilise l'instance existante)
             price_result = calculator.calculate_price(pricing_data)
             calculated_price = price_result['total_price']
+            # Extract distance_km from the price result details when available
+            try:
+                distance_km = price_result.get('details', {}).get('distance_km')
+            except Exception:
+                distance_km = None
 
             # Valide le prix
             if calculated_price <= 0:
@@ -182,12 +187,23 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             # Génère un code PIN à 4 chiffres
             delivery_confirmation_code = Delivery().generate_confirmation_code()
             # Sauvegarde la livraison
-            serializer.save(
-                merchant=merchant,  # Sera None pour les particuliers
-                created_by=self.request.user,  # Créateur (merchant ou individual)
-                calculated_price=calculated_price,
-                delivery_confirmation_code=delivery_confirmation_code
-            )
+            # Save the delivery including calculated distance if available
+            save_kwargs = {
+                'merchant': merchant,
+                'created_by': self.request.user,
+                'calculated_price': calculated_price,
+                'delivery_confirmation_code': delivery_confirmation_code,
+            }
+            if distance_km is not None:
+                try:
+                    # store as Decimal-compatible float
+                    from decimal import Decimal
+                    save_kwargs['distance_km'] = Decimal(str(distance_km))
+                except Exception:
+                    # ignore if conversion fails
+                    pass
+
+            serializer.save(**save_kwargs)
 
             # Envoie le code PIN par email au créateur (merchant ou individual)
             from .email_service import send_delivery_pin_email
