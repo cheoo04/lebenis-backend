@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from django.http import Http404
 
 from apps.payments.models import DriverEarning
 from decimal import Decimal
@@ -398,7 +399,20 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         
         Le livreur accepte une livraison qui lui a été assignée.
         """
-        delivery = self.get_object()
+        try:
+            delivery = self.get_object()
+        except Http404:
+            # Log diagnostic info to help debug 404s caused by auth/get_queryset
+            try:
+                logger.warning("accept: delivery not found for request user", extra={
+                    'user_id': getattr(request.user, 'id', None),
+                    'is_authenticated': getattr(request.user, 'is_authenticated', False),
+                    'user_type': getattr(request.user, 'user_type', None),
+                    'requested_pk': pk,
+                })
+            except Exception:
+                logger.warning('accept: delivery not found and failed to log user info')
+            raise
         
         try:
             driver = Driver.objects.get(user=request.user)
