@@ -867,12 +867,18 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         period_deliveries = all_deliveries.filter(created_at__gte=period_start)
         
         # Stats par statut
+        # Some deployments still have legacy status values. Count both
+        # legacy and current statuses so the dashboard remains accurate.
         stats_by_status = period_deliveries.aggregate(
             total=Count('id'),
-            pending=Count('id', filter=Q(status='pending')),
-            assigned=Count('id', filter=Q(status='assigned')),
-            picked_up=Count('id', filter=Q(status='picked_up')),
-            in_transit=Count('id', filter=Q(status='in_transit')),
+            pending=Count('id', filter=Q(status__in=['pending', 'pending_assignment'])),
+            assigned=Count('id', filter=Q(status__in=['assigned'])),
+            picked_up=Count('id', filter=Q(status__in=['picked_up'])),
+            in_transit=Count('id', filter=Q(status__in=['in_transit'])),
+            # Aggregate any status that represents an in-progress delivery
+            in_progress=Count('id', filter=Q(status__in=[
+                'in_progress', 'pickup_in_progress', 'assigned', 'picked_up', 'in_transit'
+            ])),
             delivered=Count('id', filter=Q(status='delivered')),
             cancelled=Count('id', filter=Q(status='cancelled')),
             failed=Count('id', filter=Q(status='failed'))
@@ -937,6 +943,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 'assigned': stats_by_status['assigned'],
                 'picked_up': stats_by_status['picked_up'],
                 'in_transit': stats_by_status['in_transit'],
+                'in_progress': stats_by_status.get('in_progress', 0),
                 'delivered': stats_by_status['delivered'],
                 'cancelled': stats_by_status['cancelled'],
                 'failed': stats_by_status['failed']
