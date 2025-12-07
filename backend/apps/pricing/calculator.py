@@ -7,6 +7,10 @@ from .models import PricingZone, ZonePricingMatrix
 from django.core.exceptions import ValidationError
 from apps.core.location_service import LocationService
 import unicodedata
+import logging
+import json
+
+logger = logging.getLogger(__name__)
 
 # ⚠️ IMPORTANT: Vous aviez une mauvaise import
 # from backend.apps.drivers import models
@@ -237,23 +241,41 @@ class PricingCalculator:
         """
         # Vérifie que les deux coordonnées sont fournies
         if not all([origin_coords, destination_coords]):
+            logger.debug("calculate_distance: coords missing, using default 10km", extra={
+                'origin_coords': origin_coords,
+                'destination_coords': destination_coords
+            })
             return Decimal('10')  # Distance par défaut
-        
+
         try:
             # Utilise le nouveau LocationService
             origin_lat, origin_lon = origin_coords
             dest_lat, dest_lon = destination_coords
-            
+
             distance_km = LocationService.get_distance(
                 origin_lat, origin_lon,
                 dest_lat, dest_lon,
                 use_api=True  # Utilise OpenRouteService si clé API disponible
             )
-            
+
+            logger.debug("calculate_distance: computed", extra={
+                'origin_coords': origin_coords,
+                'destination_coords': destination_coords,
+                'distance_km': distance_km
+            })
+
             return Decimal(str(distance_km))
-        
+
         except Exception as e:
-            # En cas d'erreur, retourne distance par défaut
+            # Log the exception with context for troubleshooting and return default distance
+            try:
+                logger.exception("calculate_distance failed: using default 10km", extra={
+                    'origin_coords': origin_coords,
+                    'destination_coords': destination_coords
+                })
+            except Exception:
+                # Some logging handlers may not accept 'extra' keys; fall back to simple log
+                logger.exception("calculate_distance failed: using default 10km")
             return Decimal('10')
     
     def calculate_price(self, delivery_data):
@@ -351,11 +373,72 @@ class PricingCalculator:
         # ÉTAPE 6 : Surcharge de distance
         # ═══════════════════════════════════════════════════════════════════
         
-        distance_km = self.calculate_distance(
-            delivery_data.get('pickup_coords'),
-            delivery_data.get('delivery_coords')
-        )
-        
+        # Prefer explicit coords passed by client; otherwise try zone centroids (quartier -> commune)
+        pickup_coords = delivery_data.get('pickup_coords')
+        delivery_coords = delivery_data.get('delivery_coords')
+
+        try:
+            if not pickup_coords:
+                if origin_zone and getattr(origin_zone, 'default_latitude', None) is not None and getattr(origin_zone, 'default_longitude', None) is not None:
+                    pickup_coords = (float(origin_zone.default_latitude), float(origin_zone.default_longitude))
+                    logger.debug("Using origin zone coords for pricing", extra={'pickup_coords': pickup_coords, 'origin_zone_id': getattr(origin_zone, 'id', None)})
+
+            if not delivery_coords:
+                if destination_zone and getattr(destination_zone, 'default_latitude', None) is not None and getattr(destination_zone, 'default_longitude', None) is not None:
+                    delivery_coords = (float(destination_zone.default_latitude), float(destination_zone.default_longitude))
+                    logger.debug("Using destination zone coords for pricing", extra={'delivery_coords': delivery_coords, 'destination_zone_id': getattr(destination_zone, 'id', None)})
+
+        except Exception:
+            logger.exception("Erreur en récupérant les coordonnées depuis les zones; fallback maintenu")
+
+        # Déterminer la source des coordonnées (client, zone, fallback)
+        provided_pickup = True if delivery_data.get('pickup_coords') else False
+        provided_delivery = True if delivery_data.get('delivery_coords') else False
+
+        try:
+            if provided_pickup:
+                pickup_source = 'client'
+            elif pickup_coords:
+                pickup_source = 'zone'
+            else:
+                pickup_source = 'fallback'
+
+            if provided_delivery:
+                delivery_source = 'client'
+            elif delivery_coords:
+                delivery_source = 'zone'
+            else:
+                delivery_source = 'fallback'
+        except Exception:
+            pickup_source = 'unknown'
+            delivery_source = 'unknown'
+
+        # Log chosen coord sources and coords before computing distance
+        try:
+            logger.info(
+                "calculate_price: computing distance",
+                extra={
+                    'pickup_source': pickup_source,
+                    'delivery_source': delivery_source,
+                    'pickup_coords': pickup_coords,
+                    'delivery_coords': delivery_coords,
+                    'origin_zone_id': getattr(origin_zone, 'id', None),
+                    'destination_zone_id': getattr(destination_zone, 'id', None),
+                }
+            )
+        except Exception:
+            # Some logging handlers may not accept extra; fallback to simple log
+            logger.info("calculate_price: computing distance pickup_source=%s delivery_source=%s pickup_coords=%s delivery_coords=%s", pickup_source, delivery_source, pickup_coords, delivery_coords)
+
+        # Enfin, calculer la distance (LocationService gère le fallback haversine ou valeur par défaut)
+        try:
+            distance_km = self.calculate_distance(pickup_coords, delivery_coords)
+        except Exception:
+            # calculate_distance already logs exceptions; ensure a fallback value
+            distance_km = Decimal('10')
+
+        logger.info("calculate_price: distance result", extra={'distance_km': float(distance_km)})
+
         distance_surcharge = distance_km * Decimal(str(pricing.per_km_rate))
         
         # ═══════════════════════════════════════════════════════════════════
@@ -430,5 +513,13 @@ class PricingCalculator:
                 'destination_zone': destination_zone.zone_name,
                 'distance_km': float(distance_km),
                 'billable_weight_kg': float(billable_weight),
+                'used_coords_source': {
+                    'pickup': pickup_source,
+                    'delivery': delivery_source
+                },
+                'used_coords': {
+                    'pickup': list(pickup_coords) if pickup_coords else None,
+                    'delivery': list(delivery_coords) if delivery_coords else None
+                }
             }
         }

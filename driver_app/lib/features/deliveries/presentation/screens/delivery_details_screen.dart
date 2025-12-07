@@ -61,7 +61,12 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      Helpers.showErrorSnackBar(context, 'Impossible d\'ouvrir la navigation.');
+      // Fallback: ouvrir la carte interne avec l'itinéraire
+      try {
+        Navigator.of(context).pushNamed('/delivery-map', arguments: widget.delivery);
+      } catch (err) {
+        Helpers.showErrorSnackBar(context, 'Impossible d\'ouvrir la navigation.');
+      }
     }
   }
   bool _isProcessing = false;

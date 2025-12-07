@@ -10,7 +10,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         location_service = LocationService()
         
-        # Trouver les livraisons sans coordonnées
+        # Trouver les livraisons sans coordonnées (on filtre par champs NULL)
         deliveries = Delivery.objects.filter(
             pickup_latitude__isnull=True
         ) | Delivery.objects.filter(
@@ -24,7 +24,7 @@ class Command(BaseCommand):
         for delivery in deliveries:
             try:
                 # Géocoder l'adresse de récupération si manquante
-                if not delivery.pickup_latitude and delivery.pickup_address:
+                if not delivery.get_coords('pickup') and delivery.pickup_address:
                     pickup_coords = location_service.geocode_address(
                         f"{delivery.pickup_address.street_address}, {delivery.pickup_commune}"
                     )
@@ -34,7 +34,7 @@ class Command(BaseCommand):
                         delivery.pickup_longitude = lon
                 
                 # Géocoder l'adresse de livraison si manquante
-                if not delivery.delivery_latitude:
+                if not delivery.get_coords('delivery'):
                     delivery_coords = location_service.geocode_address(
                         f"{delivery.delivery_address}, {delivery.delivery_commune}"
                     )

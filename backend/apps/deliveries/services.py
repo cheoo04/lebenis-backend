@@ -305,9 +305,8 @@ class DeliveryAssignmentService:
         )
 
         # 4. Calculer la distance réelle pour chaque driver (si GPS dispo)
-        pickup_coords = None
-        if delivery.pickup_latitude is not None and delivery.pickup_longitude is not None:
-            pickup_coords = (float(delivery.pickup_latitude), float(delivery.pickup_longitude))
+        # Utiliser la méthode utilitaire Delivery.get_coords pour normaliser l'accès
+        pickup_coords = delivery.get_coords('pickup')
 
         driver_distance_list = []
         for driver in drivers_with_stats:
@@ -724,10 +723,16 @@ class RouteOptimizationService:
         ).order_by('-picked_up_at').first()
         
         if last_delivery:
-            return {
-                'latitude': last_delivery.pickup_latitude,
-                'longitude': last_delivery.pickup_longitude
-            }
+            coords = last_delivery.get_coords('pickup')
+            if coords:
+                return {'latitude': coords[0], 'longitude': coords[1]}
+            # fallback to raw fields if get_coords fails — convertir en float defensivement
+            try:
+                lat = float(last_delivery.pickup_latitude) if last_delivery.pickup_latitude is not None else None
+                lon = float(last_delivery.pickup_longitude) if last_delivery.pickup_longitude is not None else None
+                return {'latitude': lat, 'longitude': lon}
+            except Exception:
+                return {'latitude': None, 'longitude': None}
         
         # Sinon, utilise la zone principale du driver
         main_zone = driver.zones.first()
@@ -820,10 +825,29 @@ class RouteOptimizationService:
         score = 0
         
         # 1. Distance (40 points max)
-        distance_km = geodesic(
-            (delivery.pickup_latitude, delivery.pickup_longitude),
-            self._get_driver_current_location(driver).values()
-        ).km
+        pickup = delivery.get_coords('pickup')
+        driver_loc = self._get_driver_current_location(driver)
+        try:
+            driver_tuple = (driver_loc['latitude'], driver_loc['longitude'])
+        except Exception:
+            driver_tuple = (driver_loc.get('latitude'), driver_loc.get('longitude'))
+
+        if pickup and driver_tuple[0] is not None and driver_tuple[1] is not None:
+            distance_km = geodesic(pickup, driver_tuple).km
+        else:
+            # fallback: essayer de convertir les champs bruts en float puis calculer
+            try:
+                fallback_pickup = (
+                    float(delivery.pickup_latitude) if delivery.pickup_latitude is not None else None,
+                    float(delivery.pickup_longitude) if delivery.pickup_longitude is not None else None,
+                )
+                if fallback_pickup[0] is not None and fallback_pickup[1] is not None and driver_tuple[0] is not None and driver_tuple[1] is not None:
+                    distance_km = geodesic(fallback_pickup, driver_tuple).km
+                else:
+                    # Aucune coordonnée disponible, appliquer une valeur large par défaut
+                    distance_km = float('inf')
+            except Exception:
+                distance_km = float('inf')
         
         if distance_km < 2:
             distance_score = 40

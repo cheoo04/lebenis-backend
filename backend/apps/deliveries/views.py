@@ -132,9 +132,46 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             except (TypeError, ValueError):
                 # ignorer si conversion échoue — le calculateur utilisera le fallback
                 logger.warning('Coordonnées GPS fournies invalides; fallback sur zones')
-
-            # Calcule le prix
+            # Instancier le PricingCalculator une seule fois et prioriser
             calculator = PricingCalculator()
+            # Prioriser coordonnées de quartier/zone si le client n'a pas fourni de coords
+            try:
+
+                # pickup coords from zone centroid (quartier -> commune)
+                if not pricing_data.get('pickup_coords'):
+                    try:
+                        origin_zone = calculator.get_zone_from_quartier(
+                            pricing_data.get('pickup_quartier'),
+                            pricing_data.get('pickup_commune')
+                        )
+                        if getattr(origin_zone, 'default_latitude', None) is not None and getattr(origin_zone, 'default_longitude', None) is not None:
+                            pricing_data['pickup_coords'] = (
+                                float(origin_zone.default_latitude),
+                                float(origin_zone.default_longitude)
+                            )
+                    except Exception:
+                        # ignore zone lookup errors — calculator will fallback
+                        logger.debug('No origin zone coords available')
+
+                # delivery coords from zone centroid (quartier -> commune)
+                if not pricing_data.get('delivery_coords'):
+                    try:
+                        destination_zone = calculator.get_zone_from_quartier(
+                            pricing_data.get('delivery_quartier'),
+                            pricing_data.get('delivery_commune')
+                        )
+                        if getattr(destination_zone, 'default_latitude', None) is not None and getattr(destination_zone, 'default_longitude', None) is not None:
+                            pricing_data['delivery_coords'] = (
+                                float(destination_zone.default_latitude),
+                                float(destination_zone.default_longitude)
+                            )
+                    except Exception:
+                        logger.debug('No destination zone coords available')
+
+            except Exception:
+                logger.exception('Erreur lors de la récupération des coordonnées de zone pour pricing')
+
+            # Calcule le prix (réutilise l'instance existante)
             price_result = calculator.calculate_price(pricing_data)
             calculated_price = price_result['total_price']
 
@@ -538,8 +575,8 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 'is_fragile': getattr(delivery, 'is_fragile', False),
                 'scheduling_type': getattr(delivery, 'scheduling_type', 'immediate'),
                 'scheduled_pickup_time': getattr(delivery, 'scheduled_pickup_time', None),
-                'pickup_coords': getattr(delivery, 'pickup_coords', None),
-                'delivery_coords': getattr(delivery, 'delivery_coords', None),
+                'pickup_coords': delivery.get_coords('pickup'),
+                'delivery_coords': delivery.get_coords('delivery'),
             }
             price_result = calculator.calculate_price(pricing_data)
             base_earning = Decimal(str(price_result['total_price']))
@@ -969,8 +1006,14 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         
         try:
             pdf_content = PDFReportService.generate_delivery_report(delivery)
-            
-            response = HttpResponse(pdf_content, content_type='application/pdf')
+            # `generate_delivery_report` retourne un BytesIO; lire son contenu
+            try:
+                pdf_bytes = pdf_content.read()
+            except Exception:
+                logger.exception('Failed to read PDF BytesIO')
+                pdf_bytes = b''
+
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="livraison_{delivery.tracking_number}.pdf"'
             
             return response

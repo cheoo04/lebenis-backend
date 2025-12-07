@@ -79,6 +79,17 @@ class PDFReportService:
             'distance_distribution': distance_distribution,
         }
         
+        # Log report generation request (minimal info)
+        try:
+            logger.info("generate_analytics_report requested", extra={
+                'driver_id': getattr(driver, 'id', None),
+                'start_date': str(start_date),
+                'end_date': str(end_date),
+                'period': period,
+            })
+        except Exception:
+            logger.info("generate_analytics_report requested driver=%s start=%s end=%s period=%s", getattr(driver, 'id', None), start_date, end_date, period)
+
         # Render HTML template
         html_string = render_to_string('reports/analytics_report.html', context)
         
@@ -291,11 +302,81 @@ class PDFReportService:
         Returns:
             BytesIO: PDF file content
         """
-        # Prepare context data
+        # Build a safe context dict for the template to avoid template errors
+        # when related objects or fields are missing or lazily loaded.
+        def safe_get(obj, path, default=None):
+            try:
+                cur = obj
+                for part in path.split('.'):
+                    if cur is None:
+                        return default
+                    cur = getattr(cur, part)
+                return cur
+            except Exception:
+                return default
+
+        delivery_ctx = {
+            'tracking_number': safe_get(delivery, 'tracking_number', ''),
+            'status': safe_get(delivery, 'status', ''),
+            'created_at': safe_get(delivery, 'created_at', None),
+            'delivered_at': safe_get(delivery, 'delivered_at', None),
+            'merchant': {
+                'business_name': safe_get(delivery, 'merchant.business_name', ''),
+                'email': safe_get(delivery, 'merchant.user.email', ''),
+            },
+            'pickup_address': {
+                'street_address': safe_get(delivery, 'pickup_address.street_address', ''),
+                'commune': safe_get(delivery, 'pickup_address.commune', ''),
+                'quartier': safe_get(delivery, 'pickup_address.quartier', ''),
+            },
+            'pickup_address_details': safe_get(delivery, 'pickup_address_details', ''),
+            'recipient_name': safe_get(delivery, 'recipient_name', ''),
+            'recipient_phone': safe_get(delivery, 'recipient_phone', ''),
+            'delivery_address': safe_get(delivery, 'delivery_address', ''),
+            'delivery_commune': safe_get(delivery, 'delivery_commune', ''),
+            'delivery_quartier': safe_get(delivery, 'delivery_quartier', ''),
+            'is_fragile': safe_get(delivery, 'is_fragile', False),
+            'package_weight_kg': safe_get(delivery, 'package_weight_kg', None),
+            'package_description': safe_get(delivery, 'package_description', ''),
+            'driver': {
+                'first_name': safe_get(delivery, 'driver.user.first_name', ''),
+                'last_name': safe_get(delivery, 'driver.user.last_name', ''),
+                'phone_number': safe_get(delivery, 'driver.phone_number', ''),
+                'vehicle_type': safe_get(delivery, 'driver.vehicle_type', ''),
+                'license_plate': safe_get(delivery, 'driver.license_plate', ''),
+            },
+            'distance_km': safe_get(delivery, 'distance_km', None),
+            'calculated_price': safe_get(delivery, 'calculated_price', None),
+            'special_instructions': safe_get(delivery, 'delivery_notes', ''),
+            'rating': safe_get(delivery, 'rating', None),
+        }
+
         context = {
-            'delivery': delivery,
+            'delivery': delivery_ctx,
             'generated_at': timezone.now(),
         }
+
+        # Log we are about to generate a delivery PDF with minimal identifiers
+        try:
+            delivery_id = getattr(delivery, 'id', None)
+            tracking_number = getattr(delivery, 'tracking_number', None)
+            coords_info = None
+            if hasattr(delivery, 'get_coords'):
+                try:
+                    coords_info = {
+                        'pickup': delivery.get_coords('pickup'),
+                        'delivery': delivery.get_coords('delivery')
+                    }
+                except Exception:
+                    coords_info = None
+
+            logger.info("generate_delivery_report requested", extra={
+                'delivery_id': delivery_id,
+                'tracking_number': tracking_number,
+                'coords': coords_info,
+            })
+        except Exception:
+            logger.info("generate_delivery_report requested delivery=%s tracking=%s", getattr(delivery, 'id', None), getattr(delivery, 'tracking_number', None))
         
         # Render HTML template and generate PDF. If WeasyPrint or template
         # rendering fails (occasionally due to CSS/font issues), log the full
@@ -315,11 +396,15 @@ class PDFReportService:
             )
 
             pdf_file.seek(0)
+            logger.info("generate_delivery_report: PDF generated", extra={'delivery_id': getattr(delivery, 'id', None), 'tracking_number': getattr(delivery, 'tracking_number', None)})
             return pdf_file
 
         except Exception:
             # Log full traceback for diagnosis
-            logger.exception(f"Error generating delivery PDF for delivery={getattr(delivery, 'id', None)}")
+            try:
+                logger.exception("Error generating delivery PDF", extra={'delivery_id': getattr(delivery, 'id', None), 'tracking_number': getattr(delivery, 'tracking_number', None)})
+            except Exception:
+                logger.exception(f"Error generating delivery PDF for delivery={getattr(delivery, 'id', None)}")
 
             # Minimal fallback HTML (plain, no advanced CSS) using safe attribute access
             def safe(obj, attr, default=''):

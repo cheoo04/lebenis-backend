@@ -159,3 +159,29 @@ class Delivery(models.Model):
             pass
 
         super().save(*args, **kwargs)
+
+    def get_coords(self, which='pickup'):
+        """
+        Retourne un tuple (latitude, longitude) en float pour 'pickup' ou 'delivery'.
+        Si les coordonnées ne sont pas disponibles ou invalides, retourne None.
+
+        Usage:
+            delivery.get_coords('pickup')  -> (lat, lon) | None
+            delivery.get_coords('delivery') -> (lat, lon) | None
+        """
+        try:
+            if which == 'pickup':
+                lat = self.pickup_latitude
+                lon = self.pickup_longitude
+            elif which == 'delivery':
+                lat = self.delivery_latitude
+                lon = self.delivery_longitude
+            else:
+                return None
+
+            if lat is None or lon is None:
+                return None
+
+            return (float(lat), float(lon))
+        except (TypeError, ValueError, Exception):
+            return None

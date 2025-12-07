@@ -237,14 +237,18 @@ class AnalyticsService:
         # Limiter le nombre de points
         deliveries = deliveries[:max_points]
         
-        return [
-            {
-                'lat': float(delivery.delivery_latitude),
-                'lng': float(delivery.delivery_longitude),
-                'weight': 1,  # Peut être ajusté selon le montant
-            }
-            for delivery in deliveries
-        ]
+        points = []
+        for delivery in deliveries:
+            coords = delivery.get_coords('delivery')
+            if not coords:
+                # Défensif : ignorer si impossibilité de convertir
+                continue
+            points.append({
+                'lat': float(coords[0]),
+                'lng': float(coords[1]),
+                'weight': 1,
+            })
+        return points
     
     @staticmethod
     def get_peak_hours_stats(
