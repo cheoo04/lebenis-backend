@@ -1,5 +1,5 @@
 class AppStrings {
-  static const appName = 'Lebenis Marchand';
+  static const appName = 'LeBeni Business';
   static const login = 'Connexion';
   static const register = 'Créer un compte';
   static const dashboard = 'Tableau de bord';

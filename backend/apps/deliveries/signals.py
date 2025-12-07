@@ -71,8 +71,24 @@ def ensure_pin_and_send_email(sender, instance, created, **kwargs):
     # Send email ONLY on creation (not on updates)
     if created:
         try:
-            send_delivery_pin_email(instance.delivery_confirmation_code, "yahmardocheek@gmail.com", instance)
-            logger.info(f"✅ Email de confirmation envoyé pour la livraison {instance.tracking_number}")
+            # Récupérer l'email du destinataire
+            recipient_email = None
+            
+            # 1. Si c'est un merchant, utiliser l'email du merchant
+            if instance.merchant:
+                recipient_email = instance.merchant.user.email
+            
+            # 2. Si c'est un particulier, utiliser l'email du créateur
+            elif instance.created_by:
+                recipient_email = instance.created_by.email
+            
+            # 3. Fallback (ne devrait pas arriver ici)
+            if not recipient_email:
+                logger.warning(f"⚠️ Aucun email trouvé pour la livraison {instance.tracking_number}")
+                return
+            
+            send_delivery_pin_email(instance.delivery_confirmation_code, recipient_email, instance)
+            logger.info(f"✅ Email de confirmation envoyé à {recipient_email} pour la livraison {instance.tracking_number}")
         except Exception as e:
             # Log l'erreur mais ne bloque pas la création de la livraison
             logger.error(f"❌ Erreur envoi email pour {instance.tracking_number}: {e}")

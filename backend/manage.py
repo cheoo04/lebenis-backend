@@ -2,6 +2,11 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import warnings
+
+# Supprimer les avertissements pkg_resources déprecié
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="pkg_resources")
+warnings.filterwarnings("ignore", message="pkg_resources is deprecated")
 
 
 def main():

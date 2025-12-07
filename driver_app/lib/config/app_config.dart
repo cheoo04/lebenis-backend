@@ -2,12 +2,12 @@
 
 class AppConfig {
   // App Information
-  static const String appName = 'LeBenis Driver';
+  static const String appName = 'LeBeni Driver';
   static const String appVersion = '1.0.0';
   static const String appBuildNumber = '1';
 
   // Company Information
-  static const String companyName = 'LeBenis';
+  static const String companyName = 'LeBeni Groups';
   static const String supportEmail = 'support@lebenis.sn';
   static const String supportPhone = '+221 77 123 45 67';
 

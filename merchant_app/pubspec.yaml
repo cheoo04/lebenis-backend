@@ -1,5 +1,5 @@
-name: merchant_app
-description: LeBeni's Group - Application Commerçant
+name: lebeni_business
+description: "LeBeni Business – Plateforme de gestion pour commerçants"
 publish_to: "none"
 version: 1.0.0+1
 
