@@ -11,7 +11,7 @@ import '../../../../shared/widgets/modern_button.dart';
 import '../../../../shared/widgets/gps_info_card.dart';
 import '../../../../shared/utils/formatters.dart';
 import '../../../../shared/utils/helpers.dart';
-import '../../../../core/utils/navigation_utils.dart';
+
 
 class DeliveryDetailsScreen extends ConsumerStatefulWidget {
   final DeliveryModel delivery;
@@ -52,23 +52,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       }
   }
 
-  Future<void> _openNavigation() async {
-    try {
-      await openNavigationApp(
-        latitude: widget.delivery.deliveryLatitude,
-        longitude: widget.delivery.deliveryLongitude,
-        label: widget.delivery.deliveryAddress,
-      );
-    } catch (e) {
-      if (!mounted) return;
-      // Fallback: ouvrir la carte interne avec l'itinéraire
-      try {
-        Navigator.of(context).pushNamed('/delivery-map', arguments: widget.delivery);
-      } catch (err) {
-        Helpers.showErrorSnackBar(context, 'Impossible d\'ouvrir la navigation.');
-      }
-    }
-  }
+  
   bool _isProcessing = false;
 
   Future<void> _acceptDelivery() async {
@@ -220,28 +204,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
               ),
             ),
 
-            // Map Preview (placeholder)
-            Container(
-              height: 200.0,
-              color: Colors.grey[300],
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.map_outlined,
-                      size: 64,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(height: AppSpacing.sm),
-                    Text(
-                      'Carte Google Maps',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // Removed large map placeholder to save vertical space — map opened via "Ouvrir la navigation"
 
             Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
@@ -259,6 +222,9 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     latitude: delivery.pickupLatitude,
                     longitude: delivery.pickupLongitude,
                     color: AppColors.success,
+                    onNavigate: () {
+                      Navigator.of(context).pushNamed('/delivery-map', arguments: widget.delivery);
+                    },
                   ),
                   
                   const SizedBox(height: AppSpacing.md),
@@ -271,6 +237,9 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     longitude: delivery.deliveryLongitude,
                     distanceKm: delivery.distanceKm,
                     color: AppColors.error,
+                    onNavigate: () {
+                      Navigator.of(context).pushNamed('/delivery-map', arguments: widget.delivery);
+                    },
                   ),
                   
                   const SizedBox(height: AppSpacing.xl),
@@ -324,19 +293,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     value: Formatters.formatDistance(delivery.distanceKm),
                   ),
 
-                  if (delivery.packageDescription.isNotEmpty)
-                    _DetailRow(
-                      icon: Icons.inventory_2_outlined,
-                      label: 'Description',
-                      value: delivery.packageDescription,
-                    ),
 
-                  if (delivery.notes != null && delivery.notes!.isNotEmpty)
-                    _DetailRow(
-                      icon: Icons.note_outlined,
-                      label: 'Notes',
-                      value: delivery.notes!,
-                    ),
 
                   _DetailRow(
                     icon: Icons.access_time,
@@ -350,6 +307,41 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                       label: 'Assigné le',
                       value: Formatters.formatDateTime(delivery.assignedAt!),
                     ),
+
+                  // Collapsible details to keep the main screen simple
+                  const SizedBox(height: AppSpacing.md),
+                  ExpansionTile(
+                    title: const Text('Plus de détails'),
+                    children: [
+                      if (delivery.packageDescription.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: _DetailRow(
+                            icon: Icons.inventory_2_outlined,
+                            label: 'Description',
+                            value: delivery.packageDescription,
+                          ),
+                        ),
+                      if (delivery.notes != null && delivery.notes!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: _DetailRow(
+                            icon: Icons.note_outlined,
+                            label: 'Notes',
+                            value: delivery.notes!,
+                          ),
+                        ),
+                      if (delivery.deliveryNotes != null && delivery.deliveryNotes!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: _DetailRow(
+                            icon: Icons.note_alt_outlined,
+                            label: 'Notes de livraison',
+                            value: delivery.deliveryNotes!,
+                          ),
+                        ),
+                    ],
+                  ),
 
                   const SizedBox(height: AppSpacing.xxl),
 

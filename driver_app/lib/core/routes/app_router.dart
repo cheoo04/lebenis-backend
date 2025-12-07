@@ -13,6 +13,7 @@ import '../../features/deliveries/presentation/screens/delivery_list_screen.dart
 import '../../features/deliveries/presentation/screens/delivery_details_screen.dart';
 import '../../features/deliveries/presentation/screens/active_delivery_screen.dart';
 import '../../features/deliveries/presentation/screens/confirm_delivery_screen.dart';
+import '../../features/deliveries/presentation/screens/delivery_navigation_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/earnings/presentation/screens/earnings_screen.dart';
@@ -119,15 +120,27 @@ class AppRouter {
         );
 
       case deliveryMap:
-        final delivery = settings.arguments as DeliveryModel?;
-        if (delivery == null) {
+        final args = settings.arguments;
+        if (args is DeliveryModel) {
+          return MaterialPageRoute(
+            builder: (_) => DeliveryNavigationScreen(delivery: args),
+          );
+        } else if (args is Map) {
+          // Expect keys: pickupLat, pickupLng, destLat, destLng, destLabel (optional)
+          return MaterialPageRoute(
+            builder: (_) => DeliveryNavigationScreen(
+              pickupLat: (args['pickupLat'] as num?)?.toDouble(),
+              pickupLng: (args['pickupLng'] as num?)?.toDouble(),
+              destLat: (args['destLat'] as num?)?.toDouble(),
+              destLng: (args['destLng'] as num?)?.toDouble(),
+              destLabel: args['destLabel'] as String?,
+            ),
+          );
+        } else {
           return MaterialPageRoute(
             builder: (_) => const PlaceholderScreen(title: 'Erreur: Livraison non trouvée'),
           );
         }
-        return MaterialPageRoute(
-          builder: (_) => DeliveryNavigationScreen(delivery: delivery),
-        );
 
       case editProfile:
         return MaterialPageRoute(
