@@ -23,9 +23,7 @@ class IndividualProfileNotifier extends Notifier<AsyncValue<IndividualModel?>> {
       final repository = ref.read(individualRepositoryProvider);
       final profile = await repository.getProfile();
       state = AsyncValue.data(profile);
-      print('✅ Profil particulier chargé: ${profile.fullName}');
     } catch (e, st) {
-      print('❌ Erreur chargement profil particulier: $e');
       state = AsyncValue.error(e, st);
     }
   }
@@ -52,9 +50,7 @@ class IndividualProfileNotifier extends Notifier<AsyncValue<IndividualModel?>> {
         address: address,
       );
       state = AsyncValue.data(updatedProfile);
-      print('✅ Profil particulier mis à jour');
     } catch (e, st) {
-      print('❌ Erreur mise à jour profil particulier: $e');
       state = AsyncValue.error(e, st);
       rethrow;
     }

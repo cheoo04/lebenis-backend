@@ -37,7 +37,6 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   final _deliveryStreetController = TextEditingController(); // Rue/précision
   double? _deliveryLat;
   double? _deliveryLng;
-  final _deliveryAddressController = TextEditingController();
   
   // Package info
   final _packageDescController = TextEditingController();
@@ -67,7 +66,6 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
     _recipientAltPhoneController.dispose();
     _pickupStreetController.dispose();
     _deliveryStreetController.dispose();
-    _deliveryAddressController.dispose();
     _packageDescController.dispose();
     _packageWeightController.dispose();
     _packageLengthController.dispose();
@@ -79,6 +77,14 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
+    await _getLocationForPoint('pickup');
+  }
+
+  Future<void> _getDeliveryLocation() async {
+    await _getLocationForPoint('delivery');
+  }
+
+  Future<void> _getLocationForPoint(String pointType) async {
     try {
       // Vérifier les permissions d'abord
       LocationPermission permission = await Geolocator.checkPermission();
@@ -117,25 +123,21 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
       );
       
       if (mounted) {
-        // Utiliser le reverse geocoding pour obtenir l'adresse
-        final address = await ref.read(quartierRepositoryProvider).reverseGeocode(
-          position.latitude,
-          position.longitude,
-        );
-        
         setState(() {
-          _pickupLat = position.latitude;
-          _pickupLng = position.longitude;
-          // L'adresse contient généralement la commune
+          if (pointType == 'pickup') {
+            _pickupLat = position.latitude;
+            _pickupLng = position.longitude;
+          } else if (pointType == 'delivery') {
+            _deliveryLat = position.latitude;
+            _deliveryLng = position.longitude;
+          }
         });
         
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(address != null 
-              ? '✓ Position GPS récupérée - $address'
-              : '✓ Position GPS récupérée'),
+          const SnackBar(
+            content: Text('Position GPS enregistrée'),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
+            duration: Duration(seconds: 2),
           ),
         );
         _estimatePrice();
@@ -155,7 +157,6 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
 
   Future<void> _estimatePrice() async {
     if (_pickupCommune == null || _deliveryCommune == null || _packageWeightController.text.isEmpty) {
-      print('❌ Estimation impossible: pickup=$_pickupCommune, delivery=$_deliveryCommune, weight=${_packageWeightController.text}');
       setState(() => _estimatedPrice = null);
       return;
     }
@@ -165,15 +166,16 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
       final weight = double.tryParse(_packageWeightController.text) ?? 1.0;
       final data = {
         'pickup_commune': _pickupCommune!,
+        if (_pickupQuartier != null && _pickupQuartier!.isNotEmpty)
+          'pickup_quartier': _pickupQuartier,
         'delivery_commune': _deliveryCommune!,
+        if (_deliveryQuartier != null && _deliveryQuartier!.isNotEmpty)
+          'delivery_quartier': _deliveryQuartier,
         'package_weight_kg': weight,
       };
-      print('📊 Estimation prix: $data');
       final estimate = await ref.read(pricingRepositoryProvider).estimatePrice(data);
-      print('✅ Prix estimé: ${estimate.total} FCFA');
       setState(() => _estimatedPrice = estimate.total);
     } catch (e) {
-      print('❌ Erreur estimation: $e');
       setState(() => _estimatedPrice = null);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -266,9 +268,6 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
         deliveryData['cod_amount'] = double.tryParse(_codAmountController.text) ?? 0.0;
       }
 
-      print('✅ Livraison créée avec:');
-      print('   pickup: ${deliveryData['pickup_quartier']}, ${deliveryData['pickup_commune']}');
-      print('   GPS: ${deliveryData['pickup_latitude']}/${deliveryData['pickup_longitude']}');
       
       await ref.read(deliveryRepositoryProvider).createDelivery(deliveryData);
 
@@ -307,7 +306,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             // Section Destinataire
-            _buildSectionTitle('👤 Informations destinataire'),
+            _buildSectionTitle('Informations destinataire'),
             const SizedBox(height: 12),
             ModernTextField(
               controller: _recipientNameController,
@@ -341,7 +340,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             const SizedBox(height: 32),
 
             // Section Récupération
-            _buildSectionTitle('📍 Point de récupération'),
+            _buildSectionTitle('Point de récupération'),
             const SizedBox(height: 12),
             
             // Widget intégré Commune + Quartier pour le pickup (OBLIGATOIRE)
@@ -387,34 +386,84 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             const SizedBox(height: 16),
 
             // GPS OPTIONNEL pour affiner la localisation exacte
-            _buildSectionTitle('📍 Localisation GPS (optionnel)'),
+            _buildSectionTitle('Localisation GPS (optionnel)'),
             const SizedBox(height: 12),
             Text(
               'Utilisez votre GPS actuel si vous êtes le point de récupération',
               style: TextStyle(color: Colors.grey[600], fontSize: 12, fontStyle: FontStyle.italic),
             ),
             const SizedBox(height: 12),
-            ModernButton(
-              text: _pickupLat != null ? 'GPS activé ✓' : 'Activer GPS',
-              icon: Icons.my_location,
-              onPressed: _getCurrentLocation,
-              backgroundColor: _pickupLat != null ? Colors.green : AppTheme.accentColor,
-              isOutlined: true,
-            ),
-            if (_pickupLat != null) ...[
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    '✓ Position enregistrée : ${_pickupLat!.toStringAsFixed(4)}, ${_pickupLng!.toStringAsFixed(4)}',
-                    style: TextStyle(color: Colors.green[700], fontSize: 12),
-                  ),
+            if (_pickupLat == null)
+              ModernButton(
+                text: 'Utiliser ma position actuelle',
+                icon: Icons.location_on_sharp,
+                onPressed: _getCurrentLocation,
+                backgroundColor: AppTheme.accentColor,
+                isOutlined: true,
+              )
+            else ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  border: Border.all(color: Colors.green, width: 1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Position enregistrée',
+                                style: TextStyle(
+                                  color: Colors.green[700],
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${_pickupLat!.toStringAsFixed(4)}, ${_pickupLng!.toStringAsFixed(4)}',
+                                style: TextStyle(
+                                  color: Colors.green[700],
+                                  fontSize: 11,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _pickupLat = null;
+                              _pickupLng = null;
+                            });
+                          },
+                          icon: const Icon(Icons.close, size: 18),
+                          label: const Text('Effacer'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ],
 
             const SizedBox(height: 32),
 
             // Section Livraison
-            _buildSectionTitle('🚚 Adresse de livraison'),
+            _buildSectionTitle('Adresse de livraison'),
             const SizedBox(height: 12),
             
             // Widget intégré Commune + Quartier avec GPS
@@ -460,20 +509,82 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
               maxLines: 2,
             ),
             
-            const SizedBox(height: 16),
-            ModernTextField(
-              controller: _deliveryAddressController,
-              label: 'Adresse complète',
-              hint: 'Rue, immeuble, point de repère... (optionnel)',
-              prefixIcon: Icons.location_on,
-              maxLines: 2,
-              validator: (v) => null, // Optionnel - la commune et quartier suffisent
+            const SizedBox(height: 12),
+            Text(
+              'Localisation GPS (optionnel)',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                fontStyle: FontStyle.italic,
+              ),
             ),
+            const SizedBox(height: 8),
+            if (_deliveryLat == null)
+              ModernButton(
+                text: 'Enregistrer la position de livraison',
+                icon: Icons.location_on_sharp,
+                onPressed: _getDeliveryLocation,
+                backgroundColor: AppTheme.accentColor,
+                isOutlined: true,
+              )
+            else ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  border: Border.all(color: Colors.green, width: 1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Position enregistrée',
+                            style: TextStyle(
+                              color: Colors.green[700],
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${_deliveryLat!.toStringAsFixed(4)}, ${_deliveryLng!.toStringAsFixed(4)}',
+                            style: TextStyle(
+                              color: Colors.green[700],
+                              fontSize: 11,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _deliveryLat = null;
+                          _deliveryLng = null;
+                        });
+                      },
+                      icon: const Icon(Icons.close, size: 18),
+                      label: const Text('Effacer'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             const SizedBox(height: 32),
 
             // Section Colis
-            _buildSectionTitle('📦 Informations colis'),
+            _buildSectionTitle('Informations colis'),
             const SizedBox(height: 12),
             ModernTextField(
               controller: _packageDescController,

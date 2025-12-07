@@ -179,15 +179,12 @@ class Helpers {
         if (kIsWeb) {
           // Sur le web, retourner WebPickedFile avec les bytes
           final bytes = await pickedFile.readAsBytes();
-          debugPrint('🖼️ [DEBUG] pickImageFromGallery (web): name=${pickedFile.name}, bytes=${bytes.length}');
           return WebPickedFile(pickedFile.name, bytes);
         } else {
           // Sur mobile, retourner File
-          debugPrint('🖼️ [DEBUG] pickImageFromGallery (mobile): path=${pickedFile.path}');
           return File(pickedFile.path);
         }
       }
-      debugPrint('🖼️ [DEBUG] pickImageFromGallery: aucun fichier sélectionné');
       return null;
     } catch (e) {
       if (kDebugMode) debugPrint('❌ Erreur sélection image: $e');
@@ -210,11 +207,9 @@ class Helpers {
         if (kIsWeb) {
           // Sur le web, retourner WebPickedFile
           final bytes = await pickedFile.readAsBytes();
-          debugPrint('🖼️ [DEBUG] takePhoto (web): name=${pickedFile.name}, bytes=${bytes.length}');
           return WebPickedFile(pickedFile.name, bytes);
         } else {
           // Sur mobile, retourner File
-          debugPrint('🖼️ [DEBUG] takePhoto (mobile): path=${pickedFile.path}');
           return File(pickedFile.path);
         }
       }
@@ -233,7 +228,6 @@ class Helpers {
 
     if (isLinux || kIsWeb) {
       // Directement la galerie sur Linux et Web
-      debugPrint('🖼️ [DEBUG] pickImageWithDialog: plateforme ${kIsWeb ? 'web' : 'linux'}, galerie uniquement');
       return await pickImageFromGallery();
     }
 
@@ -496,7 +490,6 @@ class Helpers {
   static void logError(String message, {dynamic error, StackTrace? stackTrace}) {
     final timestamp = DateFormat('HH:mm:ss').format(DateTime.now());
     if (kDebugMode) {
-      debugPrint('[$timestamp][ERROR] $message');
       if (error != null) debugPrint('Error: $error');
       if (stackTrace != null) debugPrint('StackTrace: $stackTrace');
     }

@@ -85,7 +85,6 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
         });
       }
     } catch (e) {
-      print('❌ Erreur chargement route: $e');
     } finally {
       if (mounted) {
         setState(() {

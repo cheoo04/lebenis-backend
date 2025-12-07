@@ -437,7 +437,6 @@ class DriverViewSet(viewsets.ModelViewSet):
         user = request.user
         data = request.data.copy()
         
-        print(f"[DEBUG] PATCH /drivers/me/ - Raw data: {data}")
         
         # Mettre à jour les champs User
         # 🔥 IMPORTANT : Garder profile_photo dans data pour le serializer
@@ -455,7 +454,6 @@ class DriverViewSet(viewsets.ModelViewSet):
         if 'vehicle_plate' in data:
             data['vehicle_registration'] = data.pop('vehicle_plate')
 
-        print(f"[DEBUG] Data for Driver serializer: {data}")
 
         # Mettre à jour Driver
         serializer = DriverSerializer(driver, data=data, partial=True)
@@ -469,7 +467,6 @@ class DriverViewSet(viewsets.ModelViewSet):
                 'driver': DriverSerializer(updated_driver).data
             })
 
-        print(f"[DEBUG] Serializer errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['GET'])

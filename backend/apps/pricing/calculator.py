@@ -96,6 +96,39 @@ class PricingCalculator:
         except Exception as e:
             raise ValidationError(f"Erreur lors de la recherche de zone: {str(e)}")
     
+    def get_zone_from_quartier(self, quartier, commune):
+        """
+        Récupère la zone tarifaire en utilisant d'abord le quartier, avec fallback sur la commune.
+        
+        Args:
+            quartier (str): Nom du quartier (optionnel)
+            commune (str): Nom de la commune (obligatoire)
+            
+        Returns:
+            PricingZone: Zone trouvée (soit le quartier spécifique, soit la commune)
+        """
+        try:
+            # Si quartier est fourni, chercher d'abord avec quartier + commune
+            if quartier and quartier.strip():
+                normalized_quartier = normalize_commune_name(quartier)
+                normalized_commune = normalize_commune_name(commune)
+                
+                # Chercher une zone avec ce quartier ET cette commune
+                all_zones = PricingZone.objects.filter(is_active=True)
+                for z in all_zones:
+                    if (z.quartier and normalize_commune_name(z.commune) == normalized_commune and 
+                        normalize_commune_name(z.quartier) == normalized_quartier):
+                        return z
+            
+            # Fallback: utiliser la commune
+            return self.get_zone_from_commune(commune)
+        
+        except ValidationError:
+            raise
+        except Exception as e:
+            # En cas d'erreur, fallback sur la commune
+            return self.get_zone_from_commune(commune)
+    
     def get_pricing_matrix(self, origin_zone, destination_zone):
         """
         Récupère la matrice tarifaire pour deux zones.
@@ -221,18 +254,19 @@ class PricingCalculator:
         
         except Exception as e:
             # En cas d'erreur, retourne distance par défaut
-            print(f"Erreur calcul distance: {e}")
             return Decimal('10')
     
     def calculate_price(self, delivery_data):
         """
         Calcule le prix TOTAL d'une livraison.
-        Prend en compte : zones, poids, volume, distance, surcharges contextuelles.
+        Prend en compte : zones (quartiers avec fallback communes), poids, volume, distance, surcharges contextuelles.
         
         Args:
             delivery_data (dict): Dictionnaire avec les données de livraison :
                 - pickup_commune: str (commune de départ, ex: "Cocody")
+                - pickup_quartier: str (quartier optionnel pour plus de précision)
                 - delivery_commune: str (commune d'arrivée, ex: "Plateau")
+                - delivery_quartier: str (quartier optionnel pour plus de précision)
                 - package_weight_kg: Decimal ou float
                 - package_length_cm: Decimal ou float (optionnel)
                 - package_width_cm: Decimal ou float (optionnel)
@@ -251,7 +285,7 @@ class PricingCalculator:
         """
         
         # ═══════════════════════════════════════════════════════════════════
-        # ÉTAPE 1 : Identifier les zones tarifaires
+        # ÉTAPE 1 : Identifier les zones tarifaires (quartiers avec fallback communes)
         # ═══════════════════════════════════════════════════════════════════
         
         # Valider les communes obligatoires
@@ -263,8 +297,13 @@ class PricingCalculator:
         if not delivery_commune or (isinstance(delivery_commune, str) and not delivery_commune.strip()):
             raise ValidationError("delivery_commune est obligatoire")
         
-        origin_zone = self.get_zone_from_commune(str(pickup_commune))
-        destination_zone = self.get_zone_from_commune(str(delivery_commune))
+        # Récupérer les quartiers optionnels pour plus de précision
+        pickup_quartier = delivery_data.get('pickup_quartier')
+        delivery_quartier = delivery_data.get('delivery_quartier')
+        
+        # Utiliser les quartiers avec fallback sur communes
+        origin_zone = self.get_zone_from_quartier(pickup_quartier, str(pickup_commune))
+        destination_zone = self.get_zone_from_quartier(delivery_quartier, str(delivery_commune))
         
         # ═══════════════════════════════════════════════════════════════════
         # ÉTAPE 2 : Récupérer la matrice tarifaire

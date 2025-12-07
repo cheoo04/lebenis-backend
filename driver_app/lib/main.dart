@@ -21,11 +21,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     if (kDebugMode) {
-      debugPrint('📩 Message reçu en arrière-plan: ${message.notification?.title}');
     }
   } catch (e) {
     if (kDebugMode) {
-      debugPrint('⚠️ Erreur handler Firebase background: $e');
     }
   }
 }
@@ -37,8 +35,6 @@ void main() async {
   // Capturer toutes les erreurs Flutter
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    debugPrint('🔴 Flutter Error: ${details.exception}');
-    debugPrint('Stack trace: ${details.stack}');
   };
 
   // Initialisation Firebase (optionnel - nécessaire configuration par plateforme)
@@ -57,21 +53,16 @@ void main() async {
       );
       firebaseInitialized = true;
       if (kDebugMode) {
-        debugPrint('✅ Firebase initialisé');
       }
 
       // Handler notifications en arrière-plan
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('⚠️ Erreur Firebase: $e');
-        debugPrint('💡 L\'application fonctionnera sans Firebase (notifications désactivées)');
       }
     }
   } else {
     if (kDebugMode) {
-      debugPrint('⚠️ Firebase désactivé sur cette plateforme (${defaultTargetPlatform.name})');
-      debugPrint('💡 L\'application fonctionnera sans notifications push');
     }
   }
 
@@ -138,13 +129,11 @@ class _LeBenisDriverAppState extends ConsumerState<LeBenisDriverApp> {
     try {
       await _notificationService.initialize(firebaseEnabled: firebaseEnabled);
       if (kDebugMode) {
-        debugPrint('✅ Notifications initialisées');
       }
 
       // Handler pour navigation après tap sur notification
       _notificationService.onNotificationTap = (data) {
         if (kDebugMode) {
-          debugPrint('📩 Notification tappée: $data');
         }
         
         // Navigation selon le type de notification
@@ -175,7 +164,6 @@ class _LeBenisDriverAppState extends ConsumerState<LeBenisDriverApp> {
       };
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('❌ Erreur init notifications: $e');
       }
     }
   }
@@ -187,7 +175,6 @@ class _LeBenisDriverAppState extends ConsumerState<LeBenisDriverApp> {
       // Si l'utilisateur était connecté mais ne l'est plus (déconnexion ou token expiré)
       if (previous?.isLoggedIn == true && next.isLoggedIn == false) {
         if (kDebugMode) {
-          debugPrint('🔐 Session expirée ou déconnexion détectée - redirection vers login');
         }
         
         // Rediriger vers la page de connexion

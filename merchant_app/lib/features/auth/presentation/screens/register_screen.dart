@@ -120,7 +120,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       );
     } catch (e) {
       // L'erreur sera gérée par le listener
-      debugPrint('Erreur inscription: $e');
     }
   }
 

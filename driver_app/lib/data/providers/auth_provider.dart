@@ -83,8 +83,6 @@ class AuthNotifier extends Notifier<AuthState> {
         isLoggedIn: true,
       );
     } catch (e) {
-      debugPrint('DEBUG LOGIN ERROR: $e');
-      debugPrint('DEBUG ERROR TYPE: ${e.runtimeType}');
       final errorMessage = _getErrorMessage(e);
       state = state.copyWith(
         isLoading: false,
@@ -120,8 +118,6 @@ class AuthNotifier extends Notifier<AuthState> {
         isLoggedIn: true,
       );
     } catch (e) {
-      debugPrint('DEBUG REGISTER ERROR: $e');
-      debugPrint('DEBUG ERROR TYPE: ${e.runtimeType}');
       final errorMessage = _getErrorMessage(e);
       state = state.copyWith(
         isLoading: false,
@@ -168,7 +164,6 @@ class AuthNotifier extends Notifier<AuthState> {
       );
     } catch (e) {
       // Token invalide ou expiré - déconnecter
-      debugPrint('⚠️ Token invalide lors de la vérification: $e');
       await _authService.logout();
       state = AuthState(isLoggedIn: false);
     }
@@ -182,7 +177,6 @@ class AuthNotifier extends Notifier<AuthState> {
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
-      debugPrint('DEBUG PASSWORD RESET REQUEST ERROR: $e');
       final errorMessage = _getErrorMessage(e);
       state = state.copyWith(
         isLoading: false,
@@ -208,7 +202,6 @@ class AuthNotifier extends Notifier<AuthState> {
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
-      debugPrint('DEBUG PASSWORD RESET CONFIRM ERROR: $e');
       final errorMessage = _getErrorMessage(e);
       state = state.copyWith(
         isLoading: false,
@@ -232,7 +225,6 @@ class AuthNotifier extends Notifier<AuthState> {
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
-      debugPrint('DEBUG CHANGE PASSWORD ERROR: $e');
       final errorMessage = _getErrorMessage(e);
       state = state.copyWith(
         isLoading: false,

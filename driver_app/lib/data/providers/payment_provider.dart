@@ -106,7 +106,6 @@ class PaymentNotifier extends Notifier<PaymentState> {
     state = state.copyWith(isLoading: true, error: null);
     
     try {
-      debugPrint('📊 [PaymentNotifier] loadEarnings(period=$period)');
       
       final data = await _paymentRepository.getMyEarnings(period: period);
       
@@ -116,9 +115,7 @@ class PaymentNotifier extends Notifier<PaymentState> {
         earningsPayments: data['payments'] as List<PaymentModel>?,
       );
       
-      debugPrint('✅ [PaymentNotifier] Earnings loaded: ${data['total_earnings']} FCFA');
     } catch (e) {
-      debugPrint('❌ [PaymentNotifier] loadEarnings error: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -131,7 +128,6 @@ class PaymentNotifier extends Notifier<PaymentState> {
     state = state.copyWith(isLoadingPayouts: true, error: null);
     
     try {
-      debugPrint('💰 [PaymentNotifier] loadPayouts(page=$page)');
       
       final newPayouts = await _paymentRepository.getMyPayouts(page: page);
       
@@ -149,9 +145,7 @@ class PaymentNotifier extends Notifier<PaymentState> {
         hasMore: newPayouts.length >= 20, // Si on a 20 éléments, il y en a peut-être plus
       );
       
-      debugPrint('✅ [PaymentNotifier] Payouts loaded: ${allPayouts.length} total');
     } catch (e) {
-      debugPrint('❌ [PaymentNotifier] loadPayouts error: $e');
       state = state.copyWith(
         isLoadingPayouts: false,
         error: e.toString(),
@@ -162,15 +156,12 @@ class PaymentNotifier extends Notifier<PaymentState> {
   /// Charger les statistiques globales
   Future<void> loadStats() async {
     try {
-      debugPrint('📈 [PaymentNotifier] loadStats()');
       
       final stats = await _paymentRepository.getStats();
       
       state = state.copyWith(stats: stats);
       
-      debugPrint('✅ [PaymentNotifier] Stats loaded: ${stats['lifetime']?['total_earned']} FCFA lifetime');
     } catch (e) {
-      debugPrint('❌ [PaymentNotifier] loadStats error: $e');
       // Ne pas bloquer si stats échouent
     }
   }
@@ -184,7 +175,6 @@ class PaymentNotifier extends Notifier<PaymentState> {
     state = state.copyWith(isLoadingTransactions: true, error: null);
     
     try {
-      debugPrint('🧾 [PaymentNotifier] loadTransactions(page=$page, type=$transactionType)');
       
       final newTransactions = await _paymentRepository.getTransactions(
         page: page,
@@ -206,9 +196,7 @@ class PaymentNotifier extends Notifier<PaymentState> {
         hasMore: newTransactions.length >= 20,
       );
       
-      debugPrint('✅ [PaymentNotifier] Transactions loaded: ${allTransactions.length} total');
     } catch (e) {
-      debugPrint('❌ [PaymentNotifier] loadTransactions error: $e');
       state = state.copyWith(
         isLoadingTransactions: false,
         error: e.toString(),

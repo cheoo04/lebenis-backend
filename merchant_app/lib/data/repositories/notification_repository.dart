@@ -42,7 +42,6 @@ class NotificationRepository {
       final response = await dioClient.get('/api/v1/notifications/history/unread_count/');
       return response.data['unread_count'] ?? 0;
     } catch (e) {
-      print('Erreur récupération unread count: $e');
       return 0;
     }
   }

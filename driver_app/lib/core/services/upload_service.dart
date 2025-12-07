@@ -167,7 +167,6 @@ class UploadService {
         
         if (attempts < maxRetries) {
           if (kDebugMode) {
-            print('Upload échoué (tentative $attempts/$maxRetries), retry dans ${retryDelay.inSeconds}s...');
           }
           await Future.delayed(retryDelay);
         }

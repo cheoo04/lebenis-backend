@@ -20,7 +20,6 @@ class AuthRepository {
         data: {'email': email, 'password': password},
       );
       
-      debugPrint('DEBUG LOGIN RESPONSE: ${response.data}');
       
       // Vérifier que la réponse contient les données nécessaires
       if (response.data == null || response.data is! Map) {
@@ -32,12 +31,7 @@ class AuthRepository {
       // Le backend peut renvoyer les tokens directement ou dans un sous-objet
       final accessToken = data['access'] ?? data['access_token'] ?? data['tokens']?['access'];
       final refreshToken = data['refresh'] ?? data['refresh_token'] ?? data['tokens']?['refresh'];
-      print('[AUTH_REPOSITORY] Access token reçu: $accessToken');
-      print('[AUTH_REPOSITORY] Refresh token reçu: $refreshToken');
       if (accessToken == null || refreshToken == null) {
-        debugPrint('DEBUG: Access token: $accessToken');
-        debugPrint('DEBUG: Refresh token: $refreshToken');
-        debugPrint('DEBUG: Full response: $data');
         throw Exception('Tokens manquants dans la réponse');
       }
 
@@ -47,10 +41,8 @@ class AuthRepository {
         refreshToken: refreshToken.toString(),
         userType: data['user']?['user_type']?.toString() ?? 'driver',
       );
-      print('[AUTH_REPOSITORY] Tokens sauvegardés.');
       return data;
     } catch (e) {
-      debugPrint('DEBUG LOGIN REPOSITORY ERROR: $e');
       rethrow;
     }
   }
@@ -79,7 +71,6 @@ class AuthRepository {
         },
       );
       
-      debugPrint('DEBUG REGISTER RESPONSE: ${response.data}');
       
       // Vérifier le status code pour détecter les erreurs de validation
       if (response.statusCode == 400) {
@@ -117,9 +108,6 @@ class AuthRepository {
       final refreshToken = data['refresh'] ?? data['refresh_token'] ?? data['tokens']?['refresh'];
       
       if (accessToken == null || refreshToken == null) {
-        debugPrint('DEBUG: Access token: $accessToken');
-        debugPrint('DEBUG: Refresh token: $refreshToken');
-        debugPrint('DEBUG: Full response: $data');
         throw Exception('Inscription réussie mais tokens manquants. Veuillez vous connecter.');
       }
 
@@ -131,7 +119,6 @@ class AuthRepository {
       
       return data;
     } catch (e) {
-      debugPrint('DEBUG REGISTER REPOSITORY ERROR: $e');
       rethrow;
     }
   }
