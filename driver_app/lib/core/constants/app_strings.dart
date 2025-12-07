@@ -3,7 +3,7 @@
 /// Toutes les chaînes de caractères de l'application (français)
 class AppStrings {
   // ========== APP ==========
-  static const String appName = 'LeBeni\'s Driver';
+  static const String appName = 'LeBeni Driver';
   static const String appSlogan = 'Livraison Rapide & Sécurisée';
   
   // ========== AUTHENTIFICATION ==========

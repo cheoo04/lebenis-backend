@@ -93,6 +93,21 @@ void main() async {
             // Sur les plateformes non supportées, créer un mock ou retourner une instance sans Firebase
             // Pour l'instant, on lance une erreur si l'utilisateur tente d'accéder au chat
             throw UnsupportedError('Chat functionality requires Firebase (not available on this platform)');
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'LeBeni Driver',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      initialRoute: AppRouter.initialRoute,
+      onGenerateRoute: AppRouter.onGenerateRoute,
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
           }
         }),
       ],

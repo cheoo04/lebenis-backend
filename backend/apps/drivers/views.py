@@ -141,9 +141,13 @@ class DriverViewSet(viewsets.ModelViewSet):
         # Base query: livraisons non assignées (statut 'pending')
         deliveries = Delivery.objects.filter(status='pending')
         
-        # Filtre zone (sauf si show_all)
+        # Filtre zone (sauf si show_all) - CASE INSENSITIVE
         if driver_zones and not show_all:
-            deliveries = deliveries.filter(delivery_commune__in=driver_zones)
+            # Utiliser Q objects pour faire une recherche insensible à la casse pour chaque zone
+            zone_queries = Q()
+            for zone in driver_zones:
+                zone_queries |= Q(delivery_commune__iexact=zone)
+            deliveries = deliveries.filter(zone_queries)
         
         # Filtre poids (toujours appliqué)
         deliveries = deliveries.filter(package_weight_kg__lte=driver.vehicle_capacity_kg)

@@ -2,14 +2,14 @@
 
 class AppConfig {
   // App Information
-  static const String appName = 'LeBenis Merchant';
+  static const String appName = 'LeBeni Business';
   static const String appVersion = '1.0.0';
   static const String appBuildNumber = '1';
 
   // Company Information
-  static const String companyName = 'LeBenis';
+  static const String companyName = 'LeBeni Business';
   static const String supportEmail = 'support@lebenis.sn';
-  static const String supportPhone = '+221 77 123 45 67';
+  static const String supportPhone = '+225 01 50 17 13 87';
 
   // App Links
   static const String privacyPolicyUrl = 'https://lebenis.sn/privacy';
