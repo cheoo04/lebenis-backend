@@ -373,7 +373,36 @@ class DeliveryAssignmentService:
                 raise ValidationError("Vous devez être en ligne (disponible) pour accepter une livraison. Veuillez passer en mode 'Disponible' dans votre profil.")
             
             # Gérer selon le statut actuel
-            if delivery.status == 'pending_assignment':
+            # Acceptation depuis la liste 'available_deliveries' utilise le statut
+            # 'pending' dans l'API drivers.available_deliveries. Pour être tolérant
+            # nous acceptons aussi 'pending' comme cas d'auto-assignation ici.
+            if delivery.status in ['pending_assignment', 'pending']:
+                # Vérifier que la livraison est dans les zones du driver (si zones définies)
+                try:
+                    driver_zones = DriverZone.objects.filter(driver=driver).values_list('commune', flat=True)
+                except Exception:
+                    driver_zones = []
+
+                if driver_zones:
+                    # compare insensible à la casse
+                    if not any((delivery.delivery_commune or '').lower() == z.lower() for z in driver_zones):
+                        raise ValidationError("Cette livraison n'est pas dans votre zone de travail")
+
+                # Vérifier la capacité du véhicule
+                if delivery.package_weight_kg and delivery.package_weight_kg > driver.vehicle_capacity_kg:
+                    raise ValidationError(
+                        f"Le colis ({delivery.package_weight_kg} kg) dépasse la capacité de votre véhicule ({driver.vehicle_capacity_kg} kg)"
+                    )
+
+                # Vérifier dimensions si présentes
+                max_dims = driver.max_package_dimensions
+                if getattr(delivery, 'package_length_cm', None) is not None:
+                    if delivery.package_length_cm is not None and delivery.package_length_cm > max_dims['length']:
+                        raise ValidationError("Les dimensions du colis dépassent la capacité de votre véhicule")
+                if getattr(delivery, 'package_width_cm', None) is not None:
+                    if delivery.package_width_cm is not None and delivery.package_width_cm > max_dims['width']:
+                        raise ValidationError("Les dimensions du colis dépassent la capacité de votre véhicule")
+
                 # Auto-assignation : le driver accepte une livraison non encore assignée
                 delivery.driver = driver
                 delivery.status = 'pickup_in_progress'
