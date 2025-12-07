@@ -47,12 +47,7 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
 
   void _determineCurrentStep() {
     switch (widget.delivery.status) {
-      case BackendConstants.deliveryStatusAssigned:
-      case BackendConstants.deliveryStatusPickupInProgress:
-        _currentStep = DeliveryStep.goingToPickup;
-        break;
-      case BackendConstants.deliveryStatusPickedUp:
-      case BackendConstants.deliveryStatusInTransit:
+      case BackendConstants.deliveryStatusInProgress:
         _currentStep = DeliveryStep.goingToDelivery;
         break;
       default:

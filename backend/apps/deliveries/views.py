@@ -444,8 +444,8 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        # Vérifier le statut actuel (doit être picked_up ou in_transit)
-        if delivery.status not in ['picked_up', 'in_transit']:
+        # Vérifier le statut actuel (doit être in_progress)
+        if delivery.status not in ['in_progress']:
             return Response(
                 {'error': f'Impossible de confirmer la livraison. Statut actuel: {delivery.status}'},
                 status=status.HTTP_400_BAD_REQUEST
