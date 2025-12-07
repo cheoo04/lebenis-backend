@@ -293,6 +293,55 @@ SENTRY_DSN = config('SENTRY_DSN', default='')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+# Basic logging configuration with optional JSON formatter (python-json-logger)
+try:
+    # Prefer structured JSON formatter when available
+    from pythonjsonlogger.jsonlogger import JsonFormatter  # type: ignore
+    _HAS_JSON_LOGGER = True
+except Exception:
+    _HAS_JSON_LOGGER = False
+
+if _HAS_JSON_LOGGER:
+    _json_formatter = {'()': 'pythonjsonlogger.jsonlogger.JsonFormatter', 'fmt': '%(levelname)s %(asctime)s %(name)s %(message)s'}
+else:
+    _json_formatter = {'format': '{levelname} {asctime} {module} {message}', 'style': '{'}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'json': _json_formatter,
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'console_json': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'json',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
 # ============================================================================
 # CLOUDINARY CONFIGURATION (Image Storage)
 # ============================================================================

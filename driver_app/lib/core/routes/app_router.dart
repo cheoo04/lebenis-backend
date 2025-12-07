@@ -31,6 +31,7 @@ class AppRouter {
   static const String home = '/home';
   static const String deliveryList = '/deliveries';
   static const String deliveryDetails = '/delivery-details';
+  static const String deliveryMap = '/delivery-map';
   static const String activeDelivery = '/active-delivery';
   static const String confirmDelivery = '/confirm-delivery';
   static const String profile = '/profile';
@@ -115,6 +116,17 @@ class AppRouter {
       case profile:
         return MaterialPageRoute(
           builder: (_) => const ProfileScreen(),
+        );
+
+      case deliveryMap:
+        final delivery = settings.arguments as DeliveryModel?;
+        if (delivery == null) {
+          return MaterialPageRoute(
+            builder: (_) => const PlaceholderScreen(title: 'Erreur: Livraison non trouvée'),
+          );
+        }
+        return MaterialPageRoute(
+          builder: (_) => DeliveryNavigationScreen(delivery: delivery),
         );
 
       case editProfile:

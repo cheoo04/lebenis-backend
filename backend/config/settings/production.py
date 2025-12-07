@@ -54,6 +54,17 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 #     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # Logging - Simplifié pour Render (logs dans la console uniquement)
+try:
+    from pythonjsonlogger.jsonlogger import JsonFormatter  # type: ignore
+    _HAS_JSON_LOGGER = True
+except Exception:
+    _HAS_JSON_LOGGER = False
+
+if _HAS_JSON_LOGGER:
+    json_formatter = {'()': 'pythonjsonlogger.jsonlogger.JsonFormatter', 'fmt': '%(levelname)s %(asctime)s %(name)s %(message)s'}
+else:
+    json_formatter = {'format': '{levelname} {asctime} {module} {message}', 'style': '{'}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -62,6 +73,7 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {message}',
             'style': '{',
         },
+        'json': json_formatter,
     },
     'handlers': {
         'console': {
@@ -69,15 +81,21 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
+        'console_json': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'json',
+        },
     },
     'root': {
-        'handlers': ['console'],
-        'level': 'DEBUG',
+        # Prefer structured JSON output in production for ingestion by logging systems
+        'handlers': ['console_json'],
+        'level': 'INFO',
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
+            'handlers': ['console_json'],
+            'level': 'INFO',
             'propagate': False,
         },
     },

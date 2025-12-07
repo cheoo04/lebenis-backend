@@ -51,22 +51,28 @@
         <div class="info-grid">
             <div class="info-item">
                 <span class="item-label">Business Name</span>
-                <span class="item-value">{{ delivery.merchant.business_name }}</span>
+                <span class="item-value">{% if delivery.merchant %}{{ delivery.merchant.business_name }}{% else %}N/A{% endif %}</span>
             </div>
             <div class="info-item">
                 <span class="item-label">Contact</span>
-                <span class="item-value">{{ delivery.merchant.phone_number }}</span>
+                <span class="item-value">{% if delivery.merchant %}{{ delivery.merchant.user.email }}{% else %}N/A{% endif %}</span>
             </div>
             <div class="info-item">
                 <span class="item-label">Address</span>
-                <span class="item-value">{{ delivery.merchant.address }}</span>
+                <span class="item-value">
+                    {% if delivery.pickup_address %}
+                        {{ delivery.pickup_address.street_address }}, {{ delivery.pickup_address.commune }}{% if delivery.pickup_address.quartier %} - {{ delivery.pickup_address.quartier }}{% endif %}
+                    {% else %}
+                        {{ delivery.pickup_address_details|default:"N/A" }}
+                    {% endif %}
+                </span>
             </div>
         </div>
     </div>
 
     <!-- Recipient Information -->
     <div class="section">
-        <h2 class="section-title">👤 Recipient Information</h2>
+        <h2 class="section-title">Recipient Information</h2>
         <div class="info-grid">
             <div class="info-item">
                 <span class="item-label">Name</span>
@@ -78,11 +84,11 @@
             </div>
             <div class="info-item full-width">
                 <span class="item-label">Delivery Address</span>
-                <span class="item-value">{{ delivery.recipient_address }}</span>
+                <span class="item-value">{{ delivery.delivery_address|default:delivery.delivery_commune }}</span>
             </div>
             <div class="info-item">
                 <span class="item-label">Commune</span>
-                <span class="item-value">{{ delivery.commune.name }}</span>
+                <span class="item-value">{{ delivery.delivery_commune }}{% if delivery.delivery_quartier %} - {{ delivery.delivery_quartier }}{% endif %}</span>
             </div>
         </div>
     </div>
@@ -93,18 +99,11 @@
         <div class="info-grid">
             <div class="info-item">
                 <span class="item-label">Type</span>
-                <span class="item-value">
-                    {% if delivery.package_type == 'document' %}📄 Document
-                    {% elif delivery.package_type == 'package' %}📦 Package
-                    {% elif delivery.package_type == 'fragile' %}⚠️ Fragile
-                    {% elif delivery.package_type == 'food' %}🍔 Food
-                    {% else %}{{ delivery.package_type|title }}
-                    {% endif %}
-                </span>
+                <span class="item-value">{% if delivery.is_fragile %}⚠️ Fragile{% else %}Colis{% endif %}</span>
             </div>
             <div class="info-item">
                 <span class="item-label">Weight</span>
-                <span class="item-value">{{ delivery.package_weight|floatformat:2 }} kg</span>
+                <span class="item-value">{{ delivery.package_weight_kg|floatformat:2 }} kg</span>
             </div>
             {% if delivery.package_description %}
             <div class="info-item full-width">
@@ -144,15 +143,15 @@
 
     <!-- Pricing Information -->
     <div class="section">
-        <h2 class="section-title">💰 Pricing Details</h2>
+        <h2 class="section-title">Pricing Details</h2>
         <div class="pricing-table">
             <div class="pricing-row">
                 <span>Distance</span>
-                <span>{{ delivery.distance_km|floatformat:2 }} km</span>
+                <span>{{ delivery.distance_km|default:0|floatformat:2 }} km</span>
             </div>
             <div class="pricing-row">
                 <span>Base Price</span>
-                <span>{{ delivery.price|floatformat:0 }} DA</span>
+                <span>{{ delivery.calculated_price|default:0|floatformat:0 }} CFA</span>
             </div>
             {% if delivery.special_instructions %}
             <div class="pricing-row">
@@ -162,7 +161,7 @@
             {% endif %}
             <div class="pricing-row total">
                 <span><strong>Total Amount</strong></span>
-                <span><strong>{{ delivery.price|floatformat:0 }} DA</strong></span>
+                <span><strong>{{ delivery.calculated_price|default:0|floatformat:0 }} CFA</strong></span>
             </div>
         </div>
     </div>
@@ -170,7 +169,7 @@
     <!-- Special Instructions -->
     {% if delivery.special_instructions %}
     <div class="section">
-        <h2 class="section-title">📝 Special Instructions</h2>
+        <h2 class="section-title">Special Instructions</h2>
         <div class="instructions-box">
             {{ delivery.special_instructions }}
         </div>
@@ -180,7 +179,7 @@
     <!-- Rating -->
     {% if delivery.rating %}
     <div class="section">
-        <h2 class="section-title">⭐ Delivery Rating</h2>
+        <h2 class="section-title">Delivery Rating</h2>
         <div class="rating-container">
             <div class="rating-row">
                 <span>Overall Rating:</span>

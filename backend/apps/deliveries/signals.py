@@ -20,7 +20,7 @@ def auto_geocode_and_calculate_distance(sender, instance, **kwargs):
     needs_save = False
     
     # 1. Géocodage de l'adresse de récupération (pickup)
-    if not instance.pickup_latitude or not instance.pickup_longitude:
+    if not instance.get_coords('pickup'):
         # Essayer d'abord avec l'adresse complète si disponible
         if instance.pickup_address:
             pickup_full_address = f"{instance.pickup_address.street_address}, {instance.pickup_commune}"
@@ -30,7 +30,7 @@ def auto_geocode_and_calculate_distance(sender, instance, **kwargs):
                 logger.info(f"✅ Adresse pickup géocodée: {pickup_full_address}")
         
         # Si pas de résultat, utiliser les coordonnées par défaut de la commune
-        if not instance.pickup_latitude and instance.pickup_commune:
+        if not instance.get_coords('pickup') and instance.pickup_commune:
             zone = PricingZone.objects.filter(
                 commune__iexact=instance.pickup_commune,
                 default_latitude__isnull=False
@@ -41,7 +41,7 @@ def auto_geocode_and_calculate_distance(sender, instance, **kwargs):
                 logger.info(f"✅ Coordonnées par défaut utilisées pour pickup: {instance.pickup_commune}")
     
     # 2. Géocodage de l'adresse de livraison (delivery)
-    if not instance.delivery_latitude or not instance.delivery_longitude:
+    if not instance.get_coords('delivery'):
         # Essayer avec l'adresse complète
         delivery_full_address = f"{instance.delivery_address}, {instance.delivery_commune}"
         coords = location_service.geocode_address(delivery_full_address)
@@ -50,7 +50,7 @@ def auto_geocode_and_calculate_distance(sender, instance, **kwargs):
             logger.info(f"✅ Adresse delivery géocodée: {delivery_full_address}")
         
         # Si pas de résultat, utiliser les coordonnées par défaut de la commune
-        if not instance.delivery_latitude and instance.delivery_commune:
+        if not instance.get_coords('delivery') and instance.delivery_commune:
             zone = PricingZone.objects.filter(
                 commune__iexact=instance.delivery_commune,
                 default_latitude__isnull=False
