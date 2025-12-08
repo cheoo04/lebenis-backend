@@ -13,33 +13,8 @@ class PDFReportService {
   /// Download a delivery PDF report
   ///
   /// Returns the local file path where the PDF was saved
-  Future<String> downloadDeliveryPDF({
-    required String deliveryId,
-    Function(double)? onProgress,
-  }) async {
-    try {
-      // Create PDFs directory
-      final directory = await _getPDFDirectory();
-      final filename = 'delivery_${deliveryId}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      final filePath = '${directory.path}/$filename';
-
-      // Download PDF
-      await _dioClient.download(
-        '${ApiConstants.deliveries}$deliveryId/generate-pdf/',
-        filePath,
-        onReceiveProgress: (received, total) {
-          if (total > 0 && onProgress != null) {
-            final progress = received / total;
-            onProgress(progress);
-          }
-        },
-      );
-
-      return filePath;
-    } catch (e) {
-      throw Exception('Failed to download PDF: $e');
-    }
-  }
+  // Delivery PDF download removed — feature disabled per request.
+  // If needed later, reintroduce a download method here.
 
   /// Share a downloaded PDF file
   Future<void> sharePDF(String filePath) async {

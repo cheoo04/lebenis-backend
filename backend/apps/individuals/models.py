@@ -25,7 +25,25 @@ class Individual(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.user.get_full_name()} - {self.user.email}"
+        # Certains User personnalisés n'exposent pas get_full_name();
+        # essayer plusieurs fallbacks pour obtenir un nom lisible
+        name = None
+        try:
+            get_full = getattr(self.user, 'get_full_name', None)
+            if callable(get_full):
+                name = get_full()
+        except Exception:
+            name = None
+
+        if not name:
+            name = getattr(self.user, 'full_name', None)
+
+        if not name:
+            parts = [getattr(self.user, 'first_name', '') or '', getattr(self.user, 'last_name', '') or '']
+            candidate = ' '.join(p for p in parts if p).strip()
+            name = candidate or getattr(self.user, 'email', '')
+
+        return f"{name} - {getattr(self.user, 'email', '')}"
     
     @property
     def full_name(self):

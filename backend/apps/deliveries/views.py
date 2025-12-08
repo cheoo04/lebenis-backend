@@ -399,10 +399,13 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         
         Le livreur accepte une livraison qui lui a été assignée.
         """
+        # Récupérer la livraison par PK sans utiliser self.get_object()
+        # car pour l'action d'acceptation nous autorisons un driver
+        # à accepter une livraison non encore assignée (status 'pending' ou 'pending_assignment').
         try:
-            delivery = self.get_object()
-        except Http404:
-            # Log diagnostic info to help debug 404s caused by auth/get_queryset
+            delivery = Delivery.objects.select_related('merchant', 'driver').get(id=pk)
+        except Delivery.DoesNotExist:
+            # Log diagnostic info to help debug 404s caused by wrong PK
             try:
                 logger.warning("accept: delivery not found for request user", extra={
                     'user_id': getattr(request.user, 'id', None),
@@ -412,7 +415,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 })
             except Exception:
                 logger.warning('accept: delivery not found and failed to log user info')
-            raise
+            raise Http404
         
         try:
             driver = Driver.objects.get(user=request.user)

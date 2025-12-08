@@ -4,6 +4,7 @@
 import 'package:latlong2/latlong.dart';
 import 'package:dio/dio.dart' as dio_pkg;
 import '../network/dio_client.dart';
+import '../utils/json_utils.dart';
 
 /// Modèle pour un point de route
 class RoutePoint {
@@ -14,8 +15,8 @@ class RoutePoint {
 
   factory RoutePoint.fromJson(Map<String, dynamic> json) {
     return RoutePoint(
-      lat: (json['lat'] as num).toDouble(),
-      lng: (json['lng'] as num).toDouble(),
+      lat: safeDouble(json['lat']),
+      lng: safeDouble(json['lng']),
     );
   }
 
@@ -44,8 +45,8 @@ class RouteLeg {
     return RouteLeg(
       name: json['name'] ?? '',
       label: json['label'] ?? '',
-      distanceKm: (json['distance_km'] as num?)?.toDouble() ?? 0.0,
-      durationMin: (json['duration_min'] as num?)?.toDouble() ?? 0.0,
+      distanceKm: safeDouble(json['distance_km']),
+      durationMin: safeDouble(json['duration_min']),
       polylinePoints: (json['polyline_points'] as List?)
               ?.map((p) => RoutePoint.fromJson(p))
               .toList() ??
@@ -134,8 +135,8 @@ class RouteStep {
   factory RouteStep.fromJson(Map<String, dynamic> json) {
     return RouteStep(
       instruction: json['instruction'] ?? '',
-      distanceM: (json['distance_m'] as num?)?.toDouble() ?? 0.0,
-      durationS: (json['duration_s'] as num?)?.toDouble() ?? 0.0,
+      distanceM: safeDouble(json['distance_m']),
+      durationS: safeDouble(json['duration_s']),
       maneuver: json['maneuver'] ?? '',
     );
   }
@@ -160,8 +161,8 @@ class DeliveryRouteResult {
   factory DeliveryRouteResult.fromJson(Map<String, dynamic> json) {
     return DeliveryRouteResult(
       success: json['success'] ?? false,
-      totalDistanceKm: (json['total_distance_km'] as num?)?.toDouble() ?? 0.0,
-      totalDurationMin: (json['total_duration_min'] as num?)?.toDouble() ?? 0.0,
+      totalDistanceKm: safeDouble(json['total_distance_km']),
+      totalDurationMin: safeDouble(json['total_duration_min']),
       legs: (json['legs'] as List?)?.map((l) => RouteLeg.fromJson(l)).toList() ?? [],
       allPolylinePoints: (json['all_polyline_points'] as List?)
               ?.map((p) => RoutePoint.fromJson(p))
@@ -324,12 +325,12 @@ class RoutingService {
     final resp = await d.get(url);
     if (resp.statusCode == 200 && resp.data != null && resp.data['routes'] != null && (resp.data['routes'] as List).isNotEmpty) {
       final rt = resp.data['routes'][0];
-      final geometry = rt['geometry'];
-      final coordsList = (geometry['coordinates'] as List)
-          .map((c) => RoutePoint(lat: (c[1] as num).toDouble(), lng: (c[0] as num).toDouble()))
+        final geometry = rt['geometry'];
+        final coordsList = (geometry['coordinates'] as List)
+          .map((c) => RoutePoint(lat: safeDouble(c[1]), lng: safeDouble(c[0])))
           .toList();
-      final distanceKm = (rt['distance'] as num?)?.toDouble() ?? 0.0;
-      final durationMin = ((rt['duration'] as num?)?.toDouble() ?? 0.0) / 60.0;
+        final distanceKm = safeDouble(rt['distance']);
+        final durationMin = (safeDouble(rt['duration']) ) / 60.0;
 
       return RouteResult(
         success: true,
@@ -355,13 +356,13 @@ class RoutingService {
     final resp = await d.get(url);
     if (resp.statusCode == 200 && resp.data != null && resp.data['routes'] != null && (resp.data['routes'] as List).isNotEmpty) {
       final rt = resp.data['routes'][0];
-      final geometry = rt['geometry'];
-      final coordsList = (geometry['coordinates'] as List)
-          .map((c) => RoutePoint(lat: (c[1] as num).toDouble(), lng: (c[0] as num).toDouble()))
+        final geometry = rt['geometry'];
+        final coordsList = (geometry['coordinates'] as List)
+          .map((c) => RoutePoint(lat: safeDouble(c[1]), lng: safeDouble(c[0])))
           .toList();
 
-      final distanceKm = (rt['distance'] as num?)?.toDouble() ?? 0.0;
-      final durationMin = ((rt['duration'] as num?)?.toDouble() ?? 0.0) / 60.0;
+        final distanceKm = safeDouble(rt['distance']);
+        final durationMin = (safeDouble(rt['duration'])) / 60.0;
 
       return DeliveryRouteResult(
         success: true,

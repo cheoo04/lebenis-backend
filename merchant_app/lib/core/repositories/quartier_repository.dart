@@ -5,6 +5,14 @@ import 'package:latlong2/latlong.dart';
 import '../network/dio_client.dart';
 import '../models/quartier_model.dart';
 
+// Parse un champ dynamique en `double` en acceptant `num` ou `String`.
+double _parseToDouble(dynamic v) {
+  if (v == null) return 0.0;
+  if (v is num) return v.toDouble();
+  if (v is String) return double.tryParse(v) ?? 0.0;
+  return 0.0;
+}
+
 class QuartierRepository {
   final DioClient _dioClient;
 
@@ -71,8 +79,8 @@ class QuartierRepository {
         return QuartierModel(
           nom: response.data['quartier'] ?? quartier,
           commune: response.data['commune'] ?? commune,
-          latitude: (response.data['latitude'] as num).toDouble(),
-          longitude: (response.data['longitude'] as num).toDouble(),
+          latitude: _parseToDouble(response.data['latitude']),
+          longitude: _parseToDouble(response.data['longitude']),
           source: response.data['source'],
         );
       }
@@ -97,8 +105,8 @@ class QuartierRepository {
 
       if (response.data['success'] == true) {
         return LatLng(
-          (response.data['latitude'] as num).toDouble(),
-          (response.data['longitude'] as num).toDouble(),
+          _parseToDouble(response.data['latitude']),
+          _parseToDouble(response.data['longitude']),
         );
       }
 

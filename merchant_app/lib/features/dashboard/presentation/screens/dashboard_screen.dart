@@ -429,7 +429,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         color: AppTheme.primaryColor,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
+              child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header with gradient
@@ -448,6 +448,59 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       color: Colors.white,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Profile summary card for particulier (responsive)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CircleAvatar(radius: 28, child: Icon(Icons.person_outline, size: 32)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(fullName.isNotEmpty ? fullName : 'Utilisateur', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 6),
+                              if (profile is IndividualModel) ...[
+                                Text(profile.email, style: const TextStyle(color: Colors.grey)),
+                                const SizedBox(height: 4),
+                                Text(profile.phone ?? 'Téléphone non renseigné', style: const TextStyle(color: Colors.grey)),
+                                const SizedBox(height: 4),
+                                Text(profile.address ?? 'Adresse non renseignée', style: const TextStyle(color: Colors.grey)),
+                              ] else if (profile is Map) ...[
+                                Text(profile['email'] ?? '', style: const TextStyle(color: Colors.grey)),
+                                const SizedBox(height: 4),
+                                Text(profile['phone'] ?? 'Téléphone non renseigné', style: const TextStyle(color: Colors.grey)),
+                              ] else ...[
+                                const Text('Informations de profil indisponibles', style: TextStyle(color: Colors.grey)),
+                              ],
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined),
+                          onPressed: () {
+                            if (profile is IndividualModel) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => EditIndividualProfileScreen(individual: profile)),
+                              );
+                            } else {
+                              Navigator.pushNamed(context, '/profile');
+                            }
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ),

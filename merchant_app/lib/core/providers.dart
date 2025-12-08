@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'network/dio_client.dart';
 import 'services/auth_service.dart';
+import '../data/providers/auth_provider.dart';
 import 'services/upload_service.dart';
 import 'services/pdf_report_service.dart';
 import 'services/notification_service.dart';
@@ -45,8 +46,13 @@ final dioClientProvider = Provider<DioClient>((ref) {
               return handler.resolve(response);
             }
           } catch (e) {
-            // Si le refresh échoue, déconnecter l'utilisateur
-            await authService.logout();
+            // Si le refresh échoue, déconnecter l'utilisateur via le provider
+            try {
+              await ref.read(authStateProvider.notifier).logout();
+            } catch (_) {
+              // Fallback: clear tokens directly
+              await authService.logout();
+            }
           }
         }
         return handler.next(error);

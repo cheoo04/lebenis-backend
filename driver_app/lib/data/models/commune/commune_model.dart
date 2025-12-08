@@ -1,5 +1,7 @@
 // lib/data/models/commune/commune_model.dart
 
+import '../../../core/utils/json_utils.dart';
+
 class CommuneModel {
   final String commune;
   final double latitude;
@@ -15,10 +17,10 @@ class CommuneModel {
 
   factory CommuneModel.fromJson(Map<String, dynamic> json) {
     return CommuneModel(
-      commune: json['commune'] as String,
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
-      zoneName: json['zone_name'] as String,
+      commune: json['commune']?.toString() ?? '',
+      latitude: safeDouble(json['latitude']),
+      longitude: safeDouble(json['longitude']),
+      zoneName: json['zone_name']?.toString() ?? '',
     );
   }
 

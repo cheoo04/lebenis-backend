@@ -8,8 +8,9 @@ import 'api_exception.dart';
 class DioClient {
   late final Dio _dio;
   final AuthService _authService;
+  final Future<void> Function()? onLogout;
 
-  DioClient(this._authService) {
+  DioClient(this._authService, {this.onLogout}) {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
@@ -72,8 +73,12 @@ class DioClient {
       final code = data['code'];
       
       // Si le token est invalide ou expiré
-      if (code == 'token_not_valid' || code == 'token_expired') {
-        await _authService.logout();
+        if (code == 'token_not_valid' || code == 'token_expired') {
+        if (onLogout != null) {
+          await onLogout!();
+        } else {
+          await _authService.logout();
+        }
         
         // Créer une DioException pour que l'app puisse la gérer
         return handler.reject(
@@ -131,10 +136,18 @@ class DioClient {
         }
 
         // Si refresh échoue
-        await _authService.logout();
+        if (onLogout != null) {
+          await onLogout!();
+        } else {
+          await _authService.logout();
+        }
         return handler.reject(error);
       } catch (e) {
-        await _authService.logout();
+        if (onLogout != null) {
+          await onLogout!();
+        } else {
+          await _authService.logout();
+        }
         return handler.reject(error);
       }
     }

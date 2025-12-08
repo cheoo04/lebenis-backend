@@ -16,7 +16,13 @@ _$ChatRoomModelImpl _$$ChatRoomModelImplFromJson(Map<String, dynamic> json) =>
       lastMessageAt: json['lastMessageAt'] == null
           ? null
           : DateTime.parse(json['lastMessageAt'] as String),
-      unreadCount: (json['unreadCount'] as num).toInt(),
+      unreadCount: (() {
+        final v = json['unreadCount'];
+        if (v == null) return 0;
+        if (v is num) return v.toInt();
+        if (v is String) return int.tryParse(v) ?? 0;
+        return 0;
+      })(),
       isArchived: json['isArchived'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
