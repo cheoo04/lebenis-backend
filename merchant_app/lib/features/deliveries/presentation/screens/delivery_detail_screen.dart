@@ -20,8 +20,7 @@ class DeliveryDetailScreen extends ConsumerStatefulWidget {
 
 class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
   bool _isCancelling = false;
-  bool _isDownloadingPDF = false;
-  double _downloadProgress = 0.0;
+  
 
   Future<void> _openChat(String driverId, String deliveryRef) async {
     try {
@@ -68,66 +67,12 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
   }
 
   Future<void> _downloadPDF() async {
-    setState(() {
-      _isDownloadingPDF = true;
-      _downloadProgress = 0.0;
-    });
-
-    try {
-      final pdfService = ref.read(pdfReportServiceProvider);
-      final filePath = await pdfService.downloadDeliveryPDF(
-        deliveryId: widget.deliveryId,
-        onProgress: (progress) {
-          setState(() => _downloadProgress = progress);
-        },
+    // PDF download removed for deliveries per request.
+    // Keep method stub for compatibility but do nothing.
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Téléchargement de PDF désactivé pour les livraisons.')),
       );
-
-      if (mounted) {
-        // Show success and ask to open/share
-        final action = await showDialog<String>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('✅ PDF téléchargé'),
-            content: const Text('Que voulez-vous faire ?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, 'close'),
-                child: const Text('Fermer'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, 'share'),
-                child: const Text('Partager'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, 'open'),
-                child: const Text('Ouvrir'),
-              ),
-            ],
-          ),
-        );
-
-        if (action == 'share') {
-          await pdfService.sharePDF(filePath);
-        } else if (action == 'open') {
-          await pdfService.openPDF(filePath);
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Erreur: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isDownloadingPDF = false;
-          _downloadProgress = 0.0;
-        });
-      }
     }
   }
 
@@ -470,17 +415,6 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                 const SizedBox(height: 32),
 
                 // Actions
-                // Download PDF Button (always visible)
-                ModernButton(
-                  text: _isDownloadingPDF 
-                    ? 'Téléchargement... ${(_downloadProgress * 100).toInt()}%'
-                    : 'Télécharger le PDF',
-                  icon: Icons.picture_as_pdf,
-                  onPressed: _isDownloadingPDF ? null : _downloadPDF,
-                  isLoading: _isDownloadingPDF,
-                  backgroundColor: Colors.deepPurple,
-                ),
-
                 const SizedBox(height: 12),
 
                 if (delivery.driver != null)

@@ -5,6 +5,7 @@ import 'firebase_options.dart';
 import 'theme/app_theme.dart';
 import 'core/routes/app_router.dart';
 import 'core/providers.dart';
+import 'data/providers/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +35,22 @@ class _MyAppState extends ConsumerState<MyApp> {
   void initState() {
     super.initState();
     _initializeNotifications();
+    // Écouter l'état d'authentification pour rediriger vers l'écran de connexion
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        ref.listen<AsyncValue<dynamic>>(authStateProvider, (previous, next) {
+          try {
+            final isLoggedIn = next.asData?.value != null;
+            if (!isLoggedIn) {
+              final ctx = _navigatorKey.currentContext;
+              if (ctx != null) Navigator.pushReplacementNamed(ctx, '/login');
+            }
+          } catch (_) {}
+        });
+      } catch (_) {
+        // ignore errors — listener not critical
+      }
+    });
   }
 
   Future<void> _initializeNotifications() async {

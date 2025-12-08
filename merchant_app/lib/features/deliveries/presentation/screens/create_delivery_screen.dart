@@ -163,7 +163,13 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
 
     setState(() => _isLoadingEstimate = true);
     try {
-      final weight = double.tryParse(_packageWeightController.text) ?? 1.0;
+      final weightParsed = double.tryParse(_packageWeightController.text);
+      if (weightParsed == null || weightParsed < 1.0) {
+        // Don't estimate for invalid or too small weights
+        setState(() => _estimatedPrice = null);
+        return;
+      }
+      final weight = weightParsed;
       final data = {
         'pickup_commune': _pickupCommune!,
         if (_pickupQuartier != null && _pickupQuartier!.isNotEmpty)
@@ -616,7 +622,8 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
               validator: (v) {
                 if (v == null || v.isEmpty) return 'Poids requis';
                 final weight = double.tryParse(v);
-                if (weight == null || weight <= 0) return 'Poids invalide';
+                if (weight == null) return 'Poids invalide';
+                if (weight < 1.0) return 'Le poids minimal est de 1 kg';
                 return null;
               },
               onChanged: (_) => _estimatePrice(),

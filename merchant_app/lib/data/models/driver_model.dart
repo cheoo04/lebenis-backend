@@ -20,13 +20,20 @@ class DriverModel {
   String get phoneNumber => phone;
 
   factory DriverModel.fromJson(Map<String, dynamic> json) {
+    double? _parseDoubleOrNull(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v);
+      return null;
+    }
+
     return DriverModel(
       id: json['id']?.toString() ?? '',
       name: json['name'] ?? json['user']?['first_name'] ?? 'Chauffeur',
       phone: json['phone'] ?? json['user']?['phone_number'] ?? '',
       photo: json['photo'],
-      currentLatitude: json['current_latitude'] != null ? (json['current_latitude'] as num).toDouble() : null,
-      currentLongitude: json['current_longitude'] != null ? (json['current_longitude'] as num).toDouble() : null,
+      currentLatitude: _parseDoubleOrNull(json['current_latitude']),
+      currentLongitude: _parseDoubleOrNull(json['current_longitude']),
     );
   }
 

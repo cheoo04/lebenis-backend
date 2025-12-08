@@ -12,7 +12,18 @@ import '../models/user_model.dart';
 /// DioClient Provider
 final dioClientProvider = Provider<DioClient>((ref) {
   final authService = ref.read(authServiceProvider);
-  return DioClient(authService);
+  // Pass a logout callback so the Dio client can notify the AuthNotifier
+  return DioClient(
+    authService,
+    onLogout: () async {
+      try {
+        await ref.read(authProvider.notifier).logout();
+      } catch (_) {
+        // fallback: clear tokens directly
+        await authService.logout();
+      }
+    },
+  );
 });
 
 /// AuthService Provider

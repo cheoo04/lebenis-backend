@@ -4,6 +4,14 @@
 import 'package:latlong2/latlong.dart';
 import '../network/dio_client.dart';
 
+// Parse un champ dynamique en `double` en acceptant `num` ou `String`.
+double _parseToDouble(dynamic v) {
+  if (v == null) return 0.0;
+  if (v is num) return v.toDouble();
+  if (v is String) return double.tryParse(v) ?? 0.0;
+  return 0.0;
+}
+
 /// Modèle pour un point de route
 class RoutePoint {
   final double lat;
@@ -13,8 +21,8 @@ class RoutePoint {
 
   factory RoutePoint.fromJson(Map<String, dynamic> json) {
     return RoutePoint(
-      lat: (json['lat'] as num).toDouble(),
-      lng: (json['lng'] as num).toDouble(),
+      lat: _parseToDouble(json['lat']),
+      lng: _parseToDouble(json['lng']),
     );
   }
 
@@ -43,8 +51,8 @@ class RouteLeg {
     return RouteLeg(
       name: json['name'] ?? '',
       label: json['label'] ?? '',
-      distanceKm: (json['distance_km'] as num?)?.toDouble() ?? 0.0,
-      durationMin: (json['duration_min'] as num?)?.toDouble() ?? 0.0,
+      distanceKm: _parseToDouble(json['distance_km']),
+      durationMin: _parseToDouble(json['duration_min']),
       polylinePoints: (json['polyline_points'] as List?)
               ?.map((p) => RoutePoint.fromJson(p))
               .toList() ??
@@ -84,8 +92,8 @@ class RouteResult {
     return RouteResult(
       success: json['success'] ?? false,
       source: json['source'] ?? 'unknown',
-      distanceKm: (json['distance_km'] as num?)?.toDouble() ?? 0.0,
-      durationMin: (json['duration_min'] as num?)?.toDouble() ?? 0.0,
+      distanceKm: _parseToDouble(json['distance_km']),
+      durationMin: _parseToDouble(json['duration_min']),
       polylinePoints: (json['polyline_points'] as List?)
               ?.map((p) => RoutePoint.fromJson(p))
               .toList() ??
@@ -130,8 +138,8 @@ class DeliveryRouteResult {
   factory DeliveryRouteResult.fromJson(Map<String, dynamic> json) {
     return DeliveryRouteResult(
       success: json['success'] ?? false,
-      totalDistanceKm: (json['total_distance_km'] as num?)?.toDouble() ?? 0.0,
-      totalDurationMin: (json['total_duration_min'] as num?)?.toDouble() ?? 0.0,
+      totalDistanceKm: _parseToDouble(json['total_distance_km']),
+      totalDurationMin: _parseToDouble(json['total_duration_min']),
       legs: (json['legs'] as List?)?.map((l) => RouteLeg.fromJson(l)).toList() ?? [],
       allPolylinePoints: (json['all_polyline_points'] as List?)
               ?.map((p) => RoutePoint.fromJson(p))

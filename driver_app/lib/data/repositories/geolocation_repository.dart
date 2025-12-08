@@ -3,6 +3,7 @@
 import 'package:dio/dio.dart';
 import 'package:latlong2/latlong.dart';
 import '../../core/network/dio_client.dart';
+import '../../../core/utils/json_utils.dart';
 import '../models/commune/commune_model.dart';
 
 class GeolocationRepository {
@@ -31,8 +32,8 @@ class GeolocationRepository {
         queryParameters: {'commune': commune},
       );
       return LatLng(
-        (response.data['latitude'] as num).toDouble(),
-        (response.data['longitude'] as num).toDouble(),
+        safeDouble(response.data['latitude']),
+        safeDouble(response.data['longitude']),
       );
     } catch (e) {
       return null;
@@ -50,8 +51,8 @@ class GeolocationRepository {
         },
       );
       return LatLng(
-        (response.data['latitude'] as num).toDouble(),
-        (response.data['longitude'] as num).toDouble(),
+        safeDouble(response.data['latitude']),
+        safeDouble(response.data['longitude']),
       );
     } catch (e) {
       return null;

@@ -25,8 +25,8 @@ class QuartierModel {
     return QuartierModel(
       nom: json['nom'] as String? ?? json['quartier'] as String? ?? '',
       commune: json['commune'] as String? ?? '',
-      latitude: lat != null ? (lat as num).toDouble() : 0.0,
-      longitude: lng != null ? (lng as num).toDouble() : 0.0,
+      latitude: lat != null ? _parseToDouble(lat) : 0.0,
+      longitude: lng != null ? _parseToDouble(lng) : 0.0,
       source: json['source'] as String?,
     );
   }
@@ -84,9 +84,17 @@ class AddressSuggestion {
   factory AddressSuggestion.fromJson(Map<String, dynamic> json) {
     return AddressSuggestion(
       displayName: json['display_name'] as String? ?? '',
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
+      latitude: _parseToDouble(json['latitude']),
+      longitude: _parseToDouble(json['longitude']),
       source: json['source'] as String? ?? 'unknown',
     );
   }
+}
+
+/// Parse un champ dynamique en `double` en acceptant `num` ou `String`.
+double _parseToDouble(dynamic v) {
+  if (v == null) return 0.0;
+  if (v is num) return v.toDouble();
+  if (v is String) return double.tryParse(v) ?? 0.0;
+  return 0.0;
 }
