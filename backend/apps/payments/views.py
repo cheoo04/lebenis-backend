@@ -341,7 +341,7 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
         
         logger.info(f"💵 Gain créé: {earning.driver.user.full_name} | Livraison: {earning.delivery.tracking_number} | {earning.total_earning} CFA")
     
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET'], url_path='my-earnings')
     def my_earnings(self, request):
         """
         GET /api/v1/payments/earnings/my-earnings/?period=week|month

@@ -164,8 +164,9 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
       );
     }
 
-    // Extraire les données Phase 2
-    final totalEarnings = double.tryParse(earnings?['total_driver_amount']?.toString() ?? '0') ?? 0.0;
+    // Extraire les données Phase 2 (noms provenant de l'API backend)
+    // Backend renvoie 'driver_amount' pour le montant total versé au driver
+    final totalEarnings = double.tryParse(earnings?['driver_amount']?.toString() ?? '0') ?? 0.0;
     final paymentCount = int.tryParse(earnings?['payment_count']?.toString() ?? '0') ?? 0;
     
     // Stats lifetime depuis le nouveau endpoint

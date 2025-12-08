@@ -42,11 +42,13 @@ class ApiConstants {
 
   // ========== PAYMENTS (Phase 2) ==========
   // Détail des gains par livraison (DriverEarning)
-  static const String paymentMyEarnings = '/api/v1/payments/earnings/my_earnings/';
+  // Endpoint backend: PaymentViewSet.earnings_summary -> path: /api/v1/payments/earnings-summary/
+  static const String paymentMyEarnings = '/api/v1/payments/earnings-summary/';
   // Résumé des paiements Mobile Money (PaymentViewSet)
-  static const String paymentEarningsSummary = '/api/v1/payments/earnings_summary/';
-  // Versements groupés (DriverPayment)
-  static const String paymentMyPayouts = '/api/v1/payments/driver-payments/my_payouts/';
+  static const String paymentEarningsSummary = '/api/v1/payments/earnings-summary/';
+  // Versements groupés (DriverPayment) - endpoint exposed at /api/v1/payments/my-payouts/ or under driver-payments/my-payouts/
+  // Use the generic payments endpoint for driver payouts summary
+  static const String paymentMyPayouts = '/api/v1/payments/my-payouts/';
   // Statistiques globales
   static const String paymentStats = '/api/v1/payments/stats/';
   // Historique des transactions

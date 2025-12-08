@@ -3,7 +3,7 @@ import '../../config/env_config.dart';
 class ApiConstants {
   static String get baseUrl => EnvConfig.baseUrl; // Utilise la config d'environnement
   static const String merchantProfile = '/api/v1/merchants/';
-  static const String merchantStats = '/api/v1/merchants/my_stats/';
+  static const String merchantStats = '/api/v1/merchants/my-stats/';
   static const String register = '/api/v1/auth/register/';
   static const String login = '/api/v1/auth/login/';
   static const String logout = '/api/v1/auth/logout/';

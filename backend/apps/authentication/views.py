@@ -122,7 +122,14 @@ class LogoutView(APIView):
     Invalide le refresh token en l'ajoutant à la blacklist.
     Nécessite le refresh token dans le body.
     """
-    permission_classes = [IsAuthenticated]  # Doit être connecté pour se déconnecter
+    # Do not run DRF authentication on this view: some clients call logout
+    # by sending only the `refresh` token in the body and may include an
+    # expired/invalid access token in `Authorization` which would trigger
+    # authentication errors before the view executes. By clearing
+    # `authentication_classes` we allow the view to validate the refresh
+    # token directly and return a clear error if it's missing/invalid.
+    authentication_classes = []
+    permission_classes = [AllowAny]
     
     def post(self, request):
         try:
