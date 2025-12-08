@@ -18,6 +18,19 @@ class DioClient {
         
         // Gérer les erreurs de validation Django
         if (data is Map<String, dynamic>) {
+          // Prefer a friendly message for token-related backend "detail" errors
+          final detailValue = data['detail'];
+          if (detailValue is String) {
+            final detailLower = detailValue.toLowerCase();
+            if (detailLower.contains('token') || detailLower.contains('refresh') || detailLower.contains('not valid') || detailLower.contains('missing')) {
+              return 'Email ou mot de passe incorrect.';
+            }
+            // If the backend already returns the friendly message, keep it
+            if (detailValue == 'Email ou mot de passe incorrect.' || detailValue.contains('mot de passe incorrect')) {
+              return detailValue;
+            }
+          }
+
           final errors = <String>[];
           data.forEach((key, value) {
             if (value is List && value.isNotEmpty) {
@@ -27,7 +40,9 @@ class DioClient {
                 errors.add('Numéro de téléphone déjà utilisé');
               } else if (key == 'password' || key == 'password2') {
                 errors.add(value[0].toString());
-              } else if (key == 'detail' || key == 'non_field_errors') {
+              } else if (key == 'non_field_errors') {
+                errors.add(value[0].toString());
+              } else if (key == 'detail') {
                 errors.add(value[0].toString());
               } else {
                 errors.add('${key}: ${value[0]}');

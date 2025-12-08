@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def notify_new_delivery_assignment(driver, delivery):
     """Notifie un livreur d'une nouvelle livraison assignée"""
-    if not driver.user.fcm_token:
+    if not driver or not getattr(driver, 'user', None) or not getattr(driver.user, 'fcm_token', None):
         return False
     
     return FirebaseService.send_notification(
@@ -31,7 +31,9 @@ def notify_new_delivery_assignment(driver, delivery):
 
 def notify_delivery_status_change(user, delivery, new_status):
     """Notifie un changement de statut de livraison"""
-    if not user.fcm_token:
+    if not user:
+        return False
+    if not getattr(user, 'fcm_token', None):
         return False
     
     # Messages selon le statut
@@ -59,10 +61,12 @@ def notify_delivery_status_change(user, delivery, new_status):
 
 def notify_delivery_accepted(merchant, delivery):
     """Notifie le marchand qu'un livreur a accepté sa livraison"""
-    if not merchant.user.fcm_token:
+    if not merchant or not getattr(merchant, 'user', None):
         return False
-    
-    driver_name = delivery.driver.user.full_name if delivery.driver else "Livreur"
+    if not getattr(merchant.user, 'fcm_token', None):
+        return False
+
+    driver_name = delivery.driver.user.full_name if delivery.driver and getattr(delivery.driver, 'user', None) else "Livreur"
     
     return FirebaseService.send_notification(
         fcm_token=merchant.user.fcm_token,
@@ -80,9 +84,10 @@ def notify_delivery_accepted(merchant, delivery):
 
 def notify_delivery_rejected(merchant, delivery):
     """Notifie le marchand qu'un livreur a refusé sa livraison"""
-    if not merchant.user.fcm_token:
+    if not merchant or not getattr(merchant, 'user', None):
         return False
-    
+    if not getattr(merchant.user, 'fcm_token', None):
+        return False
     return FirebaseService.send_notification(
         fcm_token=merchant.user.fcm_token,
         title="⚠️ Livraison refusée",

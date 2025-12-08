@@ -511,14 +511,20 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Mettre à jour le statut
-        delivery.status = 'picked_up'
+        # Mettre à jour le statut -> maintenant en cours de livraison
+        # (le driver a récupéré le colis chez le merchant)
+        delivery.status = 'in_progress'
         delivery.picked_up_at = timezone.now()
         delivery.save(update_fields=['status', 'picked_up_at', 'updated_at'])
-        
-        # 🔔 Notifier le merchant
-        notify_delivery_status_change(delivery.merchant.user, delivery, 'picked_up')
-        
+
+        # 🔔 Notifier le merchant (statut 'in_progress') si présent
+        merchant = getattr(delivery, 'merchant', None)
+        if merchant and getattr(merchant, 'user', None):
+            try:
+                notify_delivery_status_change(merchant.user, delivery, 'in_progress')
+            except Exception:
+                logger.exception(f"Failed to notify merchant about pickup for delivery {delivery.id}")
+
         logger.info(f"✅ Livraison {delivery.tracking_number} récupérée par driver {driver.user.email}")
         
         serializer = DeliverySerializer(delivery)
@@ -598,13 +604,26 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         if not hasattr(delivery, 'driver_earning'):
             # Utilise le PricingCalculator pour recalculer le montant exact
             calculator = PricingCalculator()
+            # Prepare numeric fields safely: attributes may exist but be None.
+            _pw = getattr(delivery, 'package_weight_kg', None)
+            package_weight_kg = float(_pw) if _pw is not None else 0.0
+
+            _pl = getattr(delivery, 'package_length_cm', None)
+            package_length_cm = float(_pl) if _pl is not None else None
+
+            _pwid = getattr(delivery, 'package_width_cm', None)
+            package_width_cm = float(_pwid) if _pwid is not None else None
+
+            _ph = getattr(delivery, 'package_height_cm', None)
+            package_height_cm = float(_ph) if _ph is not None else None
+
             pricing_data = {
                 'pickup_commune': getattr(delivery, 'pickup_commune', ''),
                 'delivery_commune': delivery.delivery_commune,
-                'package_weight_kg': float(getattr(delivery, 'package_weight_kg', 0)),
-                'package_length_cm': float(getattr(delivery, 'package_length_cm', 0)) if hasattr(delivery, 'package_length_cm') else None,
-                'package_width_cm': float(getattr(delivery, 'package_width_cm', 0)) if hasattr(delivery, 'package_width_cm') else None,
-                'package_height_cm': float(getattr(delivery, 'package_height_cm', 0)) if hasattr(delivery, 'package_height_cm') else None,
+                'package_weight_kg': package_weight_kg,
+                'package_length_cm': package_length_cm,
+                'package_width_cm': package_width_cm,
+                'package_height_cm': package_height_cm,
                 'is_fragile': getattr(delivery, 'is_fragile', False),
                 'scheduling_type': getattr(delivery, 'scheduling_type', 'immediate'),
                 'scheduled_pickup_time': getattr(delivery, 'scheduled_pickup_time', None),
@@ -629,8 +648,13 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         driver.successful_deliveries += 1
         driver.save(update_fields=['total_deliveries', 'successful_deliveries', 'updated_at'])
 
-        # 🔔 Notifier le merchant
-        notify_delivery_status_change(delivery.merchant.user, delivery, 'delivered')
+        # 🔔 Notifier le merchant (si présent)
+        merchant = getattr(delivery, 'merchant', None)
+        if merchant and getattr(merchant, 'user', None):
+            try:
+                notify_delivery_status_change(merchant.user, delivery, 'delivered')
+            except Exception:
+                logger.exception(f"Failed to notify merchant about delivery {delivery.id}")
 
         logger.info(f"✅ Livraison {delivery.tracking_number} confirmée par driver {driver.user.email}")
 

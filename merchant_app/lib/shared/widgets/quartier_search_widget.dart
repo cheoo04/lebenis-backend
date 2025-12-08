@@ -70,8 +70,9 @@ class _QuartierSearchWidgetState extends ConsumerState<QuartierSearchWidget> {
           _isLoadingGPS = false;
         });
 
+        // Passer la commune en UPPERCASE (valeur canonique)
         widget.onLocationSelected?.call(
-          _selectedCommune!,
+          _selectedCommune!.toUpperCase(),
           _selectedQuartier!,
           result.latitude,
           result.longitude,
@@ -123,8 +124,9 @@ class _QuartierSearchWidgetState extends ConsumerState<QuartierSearchWidget> {
       _searchResults = [];
     });
 
+    // Passer la commune en UPPERCASE (valeur canonique)
     widget.onLocationSelected?.call(
-      quartier.commune,
+      quartier.commune.toUpperCase(),
       quartier.nom,
       quartier.latitude,
       quartier.longitude,

@@ -129,119 +129,22 @@ class GpsInfoCard extends StatelessWidget {
               ),
             ),
             
-            if (hasCoordinates) ...[
+            // Optional distance display (no raw coordinates or navigation button)
+            if (distanceKm != null && distanceKm! > 0) ...[
               const SizedBox(height: 8),
-              
-              // Coordonnées GPS
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.my_location, size: 16, color: Colors.grey),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Lat: ${latitude.toStringAsFixed(6)}, Lng: ${longitude.toStringAsFixed(6)}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontFamily: 'monospace',
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    
-                    if (distanceKm != null && distanceKm! > 0) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.straighten, size: 16, color: Colors.grey),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Distance: ${distanceKm!.toStringAsFixed(2)} km',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 12),
-              
-              // Bouton Navigation
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: onNavigate ?? () {
-                    // Default behavior: open internal map with provided coordinates
-                    try {
-                      Navigator.of(context).pushNamed(
-                        '/delivery-map',
-                        arguments: {
-                          'pickupLat': latitude,
-                          'pickupLng': longitude,
-                          'destLat': latitude,
-                          'destLng': longitude,
-                          'destLabel': address,
-                        },
-                      );
-                    } catch (e) {
-                      // silent fail
-                    }
-                  },
-                  icon: const Icon(Icons.navigation, size: 20),
-                  label: const Text('Ouvrir la navigation'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color ?? Colors.blue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+              Row(
+                children: [
+                  const Icon(Icons.straighten, size: 16, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Distance: ${distanceKm!.toStringAsFixed(2)} km',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
                   ),
-                ),
-              ),
-            ] else ...[
-              const SizedBox(height: 12),
-              
-              // Message si pas de GPS
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning, size: 18, color: Colors.orange.shade700),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Coordonnées GPS non disponibles. Navigation impossible.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.orange.shade700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                ],
               ),
             ],
           ],

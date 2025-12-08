@@ -58,7 +58,7 @@ class ChatRepository {
   /// Récupère le nombre total de messages non lus
   Future<int> getUnreadCount() async {
     try {
-      final response = await _dioClient.get('/api/v1/chat/rooms/unread_count/');
+      final response = await _dioClient.get('/api/v1/chat/rooms/unread-count/');
       return response.data['unread_count'] as int;
     } catch (e) {
       throw _handleError(e);
@@ -92,7 +92,7 @@ class ChatRepository {
   /// Marque une conversation comme lue
   Future<void> markRoomAsRead(String roomId) async {
     try {
-      await _dioClient.post('/api/v1/chat/rooms/$roomId/mark_as_read/');
+      await _dioClient.post('/api/v1/chat/rooms/$roomId/mark-as-read/');
     } catch (e) {
       throw _handleError(e);
     }
@@ -168,7 +168,7 @@ class ChatRepository {
   }) async {
     try {
       await _dioClient.post(
-        '/api/v1/chat/messages/mark_as_read/',
+        '/api/v1/chat/messages/mark-as-read/',
         data: {
           if (messageIds != null) 'message_ids': messageIds,
           if (chatRoomId != null) 'chat_room_id': chatRoomId,

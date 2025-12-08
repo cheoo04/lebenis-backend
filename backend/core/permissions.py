@@ -81,7 +81,10 @@ class IsOwnerOrAdmin(BasePermission):
         if hasattr(obj, 'user'):
             return obj.user == request.user
         elif hasattr(obj, 'merchant'):
-            return obj.merchant.user == request.user
+            merchant = getattr(obj, 'merchant')
+            if not merchant:
+                return False
+            return getattr(merchant, 'user', None) == request.user
         elif hasattr(obj, 'driver'):
             return obj.driver.user == request.user
         

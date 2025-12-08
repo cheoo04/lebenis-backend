@@ -406,8 +406,10 @@ class DeliveryAssignmentService:
                         raise ValidationError("Les dimensions du colis dépassent la capacité de votre véhicule")
 
                 # Auto-assignation : le driver accepte une livraison non encore assignée
+                # Set to 'assigned' so the driver still needs to confirm pickup (signature/PIN)
                 delivery.driver = driver
-                delivery.status = 'in_progress'
+                delivery.status = 'assigned'
+                delivery.assigned_at = timezone.now()
             elif delivery.status == 'assigned':
                 # Acceptation normale : la livraison était déjà assignée à ce driver
                 if delivery.driver != driver:
@@ -419,18 +421,31 @@ class DeliveryAssignmentService:
             # Passer au statut suivant (déjà défini ci-dessus)
             delivery.save()
             
-            # Notifier le merchant (DB)
-            Notification.objects.create(
-                user=delivery.merchant.user,
-                notification_type='delivery_update',
-                title='Livreur en route',
-                message=f"Le livreur {driver.user.full_name} est en route pour récupérer votre colis {delivery.tracking_number}",
-                related_entity_type='delivery',
-                related_entity_id=delivery.id
-            )
-            
-            # 🔔 Notification push FCM au merchant
-            notify_delivery_accepted(delivery.merchant, delivery)
+            # Notifier le merchant (DB) if present; guard against missing merchant
+            merchant = getattr(delivery, 'merchant', None)
+            if merchant is None:
+                # Data inconsistency: delivery without merchant — log and skip merchant notifications
+                self.logger.error(
+                    f"Delivery {delivery.id} has no merchant attached; skipping merchant notifications"
+                )
+            else:
+                try:
+                    Notification.objects.create(
+                        user=merchant.user,
+                        notification_type='delivery_update',
+                        title='Livreur en route',
+                        message=f"Le livreur {driver.user.full_name} est en route pour récupérer votre colis {delivery.tracking_number}",
+                        related_entity_type='delivery',
+                        related_entity_id=delivery.id
+                    )
+                except Exception as e:
+                    self.logger.exception(f"Failed to create DB notification for merchant on delivery {delivery.id}: {e}")
+
+                # 🔔 Notification push FCM au merchant
+                try:
+                    notify_delivery_accepted(merchant, delivery)
+                except Exception as e:
+                    self.logger.exception(f"Failed to send push notification to merchant for delivery {delivery.id}: {e}")
             
             self.logger.info(
                 f"✅ Livraison acceptée | {delivery.tracking_number} | "
@@ -478,18 +493,27 @@ class DeliveryAssignmentService:
             delivery.assigned_at = None
             delivery.save()
             
-            # Notifier le merchant (DB)
-            Notification.objects.create(
-                user=merchant.user,
-                notification_type='delivery_update',
-                title='Livraison refusée',
-                message=f"Le livreur a refusé la livraison {delivery.tracking_number}. Recherche d'un autre livreur...",
-                related_entity_type='delivery',
-                related_entity_id=delivery.id
-            )
-            
-            # 🔔 Notification push FCM au merchant
-            notify_delivery_rejected(merchant, delivery)
+            # Notifier le merchant (DB) if present; guard against missing merchant
+            if merchant is None:
+                self.logger.error(f"Delivery {delivery.id} has no merchant attached; skipping merchant notifications on reject")
+            else:
+                try:
+                    Notification.objects.create(
+                        user=merchant.user,
+                        notification_type='delivery_update',
+                        title='Livraison refusée',
+                        message=f"Le livreur a refusé la livraison {delivery.tracking_number}. Recherche d'un autre livreur...",
+                        related_entity_type='delivery',
+                        related_entity_id=delivery.id
+                    )
+                except Exception as e:
+                    self.logger.exception(f"Failed to create DB notification for merchant on delivery reject {delivery.id}: {e}")
+
+                # 🔔 Notification push FCM au merchant
+                try:
+                    notify_delivery_rejected(merchant, delivery)
+                except Exception as e:
+                    self.logger.exception(f"Failed to send push notification to merchant for delivery reject {delivery.id}: {e}")
             
             # Notifier l'admin
             from apps.authentication.models import User

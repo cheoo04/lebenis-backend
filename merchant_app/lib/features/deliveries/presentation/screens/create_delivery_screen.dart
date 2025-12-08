@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
+// GPS position gathering removed from simplified UI
 import '../../../../core/providers/quartier_provider.dart';
 import '../../../../data/providers/delivery_provider.dart';
 import '../../../../data/providers/pricing_provider.dart';
@@ -77,82 +77,11 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
-    await _getLocationForPoint('pickup');
+    // removed: simplified UI does not request current location
   }
 
   Future<void> _getDeliveryLocation() async {
-    await _getLocationForPoint('delivery');
-  }
-
-  Future<void> _getLocationForPoint(String pointType) async {
-    try {
-      // Vérifier les permissions d'abord
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Permission GPS refusée. La position GPS est optionnelle.'),
-                backgroundColor: Colors.orange,
-                duration: Duration(seconds: 2),
-              ),
-            );
-          }
-          return;
-        }
-      }
-      
-      if (permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Permission GPS désactivée dans les paramètres. Vous pouvez continuer sans GPS.'),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
-        return;
-      }
-
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
-        timeLimit: const Duration(seconds: 10),
-      );
-      
-      if (mounted) {
-        setState(() {
-          if (pointType == 'pickup') {
-            _pickupLat = position.latitude;
-            _pickupLng = position.longitude;
-          } else if (pointType == 'delivery') {
-            _deliveryLat = position.latitude;
-            _deliveryLng = position.longitude;
-          }
-        });
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Position GPS enregistrée'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-        _estimatePrice();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('GPS non disponible. Vous pouvez continuer sans.'),
-            backgroundColor: Colors.orange,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    }
+    // removed: simplified UI does not request current location
   }
 
   Future<void> _estimatePrice() async {
@@ -366,7 +295,8 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
               showCoordinates: false,
               onLocationSelected: (commune, quartier, lat, lon) {
                 setState(() {
-                  _pickupCommune = commune.trim();
+                  // Stocker la valeur canonique (UPPERCASE) pour cohérence avec le backend
+                  _pickupCommune = commune.trim().toUpperCase();
                   _pickupQuartier = quartier;
                   _pickupLat = lat;
                   _pickupLng = lon;
@@ -400,96 +330,23 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             ),
             const SizedBox(height: 16),
 
-            // GPS OPTIONNEL pour affiner la localisation exacte
-            _buildSectionTitle('Localisation GPS (optionnel)'),
-            const SizedBox(height: 12),
-            Text(
-              'Utilisez votre GPS actuel si vous êtes le point de récupération',
-              style: TextStyle(color: Colors.grey[600], fontSize: 12, fontStyle: FontStyle.italic),
-            ),
-            const SizedBox(height: 12),
-            if (_pickupLat == null)
-              ModernButton(
-                text: 'Utiliser ma position actuelle',
-                icon: Icons.location_on_sharp,
-                onPressed: _getCurrentLocation,
-                backgroundColor: AppTheme.accentColor,
-                isOutlined: true,
-              )
-            else ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  border: Border.all(color: Colors.green, width: 1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Position enregistrée',
-                                style: TextStyle(
-                                  color: Colors.green[700],
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${_pickupLat!.toStringAsFixed(4)}, ${_pickupLng!.toStringAsFixed(4)}',
-                                style: TextStyle(
-                                  color: Colors.green[700],
-                                  fontSize: 11,
-                                  fontFamily: 'monospace',
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        TextButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _pickupLat = null;
-                              _pickupLng = null;
-                            });
-                          },
-                          icon: const Icon(Icons.close, size: 18),
-                          label: const Text('Effacer'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.red,
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
+            // NOTE: GPS optionnel retiré de la vue simplifiée — coordinates restent facultatives
             const SizedBox(height: 32),
 
             // Section Livraison
             _buildSectionTitle('Adresse de livraison'),
             const SizedBox(height: 12),
             
-            // Widget intégré Commune + Quartier avec GPS
+            // Widget intégré Commune + Quartier (coordonnées masquées pour simplification)
             QuartierSearchWidget(
               label: 'Localisation de livraison *',
               initialCommune: _deliveryCommune,
               initialQuartier: _deliveryQuartier,
-              showCoordinates: true,
+              showCoordinates: false,
               onLocationSelected: (commune, quartier, lat, lon) {
                 setState(() {
-                  _deliveryCommune = commune.trim();
+                  // Stocker la valeur canonique (UPPERCASE) pour cohérence avec le backend
+                  _deliveryCommune = commune.trim().toUpperCase();
                   _deliveryQuartier = quartier;
                   _deliveryLat = lat;
                   _deliveryLng = lon;
@@ -524,77 +381,8 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
               maxLines: 2,
             ),
             
-            const SizedBox(height: 12),
-            Text(
-              'Localisation GPS (optionnel)',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-            const SizedBox(height: 8),
-            if (_deliveryLat == null)
-              ModernButton(
-                text: 'Enregistrer la position de livraison',
-                icon: Icons.location_on_sharp,
-                onPressed: _getDeliveryLocation,
-                backgroundColor: AppTheme.accentColor,
-                isOutlined: true,
-              )
-            else ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  border: Border.all(color: Colors.green, width: 1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Position enregistrée',
-                            style: TextStyle(
-                              color: Colors.green[700],
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${_deliveryLat!.toStringAsFixed(4)}, ${_deliveryLng!.toStringAsFixed(4)}',
-                            style: TextStyle(
-                              color: Colors.green[700],
-                              fontSize: 11,
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _deliveryLat = null;
-                          _deliveryLng = null;
-                        });
-                      },
-                      icon: const Icon(Icons.close, size: 18),
-                      label: const Text('Effacer'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            // GPS optionnel retiré pour simplification — l'utilisateur n'a pas besoin
+            // de voir ou gérer explicitement les coordonnées ici.
 
             const SizedBox(height: 32),
 
