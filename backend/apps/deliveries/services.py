@@ -244,9 +244,9 @@ class DeliveryAssignmentService:
             
             # 4. Assigner
             delivery.driver = best_driver
-            # Utiliser le statut normalisé 'in_progress' pour indiquer qu'un driver a
-            # été choisi et que la livraison est en cours de traitement.
-            delivery.status = 'in_progress'
+            # Utiliser le statut 'assigned' : le driver doit encore confirmer la
+            # récupération chez le merchant via /confirm-pickup/.
+            delivery.status = 'assigned'
             delivery.assigned_at = timezone.now()
             delivery.save()
             

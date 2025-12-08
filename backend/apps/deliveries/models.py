@@ -109,6 +109,9 @@ class Delivery(models.Model):
     # Preuve de livraison
     signature_url = models.CharField(max_length=500, blank=True)
     photo_url = models.CharField(max_length=500, blank=True)
+    # Preuves d'enlèvement (pickup)
+    pickup_photo_url = models.CharField(max_length=500, blank=True)
+    pickup_signature_url = models.CharField(max_length=500, blank=True)
     delivery_notes = models.TextField(blank=True)
     delivery_confirmation_code = models.CharField(max_length=10, blank=True)
 
