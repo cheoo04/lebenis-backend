@@ -12,9 +12,15 @@ class DeliveryModel {
   
   // Adresses
   final String pickupAddress;
+  final String pickupCommune;
+  final String pickupQuartier;
+  final String pickupPrecision;
   final double pickupLatitude;
   final double pickupLongitude;
   final String deliveryAddress;
+  final String deliveryCommune;
+  final String deliveryQuartier;
+  final String deliveryPrecision;
   final double deliveryLatitude;
   final double deliveryLongitude;
   
@@ -60,9 +66,15 @@ class DeliveryModel {
     required this.trackingNumber,
     required this.status,
     required this.pickupAddress,
+    required this.pickupCommune,
+    required this.pickupQuartier,
+    required this.pickupPrecision,
     required this.pickupLatitude,
     required this.pickupLongitude,
     required this.deliveryAddress,
+    required this.deliveryCommune,
+    required this.deliveryQuartier,
+    required this.deliveryPrecision,
     required this.deliveryLatitude,
     required this.deliveryLongitude,
     required this.recipientName,
@@ -94,17 +106,22 @@ class DeliveryModel {
       trackingNumber: json['tracking_number']?.toString() ?? '',
       status: json['status']?.toString() ?? 'pending',
       // Pickup (fallback si vide)
-      pickupAddress: json['pickup_address']?.toString() ?? 
-                     json['pickup_commune']?.toString() ?? '',
-      pickupLatitude: json['pickup_latitude'] != null
+        pickupAddress: json['pickup_address']?.toString() ?? json['pickup_commune']?.toString() ?? '',
+        pickupCommune: json['pickup_commune']?.toString() ?? '',
+        pickupQuartier: json['pickup_quartier']?.toString() ?? '',
+        pickupPrecision: json['pickup_precision']?.toString() ?? json['pickup_address_details']?.toString() ?? '',
+        pickupLatitude: json['pickup_latitude'] != null
           ? double.tryParse(json['pickup_latitude'].toString()) ?? 0.0
           : 0.0,
       pickupLongitude: json['pickup_longitude'] != null
           ? double.tryParse(json['pickup_longitude'].toString()) ?? 0.0
           : 0.0,
       // Delivery
-      deliveryAddress: json['delivery_address']?.toString() ?? '',
-      deliveryLatitude: json['delivery_latitude'] != null
+        deliveryAddress: json['delivery_address']?.toString() ?? '',
+        deliveryCommune: json['delivery_commune']?.toString() ?? '',
+        deliveryQuartier: json['delivery_quartier']?.toString() ?? '',
+        deliveryPrecision: json['delivery_precision']?.toString() ?? json['delivery_address']?.toString() ?? '',
+        deliveryLatitude: json['delivery_latitude'] != null
           ? double.tryParse(json['delivery_latitude'].toString()) ?? 0.0
           : 0.0,
       deliveryLongitude: json['delivery_longitude'] != null

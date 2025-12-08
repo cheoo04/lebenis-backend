@@ -146,7 +146,22 @@ class DriverViewSet(viewsets.ModelViewSet):
             # Utiliser Q objects pour faire une recherche insensible à la casse pour chaque zone
             zone_queries = Q()
             for zone in driver_zones:
-                zone_queries |= Q(delivery_commune__iexact=zone)
+                # Filtrer sur la commune d'enlèvement (pickup_commune)
+                zone_queries |= Q(pickup_commune__iexact=zone)
+            # Debug: log des zones appliquées
+            logger.debug(f"[available_deliveries] driver_zones={list(driver_zones)}")
+            # Count pending deliveries per commune BEFORE applying weight/dimension filters
+            try:
+                commune_counts = {}
+                from apps.deliveries.models import Delivery as _Delivery
+                for zone in driver_zones:
+                    try:
+                        cnt = _Delivery.objects.filter(status='pending', pickup_commune__iexact=zone).count()
+                    except Exception:
+                        cnt = 0
+                    commune_counts[str(zone)] = cnt
+            except Exception:
+                commune_counts = {}
             deliveries = deliveries.filter(zone_queries)
         
         # Filtre poids (toujours appliqué)
@@ -179,7 +194,8 @@ class DriverViewSet(viewsets.ModelViewSet):
                 'zone_filter': bool(driver_zones) and not show_all,
                 'weight_limit_kg': float(driver.vehicle_capacity_kg),
                 'dimension_limits_cm': max_dims,
-            }
+            },
+            'matched_pending_per_commune': commune_counts if not show_all else {},
         })
     
     @action(detail=False, methods=['POST'])
@@ -490,19 +506,22 @@ class DriverViewSet(viewsets.ModelViewSet):
         
         period_days = int(request.query_params.get('period', 30))
         period_start = timezone.now() - timedelta(days=period_days)
-        
+
         # Livraisons
         deliveries = Delivery.objects.filter(driver=driver)
-        period_deliveries = deliveries.filter(created_at__gte=period_start)
-        
+
+        # Count deliveries created in the period (new requests)
+        period_created_count = deliveries.filter(created_at__gte=period_start).count()
+
+        # Count deliveries delivered/cancelled during the period based on event timestamps
+        delivered_count = deliveries.filter(status='delivered', delivered_at__gte=period_start).count()
+        cancelled_count = deliveries.filter(status='cancelled', cancelled_at__gte=period_start).count()
+
+        # Current active deliveries (regardless of period)
+        current_count = deliveries.filter(status__in=['in_progress']).count()
+
         total_deliveries = deliveries.count()
-        period_count = period_deliveries.count()
-        delivered_count = period_deliveries.filter(status='delivered').count()
-        cancelled_count = period_deliveries.filter(status='cancelled').count()
-        current_count = period_deliveries.filter(
-            status__in=['in_progress']
-        ).count()
-        
+
         # Gains
         earnings = DriverEarning.objects.filter(driver=driver)
         period_earnings = earnings.filter(created_at__gte=period_start)
@@ -515,8 +534,9 @@ class DriverViewSet(viewsets.ModelViewSet):
         paid_earnings = period_earnings.filter(status='paid').aggregate(
             total=Sum('total_earning'))['total'] or Decimal('0')
         
-        # Taux de succès
-        success_rate = (delivered_count / period_count * 100) if period_count > 0 else 0
+        # Taux de succès : delivered / (delivered + cancelled) during the period
+        denom = delivered_count + cancelled_count
+        success_rate = (delivered_count / denom * 100) if denom > 0 else 0
         
         return Response({
             'driver': {
@@ -528,7 +548,7 @@ class DriverViewSet(viewsets.ModelViewSet):
             'period_days': period_days,
             'deliveries': {
                 'total_all_time': total_deliveries,
-                'period_total': period_count,
+                'period_total': period_created_count,
                 'delivered': delivered_count,
                 'current': current_count,
                 'cancelled': cancelled_count,

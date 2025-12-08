@@ -11,6 +11,8 @@ from .utils import notify_merchant_approved, notify_merchant_rejected, notify_me
 from apps.deliveries.models import Delivery
 from apps.payments.models import Invoice
 from core.permissions import IsAdmin, IsMerchant
+from apps.deliveries.services import compute_delivery_stats
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -139,7 +141,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
             'merchant': serializer.data
         })
     
-    @action(detail=False, methods=['GET'], permission_classes=[IsAdmin])
+    @action(detail=False, methods=['GET'], permission_classes=[IsAdmin], url_path='pending-verification')
     def pending_verification(self, request):
         """
         GET /api/v1/merchants/pending-verification/
@@ -172,7 +174,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
         else:
             raise ValidationError("Vous ne pouvez modifier que votre propre profil")
     
-    @action(detail=False, methods=['PATCH'])
+    @action(detail=False, methods=['PATCH'], url_path='update-documents')
     def update_documents(self, request):
         """
         PATCH /api/v1/merchants/update-documents/
@@ -213,7 +215,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
             'merchant': serializer.data
         })
     
-    @action(detail=False, methods=['GET'], permission_classes=[IsMerchant])
+    @action(detail=False, methods=['GET'], permission_classes=[IsMerchant], url_path='my-stats')
     def my_stats(self, request):
         """
         GET /api/v1/merchants/my-stats/?period=30
@@ -230,65 +232,26 @@ class MerchantViewSet(viewsets.ModelViewSet):
             )
         
         period_days = int(request.query_params.get('period', 30))
-        period_start = timezone.now() - timedelta(days=period_days)
-        
-        # Statistiques des livraisons
-        deliveries = Delivery.objects.filter(merchant=merchant)
-        period_deliveries = deliveries.filter(created_at__gte=period_start)
-        
-        total_deliveries = deliveries.count()
-        period_count = period_deliveries.count()
-        delivered_count = period_deliveries.filter(status='delivered').count()
-        cancelled_count = period_deliveries.filter(status='cancelled').count()
-        pending_count = period_deliveries.filter(status='pending').count()
-        in_progress_count = period_deliveries.filter(
-            status__in=['in_progress']
-        ).count()
-        
-        # Chiffre d'affaires (montant total livré)
-        revenue = period_deliveries.filter(
-            status='delivered'
-        ).aggregate(total=Sum('calculated_price'))['total'] or 0
-        
-        # Factures
-        invoices = Invoice.objects.filter(merchant=merchant)
-        period_invoices = invoices.filter(created_at__gte=period_start)
-        
-        total_billed = period_invoices.aggregate(total=Sum('total_amount'))['total'] or 0
-        paid_amount = period_invoices.filter(status='paid').aggregate(total=Sum('total_amount'))['total'] or 0
-        pending_amount = period_invoices.filter(status='sent').aggregate(total=Sum('total_amount'))['total'] or 0
-        
-        # Taux de succès
-        success_rate = (delivered_count / period_count * 100) if period_count > 0 else 0
-        
-        return Response({
+        # Use central compute_delivery_stats helper
+
+        deliveries_qs = Delivery.objects.filter(merchant=merchant)
+        stats = compute_delivery_stats(deliveries_qs, period_days=period_days, merchant=merchant)
+
+        # Format revenue values as strings to preserve existing response shape
+        stats['revenue']['period_revenue'] = str(stats['revenue']['period_revenue'])
+        stats['revenue']['total_billed'] = str(stats['revenue']['total_billed'])
+        stats['revenue']['paid'] = str(stats['revenue']['paid'])
+        stats['revenue']['pending_payment'] = str(stats['revenue']['pending_payment'])
+
+        response = {
             'merchant': {
                 'id': str(merchant.id),
                 'business_name': merchant.business_name,
                 'verification_status': merchant.verification_status
-            },
-            'period_days': period_days,
-            'deliveries': {
-                'total_all_time': total_deliveries,
-                'period_total': period_count,
-                'delivered': delivered_count,
-                'in_progress': in_progress_count,
-                'pending': pending_count,
-                'cancelled': cancelled_count,
-                'success_rate': round(success_rate, 2)
-            },
-            'revenue': {
-                'period_revenue': str(revenue),
-                'total_billed': str(total_billed),
-                'paid': str(paid_amount),
-                'pending_payment': str(pending_amount)
-            },
-            'invoices': {
-                'total': period_invoices.count(),
-                'paid': period_invoices.filter(status='paid').count(),
-                'pending': period_invoices.filter(status='sent').count()
             }
-        })
+        }
+        response.update(stats)
+        return Response(response)
     
     @action(detail=True, methods=['GET'], permission_classes=[IsAdmin])
     def stats(self, request, pk=None):

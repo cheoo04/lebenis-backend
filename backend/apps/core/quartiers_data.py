@@ -394,6 +394,45 @@ def get_communes_list() -> list:
     return list(QUARTIERS_ABIDJAN_COMPLET.keys())
 
 
+def get_commune_display_name(commune: str) -> str:
+    """
+    Retourne un nom lisible / joliment formaté pour une commune.
+
+    Utilise une table de correspondance pour les communes nécessitant
+    des accents ou des formes particulières (ex: PORT-BOUET -> Port-Bouët,
+    ADJAME -> Adjamé). Pour les autres communes on applique une casse
+    minimale (title case).
+    """
+    if not commune:
+        return ''
+
+    # Normaliser la clé pour lookup
+    key = commune.strip().upper()
+
+    DISPLAY_MAP = {
+        'ADJAME': 'Adjamé',
+        'PORT-BOUET': 'Port‑Bouët',
+        'ATTECOUBE': 'Attécoubé',
+        'COCODY': 'Cocody',
+        'YOPOUGON': 'Yopougon',
+        'MARCORY': 'Marcory',
+        'PLATEAU': 'Le Plateau',
+        'ABOBO': 'Abobo',
+        'KOUMASSI': 'Koumassi',
+        'TREICHVILLE': 'Treichville',
+        'BINGERVILLE': 'Bingerville',
+        'SONGON': 'Songon',
+        'ANYAMA': 'Anyama',
+    }
+
+    if key in DISPLAY_MAP:
+        return DISPLAY_MAP[key]
+
+    # Fall back: title case with preservation of hyphens
+    # Exemple: 'PORT-BOUET' -> 'Port-Bouet'
+    return ' '.join(part.capitalize() for part in key.replace('_', ' ').split())
+
+
 def get_all_quartiers() -> list:
     """
     Retourne la liste de tous les quartiers

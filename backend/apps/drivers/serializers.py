@@ -1,11 +1,20 @@
 from rest_framework import serializers
 from .models import Driver, DriverZone
 from apps.authentication.serializers import UserSerializer
+from apps.core.quartiers_data import get_commune_display_name
 
 class DriverZoneSerializer(serializers.ModelSerializer):
+    commune_display = serializers.SerializerMethodField(read_only=True)
+
+    def get_commune_display(self, obj):
+        try:
+            return get_commune_display_name(obj.commune)
+        except Exception:
+            return obj.commune or ''
+
     class Meta:
         model = DriverZone
-        fields = ['id', 'commune', 'priority']
+        fields = ['id', 'commune', 'commune_display', 'priority']
 
 class DriverSerializer(serializers.ModelSerializer):
     zones = DriverZoneSerializer(many=True, read_only=True)

@@ -515,7 +515,7 @@ class DriverPaymentViewSet(viewsets.ModelViewSet):
             'paid_at': payment.paid_at
         })
     
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET'], url_path='my-payouts')
     def my_payouts(self, request):
         """
         GET /api/v1/payments/driver-payments/my-payouts/?page=1&page_size=20
@@ -665,7 +665,7 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
             "period": "today",
             "total_amount": 15000.00,
             "driver_amount": 12000.00,
-            "commission_amount": 3000.00,
+            "platform_commission": 3000.00,
             "payment_count": 5,
             "payments": [...]
         }
@@ -707,9 +707,10 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
         ).order_by('-created_at')
         
         # Calculer les totaux
-        total_amount = payments.aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+        # Le modèle `Payment` utilise `total_amount`, `driver_amount` et `platform_commission`
+        total_amount = payments.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0')
         driver_amount = payments.aggregate(Sum('driver_amount'))['driver_amount__sum'] or Decimal('0')
-        commission_amount = payments.aggregate(Sum('commission_amount'))['commission_amount__sum'] or Decimal('0')
+        platform_commission_sum = payments.aggregate(Sum('platform_commission'))['platform_commission__sum'] or Decimal('0')
         
         from .serializers import PaymentSerializer
         serializer = PaymentSerializer(payments, many=True)
@@ -719,12 +720,12 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
             'period_label': period_label,
             'total_amount': str(total_amount),
             'driver_amount': str(driver_amount),
-            'commission_amount': str(commission_amount),
+            'platform_commission': str(platform_commission_sum),
             'payment_count': payments.count(),
             'payments': serializer.data
         })
     
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET'], url_path='my-payouts')
     def my_payouts(self, request):
         """
         GET /api/v1/payments/my-payouts/?limit=30

@@ -172,6 +172,17 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final delivery = widget.delivery;
+    // Build friendly display strings combining commune, quartier and precision
+    String buildLocationDisplay(String commune, String quartier, String precision) {
+      final parts = <String>[];
+      if (commune.isNotEmpty) parts.add(commune);
+      if (quartier.isNotEmpty) parts.add(quartier);
+      if (precision.isNotEmpty) parts.add(precision);
+      return parts.join(', ');
+    }
+
+    final pickupDisplay = buildLocationDisplay(delivery.pickupCommune, delivery.pickupQuartier, delivery.pickupPrecision);
+    final deliveryDisplay = buildLocationDisplay(delivery.deliveryCommune, delivery.deliveryQuartier, delivery.deliveryPrecision);
 
     return Scaffold(
       appBar: AppBar(
@@ -218,7 +229,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                   // Point de récupération avec GPS
                   GpsInfoCard(
                     title: 'Point de récupération',
-                    address: delivery.pickupAddress,
+                    address: pickupDisplay.isNotEmpty ? pickupDisplay : delivery.pickupAddress,
                     latitude: delivery.pickupLatitude,
                     longitude: delivery.pickupLongitude,
                     color: AppColors.success,
@@ -232,7 +243,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                   // Point de livraison avec GPS
                   GpsInfoCard(
                     title: 'Point de livraison',
-                    address: delivery.deliveryAddress,
+                    address: deliveryDisplay.isNotEmpty ? deliveryDisplay : delivery.deliveryAddress,
                     latitude: delivery.deliveryLatitude,
                     longitude: delivery.deliveryLongitude,
                     distanceKm: delivery.distanceKm,
@@ -300,6 +311,21 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     label: 'Créé le',
                     value: Formatters.formatDateTime(delivery.createdAt),
                   ),
+
+                  // Display explicit pickup/delivery commune/quartier/precision in details
+                  const SizedBox(height: AppSpacing.sm),
+                  if (pickupDisplay.isNotEmpty)
+                    _DetailRow(
+                      icon: Icons.location_pin,
+                      label: 'Enlèvement',
+                      value: pickupDisplay,
+                    ),
+                  if (deliveryDisplay.isNotEmpty)
+                    _DetailRow(
+                      icon: Icons.location_on_outlined,
+                      label: 'Livraison',
+                      value: deliveryDisplay,
+                    ),
 
                   if (delivery.assignedAt != null)
                     _DetailRow(

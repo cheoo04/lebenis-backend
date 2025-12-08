@@ -19,7 +19,8 @@ class ApiConstants {
   static const String driverMe = '/api/v1/drivers/me/';
   static const String myDeliveries = '/api/v1/drivers/my-deliveries/';
   static const String availableDeliveries = '/api/v1/drivers/available-deliveries/';
-  static const String driverEarnings = '/api/v1/drivers/me/earnings/'; // OLD - à remplacer par paymentMyEarnings
+  // Deprecated old earnings endpoint kept for compatibility; point to canonical payments summary
+  static const String driverEarnings = '/api/v1/payments/earnings/summary/';
   static const String myStats = '/api/v1/drivers/my-stats/';
   static const String updateLocation = '/api/v1/drivers/update-location/';
   static const String toggleAvailability = '/api/v1/drivers/toggle-availability/';
@@ -43,9 +44,10 @@ class ApiConstants {
   // ========== PAYMENTS (Phase 2) ==========
   // Détail des gains par livraison (DriverEarning)
   // Endpoint backend: PaymentViewSet.earnings_summary -> path: /api/v1/payments/earnings-summary/
-  static const String paymentMyEarnings = '/api/v1/payments/earnings-summary/';
+  // Matches backend DriverEarningViewSet @action 'summary' -> /api/v1/payments/earnings/summary/
+  static const String paymentMyEarnings = '/api/v1/payments/earnings/summary/';
   // Résumé des paiements Mobile Money (PaymentViewSet)
-  static const String paymentEarningsSummary = '/api/v1/payments/earnings-summary/';
+  static const String paymentEarningsSummary = '/api/v1/payments/earnings/summary/';
   // Versements groupés (DriverPayment) - endpoint exposed at /api/v1/payments/my-payouts/ or under driver-payments/my-payouts/
   // Use the generic payments endpoint for driver payouts summary
   static const String paymentMyPayouts = '/api/v1/payments/my-payouts/';

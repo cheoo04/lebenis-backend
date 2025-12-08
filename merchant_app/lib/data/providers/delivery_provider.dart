@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/delivery_repository.dart';
 import '../models/delivery_model.dart';
+import '../models/merchant_stats_model.dart';
 import '../../core/providers.dart';
 
 final deliveryRepositoryProvider = Provider<DeliveryRepository>((ref) {
@@ -32,4 +33,9 @@ final createDeliveryProvider = FutureProvider.family<DeliveryModel, Map<String, 
 final deleteDeliveryProvider = FutureProvider.family<bool, String>((ref, id) async {
   final repo = ref.watch(deliveryRepositoryProvider);
   return repo.deleteDelivery(id);
+});
+/// Delivery stats provider (use `.family` to allow passing `periodDays`)
+final deliveryStatsProvider = FutureProvider.family<MerchantStatsModel?, int>((ref, periodDays) async {
+  final repo = ref.watch(deliveryRepositoryProvider);
+  return repo.getStats(periodDays: periodDays);
 });

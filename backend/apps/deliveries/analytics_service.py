@@ -60,7 +60,7 @@ class AnalyticsService:
             earnings = earnings.filter(created_at__lte=end_date)
         
         total_earnings = earnings.aggregate(
-            total=Sum('amount')
+            total=Sum('total_earning')
         )['total'] or Decimal('0.00')
         
         # Distance totale
@@ -345,22 +345,31 @@ class AnalyticsService:
         if end_date:
             earnings = earnings.filter(created_at__lte=end_date)
         
-        # Agréger par type
-        breakdown = earnings.values('earning_type').annotate(
-            total=Sum('amount')
+        # Agréger les différents champs disponibles sur DriverEarning
+        sums = earnings.aggregate(
+            delivery=Sum('base_earning'),
+            distance_bonus=Sum('distance_bonus'),
+            time_bonus=Sum('time_bonus'),
+            quality_bonus=Sum('quality_bonus'),
+            other_bonus=Sum('other_bonus'),
+            adjustment=Sum('penalty'),
+            total=Sum('total_earning')
         )
-        
+
+        delivery = sums.get('delivery') or Decimal('0')
+        distance_bonus = sums.get('distance_bonus') or Decimal('0')
+        time_bonus = sums.get('time_bonus') or Decimal('0')
+        quality_bonus = sums.get('quality_bonus') or Decimal('0')
+        other_bonus = sums.get('other_bonus') or Decimal('0')
+        adjustment = sums.get('adjustment') or Decimal('0')
+        total = sums.get('total') or Decimal('0')
+
         result = {
-            'delivery': 0,
-            'bonus': 0,
-            'tip': 0,
-            'adjustment': 0,
-            'total': 0,
+            'delivery': float(delivery),
+            'bonus': float(distance_bonus + time_bonus + quality_bonus),
+            'tip': float(other_bonus),
+            'adjustment': float(adjustment),
+            'total': float(total),
         }
-        
-        for item in breakdown:
-            result[item['earning_type']] = float(item['total'] or 0)
-        
-        result['total'] = sum(result.values())
-        
+
         return result

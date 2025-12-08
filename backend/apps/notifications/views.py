@@ -331,7 +331,7 @@ class NotificationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(notification)
         return Response(serializer.data)
     
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], url_path='mark-all-as-read')
     def mark_all_as_read(self, request):
         """
         Marque toutes les notifications comme lues.
@@ -350,8 +350,17 @@ class NotificationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
             'message': f'{count} notification(s) marquée(s) comme lue(s)',
             'count': count
         })
+
+    # Compatibilité: anciens clients utilisant des underscores
+    @action(detail=False, methods=['post'], url_path='mark_all_as_read')
+    def mark_all_as_read_legacy(self, request):
+        """
+        Compat: POST /notification-history/mark_all_as_read/
+        Appelle `mark_all_as_read` pour garder la compatibilité avec d'anciens clients.
+        """
+        return self.mark_all_as_read(request)
     
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='unread-count')
     def unread_count(self, request):
         """
         Retourne le nombre de notifications non lues.
@@ -363,6 +372,15 @@ class NotificationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({
             'unread_count': count
         })
+
+    # Compatibilité: ancien chemin avec underscore
+    @action(detail=False, methods=['get'], url_path='unread_count')
+    def unread_count_legacy(self, request):
+        """
+        Compat: GET /notification-history/unread_count/
+        Appelle `unread_count` pour garder la compatibilité avec d'anciens clients.
+        """
+        return self.unread_count(request)
     
     def destroy(self, request, *args, **kwargs):
         """
@@ -377,4 +395,13 @@ class NotificationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
             {'message': 'Notification supprimée'},
             status=status.HTTP_204_NO_CONTENT
         )
+
+    # Compatibilité: détail action avec underscore
+    @action(detail=True, methods=['post'], url_path='mark_as_read')
+    def mark_as_read_legacy(self, request, pk=None):
+        """
+        Compat: POST /notification-history/{id}/mark_as_read/
+        Appelle `mark_as_read` pour garder la compatibilité avec d'anciens clients.
+        """
+        return self.mark_as_read(request, pk=pk)
 
