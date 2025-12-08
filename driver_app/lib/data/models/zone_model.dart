@@ -10,9 +10,12 @@ class ZoneModel {
   });
 
   factory ZoneModel.fromJson(Map<String, dynamic> json) {
+    // Support multiple response shapes: detailed zones or grouped communes
+    final id = (json['id'] ?? json['commune'] ?? json['name']) as String;
+    final name = (json['zone_name'] ?? json['commune_display'] ?? json['commune'] ?? json['name']) as String;
     return ZoneModel(
-      id: json['id'] as String,
-      name: json['zone_name'] as String, // Correction ici
+      id: id,
+      name: name,
       selected: json['selected'] ?? false,
     );
   }

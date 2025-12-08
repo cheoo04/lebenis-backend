@@ -188,6 +188,13 @@ Créer une nouvelle livraison en tant que particulier.
 - `scheduled_pickup_time` (datetime): Heure d'enlèvement planifiée
 - `cod_amount` (float): Montant à collecter (si payment_method=cod)
 
+**Alias acceptés (compatibilité clients nouveaux/anciens):**
+
+- `pickup_precision` (string) : alias write-only pour `pickup_address_details`. Si fourni, sa valeur sera copiée dans `pickup_address_details` lors de la création.
+- `delivery_precision` (string) : alias write-only pour `delivery_address`. Si fourni, sa valeur sera copiée dans `delivery_address` lors de la création.
+
+Note de validation : si vous fournissez un `pickup_quartier` ou `delivery_quartier` qui n'a pas de coordonnées GPS connues et que vous n'envoyez pas `pickup_latitude`/`pickup_longitude` (ou `delivery_latitude`/`delivery_longitude`), le champ de précision correspondant (`pickup_address_details` ou `delivery_address` / leurs alias) devient obligatoire. Le serveur renverra une erreur 400 si cette précision manque.
+
 **Réponse:**
 
 ```json

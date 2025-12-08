@@ -2,6 +2,7 @@ import '../../core/network/dio_client.dart';
 import '../../core/constants/api_constants.dart';
 import '../models/delivery_model.dart';
 import '../models/rating_model.dart';
+import '../models/merchant_stats_model.dart';
 
 class DeliveryRepository {
   final DioClient dioClient;
@@ -71,6 +72,14 @@ class DeliveryRepository {
       data: data,
     );
     return DeliveryModel.fromJson(response.data);
+  }
+
+  /// GET /api/v1/deliveries/my-stats/?period=30
+  Future<MerchantStatsModel> getStats({int periodDays = 30}) async {
+    final response = await dioClient.get('${ApiConstants.deliveries}my-stats/',
+      queryParameters: {'period': periodDays.toString()},
+    );
+    return MerchantStatsModel.fromJson(response.data);
   }
 
   /// POST /api/v1/deliveries/{id}/rate-driver/

@@ -107,6 +107,9 @@ class IndividualViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         
+        # Debug: log incoming payload for troubleshooting
+        logger.debug(f"Incoming PATCH /api/v1/individuals/profile/ from {request.user.email}: {request.data}")
+
         # Mise à jour des champs autorisés
         if 'address' in request.data:
             individual.address = request.data['address']
@@ -129,9 +132,30 @@ class IndividualViewSet(viewsets.ModelViewSet):
         if updated_fields:
             user.save()
             logger.info(f"✅ Profil particulier mis à jour: {updated_fields} pour {user.email}")
+
+        # Debug: log saved values to help verify persistence
+        logger.debug(
+            "Saved values after PATCH for user %s: address=%r, first_name=%r, last_name=%r, phone=%r",
+            request.user.email,
+            individual.address,
+            user.first_name,
+            user.last_name,
+            getattr(user, 'phone', None)
+        )
         
         serializer = IndividualSerializer(individual)
-        return Response(serializer.data)
+        data = serializer.data
+
+        # Ajouter les infos user (même format que pour `profile`) afin que
+        # le client Flutter puisse parser `first_name` / `last_name` au niveau
+        # racine de la réponse (compatibilité avec IndividualModel.fromJson)
+        data['user_id'] = str(request.user.id)
+        data['email'] = request.user.email
+        data['first_name'] = request.user.first_name
+        data['last_name'] = request.user.last_name
+        data['phone'] = getattr(request.user, 'phone', '')
+
+        return Response(data)
     
     @action(detail=False, methods=['PATCH'], permission_classes=[IsIndividual])
     def update_profile(self, request):

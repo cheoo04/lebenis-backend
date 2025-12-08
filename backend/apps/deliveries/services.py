@@ -19,6 +19,85 @@ from apps.notifications.services import (
     notify_delivery_status_change
 )
 
+from django.db.models import Sum
+from apps.payments.models import Invoice
+
+
+def compute_delivery_stats(qs, period_days=30, merchant=None):
+    """Compute aggregated delivery stats for a queryset of Delivery objects.
+
+    If `merchant` is provided, invoice-related aggregates will be computed for that merchant.
+    Returns a dict with keys: deliveries, revenue, invoices
+    """
+    from django.utils import timezone
+    from datetime import timedelta
+
+    period_start = timezone.now() - timedelta(days=period_days)
+
+    total_all_time = qs.count()
+    # Number of deliveries created in the period
+    period_created_qs = qs.filter(created_at__gte=period_start)
+    period_total = period_created_qs.count()
+
+    # Use event timestamps for delivered/cancelled counts to reflect actual completions
+    delivered = qs.filter(status='delivered', delivered_at__gte=period_start).count()
+    in_progress = qs.filter(status='in_progress').count()
+    pending = qs.filter(status='pending').count()
+    cancelled = qs.filter(status='cancelled', cancelled_at__gte=period_start).count()
+
+    try:
+        denom = delivered + cancelled
+        success_rate = (delivered / denom * 100) if denom > 0 else 0
+    except Exception:
+        success_rate = 0
+
+    # revenue: sum of calculated_price for period deliveries
+    period_revenue = period_qs.filter(status='delivered').aggregate(total=Sum('calculated_price'))['total'] or 0
+    total_billed = 0
+    paid_amount = 0
+    pending_amount = 0
+    invoices_count = 0
+    invoices_paid_count = 0
+    invoices_pending_count = 0
+
+    if merchant is not None:
+        try:
+            inv_qs = Invoice.objects.filter(merchant=merchant)
+            period_invoices = inv_qs.filter(created_at__gte=period_start)
+            total_billed = period_invoices.aggregate(total=Sum('total_amount'))['total'] or 0
+            paid_amount = period_invoices.filter(status='paid').aggregate(total=Sum('total_amount'))['total'] or 0
+            pending_amount = period_invoices.filter(status='sent').aggregate(total=Sum('total_amount'))['total'] or 0
+            invoices_count = period_invoices.count()
+            invoices_paid_count = period_invoices.filter(status='paid').count()
+            invoices_pending_count = period_invoices.filter(status='sent').count()
+        except Exception:
+            # if Invoice model or queries fail, keep invoice-related zeros
+            pass
+
+    return {
+        'period_days': period_days,
+        'deliveries': {
+            'total_all_time': total_all_time,
+            'period_total': period_total,
+            'delivered': delivered,
+            'in_progress': in_progress,
+            'pending': pending,
+            'cancelled': cancelled,
+            'success_rate': round(success_rate, 2),
+        },
+        'revenue': {
+            'period_revenue': period_revenue,
+            'total_billed': total_billed,
+            'paid': paid_amount,
+            'pending_payment': pending_amount,
+        },
+        'invoices': {
+            'total': invoices_count,
+            'paid': invoices_paid_count,
+            'pending': invoices_pending_count,
+        }
+    }
+
 logger = logging.getLogger(__name__)
 
 

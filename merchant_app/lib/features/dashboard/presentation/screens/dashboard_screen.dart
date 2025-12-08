@@ -4,6 +4,7 @@ import '../../../../theme/app_theme.dart';
 import '../../../../data/providers/merchant_provider.dart';
 import '../../../../data/providers/user_profile_provider.dart';
 import '../../../../data/providers/auth_provider.dart';
+import '../../../../data/providers/delivery_provider.dart';
 import '../../../../data/models/merchant_model.dart';
 import '../../../../data/models/individual_model.dart';
 import '../../../../shared/widgets/modern_stat_card.dart';
@@ -34,6 +35,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       if (isMerchant) {
         ref.read(merchantStatsProvider.notifier).loadStats();
       }
+      // For particuliers the FutureProvider will auto-load when watched in build
     });
   }
   
@@ -269,13 +271,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         title: 'Modifier mon profil',
                         subtitle: 'Informations du commerce',
                         iconColor: Colors.purple,
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          final result = await Navigator.push<bool?>(
                             context,
                             MaterialPageRoute(
                               builder: (_) => const EditProfileScreen(),
                             ),
                           );
+                          if (result == true) {
+                            // Rafraîchir le profil merchant et les stats
+                            try {
+                              await ref.read(merchantProfileProvider.notifier).refresh();
+                            } catch (_) {}
+                            try {
+                              await ref.read(merchantStatsProvider.notifier).refresh();
+                            } catch (_) {}
+                          }
                         },
                       ),
 
@@ -425,6 +436,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       body: RefreshIndicator(
         onRefresh: () async {
           await ref.read(userProfileProvider.notifier).refresh();
+          // Refresh delivery stats (utilisé pour les particuliers)
+          try {
+            await ref.refresh(deliveryStatsProvider(30));
+          } catch (_) {}
         },
         color: AppTheme.primaryColor,
         child: SingleChildScrollView(
@@ -513,8 +528,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Stats Grid simple pour particulier
-                      _buildIndividualStatsGrid(context),
+                      // Stats Grid simple pour particulier (dynamique)
+                      _buildIndividualStatsGrid(context, ref),
 
                       const SizedBox(height: 16),
 
@@ -612,14 +627,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildIndividualStatsGrid(BuildContext context) {
+  Widget _buildIndividualStatsGrid(BuildContext context, WidgetRef ref) {
     final screenWidth = MediaQuery.of(context).size.width;
     final crossAxisCount = screenWidth > 600 ? 4 : 2;
     final childAspectRatio = screenWidth > 600 ? 1.1 : 0.95;
     final spacing = screenWidth > 600 ? 12.0 : 10.0;
-    
-    // Stats simplifiées pour particulier (statiques pour l'instant)
-    return GridView.count(
+    // Render stats for particulier using deliveryStatsProvider (period = 30 jours)
+    final statsAsync = ref.watch(deliveryStatsProvider(30));
+
+    return statsAsync.when(
+      data: (stats) {
+        final periodTotal = stats?.periodDeliveries ?? 0;
+        final successRate = stats?.successRate ?? 0.0;
+        final periodRevenue = stats?.periodRevenue ?? 0.0;
+        final inProgress = stats?.inProgress ?? 0;
+
+        return GridView.count(
       crossAxisCount: crossAxisCount,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -629,7 +652,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       children: [
         ModernStatCard(
           title: 'Livraisons',
-          value: '0',
+          value: periodTotal.toString(),
           icon: Icons.local_shipping,
           color: Colors.blue,
           subtitle: 'Ce mois',
@@ -642,26 +665,51 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
         ModernStatCard(
           title: 'Taux succès',
-          value: '0.0%',
+          value: '${successRate.toString()}%',
           icon: Icons.check_circle,
           color: Colors.green,
           subtitle: 'Livraisons réussies',
         ),
         ModernStatCard(
           title: 'Dépenses',
-          value: '0',
+            value: stats != null ? stats.formattedRevenue : periodRevenue.toStringAsFixed(0),
           icon: Icons.payments,
           color: Colors.orange,
           subtitle: 'FCFA',
         ),
         ModernStatCard(
           title: 'En cours',
-          value: '0',
+          value: inProgress.toString(),
           icon: Icons.pending_actions,
           color: Colors.purple,
           subtitle: 'Livraisons actives',
         ),
       ],
+    );
+      },
+      loading: () => GridView.count(
+        crossAxisCount: crossAxisCount,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: spacing,
+        crossAxisSpacing: spacing,
+        childAspectRatio: childAspectRatio,
+        children: List.generate(4, (_) => const ModernStatCard(title: '', value: '-', icon: Icons.hourglass_empty, color: Colors.grey, subtitle: '...')),
+      ),
+      error: (e, st) => GridView.count(
+        crossAxisCount: crossAxisCount,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: spacing,
+        crossAxisSpacing: spacing,
+        childAspectRatio: childAspectRatio,
+        children: [
+          ModernStatCard(title: 'Livraisons', value: '0', icon: Icons.local_shipping, color: Colors.blue, subtitle: 'Erreur'),
+          ModernStatCard(title: 'Taux succès', value: '0.0%', icon: Icons.check_circle, color: Colors.green, subtitle: 'Erreur'),
+          ModernStatCard(title: 'Dépenses', value: '0', icon: Icons.payments, color: Colors.orange, subtitle: 'Erreur'),
+          ModernStatCard(title: 'En cours', value: '0', icon: Icons.pending_actions, color: Colors.purple, subtitle: 'Erreur'),
+        ],
+      ),
     );
   }
 }

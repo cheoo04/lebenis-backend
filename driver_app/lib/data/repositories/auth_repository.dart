@@ -32,7 +32,8 @@ class AuthRepository {
       final accessToken = data['access'] ?? data['access_token'] ?? data['tokens']?['access'];
       final refreshToken = data['refresh'] ?? data['refresh_token'] ?? data['tokens']?['refresh'];
       if (accessToken == null || refreshToken == null) {
-        throw Exception('Tokens manquants dans la réponse');
+        // Backend didn't return expected tokens — surface a user-friendly auth error
+        throw Exception('Email ou mot de passe incorrect');
       }
 
       // Sauvegarder tokens

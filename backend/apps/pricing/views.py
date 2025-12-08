@@ -14,6 +14,7 @@ from .models import PricingZone, ZonePricingMatrix
 from .serializers import PricingZoneSerializer, ZonePricingMatrixSerializer, CalculatePriceSerializer
 from .calculator import PricingCalculator
 from apps.drivers.models import DriverZone, Driver
+from apps.core.quartiers_data import get_communes_list, get_commune_display_name
 
 
 # ============================================================================
@@ -34,9 +35,78 @@ class PricingZoneViewSet(PricingViewSetPermissionMixin, viewsets.ModelViewSet):
         Permet à un livreur authentifié de définir ses zones de travail.
         """
         logger = logging.getLogger('django')
-        serializer = AssignZonesSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        zone_ids = serializer.validated_data['zone_ids']
+        # Support both legacy 'zone_ids' (list of PricingZone UUIDs)
+        # and new 'communes' (list of commune names). If communes are provided,
+        # resolve them to pricing zone ids first, then validate via serializer.
+        communes = request.data.get('communes')
+        zone_ids = []
+        unresolved_communes = []
+        if communes:
+            resolved_ids = []
+            # Normalize and attempt several resolution strategies per commune
+            for c in communes:
+                if not c:
+                    continue
+                c_str = str(c).strip()
+                # 1) Direct case-insensitive match on PricingZone.commune
+                pz_qs = PricingZone.objects.filter(commune__iexact=c_str)
+                if pz_qs.exists():
+                    resolved_ids.extend(list(pz_qs.values_list('id', flat=True)))
+                    continue
+
+                # 2) Match against canonical communes list (from quartiers_data)
+                try:
+                    all_communes = get_communes_list()
+                except Exception:
+                    all_communes = []
+
+                match = None
+                # Exact uppercase match
+                for ac in all_communes:
+                    if ac.upper() == c_str.upper():
+                        match = ac
+                        break
+                if match:
+                    pz_qs = PricingZone.objects.filter(commune__iexact=match)
+                    if pz_qs.exists():
+                        resolved_ids.extend(list(pz_qs.values_list('id', flat=True)))
+                        continue
+
+                # 3) Fuzzy match (small typos) using difflib
+                try:
+                    import difflib
+                    close = difflib.get_close_matches(c_str, all_communes, n=1, cutoff=0.7)
+                    if close:
+                        match = close[0]
+                except Exception:
+                    match = None
+
+                if match:
+                    pz_qs = PricingZone.objects.filter(commune__iexact=match)
+                    if pz_qs.exists():
+                        resolved_ids.extend(list(pz_qs.values_list('id', flat=True)))
+                        continue
+
+                # Nothing matched
+                unresolved_communes.append(c_str)
+
+            zone_ids = [str(i) for i in set(resolved_ids)]
+
+        # If client provided explicit zone_ids, prefer merging them with resolved ones
+        if 'zone_ids' in request.data and request.data.get('zone_ids'):
+            # Validate the provided zone_ids through the serializer
+            serializer = AssignZonesSerializer(data={'zone_ids': request.data.get('zone_ids')})
+            serializer.is_valid(raise_exception=True)
+            provided_ids = [str(i) for i in serializer.validated_data.get('zone_ids', [])]
+            zone_ids = list(set(zone_ids) | set(provided_ids))
+        else:
+            # If we resolved zone_ids from communes, validate them as well
+            if zone_ids:
+                serializer = AssignZonesSerializer(data={'zone_ids': zone_ids})
+                serializer.is_valid(raise_exception=True)
+            else:
+                # Nothing to assign
+                return Response({'detail': 'Aucune commune ni zone_ids fournis.'}, status=400)
         logger.info(f"[assign_zones] Tentative assignation zones: user.id={request.user.id}, email={getattr(request.user, 'email', None)}, zone_ids={zone_ids}")
         try:
             driver = Driver.objects.get(user=request.user)
@@ -65,7 +135,23 @@ class PricingZoneViewSet(PricingViewSetPermissionMixin, viewsets.ModelViewSet):
             for commune in to_add:
                 DriverZone.objects.create(driver=driver, commune=commune)
         logger.info(f"[assign_zones] Zones assignées avec succès pour driver.id={driver.id}, zones={zone_ids}")
-        return Response({'success': True, 'assigned_zone_ids': zone_ids})
+        response = {'success': True, 'assigned_zone_ids': zone_ids}
+        if unresolved_communes:
+            response['unmatched_communes'] = unresolved_communes
+            # Provide human-friendly suggestions for unmatched communes
+            try:
+                suggestions = {}
+                from difflib import get_close_matches
+                all_communes = get_communes_list()
+                for uc in unresolved_communes:
+                    close = get_close_matches(uc, all_communes, n=3, cutoff=0.6)
+                    if close:
+                        suggestions[uc] = close
+                if suggestions:
+                    response['suggestions'] = suggestions
+            except Exception:
+                pass
+        return Response(response)
 
     @action(detail=False, methods=['post'], url_path='calculate', permission_classes=[permissions.AllowAny])
     def calculate(self, request):
@@ -122,6 +208,24 @@ class PricingZoneViewSet(PricingViewSetPermissionMixin, viewsets.ModelViewSet):
         except Exception as e:
             logger.error(f"[with_selection] Aucun profil Driver trouvé pour user.id={user.id}, email={getattr(user, 'email', None)}, erreur={e}")
             return Response({'detail': "Seuls les livreurs peuvent accéder à leurs zones. Aucun profil driver trouvé pour cet utilisateur."}, status=403)
+        # Support simple aggregation by commune when requested by client
+        group_by = request.query_params.get('group_by')
+        if group_by == 'commune':
+            communes_qs = self.get_queryset().values_list('commune', flat=True).distinct()
+            communes = []
+            for c in communes_qs:
+                selected = DriverZone.objects.filter(driver=driver, commune__iexact=c).exists()
+                try:
+                    display = get_commune_display_name(c)
+                except Exception:
+                    display = c
+                communes.append({
+                    'commune': c,
+                    'commune_display': display,
+                    'selected': selected
+                })
+            return Response({'count': len(communes), 'communes': communes})
+
         queryset = self.get_queryset()
         serializer = PricingZoneSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)

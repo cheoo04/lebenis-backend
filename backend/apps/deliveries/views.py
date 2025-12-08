@@ -284,6 +284,45 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(status=status)
         
         return queryset
+
+    @action(detail=False, methods=['GET'], url_path='my-stats', permission_classes=[IsAuthenticated])
+    def my_stats(self, request):
+        """Return aggregated delivery stats for the current user (merchant or individual).
+
+        GET params:
+        - period: optional int days to compute period totals (default: 30)
+        """
+        try:
+            period = int(request.query_params.get('period', 30))
+        except (TypeError, ValueError):
+            period = 30
+
+        qs = self.filter_queryset(self.get_queryset())
+
+        # Use shared helper to compute stats
+        from apps.deliveries.services import compute_delivery_stats
+        merchant = None
+        try:
+            if getattr(request.user, 'user_type', None) == 'merchant':
+                merchant = Merchant.objects.filter(user=request.user).first()
+        except Exception:
+            merchant = None
+
+        stats = compute_delivery_stats(qs, period_days=period, merchant=merchant)
+
+        # If the caller is a merchant, include merchant metadata for parity with merchants.my-stats
+        response = stats
+        if merchant:
+            response = {
+                'merchant': {
+                    'id': str(merchant.id),
+                    'business_name': merchant.business_name,
+                    'verification_status': merchant.verification_status,
+                }
+            }
+            response.update(stats)
+
+        return Response(response)
     
     # =========================================================================
     # ENDPOINTS D'ASSIGNATION (ADMIN)

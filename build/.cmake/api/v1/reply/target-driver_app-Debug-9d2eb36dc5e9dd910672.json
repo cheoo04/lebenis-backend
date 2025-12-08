@@ -29,6 +29,7 @@
 			"runner/CMakeLists.txt",
 			"CMakeLists.txt",
 			"flutter/generated_plugins.cmake",
+			"flutter/CMakeLists.txt",
 			"/usr/share/cmake-4.2/Modules/FindPkgConfig.cmake"
 		],
 		"nodes" : 
@@ -86,6 +87,15 @@
 				"parent" : 5
 			},
 			{
+				"file" : 3
+			},
+			{
+				"command" : 2,
+				"file" : 3,
+				"line" : 64,
+				"parent" : 10
+			},
+			{
 				"command" : 7,
 				"file" : 1,
 				"line" : 57,
@@ -93,21 +103,21 @@
 			},
 			{
 				"command" : 6,
-				"file" : 3,
+				"file" : 4,
 				"line" : 1174,
-				"parent" : 10
+				"parent" : 12
 			},
 			{
 				"command" : 5,
-				"file" : 3,
+				"file" : 4,
 				"line" : 813,
-				"parent" : 11
+				"parent" : 13
 			},
 			{
 				"command" : 4,
-				"file" : 3,
+				"file" : 4,
 				"line" : 794,
-				"parent" : 12
+				"parent" : 14
 			},
 			{
 				"command" : 8,
@@ -137,13 +147,13 @@
 				"command" : 9,
 				"file" : 1,
 				"line" : 44,
-				"parent" : 17
+				"parent" : 19
 			},
 			{
 				"command" : 9,
 				"file" : 1,
 				"line" : 46,
-				"parent" : 17
+				"parent" : 19
 			},
 			{
 				"command" : 11,
@@ -167,11 +177,11 @@
 	"compileDependencies" : 
 	[
 		{
-			"backtrace" : 15,
+			"backtrace" : 17,
 			"id" : "flutter::@2bb09fbb03a373b2cb34"
 		},
 		{
-			"backtrace" : 16,
+			"backtrace" : 18,
 			"id" : "PkgConfig::GTK::@6890427a1f51a3e7e1df"
 		},
 		{
@@ -200,37 +210,37 @@
 					"fragment" : "-g"
 				},
 				{
-					"backtrace" : 18,
+					"backtrace" : 20,
 					"fragment" : "-Wall"
 				},
 				{
-					"backtrace" : 18,
+					"backtrace" : 20,
 					"fragment" : "-Werror"
 				},
 				{
-					"backtrace" : 19,
+					"backtrace" : 21,
 					"fragment" : "-Wno-error=deprecated-literal-operator"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"fragment" : "-pthread"
 				}
 			],
 			"defines" : 
 			[
 				{
-					"backtrace" : 20,
+					"backtrace" : 22,
 					"define" : "APPLICATION_ID=\"com.example.driver_app\""
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 21,
+					"backtrace" : 23,
 					"path" : "/home/cheoo/lebenis_project/driver_app/linux"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"path" : "/home/cheoo/lebenis_project/driver_app/linux/flutter/ephemeral"
 				},
 				{
@@ -250,102 +260,102 @@
 					"path" : "/home/cheoo/lebenis_project/driver_app/linux/flutter/ephemeral/.plugin_symlinks/url_launcher_linux/linux/include"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/gtk-3.0"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/pango-1.0"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/cairo"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/gdk-pixbuf-2.0"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/webp"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/at-spi2-atk/2.0"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/at-spi-2.0"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/atk-1.0"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/dbus-1.0"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/lib/x86_64-linux-gnu/dbus-1.0/include"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/fribidi"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/pixman-1"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/harfbuzz"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/freetype2"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/libpng16"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/gio-unix-2.0"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/glib-2.0"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/lib/x86_64-linux-gnu/glib-2.0/include"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/libmount"
 				},
 				{
-					"backtrace" : 15,
+					"backtrace" : 17,
 					"isSystem" : true,
 					"path" : "/usr/include/blkid"
 				}
@@ -362,7 +372,7 @@
 	"dependencies" : 
 	[
 		{
-			"backtrace" : 14,
+			"backtrace" : 16,
 			"id" : "flutter_assemble::@2bb09fbb03a373b2cb34"
 		},
 		{
@@ -406,10 +416,6 @@
 				"role" : "flags"
 			},
 			{
-				"fragment" : "-L/home/cheoo/lebenis_project/driver_app/linux/flutter/ephemeral",
-				"role" : "libraryPath"
-			},
-			{
 				"fragment" : "-Wl,-rpath,/home/cheoo/lebenis_project/build/plugins/file_selector_linux:/home/cheoo/lebenis_project/build/plugins/flutter_secure_storage_linux:/home/cheoo/lebenis_project/build/plugins/open_file_linux:/home/cheoo/lebenis_project/build/plugins/url_launcher_linux:/home/cheoo/lebenis_project/driver_app/linux/flutter/ephemeral:",
 				"role" : "libraries"
 			},
@@ -434,66 +440,67 @@
 				"role" : "libraries"
 			},
 			{
-				"fragment" : "-lflutter_linux_gtk",
+				"backtrace" : 11,
+				"fragment" : "/home/cheoo/lebenis_project/driver_app/linux/flutter/ephemeral/libflutter_linux_gtk.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 13,
+				"backtrace" : 15,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libgtk-3.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 13,
+				"backtrace" : 15,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libgdk-3.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 13,
+				"backtrace" : 15,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libpangocairo-1.0.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 13,
+				"backtrace" : 15,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libcairo-gobject.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 13,
+				"backtrace" : 15,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 13,
+				"backtrace" : 15,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libatk-1.0.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 13,
+				"backtrace" : 15,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libpango-1.0.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 13,
+				"backtrace" : 15,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libcairo.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 13,
+				"backtrace" : 15,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libharfbuzz.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 13,
+				"backtrace" : 15,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libgio-2.0.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 13,
+				"backtrace" : 15,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libgobject-2.0.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 13,
+				"backtrace" : 15,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libglib-2.0.so",
 				"role" : "libraries"
 			}
@@ -503,11 +510,11 @@
 	"linkLibraries" : 
 	[
 		{
-			"backtrace" : 15,
+			"backtrace" : 17,
 			"id" : "flutter::@2bb09fbb03a373b2cb34"
 		},
 		{
-			"backtrace" : 16,
+			"backtrace" : 18,
 			"id" : "PkgConfig::GTK::@6890427a1f51a3e7e1df"
 		},
 		{
@@ -532,7 +539,7 @@
 	"orderDependencies" : 
 	[
 		{
-			"backtrace" : 14,
+			"backtrace" : 16,
 			"id" : "flutter_assemble::@2bb09fbb03a373b2cb34"
 		}
 	],

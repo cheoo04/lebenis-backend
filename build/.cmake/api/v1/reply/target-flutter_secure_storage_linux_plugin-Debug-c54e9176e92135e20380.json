@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "plugins/url_launcher_linux/liburl_launcher_linux_plugin.so"
+			"path" : "plugins/flutter_secure_storage_linux/libflutter_secure_storage_linux_plugin.so"
 		}
 	],
 	"backtrace" : 1,
@@ -11,22 +11,24 @@
 		"commands" : 
 		[
 			"add_library",
+			"target_link_libraries",
 			"set_property",
 			"_pkg_create_imp_target",
 			"_pkg_recalculate",
 			"pkg_check_modules",
 			"add_dependencies",
-			"target_link_libraries",
 			"target_compile_options",
 			"apply_standard_settings",
-			"target_compile_definitions"
+			"add_definitions",
+			"target_compile_definitions",
+			"include_directories"
 		],
 		"files" : 
 		[
-			"flutter/ephemeral/.plugin_symlinks/url_launcher_linux/linux/CMakeLists.txt",
+			"flutter/ephemeral/.plugin_symlinks/flutter_secure_storage_linux/linux/CMakeLists.txt",
+			"flutter/CMakeLists.txt",
 			"/usr/share/cmake-4.2/Modules/FindPkgConfig.cmake",
-			"CMakeLists.txt",
-			"flutter/CMakeLists.txt"
+			"CMakeLists.txt"
 		],
 		"nodes" : 
 		[
@@ -36,35 +38,17 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 14,
+				"line" : 11,
 				"parent" : 0
 			},
 			{
-				"file" : 2
-			},
-			{
-				"command" : 4,
-				"file" : 2,
-				"line" : 57,
-				"parent" : 2
-			},
-			{
-				"command" : 3,
-				"file" : 1,
-				"line" : 1174,
-				"parent" : 3
-			},
-			{
-				"command" : 2,
-				"file" : 1,
-				"line" : 813,
-				"parent" : 4
+				"file" : 1
 			},
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 794,
-				"parent" : 5
+				"line" : 64,
+				"parent" : 2
 			},
 			{
 				"file" : 3
@@ -72,43 +56,109 @@
 			{
 				"command" : 5,
 				"file" : 3,
-				"line" : 70,
+				"line" : 57,
+				"parent" : 4
+			},
+			{
+				"command" : 4,
+				"file" : 2,
+				"line" : 1174,
+				"parent" : 5
+			},
+			{
+				"command" : 3,
+				"file" : 2,
+				"line" : 813,
+				"parent" : 6
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 794,
 				"parent" : 7
 			},
 			{
-				"command" : 6,
+				"command" : 5,
 				"file" : 0,
-				"line" : 23,
+				"line" : 15,
 				"parent" : 0
 			},
 			{
+				"command" : 4,
+				"file" : 2,
+				"line" : 1174,
+				"parent" : 9
+			},
+			{
+				"command" : 3,
+				"file" : 2,
+				"line" : 813,
+				"parent" : 10
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 794,
+				"parent" : 11
+			},
+			{
 				"command" : 6,
+				"file" : 1,
+				"line" : 70,
+				"parent" : 2
+			},
+			{
+				"command" : 1,
 				"file" : 0,
-				"line" : 24,
+				"line" : 26,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 27,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 28,
 				"parent" : 0
 			},
 			{
 				"command" : 8,
 				"file" : 0,
-				"line" : 17,
+				"line" : 14,
 				"parent" : 0
 			},
 			{
 				"command" : 7,
-				"file" : 2,
+				"file" : 3,
 				"line" : 44,
-				"parent" : 11
+				"parent" : 17
 			},
 			{
 				"command" : 7,
-				"file" : 2,
+				"file" : 3,
 				"line" : 46,
-				"parent" : 11
+				"parent" : 17
 			},
 			{
 				"command" : 9,
 				"file" : 0,
-				"line" : 20,
+				"line" : 9,
+				"parent" : 0
+			},
+			{
+				"command" : 10,
+				"file" : 0,
+				"line" : 21,
+				"parent" : 0
+			},
+			{
+				"command" : 11,
+				"file" : 0,
+				"line" : 24,
 				"parent" : 0
 			}
 		]
@@ -121,12 +171,16 @@
 	"compileDependencies" : 
 	[
 		{
-			"backtrace" : 9,
+			"backtrace" : 14,
 			"id" : "flutter::@2bb09fbb03a373b2cb34"
 		},
 		{
-			"backtrace" : 10,
+			"backtrace" : 15,
 			"id" : "PkgConfig::GTK::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 16,
+			"id" : "PkgConfig::LIBSECRET::@facd980744eea941fe37"
 		}
 	],
 	"compileGroups" : 
@@ -138,155 +192,163 @@
 					"fragment" : "-g -fPIC -fvisibility=hidden"
 				},
 				{
-					"backtrace" : 12,
+					"backtrace" : 18,
 					"fragment" : "-Wall"
 				},
 				{
-					"backtrace" : 12,
+					"backtrace" : 18,
 					"fragment" : "-Werror"
 				},
 				{
-					"backtrace" : 13,
+					"backtrace" : 19,
 					"fragment" : "-Wno-error=deprecated-literal-operator"
 				},
 				{
-					"backtrace" : 9,
+					"backtrace" : 14,
 					"fragment" : "-pthread"
 				}
 			],
 			"defines" : 
 			[
 				{
-					"backtrace" : 14,
+					"backtrace" : 20,
+					"define" : "APPLICATION_ID=\"com.example.driver_app\""
+				},
+				{
+					"backtrace" : 21,
 					"define" : "FLUTTER_PLUGIN_IMPL"
 				},
 				{
-					"define" : "url_launcher_linux_plugin_EXPORTS"
+					"define" : "flutter_secure_storage_linux_plugin_EXPORTS"
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 9,
+					"backtrace" : 14,
 					"path" : "/home/cheoo/lebenis_project/driver_app/linux/flutter/ephemeral"
 				},
 				{
-					"backtrace" : 9,
+					"backtrace" : 22,
 					"isSystem" : true,
-					"path" : "/usr/include/gtk-3.0"
+					"path" : "/usr/include/libsecret-1"
 				},
 				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/include/pango-1.0"
-				},
-				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/include/cairo"
-				},
-				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/include/gdk-pixbuf-2.0"
-				},
-				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/include/webp"
-				},
-				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/include/at-spi2-atk/2.0"
-				},
-				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/include/at-spi-2.0"
-				},
-				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/include/atk-1.0"
-				},
-				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/include/dbus-1.0"
-				},
-				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/lib/x86_64-linux-gnu/dbus-1.0/include"
-				},
-				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/include/fribidi"
-				},
-				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/include/pixman-1"
-				},
-				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/include/harfbuzz"
-				},
-				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/include/freetype2"
-				},
-				{
-					"backtrace" : 9,
-					"isSystem" : true,
-					"path" : "/usr/include/libpng16"
-				},
-				{
-					"backtrace" : 9,
+					"backtrace" : 22,
 					"isSystem" : true,
 					"path" : "/usr/include/gio-unix-2.0"
 				},
 				{
-					"backtrace" : 9,
+					"backtrace" : 22,
 					"isSystem" : true,
 					"path" : "/usr/include/glib-2.0"
 				},
 				{
-					"backtrace" : 9,
+					"backtrace" : 22,
 					"isSystem" : true,
 					"path" : "/usr/lib/x86_64-linux-gnu/glib-2.0/include"
 				},
 				{
-					"backtrace" : 9,
+					"backtrace" : 22,
 					"isSystem" : true,
 					"path" : "/usr/include/libmount"
 				},
 				{
-					"backtrace" : 9,
+					"backtrace" : 22,
 					"isSystem" : true,
 					"path" : "/usr/include/blkid"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/gtk-3.0"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/pango-1.0"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/cairo"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/gdk-pixbuf-2.0"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/webp"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/at-spi2-atk/2.0"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/at-spi-2.0"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/atk-1.0"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/dbus-1.0"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/lib/x86_64-linux-gnu/dbus-1.0/include"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/fribidi"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/pixman-1"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/harfbuzz"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/freetype2"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/usr/include/libpng16"
 				}
 			],
 			"language" : "CXX",
 			"sourceIndexes" : 
 			[
-				0,
-				1
+				0
 			]
 		}
 	],
 	"dependencies" : 
 	[
 		{
-			"backtrace" : 8,
+			"backtrace" : 13,
 			"id" : "flutter_assemble::@2bb09fbb03a373b2cb34"
 		}
 	],
-	"id" : "url_launcher_linux_plugin::@f99505b10d3d80eeda47",
+	"id" : "flutter_secure_storage_linux_plugin::@facd980744eea941fe37",
 	"link" : 
 	{
 		"commandFragments" : 
@@ -296,74 +358,76 @@
 				"role" : "flags"
 			},
 			{
-				"fragment" : "-L/home/cheoo/lebenis_project/driver_app/linux/flutter/ephemeral",
-				"role" : "libraryPath"
-			},
-			{
 				"fragment" : "-Wl,-rpath,/home/cheoo/lebenis_project/driver_app/linux/flutter/ephemeral",
 				"role" : "libraries"
 			},
 			{
-				"fragment" : "-lflutter_linux_gtk",
+				"backtrace" : 3,
+				"fragment" : "/home/cheoo/lebenis_project/driver_app/linux/flutter/ephemeral/libflutter_linux_gtk.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 6,
+				"backtrace" : 8,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libgtk-3.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 6,
+				"backtrace" : 8,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libgdk-3.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 6,
+				"backtrace" : 8,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libpangocairo-1.0.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 6,
+				"backtrace" : 8,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libcairo-gobject.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 6,
+				"backtrace" : 8,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 6,
+				"backtrace" : 8,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libatk-1.0.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 6,
+				"backtrace" : 8,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libpango-1.0.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 6,
+				"backtrace" : 8,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libcairo.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 6,
+				"backtrace" : 8,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libharfbuzz.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 6,
+				"backtrace" : 12,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libsecret-1.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 8,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libgio-2.0.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 6,
+				"backtrace" : 8,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libgobject-2.0.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 6,
+				"backtrace" : 8,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libglib-2.0.so",
 				"role" : "libraries"
 			}
@@ -373,20 +437,24 @@
 	"linkLibraries" : 
 	[
 		{
-			"backtrace" : 9,
+			"backtrace" : 14,
 			"id" : "flutter::@2bb09fbb03a373b2cb34"
 		},
 		{
-			"backtrace" : 10,
+			"backtrace" : 15,
 			"id" : "PkgConfig::GTK::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 16,
+			"id" : "PkgConfig::LIBSECRET::@facd980744eea941fe37"
 		}
 	],
-	"name" : "url_launcher_linux_plugin",
-	"nameOnDisk" : "liburl_launcher_linux_plugin.so",
+	"name" : "flutter_secure_storage_linux_plugin",
+	"nameOnDisk" : "libflutter_secure_storage_linux_plugin.so",
 	"paths" : 
 	{
-		"build" : "plugins/url_launcher_linux",
-		"source" : "flutter/ephemeral/.plugin_symlinks/url_launcher_linux/linux"
+		"build" : "plugins/flutter_secure_storage_linux",
+		"source" : "flutter/ephemeral/.plugin_symlinks/flutter_secure_storage_linux/linux"
 	},
 	"sourceGroups" : 
 	[
@@ -394,8 +462,7 @@
 			"name" : "Source Files",
 			"sourceIndexes" : 
 			[
-				0,
-				1
+				0
 			]
 		}
 	],
@@ -404,13 +471,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "flutter/ephemeral/.plugin_symlinks/url_launcher_linux/linux/messages.g.cc",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "flutter/ephemeral/.plugin_symlinks/url_launcher_linux/linux/url_launcher_plugin.cc",
+			"path" : "flutter/ephemeral/.plugin_symlinks/flutter_secure_storage_linux/linux/flutter_secure_storage_linux_plugin.cc",
 			"sourceGroupIndex" : 0
 		}
 	],
