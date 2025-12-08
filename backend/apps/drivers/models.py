@@ -1,6 +1,7 @@
 # backend/drivers/models.py
 from django.db import models
 from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
 from apps.authentication.models import User
 import uuid
 
@@ -213,3 +214,34 @@ class DriverZone(models.Model):
     
     def __str__(self):
         return f"{self.driver.user.full_name} - {self.commune}"
+
+    def save(self, *args, **kwargs):
+        """
+        Normalise et valide la commune avant sauvegarde :
+        - utilise la liste canonique via `apps.core.quartiers_data.get_communes_list()`
+        - stocke la commune en MAJUSCULE (ex: 'COCODY') pour être cohérent
+          avec les données de `QUARTIERS_ABIDJAN_COMPLET` et les recherches
+          `commune__iexact` présentes dans le codebase.
+        """
+        try:
+            from apps.core.quartiers_data import get_communes_list
+        except Exception:
+            return super().save(*args, **kwargs)
+
+        raw = (self.commune or '').strip()
+        if not raw:
+            raise ValidationError({'commune': 'Le champ commune est requis.'})
+
+        commune_upper = raw.upper()
+        communes = get_communes_list()
+        # `get_communes_list()` retourne les communes telles qu'elles sont
+        # définies dans QUARTIERS_ABIDJAN_COMPLET (MAJUSCULES)
+        if commune_upper not in communes:
+            raise ValidationError({
+                'commune': (
+                    f"Commune invalide '{raw}'. Valeurs autorisées: {', '.join(communes)}"
+                )
+            })
+
+        self.commune = commune_upper
+        return super().save(*args, **kwargs)
