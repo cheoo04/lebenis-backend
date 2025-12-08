@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.http import Http404
 
 from apps.payments.models import DriverEarning
@@ -25,6 +26,9 @@ from apps.merchants.models import Merchant
 from apps.drivers.models import Driver
 from core.permissions import IsMerchant, IsDriver, IsAdmin, IsMerchantOrIndividual
 from apps.notifications.services import notify_delivery_status_change
+from geopy.distance import geodesic
+from apps.core.location_service import LocationService
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -359,7 +363,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             
             return Response(result, status=status.HTTP_200_OK)
         
-        except ValidationError as e:
+        except (ValidationError, DjangoValidationError) as e:
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
@@ -382,7 +386,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             
             return Response(result, status=status.HTTP_200_OK)
         
-        except ValidationError as e:
+        except (ValidationError, DjangoValidationError) as e:
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
@@ -421,7 +425,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             
             return Response(result, status=status.HTTP_200_OK)
         
-        except ValidationError as e:
+        except (ValidationError, DjangoValidationError) as e:
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
@@ -473,7 +477,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             
             return Response(result, status=status.HTTP_200_OK)
         
-        except ValidationError as e:
+        except (ValidationError, DjangoValidationError) as e:
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
@@ -544,32 +548,108 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             )
         
         # Vérifier le statut actuel
-        if delivery.status != 'assigned':
+        # Accept both 'assigned' (normal flow) and 'in_progress' (idempotent/no-op)
+        already_picked = (delivery.status == 'in_progress')
+
+        if not already_picked and delivery.status != 'assigned':
             return Response(
                 {'error': f'Impossible de confirmer la récupération. Statut actuel: {delivery.status}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        # Mettre à jour le statut -> maintenant en cours de livraison
-        # (le driver a récupéré le colis chez le merchant)
-        delivery.status = 'in_progress'
-        delivery.picked_up_at = timezone.now()
-        delivery.save(update_fields=['status', 'picked_up_at', 'updated_at'])
 
-        # 🔔 Notifier le merchant (statut 'in_progress') si présent
-        merchant = getattr(delivery, 'merchant', None)
-        if merchant and getattr(merchant, 'user', None):
+        # Si pas déjà récupéré, effectuer la transition et notifier
+        if not already_picked:
+            # Vérifier la proximité GPS entre le driver et le point d'enlèvement
+            pickup_coords = delivery.get_coords('pickup')
+            driver_lat = getattr(driver, 'current_latitude', None)
+            driver_lon = getattr(driver, 'current_longitude', None)
+
+            # Seuil configurable via env (en km). Par défaut 10 km (~200 m).
             try:
-                notify_delivery_status_change(merchant.user, delivery, 'in_progress')
+                PICKUP_PROXIMITY_KM = float(os.getenv('PICKUP_PROXIMITY_KM', '10'))
             except Exception:
-                logger.exception(f"Failed to notify merchant about pickup for delivery {delivery.id}")
+                PICKUP_PROXIMITY_KM = 10
 
-        logger.info(f"✅ Livraison {delivery.tracking_number} récupérée par driver {driver.user.email}")
-        
+            close_enough = True
+            distance_km = None
+            try:
+                if pickup_coords and driver_lat is not None and driver_lon is not None:
+                    # Tenter d'utiliser le routing (route réelle) pour une mesure plus exacte
+                    try:
+                        route = LocationService.get_route(float(driver_lat), float(driver_lon), float(pickup_coords[0]), float(pickup_coords[1]))
+                        if route and isinstance(route, dict) and route.get('distance_km') is not None:
+                            distance_km = float(route.get('distance_km'))
+                            logger.debug(f"confirm_pickup: routed distance_km={distance_km}")
+                        else:
+                            # Fallback: utiliser la distance géodésique
+                            driver_pos = (float(driver_lat), float(driver_lon))
+                            distance_km = geodesic(pickup_coords, driver_pos).km
+                            logger.debug(f"confirm_pickup: fallback geodesic distance_km={distance_km}")
+                    except Exception as e:
+                        # Si le service de routing échoue, fallback sur géodesic
+                        logger.exception(f"Routing check failed in confirm_pickup, falling back to geodesic: {e}")
+                        driver_pos = (float(driver_lat), float(driver_lon))
+                        distance_km = geodesic(pickup_coords, driver_pos).km
+                else:
+                    # Si l'une des coordonnées manque, ne pas bloquer mais logguer
+                    logger.debug(f"confirm_pickup: missing gps data pickup={pickup_coords} driver=({driver_lat},{driver_lon})")
+            except Exception as e:
+                logger.exception(f"Error computing distance for confirm_pickup: {e}")
+
+            if distance_km is not None and distance_km > PICKUP_PROXIMITY_KM:
+                return Response({
+                    'error': f"Vous devez être à proximité du point d'enlèvement pour confirmer la récupération (≈{PICKUP_PROXIMITY_KM} km).",
+                    'distance_km': round(distance_km, 3)
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Optionnel: accepter preuve photo/signature fournie au moment de l'enlèvement
+            pickup_photo = request.data.get('pickup_photo') or request.data.get('photo_url') or request.data.get('pickup_photo_url')
+            pickup_signature = request.data.get('pickup_signature') or request.data.get('signature_url') or request.data.get('pickup_signature_url')
+            if pickup_photo or pickup_signature:
+                # Store in dedicated fields (new) and keep a trace in delivery_notes for compatibility
+                if pickup_photo:
+                    try:
+                        delivery.pickup_photo_url = str(pickup_photo)
+                    except Exception:
+                        # ignore malformed values
+                        pass
+                if pickup_signature:
+                    try:
+                        delivery.pickup_signature_url = str(pickup_signature)
+                    except Exception:
+                        pass
+
+                # Also append to free-text notes for older clients/tools that parse it
+                try:
+                    notes = delivery.delivery_notes or ''
+                    if pickup_photo:
+                        notes += f"\n[PICKUP_PHOTO:{pickup_photo}]"
+                    if pickup_signature:
+                        notes += f"\n[PICKUP_SIGNATURE:{pickup_signature}]"
+                    delivery.delivery_notes = notes.strip()
+                except Exception:
+                    logger.exception('Failed to append pickup proofs to delivery_notes')
+            # Mettre à jour le statut -> maintenant en cours de livraison
+            # (le driver a récupéré le colis chez le merchant)
+            delivery.status = 'in_progress'
+            delivery.picked_up_at = timezone.now()
+            delivery.save(update_fields=['status', 'picked_up_at', 'updated_at'])
+
+            # 🔔 Notifier le merchant (statut 'in_progress') si présent
+            merchant = getattr(delivery, 'merchant', None)
+            if merchant and getattr(merchant, 'user', None):
+                try:
+                    notify_delivery_status_change(merchant.user, delivery, 'in_progress')
+                except Exception:
+                    logger.exception(f"Failed to notify merchant about pickup for delivery {delivery.id}")
+
+            logger.info(f"Livraison {delivery.tracking_number} récupérée par driver {driver.user.email}")
+
+        # Retour unique (idempotent)
         serializer = DeliverySerializer(delivery)
         return Response({
             'success': True,
-            'message': 'Colis récupéré avec succès',
+            'message': 'Colis déjà récupéré' if already_picked else 'Colis récupéré avec succès',
             'delivery': serializer.data
         }, status=status.HTTP_200_OK)
     

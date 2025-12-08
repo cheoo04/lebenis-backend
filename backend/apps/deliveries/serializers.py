@@ -7,6 +7,9 @@ from apps.core.quartiers_data import get_quartier_coordinates
 class DeliveryCreateSerializer(serializers.ModelSerializer):
     # Accept aliases from new clients: pickup_precision / delivery_precision
     pickup_precision = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    # Accept optional pickup proof fields at creation time
+    pickup_photo = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    pickup_signature = serializers.CharField(write_only=True, required=False, allow_blank=True)
     delivery_precision = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
@@ -82,6 +85,15 @@ class DeliveryCreateSerializer(serializers.ModelSerializer):
         if errors:
             raise serializers.ValidationError(errors)
 
+        # Map pickup proof aliases to model fields so they are saved on creation
+        if 'pickup_photo' in attrs and attrs.get('pickup_photo'):
+            attrs['pickup_photo_url'] = attrs.get('pickup_photo')
+            attrs.pop('pickup_photo', None)
+
+        if 'pickup_signature' in attrs and attrs.get('pickup_signature'):
+            attrs['pickup_signature_url'] = attrs.get('pickup_signature')
+            attrs.pop('pickup_signature', None)
+
         return attrs
 
 class DeliverySerializer(serializers.ModelSerializer):
@@ -89,6 +101,9 @@ class DeliverySerializer(serializers.ModelSerializer):
     driver = DriverSerializer(read_only=True)
     pickup_precision = serializers.SerializerMethodField(read_only=True)
     delivery_precision = serializers.SerializerMethodField(read_only=True)
+    # Expose pickup proof fields for client (backwards compatible keys)
+    pickup_photo = serializers.CharField(source='pickup_photo_url', read_only=True)
+    pickup_signature = serializers.CharField(source='pickup_signature_url', read_only=True)
     
     class Meta:
         model = Delivery
@@ -145,6 +160,8 @@ class DeliverySerializer(serializers.ModelSerializer):
             # Proof of delivery
             'signature_url',
             'photo_url',
+            'pickup_photo',
+            'pickup_signature',
             'delivery_notes',
             'delivery_confirmation_code',
             # Meta
@@ -162,6 +179,8 @@ class DeliverySerializer(serializers.ModelSerializer):
             'cancelled_at',
             'signature_url',
             'photo_url',
+            'pickup_photo',
+            'pickup_signature',
             'delivery_confirmation_code',
             'created_at',
             'updated_at'

@@ -387,6 +387,15 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                       icon: Icons.cancel,
                       type: ModernButtonType.outlined,
                     ),
+                  ] else if (delivery.status == 'assigned' /* driver assigned but not yet started */) ...[
+                    ModernButton(
+                      text: 'Démarrer la récupération',
+                      onPressed: _isProcessing ? null : _startDelivery,
+                      isLoading: _isProcessing,
+                      icon: Icons.navigation,
+                      type: ModernButtonType.success,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
                   ] else if (delivery.status == BackendConstants.deliveryStatusInProgress) ...[
                     const SizedBox(height: AppSpacing.md),
                     TextField(
