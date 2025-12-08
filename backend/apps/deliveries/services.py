@@ -466,7 +466,8 @@ class DeliveryAssignmentService:
 
                 if driver_zones:
                     # compare insensible à la casse
-                    if not any((delivery.delivery_commune or '').lower() == z.lower() for z in driver_zones):
+                    # Use pickup_commune here to match the logic used in drivers.available_deliveries
+                    if not any((delivery.pickup_commune or '').lower() == z.lower() for z in driver_zones):
                         raise ValidationError("Cette livraison n'est pas dans votre zone de travail")
 
                 # Vérifier la capacité du véhicule
