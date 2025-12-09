@@ -451,18 +451,42 @@ MTN_MOMO_ENVIRONMENT = config('MTN_MOMO_ENVIRONMENT', default='sandbox')
 # ==============================================================================
 
 # Celery Broker (Redis)
-# Note: Upstash Redis utilise rediss:// (TLS) au lieu de redis://
-CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
+from urllib.parse import urlparse
+import os
 
-# Configuration SSL pour Upstash Redis
+# Read raw redis url (used by other services too)
+RAW_REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+
+# Normalize: if broker/result-specific env vars are set, prefer them
+_env_broker = os.environ.get('CELERY_BROKER_URL') or os.environ.get('BROKER_URL')
+_env_result = os.environ.get('CELERY_RESULT_BACKEND')
+
+# If explicit CELERY_* env vars present use them, else fall back to RAW_REDIS_URL
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default=_env_broker or RAW_REDIS_URL)
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default=_env_result or RAW_REDIS_URL)
+
+# If RAW_REDIS_URL uses redis:// but contains SSL query params or an env toggle,
+# promote it to rediss:// to satisfy Redis client expectations.
+require_redis_ssl = os.getenv('REQUIRE_REDIS_SSL', '').lower() in ('1', 'true', 'yes')
+parsed = urlparse(RAW_REDIS_URL)
+if parsed.scheme == 'redis' and (require_redis_ssl or 'ssl' in parsed.query or 'ssl_cert_reqs' in parsed.query):
+    # Promote the scheme for both broker/result when they match the raw url
+    if CELERY_BROKER_URL == RAW_REDIS_URL:
+        CELERY_BROKER_URL = RAW_REDIS_URL.replace('redis://', 'rediss://', 1)
+    if CELERY_RESULT_BACKEND == RAW_REDIS_URL:
+        CELERY_RESULT_BACKEND = RAW_REDIS_URL.replace('redis://', 'rediss://', 1)
+
+# Configure SSL options only when using rediss:// (TLS)
 import ssl
-CELERY_BROKER_USE_SSL = {
-    'ssl_cert_reqs': ssl.CERT_NONE
-}
-CELERY_REDIS_BACKEND_USE_SSL = {
-    'ssl_cert_reqs': ssl.CERT_NONE
-}
+if urlparse(CELERY_BROKER_URL).scheme.startswith('rediss'):
+    CELERY_BROKER_USE_SSL = {'ssl_cert_reqs': ssl.CERT_NONE}
+else:
+    CELERY_BROKER_USE_SSL = None
+
+if urlparse(CELERY_RESULT_BACKEND).scheme.startswith('rediss'):
+    CELERY_REDIS_BACKEND_USE_SSL = {'ssl_cert_reqs': ssl.CERT_NONE}
+else:
+    CELERY_REDIS_BACKEND_USE_SSL = None
 
 # Celery Settings
 CELERY_ACCEPT_CONTENT = ['json']
