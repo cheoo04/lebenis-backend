@@ -51,8 +51,11 @@ def compute_delivery_stats(qs, period_days=30, merchant=None):
     except Exception:
         success_rate = 0
 
-    # revenue: sum of calculated_price for period deliveries
-    period_revenue = period_qs.filter(status='delivered').aggregate(total=Sum('calculated_price'))['total'] or 0
+    # revenue: sum of calculated_price for deliveries delivered during the period
+    try:
+        period_revenue = qs.filter(status='delivered', delivered_at__gte=period_start).aggregate(total=Sum('calculated_price'))['total'] or 0
+    except Exception:
+        period_revenue = 0
     total_billed = 0
     paid_amount = 0
     pending_amount = 0

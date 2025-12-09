@@ -157,6 +157,19 @@ class DeliveryNotifier extends Notifier<DeliveryState> {
       );
       return true;
     } catch (e) {
+      // Try to extract a clear message from ApiException
+      try {
+        if (e is ApiException) {
+          final data = e.data;
+          String message = e.message;
+          if (data is Map<String, dynamic> && data['error'] != null) {
+            message = data['error'].toString();
+          }
+          state = state.copyWith(isLoading: false, error: message);
+          return false;
+        }
+      } catch (_) {}
+
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),

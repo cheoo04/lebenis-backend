@@ -10,7 +10,7 @@ Ce service unifié gère:
 """
 import os
 import logging
-from math import radians, cos, sin, asin, sqrt
+from math import radians, cos, sin, asin, sqrt, isfinite
 from typing import Tuple, Optional, Dict, List
 import requests
 from django.conf import settings
@@ -331,6 +331,50 @@ class LocationService:
             if cached:
                 logger.info("Route trouvée en cache")
                 return cached
+
+        # Guard: reject clearly invalid coordinates such as exact (0.0, 0.0) or non-finite values.
+        def _invalid_point(lat, lon):
+            try:
+                if lat is None or lon is None:
+                    return True
+                if not isfinite(lat) or not isfinite(lon):
+                    return True
+                # Sometimes devices report (0,0) as a default invalid position — treat as invalid
+                if float(lat) == 0.0 and float(lon) == 0.0:
+                    return True
+                return False
+            except Exception:
+                return True
+
+        if _invalid_point(start_lat, start_lon) or _invalid_point(end_lat, end_lon):
+            logger.warning("get_route: received invalid or placeholder coordinates (e.g. 0.0,0.0). Using straight-line fallback.")
+            # Use haversine fallback and return a minimal route structure
+            distance = cls.haversine_distance(start_lat or 0.0, start_lon or 0.0, end_lat or 0.0, end_lon or 0.0)
+            result = {
+                'distance_km': distance,
+                'duration_min': int(distance * 3),
+                'polyline_points': [
+                    (start_lat or 0.0, start_lon or 0.0),
+                    (end_lat or 0.0, end_lon or 0.0)
+                ],
+                'geometry': None,
+                'steps': [],
+                'source': 'fallback_invalid_input'
+            }
+            try:
+                sentry_sdk.capture_event({
+                    'message': 'get_route: invalid input coordinates (0,0 or non-finite)',
+                    'level': 'warning',
+                    'tags': {'endpoint': 'route', 'error': 'invalid_input_coordinates'},
+                    'extra': {'start': (start_lat, start_lon), 'end': (end_lat, end_lon)}
+                })
+            except Exception:
+                logger.debug('Sentry capture failed for invalid input route')
+
+            if use_cache:
+                cache.set(cache_key, result, cls.ROUTE_CACHE_TIMEOUT)
+
+            return result
         
         # Choix du provider : par défaut OSRM d'abord, fallback ORS.
         # Si on souhaite prioriser OpenRouteService (par ex. pas d'OSRM local

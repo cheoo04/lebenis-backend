@@ -32,6 +32,7 @@ class ApiConstants {
   static String rejectDelivery(String id) => '/api/v1/deliveries/$id/reject/';
   static String confirmPickup(String id) => '/api/v1/deliveries/$id/confirm-pickup/';
   static String confirmDelivery(String id) => '/api/v1/deliveries/$id/confirm-delivery/';
+  static String verifyPin(String id) => '/api/v1/deliveries/$id/verify-pin/';
   static String cancelDelivery(String id) => '/api/v1/deliveries/$id/cancel/';
 
   // ========== NOTIFICATIONS ==========

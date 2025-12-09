@@ -150,6 +150,10 @@ class DeliveryRouteResult {
   final double totalDurationMin;
   final List<RouteLeg> legs;
   final List<RoutePoint> allPolylinePoints;
+  final String? pickupCoordsSource;
+  final bool pickupCoordsInferred;
+  final String? deliveryCoordsSource;
+  final bool deliveryCoordsInferred;
 
   const DeliveryRouteResult({
     required this.success,
@@ -157,6 +161,10 @@ class DeliveryRouteResult {
     required this.totalDurationMin,
     required this.legs,
     required this.allPolylinePoints,
+    this.pickupCoordsSource,
+    this.pickupCoordsInferred = false,
+    this.deliveryCoordsSource,
+    this.deliveryCoordsInferred = false,
   });
 
   factory DeliveryRouteResult.fromJson(Map<String, dynamic> json) {
@@ -169,6 +177,10 @@ class DeliveryRouteResult {
               ?.map((p) => RoutePoint.fromJson(p))
               .toList() ??
           [],
+      pickupCoordsSource: json['pickup_coords_source'],
+      pickupCoordsInferred: json['pickup_coords_inferred'] == true,
+      deliveryCoordsSource: json['delivery_coords_source'],
+      deliveryCoordsInferred: json['delivery_coords_inferred'] == true,
     );
   }
 
