@@ -7,12 +7,6 @@ import '../../../data/models/chat/chat_room_model.dart';
 import '../../../data/models/chat/message_model.dart';
 import '../providers/chat_provider.dart';
 import '../../../core/providers/cloudinary_provider.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../theme/app_typography.dart';
-import '../../../theme/app_spacing.dart';
-import '../../../theme/app_radius.dart';
-import '../../../shared/widgets/modern_text_field.dart';
-import '../../../shared/widgets/modern_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {

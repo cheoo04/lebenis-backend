@@ -9,11 +9,7 @@ import '../../../../data/models/delivery_model.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
-import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/modern_button.dart';
-import '../../../../shared/widgets/small_circle_icon_button.dart';
-import '../../../../shared/widgets/modern_card.dart';
-import '../../../../shared/widgets/status_chip.dart';
 import '../../../../shared/utils/formatters.dart';
 import '../../../../shared/utils/helpers.dart';
 import '../widgets/delivery_route_map.dart';
@@ -84,9 +80,7 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
       var currentPos = ref.read(currentPositionProvider);
 
       // Demander une position si nécessaire
-      if (currentPos == null) {
-        currentPos = await locNotifier.getCurrentPosition();
-      }
+      currentPos ??= await locNotifier.getCurrentPosition();
 
       // Si le widget a été démonté pendant l'attente, quitter sans utiliser `ref`
       if (!mounted) return;
@@ -623,7 +617,7 @@ class _DestinationCard extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: (isPickup ? AppColors.success : AppColors.error).withOpacity(0.12),
+                    color: (isPickup ? AppColors.success : AppColors.error).withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -644,7 +638,7 @@ class _DestinationCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       if (name != null)
                         Text(
-                          name!,
+                          name,
                           style: AppTypography.labelLarge.copyWith(fontWeight: FontWeight.w600),
                         ),
                     ],
@@ -758,7 +752,7 @@ class _InfoCard extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, size: 20.0, color: AppColors.primary),

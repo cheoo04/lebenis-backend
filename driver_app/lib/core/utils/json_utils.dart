@@ -1,6 +1,8 @@
 // lib/core/utils/json_utils.dart
 /// Helpers to safely parse numeric values coming from JSON which
 /// may be either numbers or strings.
+library;
+
 
 int safeInt(dynamic v, [int fallback = 0]) {
   if (v == null) return fallback;

@@ -1,6 +1,5 @@
 // lib/data/repositories/auth_repository.dart
 
-import 'package:flutter/foundation.dart';
 import '../../core/network/dio_client.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/services/auth_service.dart';

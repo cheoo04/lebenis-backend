@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../data/models/analytics/heatmap_point_model.dart';
-import '../../../core/constants/app_colors.dart';
 
 class HeatmapScreen extends StatefulWidget {
   final List<HeatmapPointModel> heatmapPoints;
@@ -239,7 +238,7 @@ class _HeatmapScreenState extends State<HeatmapScreen> {
 
   @override
   void dispose() {
-    _mapController?.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 }

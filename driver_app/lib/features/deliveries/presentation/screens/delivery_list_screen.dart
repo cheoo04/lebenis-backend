@@ -245,9 +245,9 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
                                 margin: const EdgeInsets.all(AppSpacing.md),
                                 padding: const EdgeInsets.all(AppSpacing.md),
                                 decoration: BoxDecoration(
-                                  color: AppColors.info.withOpacity(0.1),
+                                  color: AppColors.info.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(AppRadius.md),
-                                  border: Border.all(color: AppColors.info.withOpacity(0.3)),
+                                  border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
                                 ),
                                 child: Row(
                                   children: [
@@ -309,7 +309,7 @@ class _EmptyAvailableWidget extends StatelessWidget {
         Icon(
           Icons.search_off,
           size: 80,
-          color: AppColors.textSecondary.withOpacity(0.5),
+          color: AppColors.textSecondary.withValues(alpha: 0.5),
         ),
         const SizedBox(height: AppSpacing.lg),
         Text(

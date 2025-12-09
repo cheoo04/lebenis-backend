@@ -1,27 +1,18 @@
 // driver_app/lib/features/profile/presentation/screens/edit_profile_screen.dart
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/constants/backend_constants.dart';
 import '../../../../core/services/cloudinary_direct_service.dart';
-import '../../../../core/utils/backend_validators.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../data/models/driver_model.dart';
-import '../../../../data/providers/driver_cni_upload_provider.dart';
 import '../../../../data/providers/driver_provider.dart';
 import '../../../../shared/theme/app_colors.dart';
 import '../../../../theme/app_spacing.dart';
-import '../../../../theme/app_typography.dart';
-import '../../../../theme/app_radius.dart';
-import '../../../../shared/widgets/modern_text_field.dart';
 import '../../../../shared/utils/helpers.dart';
-import '../../../../shared/widgets/custom_button.dart';
-import '../../../../shared/widgets/custom_textfield.dart';
 import '../widgets/identity_section.dart';
 import '../widgets/vehicle_section.dart';
 import '../widgets/vehicle_documents_section.dart';

@@ -2,7 +2,6 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import '../../core/network/dio_client.dart';
 import '../models/commune/commune_model.dart';
 import '../repositories/geolocation_repository.dart';
 import 'auth_provider.dart';

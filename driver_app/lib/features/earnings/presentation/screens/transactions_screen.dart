@@ -10,7 +10,6 @@ import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/loading_widget.dart';
 import '../../../../shared/widgets/error_widget.dart';
-import '../../../../shared/widgets/status_chip.dart';
 import '../widgets/transaction_card.dart';
 
 /// Écran affichant l'historique complet des transactions avec filtres

@@ -1,6 +1,5 @@
 // lib/data/repositories/geolocation_repository.dart
 
-import 'package:dio/dio.dart';
 import 'package:latlong2/latlong.dart';
 import '../../core/network/dio_client.dart';
 import '../../../core/utils/json_utils.dart';

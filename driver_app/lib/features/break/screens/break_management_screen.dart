@@ -5,8 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/providers/break_provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../theme/app_typography.dart';
-import '../../../theme/app_spacing.dart';
-import '../../../theme/app_radius.dart';
 import '../../../shared/widgets/loading_widget.dart';
 import '../../../shared/widgets/break_toggle_widget.dart';
 
