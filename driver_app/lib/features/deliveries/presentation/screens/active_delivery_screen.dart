@@ -77,14 +77,32 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
     setState(() => _isProcessing = true);
 
     try {
-      await ref.read(deliveryProvider.notifier).confirmPickup(id: widget.delivery.id);
-      
+      // Ensure we have a fresh GPS position before confirming pickup
+      final locNotifier = ref.read(locationProvider.notifier);
+      var currentPos = ref.read(currentPositionProvider);
+      if (currentPos == null) {
+        currentPos = await locNotifier.getCurrentPosition();
+      }
+
+      if (currentPos == null) {
+        if (!mounted) return;
+        Helpers.showErrorSnackBar(context, 'Position GPS introuvable. Activez le GPS ou actualisez la position avant de confirmer.');
+        return;
+      }
+
+      final success = await ref.read(deliveryProvider.notifier).confirmPickup(id: widget.delivery.id);
+
       if (!mounted) return;
-      
-      Helpers.showSuccessSnackBar(context, 'Colis récupéré avec succès!');
-      setState(() {
-        _currentStep = DeliveryStep.goingToDelivery;
-      });
+
+      if (success) {
+        Helpers.showSuccessSnackBar(context, 'Colis récupéré avec succès!');
+        setState(() {
+          _currentStep = DeliveryStep.goingToDelivery;
+        });
+      } else {
+        final err = ref.read(deliveryProvider).error ?? 'Erreur inconnue lors de la confirmation';
+        Helpers.showErrorSnackBar(context, 'Échec: $err');
+      }
     } catch (e) {
       if (!mounted) return;
       Helpers.showErrorSnackBar(context, 'Erreur: $e');
