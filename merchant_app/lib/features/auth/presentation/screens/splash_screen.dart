@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../data/providers/auth_provider.dart';
 import '../../../../data/providers/user_profile_provider.dart';
 import '../../../../data/models/merchant_model.dart';
@@ -80,9 +81,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
 	@override
 	Widget build(BuildContext context) {
-		return const Scaffold(
-			body: Center(
-				child: CircularProgressIndicator(),
+		return Scaffold(
+			body: SafeArea(
+				child: Center(
+					child: Column(
+						mainAxisAlignment: MainAxisAlignment.center,
+						children: [
+							SizedBox(
+								width: 140,
+								height: 140,
+								child: SvgPicture.asset('assets/logo_lebeni_business.svg', fit: BoxFit.contain),
+							),
+							const SizedBox(height: 24),
+							const CircularProgressIndicator(),
+						],
+					),
+				),
 			),
 		);
 	}
