@@ -723,6 +723,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         }, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['POST'], permission_classes=[IsDriver], url_path='confirm-delivery')
+    @transaction.atomic
     def confirm_delivery(self, request, pk=None):
         """
         POST /api/v1/deliveries/{id}/confirm-delivery/
@@ -755,18 +756,35 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         
         # Vérifier le statut actuel (doit être in_progress)
         if delivery.status not in ['in_progress']:
-            return Response(
-                {'error': f'Impossible de confirmer la livraison. Statut actuel: {delivery.status}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            msg = f"Impossible de confirmer la livraison. Statut actuel: {delivery.status}"
+            logger.warning(f"confirm_delivery blocked: {msg} | delivery_id={delivery.id}")
+            try:
+                sentry_sdk.capture_event({
+                    'message': 'confirm_delivery: wrong status',
+                    'level': 'warning',
+                    'tags': {'endpoint': 'confirm-delivery', 'delivery_id': str(delivery.id)},
+                    'extra': {'delivery_status': delivery.status}
+                })
+            except Exception:
+                logger.debug('sentry capture failed in confirm_delivery status check')
+            return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
 
         # Vérifier le code PIN fourni
         pin = request.data.get('confirmation_code')
         if not pin or pin != delivery.delivery_confirmation_code:
-            return Response(
-                {'error': 'Code de confirmation invalide'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            msg = 'Code de confirmation invalide'
+            # Log for debugging: do not log the actual pin value in production
+            logger.warning(f"confirm_delivery blocked: invalid confirmation code for delivery {delivery.id}")
+            try:
+                sentry_sdk.capture_event({
+                    'message': 'confirm_delivery: invalid confirmation code',
+                    'level': 'warning',
+                    'tags': {'endpoint': 'confirm-delivery', 'delivery_id': str(delivery.id)},
+                    'extra': {'confirmation_code_provided': bool(pin)}
+                })
+            except Exception:
+                logger.debug('sentry capture failed in confirm_delivery pin check')
+            return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
 
         # Récupérer les données optionnelles (support des 2 formats)
         delivery_photo = request.data.get('delivery_photo') or request.data.get('photo_url')
@@ -852,6 +870,43 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             'message': 'Livraison confirmée avec succès',
             'delivery': serializer.data
         }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['POST'], permission_classes=[IsDriver], url_path='verify-pin')
+    def verify_pin(self, request, pk=None):
+        """
+        POST /api/v1/deliveries/{id}/verify-pin/
+
+        Vérifie uniquement que le code PIN fourni est correct pour cette livraison.
+        Ne modifie pas l'objet livraison.
+        Corps attendu: { "confirmation_code": "1234" }
+        """
+        delivery = self.get_object()
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response({'error': 'Profil livreur introuvable'}, status=status.HTTP_404_NOT_FOUND)
+
+        if delivery.driver != driver:
+            return Response({'error': 'Cette livraison n\'est pas assignée à vous'}, status=status.HTTP_403_FORBIDDEN)
+
+        pin = request.data.get('confirmation_code')
+        if not pin:
+            return Response({'error': 'Le champ confirmation_code est requis'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if pin != delivery.delivery_confirmation_code:
+            logger.warning(f"verify_pin failed: invalid code for delivery {delivery.id}")
+            try:
+                sentry_sdk.capture_event({
+                    'message': 'verify_pin: invalid confirmation code',
+                    'level': 'warning',
+                    'tags': {'endpoint': 'verify-pin', 'delivery_id': str(delivery.id)},
+                    'extra': {'confirmation_code_provided': True}
+                })
+            except Exception:
+                logger.debug('sentry capture failed in verify_pin')
+            return Response({'error': 'Code de confirmation invalide'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'success': True, 'message': 'Code valide'}, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def cancel(self, request, pk=None):

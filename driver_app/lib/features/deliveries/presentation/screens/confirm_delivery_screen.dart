@@ -31,6 +31,7 @@ class ConfirmDeliveryScreen extends ConsumerStatefulWidget {
 
 class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
   final TextEditingController _pinController = TextEditingController();
+  final FocusNode _pinFocusNode = FocusNode();
   final _notesController = TextEditingController();
   final SignatureController _signatureController = SignatureController(
     penStrokeWidth: 3,
@@ -46,9 +47,11 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
   Uint8List? _signatureBytes; // Pour le web
   
   bool _isProcessing = false;
+  String? _pinError;
 
   @override
   void dispose() {
+    _pinFocusNode.dispose();
     _notesController.dispose();
     _signatureController.dispose();
     super.dispose();
@@ -139,7 +142,7 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
     }
     
     try {
-      await ref.read(deliveryProvider.notifier).confirmDelivery(
+      final success = await ref.read(deliveryProvider.notifier).confirmDelivery(
         id: widget.delivery.id,
         confirmationCode: pin,
         deliveryPhoto: _photoFile?.path,
@@ -151,8 +154,25 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
 
       if (!mounted) return;
 
-      Helpers.showSuccessSnackBar(context, 'Livraison confirmée avec succès!');
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      if (success) {
+        Helpers.showSuccessSnackBar(context, 'Livraison confirmée avec succès!');
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      } else {
+        final err = ref.read(deliveryProvider).error ?? 'Erreur inconnue lors de la confirmation';
+        // If server indicates invalid confirmation code, show inline error and focus the PIN field
+        final errLower = err.toLowerCase();
+        if (errLower.contains('code de confirmation') || errLower.contains('confirmation code') || errLower.contains('pin')) {
+          setState(() => _pinError = err);
+          // focus the PIN field so the driver can correct it
+          Future.microtask(() {
+            if (mounted) {
+              _pinFocusNode.requestFocus();
+            }
+          });
+        } else {
+          Helpers.showErrorSnackBar(context, err);
+        }
+      }
     } catch (e) {
       if (!mounted) return;
       Helpers.showErrorSnackBar(context, 'Erreur: $e');
@@ -226,18 +246,25 @@ class _ConfirmDeliveryScreenState extends ConsumerState<ConfirmDeliveryScreen> {
               padding: const EdgeInsets.only(bottom: AppSpacing.lg),
               child: TextField(
                 controller: _pinController,
+                focusNode: _pinFocusNode,
                 keyboardType: TextInputType.number,
                 maxLength: 4,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(4),
                 ],
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Code PIN de confirmation',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   counterText: '',
+                  errorText: _pinError,
                 ),
                 enabled: !_isProcessing,
+                onChanged: (v) {
+                  if (_pinError != null) {
+                    setState(() => _pinError = null);
+                  }
+                },
               ),
             ),
             // Photo Section ← MODIFICATION ICI

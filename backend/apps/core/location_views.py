@@ -717,6 +717,31 @@ def get_delivery_route(request):
             driver_lon = float(driver.get('lng') or driver.get('longitude'))
         except (TypeError, ValueError, AttributeError):
             pass  # Ignorer la position du driver si invalide
+
+    # Determine source of coordinates for pickup/delivery to inform the client
+    def _coords_source(obj, lat, lon):
+        # obj: original payload dict for pickup/delivery
+        # lat/lon: parsed floats or None
+        if lat is None or lon is None:
+            if isinstance(obj, dict) and obj.get('commune'):
+                return 'commune_centroid', True
+            return 'missing', True
+        try:
+            if float(lat) == 0.0 and float(lon) == 0.0:
+                if isinstance(obj, dict) and obj.get('commune'):
+                    return 'commune_centroid', True
+                return 'placeholder_0_0', True
+        except Exception:
+            return 'invalid', True
+
+        # If caller provided an explicit 'source' key, honor it
+        if isinstance(obj, dict) and obj.get('source'):
+            return obj.get('source'), obj.get('source') != 'provided'
+
+        return 'provided', False
+
+    pickup_coords_source, pickup_coords_inferred = _coords_source(pickup, pickup_lat, pickup_lon)
+    delivery_coords_source, delivery_coords_inferred = _coords_source(delivery, delivery_lat, delivery_lon)
     
     # Calculer la route
     legs = []
@@ -763,7 +788,11 @@ def get_delivery_route(request):
             'total_duration_min': round(total_duration, 1),
             'legs': legs,
             'all_polyline_points': all_points,
-            'points_count': len(all_points)
+            'points_count': len(all_points),
+            'pickup_coords_source': pickup_coords_source,
+            'pickup_coords_inferred': pickup_coords_inferred,
+            'delivery_coords_source': delivery_coords_source,
+            'delivery_coords_inferred': delivery_coords_inferred
         })
     else:
         return Response({

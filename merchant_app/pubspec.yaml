@@ -17,7 +17,7 @@ dependencies:
   # HTTP & Networking
   dio: ^5.3.3
 
-  signature: ^5.4.0
+  signature: ^6.3.0
   # State Management
   provider: ^6.1.1
   riverpod: ^3.0.3

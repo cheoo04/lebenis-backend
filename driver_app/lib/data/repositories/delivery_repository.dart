@@ -203,6 +203,16 @@ class DeliveryRepository {
 
     // Upload photo et signature si fournis
     if (deliveryPhoto != null || deliveryPhotoBytes != null || recipientSignature != null || recipientSignatureBytes != null) {
+      // Vérifier le PIN d'abord pour éviter d'uploader de gros fichiers inutilement
+      try {
+        await _dioClient.post(
+          ApiConstants.verifyPin(id),
+          data: {'confirmation_code': confirmationCode},
+        );
+      } catch (e) {
+        // Propager l'erreur pour que le provider/UI puisse l'afficher
+        rethrow;
+      }
       final formData = FormData();
       if (deliveryPhotoBytes != null) {
         formData.files.add(MapEntry(

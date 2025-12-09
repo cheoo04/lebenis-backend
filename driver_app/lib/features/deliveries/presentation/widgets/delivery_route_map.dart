@@ -221,12 +221,12 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
                             borderRadius: BorderRadius.circular(AppRadius.sm),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Color.fromRGBO(0, 0, 0, 0.1),
                                 blurRadius: 4,
                               ),
                             ],
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               SizedBox(
@@ -237,10 +237,40 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
                                   valueColor: AlwaysStoppedAnimation(AppColors.primary),
                                 ),
                               ),
-                              SizedBox(width: 6),
-                              Text(
+                              const SizedBox(width: 6),
+                              const Text(
                                 'Calcul...',
                                 style: TextStyle(fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    // If coords were inferred (e.g. commune centroid), show a subtle banner
+                    if (_routeResult != null && _routeResult!.pickupCoordsInferred)
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Color.fromRGBO(255, 255, 255, 0.95),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.08), blurRadius: 6),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.info_outline, size: 16, color: Colors.black54),
+                              const SizedBox(width: 8),
+                              Text(
+                                _routeResult!.pickupCoordsSource == null
+                                    ? 'Position inférée (approx.)'
+                                    : 'Position utilisée : ${_routeResult!.pickupCoordsSource!.replaceAll('_', ' ')}',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black87),
                               ),
                             ],
                           ),
@@ -258,12 +288,12 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.9),
+                            color: const Color.fromRGBO(76, 175, 80, 0.9),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: [
+                            children: const [
                               Icon(Icons.check_circle, size: 12, color: Colors.white),
                               SizedBox(width: 4),
                               Text(
