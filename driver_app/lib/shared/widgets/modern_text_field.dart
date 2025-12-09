@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
+import '../utils/input_decorations.dart';
 
 /// TextField moderne avec design arrondi et label au-dessus
 class ModernTextField extends StatelessWidget {
@@ -56,9 +57,13 @@ class ModernTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine effective compact mode: explicit or inferred from label
-    final effectiveCompact = isCompact || ((label ?? '').toLowerCase().contains('commune')) || ((label ?? '').toLowerCase().contains('quartier'));
-
+    // Use helper to build decoration (it infers compact from label when needed)
+    final decoration = compactInputDecoration(
+      label: label,
+      hint: hint,
+      isCompact: isCompact,
+      prefixIcon: prefixIcon,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -86,57 +91,8 @@ class ModernTextField extends StatelessWidget {
           textInputAction: textInputAction,
           onFieldSubmitted: onFieldSubmitted,
           textCapitalization: textCapitalization,
-          style: AppTypography.bodyMedium.copyWith(fontSize: effectiveCompact ? 14 : null),
-          decoration: InputDecoration(
-            hintText: hint,
-            errorText: errorText,
-            filled: true,
-            fillColor: enabled ? AppColors.surface : AppColors.background,
-              isDense: effectiveCompact,
-              contentPadding: effectiveCompact
-                  ? const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 8)
-                  : const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.lg,
-                      vertical: AppSpacing.md,
-                    ),
-            
-            // Bordures arrondies
-            border: OutlineInputBorder(
-              borderRadius: AppRadius.inputRadius,
-              borderSide: const BorderSide(color: AppColors.border, width: 1),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: AppRadius.inputRadius,
-              borderSide: const BorderSide(color: AppColors.border, width: 1),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: AppRadius.inputRadius,
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: AppRadius.inputRadius,
-              borderSide: const BorderSide(color: AppColors.error, width: 1),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: AppRadius.inputRadius,
-              borderSide: const BorderSide(color: AppColors.error, width: 2),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: AppRadius.inputRadius,
-              borderSide: const BorderSide(color: AppColors.borderLight, width: 1),
-            ),
-            
-            // Icônes
-            prefixIcon: prefixIcon != null
-                ? Icon(prefixIcon, color: AppColors.textSecondary)
-                : null,
-            suffixIcon: suffixIcon != null
-                ? IconButton(
-                    icon: Icon(suffixIcon, color: AppColors.textSecondary),
-                    onPressed: onSuffixIconTap,
-                  )
-                : null,
-          ),
+          style: AppTypography.bodyMedium.copyWith(fontSize: (decoration.isDense ?? false) ? 14 : null),
+          decoration: decoration.copyWith(errorText: errorText, fillColor: enabled ? AppColors.surface : AppColors.background),
         ),
       ],
     );

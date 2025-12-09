@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/constants/app_colors.dart';
+import '../utils/input_decorations.dart';
 
 /// TextField personnalisé réutilisable
 class CustomTextField extends StatefulWidget {
@@ -68,8 +69,15 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
-    // Infer compact mode when label mentions commune or quartier
-    final effectiveCompact = widget.isCompact || ((widget.label ?? '').toLowerCase().contains('commune')) || ((widget.label ?? '').toLowerCase().contains('quartier'));
+    // Infer compact mode when label mentions commune or quartier (via helper)
+    final decoration = compactInputDecoration(
+      label: widget.label,
+      hint: widget.hint,
+      isCompact: widget.isCompact,
+      prefixIcon: widget.prefixIcon,
+      suffix: widget.suffix,
+      counterText: '',
+    );
 
     return TextFormField(
       controller: widget.controller,
@@ -90,47 +98,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
       focusNode: widget.focusNode,
       autofocus: widget.autofocus,
       style: TextStyle(
-        fontSize: effectiveCompact ? 14 : 15,
+        fontSize: (decoration.isDense ?? false) ? 14 : 15,
         color: widget.enabled ? AppColors.textPrimary : AppColors.textDisabled,
       ),
-      decoration: InputDecoration(
-        labelText: widget.label,
-        hintText: widget.hint,
-        prefixIcon: widget.prefixIcon != null
-            ? Icon(widget.prefixIcon, color: AppColors.textSecondary)
-            : null,
-        suffixIcon: _buildSuffixIcon(),
-        suffix: widget.suffix,
-        filled: true,
-        fillColor: widget.enabled ? Colors.white : Colors.grey.shade100,
-        isDense: effectiveCompact,
-        contentPadding: effectiveCompact ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.error, width: 2),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
-        ),
-        counterText: '',
-      ),
+      decoration: decoration.copyWith(suffixIcon: _buildSuffixIcon(), fillColor: widget.enabled ? Colors.white : Colors.grey.shade100),
     );
   }
 
