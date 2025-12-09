@@ -7,7 +7,6 @@ import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/loading_widget.dart';
 import '../../../../shared/widgets/error_widget.dart';
-import '../../../../shared/widgets/modern_list_tile.dart';
 import '../../../../shared/utils/formatters.dart';
 import '../widgets/stats_card.dart';
 import '../widgets/earnings_chart.dart';

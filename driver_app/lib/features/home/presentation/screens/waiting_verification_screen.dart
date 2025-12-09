@@ -128,30 +128,68 @@ class _WaitingVerificationScreenState extends ConsumerState<WaitingVerificationS
                           style: AppTypography.label,
                         ),
                         const SizedBox(height: AppSpacing.lg),
-                        _buildVerificationStep(
-                          '1',
-                          'Création du compte',
-                          'Complétée',
-                          true,
-                        ),
-                        _buildVerificationStep(
-                          '2',
-                          'Vérification des documents',
-                          'En cours',
-                          false,
-                        ),
-                        _buildVerificationStep(
-                          '3',
-                          'Validation du permis',
-                          'En attente',
-                          false,
-                        ),
-                        _buildVerificationStep(
-                          '4',
-                          'Activation du compte',
-                          'En attente',
-                          false,
-                        ),
+                        // Récupérer le driver courant et déduire l'état des étapes
+                        Builder(builder: (context) {
+                          final driver = ref.watch(currentDriverProvider);
+
+                          // Étape 1: création du compte -> terminée si driver non-null
+                          final step1Completed = driver != null;
+
+                          // Étape 2: vérification des documents -> considérée comme complétée
+                          // si les pièces d'identité et doc. d'immatriculation sont fournies
+                          final hasIdFront = driver?.identityCardFront != null && driver?.identityCardFront?.isNotEmpty == true;
+                          final hasIdBack = driver?.identityCardBack != null && driver?.identityCardBack?.isNotEmpty == true;
+                          final hasVehicleReg = driver?.vehicleRegistrationDocument != null && driver?.vehicleRegistrationDocument?.isNotEmpty == true;
+                          final step2Completed = hasIdFront && hasIdBack && hasVehicleReg;
+                          final step2InProgress = !step2Completed && (hasIdFront || hasIdBack || hasVehicleReg);
+
+                          // Étape 3: validation du permis -> complétée si driversLicense présent
+                          final hasLicense = driver?.driversLicense != null && driver?.driversLicense?.isNotEmpty == true;
+                          final step3Completed = hasLicense;
+
+                          // Étape 4: activation du compte -> complétée si driver.isVerified
+                          final step4Completed = driver?.isVerified ?? false;
+                          // Si les documents et permis sont fournis mais pas encore vérifiés,
+                          // on considère l'activation comme 'En cours'
+                          final step4InProgress = !step4Completed && (step2Completed && step3Completed || (driver?.verificationStatus == 'pending'));
+
+                          return Column(
+                            children: [
+                              _buildVerificationStep(
+                                '1',
+                                'Création du compte',
+                                step1Completed ? 'Complétée' : 'En attente',
+                                step1Completed,
+                              ),
+                              _buildVerificationStep(
+                                '2',
+                                'Vérification des documents',
+                                step2Completed
+                                    ? 'Complétée'
+                                    : step2InProgress
+                                        ? 'En cours'
+                                        : 'En attente',
+                                step2Completed,
+                              ),
+                              _buildVerificationStep(
+                                '3',
+                                'Validation du permis',
+                                step3Completed ? 'Complétée' : 'En attente',
+                                step3Completed,
+                              ),
+                              _buildVerificationStep(
+                                '4',
+                                'Activation du compte',
+                                step4Completed
+                                    ? 'Complétée'
+                                    : step4InProgress
+                                        ? 'En cours'
+                                        : 'En attente',
+                                step4Completed,
+                              ),
+                            ],
+                          );
+                        }),
                       ],
                     ),
                   ),
@@ -243,6 +281,11 @@ class _WaitingVerificationScreenState extends ConsumerState<WaitingVerificationS
     String status,
     bool isCompleted,
   ) {
+    // Déduire l'état à partir du texte de statut (simple et fiable pour l'instant)
+    final normalized = status.trim().toLowerCase();
+    final isInProgress = normalized == 'en cours' || normalized.contains('en cours');
+    final isPending = normalized == 'en attente' || normalized.contains('en attente');
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
@@ -253,7 +296,9 @@ class _WaitingVerificationScreenState extends ConsumerState<WaitingVerificationS
             decoration: BoxDecoration(
               color: isCompleted
                   ? AppColors.green
-                  : AppColors.textSecondary.withValues(alpha: 0.2),
+                  : isInProgress
+                      ? AppColors.warning.withValues(alpha: 0.12)
+                      : AppColors.textSecondary.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -263,13 +308,28 @@ class _WaitingVerificationScreenState extends ConsumerState<WaitingVerificationS
                       color: Colors.white,
                       size: 16,
                     )
-                  : Text(
-                      number,
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  : isInProgress
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.warning),
+                          ),
+                        )
+                      : isPending
+                          ? const Icon(
+                              Icons.hourglass_empty,
+                              color: AppColors.textSecondary,
+                              size: 16,
+                            )
+                          : Text(
+                              number,
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -286,7 +346,9 @@ class _WaitingVerificationScreenState extends ConsumerState<WaitingVerificationS
                   style: AppTypography.caption.copyWith(
                     color: isCompleted
                         ? AppColors.green
-                        : AppColors.textSecondary,
+                        : isInProgress
+                            ? AppColors.warning
+                            : AppColors.textSecondary,
                   ),
                 ),
               ],

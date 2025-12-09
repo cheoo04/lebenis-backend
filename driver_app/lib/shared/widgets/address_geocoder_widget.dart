@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
 import 'package:latlong2/latlong.dart';
 import '../../data/providers/geolocation_provider.dart';
 
@@ -14,12 +13,12 @@ class AddressGeocoderWidget extends ConsumerStatefulWidget {
   final String? hint;
 
   const AddressGeocoderWidget({
-    Key? key,
+    super.key,
     this.initialAddress,
     required this.onLocationSelected,
     this.label,
     this.hint,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<AddressGeocoderWidget> createState() => _AddressGeocoderWidgetState();

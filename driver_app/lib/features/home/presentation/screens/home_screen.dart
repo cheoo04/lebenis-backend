@@ -5,7 +5,6 @@ import 'waiting_verification_screen.dart';
 import '../../../deliveries/presentation/screens/delivery_list_screen.dart';
 import '../../../profile/presentation/screens/profile_screen.dart';
 import '../../../earnings/presentation/screens/earnings_screen.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../chat/screens/conversations_list_screen.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../data/providers/driver_provider.dart';
@@ -20,7 +19,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _currentIndex = 0;
+  final int _currentIndex = 0;
 
   @override
   void initState() {

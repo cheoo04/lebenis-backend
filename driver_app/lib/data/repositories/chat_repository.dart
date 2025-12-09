@@ -1,6 +1,5 @@
 import 'dart:developer' as developer;
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/dio_client.dart';
 import '../../core/services/auth_service.dart';
 import '../models/chat/chat_room_model.dart';

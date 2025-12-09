@@ -6,8 +6,6 @@ import '../../../data/providers/notification_provider.dart';
 import '../../../data/models/notification_model.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../theme/app_typography.dart';
-import '../../../theme/app_spacing.dart';
-import '../../../theme/app_radius.dart';
 import '../../../shared/widgets/loading_widget.dart';
 import '../../../shared/widgets/error_widget.dart' as app_error;
 import '../widgets/notification_card.dart';

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_radius.dart';
-import '../../../../core/constants/app_colors.dart';
 
 class StatCard extends StatelessWidget {
   final IconData icon;

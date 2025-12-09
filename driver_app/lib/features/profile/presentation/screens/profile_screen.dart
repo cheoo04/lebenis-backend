@@ -1,7 +1,6 @@
 // driver_app/lib/features/profile/presentation/screens/profile_screen.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../zones/presentation/screens/zone_selection_screen.dart';
 import '../../../../core/constants/backend_constants.dart';
@@ -136,9 +135,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                         child: ClipOval(
                           child: driver?.profilePhoto != null
-                              ? (driver!.profilePhoto!.startsWith('http://') || driver!.profilePhoto!.startsWith('https://'))
+                              ? (driver!.profilePhoto!.startsWith('http://') || driver.profilePhoto!.startsWith('https://'))
                                   ? Image.network(
-                                      '${driver!.profilePhoto!}?cb=${DateTime.now().millisecondsSinceEpoch}',
+                                      '${driver.profilePhoto!}?cb=${DateTime.now().millisecondsSinceEpoch}',
                                       width: 120,
                                       height: 120,
                                       fit: BoxFit.cover,
@@ -150,9 +149,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                         );
                                       },
                                     )
-                                  : driver!.profilePhoto!.startsWith('file://')
+                                  : driver.profilePhoto!.startsWith('file://')
                                       ? Image.file(
-                                          File(Uri.parse(driver!.profilePhoto!).toFilePath()),
+                                          File(Uri.parse(driver.profilePhoto!).toFilePath()),
                                           width: 120,
                                           height: 120,
                                           fit: BoxFit.cover,

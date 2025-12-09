@@ -1,7 +1,6 @@
 // lib/shared/widgets/location_picker_widget.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -12,11 +11,11 @@ class LocationPickerWidget extends StatefulWidget {
   final bool showCoordinates;
 
   const LocationPickerWidget({
-    Key? key,
+    super.key,
     required this.onLocationPicked,
     this.buttonText,
     this.showCoordinates = true,
-  }) : super(key: key);
+  });
 
   @override
   State<LocationPickerWidget> createState() => _LocationPickerWidgetState();

@@ -3,11 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/chat_provider.dart';
 import '../../../data/models/chat/chat_room_model.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../theme/app_typography.dart';
-import '../../../theme/app_spacing.dart';
-import '../../../theme/app_radius.dart';
-import '../../../shared/widgets/status_chip.dart';
 import 'chat_screen.dart';
 import '../../../main.dart'; // Pour firebaseEnabledProvider
 

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'dart:async';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../theme/app_spacing.dart';
-import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/osm_map_widget.dart';
 

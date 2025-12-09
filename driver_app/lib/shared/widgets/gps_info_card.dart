@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
-import '../../core/utils/navigation_utils.dart';
 
 /// Widget d'affichage des informations GPS d'une livraison
 class GpsInfoCard extends StatelessWidget {
@@ -13,7 +11,7 @@ class GpsInfoCard extends StatelessWidget {
   final Color? color;
 
   const GpsInfoCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.address,
     required this.latitude,
@@ -21,7 +19,7 @@ class GpsInfoCard extends StatelessWidget {
     this.distanceKm,
     this.onNavigate,
     this.color,
-  }) : super(key: key);
+  });
 
   bool get hasCoordinates => latitude != 0.0 && longitude != 0.0;
 

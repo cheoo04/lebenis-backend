@@ -5,7 +5,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_radius.dart';
-import '../../../../shared/widgets/modern_button.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {

@@ -84,7 +84,6 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
           _routeLoaded = true;
         });
       }
-    } catch (e) {
     } finally {
       if (mounted) {
         setState(() {
@@ -162,7 +161,7 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
     return [
       OsmMarkerHelper.route(
         points: fallbackPoints,
-        color: AppColors.primary.withOpacity(0.5),
+        color: AppColors.primary.withValues(alpha: 0.5),
         width: 2,
       ),
     ];
@@ -188,7 +187,7 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -344,7 +343,7 @@ class RouteInfoCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -356,7 +355,7 @@ class RouteInfoCard extends StatelessWidget {
           _InfoItem(
             icon: Icons.route,
             label: 'Distance',
-            value: route.totalDistanceKm != null && route.totalDistanceKm.isFinite
+            value: route.totalDistanceKm.isFinite
                 ? '${route.totalDistanceKm.toStringAsFixed(1)} km'
                 : '—',
             color: AppColors.primary,
@@ -369,7 +368,7 @@ class RouteInfoCard extends StatelessWidget {
           _InfoItem(
             icon: Icons.timer,
             label: 'Durée estimée',
-            value: route.totalDurationMin != null && route.totalDurationMin.isFinite
+            value: route.totalDurationMin.isFinite
                 ? '~${route.totalDurationMin.toStringAsFixed(0)} min'
                 : '—',
             color: AppColors.warning,

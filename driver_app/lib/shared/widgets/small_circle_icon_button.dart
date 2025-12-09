@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
-import '../../theme/app_spacing.dart';
 
 /// Small circular icon button used for compact action buttons (phone, nav...)
 class SmallCircleIconButton extends StatelessWidget {
