@@ -406,8 +406,9 @@ class LocationService:
             except Exception:
                 logger.debug('Sentry capture failed for invalid input route')
 
-            if use_cache:
-                cache.set(cache_key, result, cls.ROUTE_CACHE_TIMEOUT)
+            # Do not cache fallback results caused by invalid input coordinates
+            # to avoid serving an invalid fallback to future valid requests.
+            # Valid routes (from OSRM/ORS) will be cached at the end of the function.
 
             return result
         
@@ -451,8 +452,8 @@ class LocationService:
             except Exception:
                 logger.debug('Sentry capture failed for routing fallback')
         
-        # Mettre en cache
-        if use_cache and result:
+        # Mettre en cache (ne pas mettre en cache les fallbacks causés par des coordonnées invalides)
+        if use_cache and result and result.get('source') != 'fallback_invalid_input':
             cache.set(cache_key, result, cls.ROUTE_CACHE_TIMEOUT)
         
         return result
