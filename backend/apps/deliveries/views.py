@@ -579,7 +579,16 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             close_enough = True
             distance_km = None
             try:
-                if pickup_coords and driver_lat is not None and driver_lon is not None:
+                def _is_missing_coord(lat, lon):
+                    try:
+                        if lat is None or lon is None:
+                            return True
+                        # Treat (0.0, 0.0) as invalid/missing coordinate
+                        return float(lat) == 0.0 and float(lon) == 0.0
+                    except Exception:
+                        return True
+
+                if pickup_coords and not _is_missing_coord(driver_lat, driver_lon):
                     # Tenter d'utiliser le routing (route réelle) pour une mesure plus exacte
                     try:
                         route = LocationService.get_route(float(driver_lat), float(driver_lon), float(pickup_coords[0]), float(pickup_coords[1]))
@@ -596,13 +605,17 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                         logger.exception(f"Routing check failed in confirm_pickup, falling back to geodesic: {e}")
                         driver_pos = (float(driver_lat), float(driver_lon))
                         distance_km = geodesic(pickup_coords, driver_pos).km
-                else:
-                    # Si l'une des coordonnées manque
-                    logger.debug(f"confirm_pickup: missing gps data pickup={pickup_coords} driver=({driver_lat},{driver_lon})")
-                    if REQUIRE_GPS_FOR_PICKUP:
-                        return Response({
-                            'error': 'Coordonnées GPS du livreur manquantes. Autorisation de confirmation refusée.',
-                        }, status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        # Si l'une des coordonnées manque ou est invalide
+                        logger.warning(
+                            f"confirm_pickup: missing or invalid gps data pickup={pickup_coords} driver=({driver_lat},{driver_lon})",
+                        )
+                        if REQUIRE_GPS_FOR_PICKUP:
+                            return Response({
+                                'error': 'Coordonnées GPS du livreur manquantes ou invalides. Autorisation de confirmation refusée.',
+                                'driver_coords': {'lat': driver_lat, 'lon': driver_lon},
+                                'require_gps': True,
+                            }, status=422)
             except Exception as e:
                 logger.exception(f"Error computing distance for confirm_pickup: {e}")
 

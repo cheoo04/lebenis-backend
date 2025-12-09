@@ -114,6 +114,11 @@ class Formatters {
 
   /// Formater une distance (ex: "12,5 km" ou "850 m")
   static String formatDistance(double distanceInKm) {
+    // Guard against NaN / infinite values that would crash UI conversions
+    if (!distanceInKm.isFinite) {
+      return '—';
+    }
+
     if (distanceInKm < 1) {
       final meters = (distanceInKm * 1000).round();
       return '$meters m';
@@ -124,6 +129,11 @@ class Formatters {
 
   /// Formater une distance courte (ex: "12 km")
   static String formatDistanceShort(double distanceInKm) {
+    // Guard against NaN / infinite values
+    if (!distanceInKm.isFinite) {
+      return '—';
+    }
+
     if (distanceInKm < 1) {
       final meters = (distanceInKm * 1000).round();
       return '$meters m';

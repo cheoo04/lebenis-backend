@@ -326,7 +326,9 @@ class RouteInfoCard extends StatelessWidget {
           _InfoItem(
             icon: Icons.route,
             label: 'Distance',
-            value: '${route.totalDistanceKm.toStringAsFixed(1)} km',
+            value: route.totalDistanceKm != null && route.totalDistanceKm.isFinite
+                ? '${route.totalDistanceKm.toStringAsFixed(1)} km'
+                : '—',
             color: AppColors.primary,
           ),
           Container(
@@ -337,7 +339,9 @@ class RouteInfoCard extends StatelessWidget {
           _InfoItem(
             icon: Icons.timer,
             label: 'Durée estimée',
-            value: '~${route.totalDurationMin.toStringAsFixed(0)} min',
+            value: route.totalDurationMin != null && route.totalDurationMin.isFinite
+                ? '~${route.totalDurationMin.toStringAsFixed(0)} min'
+                : '—',
             color: AppColors.warning,
           ),
         ],
