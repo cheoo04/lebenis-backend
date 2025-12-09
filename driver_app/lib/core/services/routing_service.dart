@@ -3,6 +3,7 @@
 
 import 'package:latlong2/latlong.dart';
 import 'package:dio/dio.dart' as dio_pkg;
+import 'package:flutter/foundation.dart';
 import '../network/dio_client.dart';
 import '../utils/json_utils.dart';
 
@@ -233,7 +234,7 @@ class RoutingService {
       bool _validLatLng(LatLng p) => p.latitude.isFinite && p.longitude.isFinite;
       if (!_validLatLng(origin) || !_validLatLng(destination) || (waypoints != null && waypoints.any((w) => !w.latitude.isFinite || !w.longitude.isFinite))) {
         // Log and return a straight-line fallback without calling backend
-        debugPrint('RoutingService.getRoute: invalid coordinates detected, using fallback straight line');
+        if (kDebugMode) debugPrint('RoutingService.getRoute: invalid coordinates detected, using fallback straight line');
         return _fallbackStraightLine(origin, destination);
       }
       final Map<String, dynamic> data = {
@@ -250,7 +251,7 @@ class RoutingService {
       final response = await _dioClient.post(
         '/api/v1/locations/route/',
         data: data,
-        options: Options(headers: {'Content-Type': 'application/json'}),
+        options: dio_pkg.Options(headers: {'Content-Type': 'application/json'}),
       );
 
       return RouteResult.fromJson(response.data);
@@ -280,7 +281,7 @@ class RoutingService {
       // Validate coordinates before sending to backend
       bool _validLatLng(LatLng p) => p.latitude.isFinite && p.longitude.isFinite;
       if (!_validLatLng(pickup) || !_validLatLng(delivery) || (driverPosition != null && (!_validLatLng(driverPosition)))) {
-        debugPrint('RoutingService.getDeliveryRoute: invalid coordinates detected, using fallback delivery route');
+        if (kDebugMode) debugPrint('RoutingService.getDeliveryRoute: invalid coordinates detected, using fallback delivery route');
         return _fallbackDeliveryRoute(pickup, delivery, driverPosition);
       }
       final Map<String, dynamic> data = {
@@ -298,7 +299,7 @@ class RoutingService {
       final response = await _dioClient.post(
         '/api/v1/locations/delivery-route/',
         data: data,
-        options: Options(headers: {'Content-Type': 'application/json'}),
+        options: dio_pkg.Options(headers: {'Content-Type': 'application/json'}),
       );
 
       final result = DeliveryRouteResult.fromJson(response.data);

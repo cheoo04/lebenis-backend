@@ -1,5 +1,6 @@
 // lib/data/providers/delivery_provider.dart
 import 'dart:typed_data';
+import '../../core/network/api_exception.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/delivery_repository.dart';
 import '../models/delivery_model.dart';
