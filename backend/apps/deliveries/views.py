@@ -564,6 +564,12 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             driver_lat = getattr(driver, 'current_latitude', None)
             driver_lon = getattr(driver, 'current_longitude', None)
 
+            # Lire la configuration pour exiger la position GPS
+            try:
+                REQUIRE_GPS_FOR_PICKUP = os.getenv('REQUIRE_GPS_FOR_PICKUP', 'False').lower() in ('1', 'true', 'yes')
+            except Exception:
+                REQUIRE_GPS_FOR_PICKUP = False
+
             # Seuil configurable via env (en km). Par défaut 10 km (~200 m).
             try:
                 PICKUP_PROXIMITY_KM = float(os.getenv('PICKUP_PROXIMITY_KM', '10'))
@@ -591,8 +597,12 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                         driver_pos = (float(driver_lat), float(driver_lon))
                         distance_km = geodesic(pickup_coords, driver_pos).km
                 else:
-                    # Si l'une des coordonnées manque, ne pas bloquer mais logguer
+                    # Si l'une des coordonnées manque
                     logger.debug(f"confirm_pickup: missing gps data pickup={pickup_coords} driver=({driver_lat},{driver_lon})")
+                    if REQUIRE_GPS_FOR_PICKUP:
+                        return Response({
+                            'error': 'Coordonnées GPS du livreur manquantes. Autorisation de confirmation refusée.',
+                        }, status=status.HTTP_400_BAD_REQUEST)
             except Exception as e:
                 logger.exception(f"Error computing distance for confirm_pickup: {e}")
 

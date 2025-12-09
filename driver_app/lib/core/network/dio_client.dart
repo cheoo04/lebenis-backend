@@ -58,7 +58,16 @@ class DioClient {
       }
     }
     if (kDebugMode) {
-      debugPrint('DioClient _onRequest: ${options.method} ${options.path} Authorization: ${options.headers['Authorization'] ?? 'none'}');
+      // Add timestamp and caller frame to help diagnose duplicate requests
+      final time = DateTime.now().toIso8601String();
+      String caller = '';
+      try {
+        final frame = StackTrace.current.toString().split('\n').skip(1).first;
+        caller = frame.trim();
+      } catch (_) {
+        caller = 'unknown';
+      }
+      debugPrint('[$time] DioClient _onRequest: ${options.method} ${options.path} Authorization: ${options.headers['Authorization'] ?? 'none'} caller: $caller');
     }
     return handler.next(options);
   }
