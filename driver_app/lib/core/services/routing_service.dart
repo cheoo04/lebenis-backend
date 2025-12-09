@@ -243,8 +243,15 @@ class RoutingService {
   }) async {
     try {
       // Validate coordinates before sending to backend
-      bool _validLatLng(LatLng p) => p.latitude.isFinite && p.longitude.isFinite;
-      if (!_validLatLng(origin) || !_validLatLng(destination) || (waypoints != null && waypoints.any((w) => !w.latitude.isFinite || !w.longitude.isFinite))) {
+      bool _validLatLng(LatLng? p) {
+        if (p == null) return false;
+        if (!p.latitude.isFinite || !p.longitude.isFinite) return false;
+        // Reject placeholder coordinates sometimes emitted by devices (0.0, 0.0)
+        if (p.latitude == 0.0 && p.longitude == 0.0) return false;
+        return true;
+      }
+
+      if (!_validLatLng(origin) || !_validLatLng(destination) || (waypoints != null && waypoints.any((w) => !_validLatLng(w)))) {
         // Log and return a straight-line fallback without calling backend
         if (kDebugMode) debugPrint('RoutingService.getRoute: invalid coordinates detected, using fallback straight line');
         return _fallbackStraightLine(origin, destination);
@@ -291,7 +298,13 @@ class RoutingService {
   }) async {
     try {
       // Validate coordinates before sending to backend
-      bool _validLatLng(LatLng p) => p.latitude.isFinite && p.longitude.isFinite;
+      bool _validLatLng(LatLng? p) {
+        if (p == null) return false;
+        if (!p.latitude.isFinite || !p.longitude.isFinite) return false;
+        if (p.latitude == 0.0 && p.longitude == 0.0) return false;
+        return true;
+      }
+
       if (!_validLatLng(pickup) || !_validLatLng(delivery) || (driverPosition != null && (!_validLatLng(driverPosition)))) {
         if (kDebugMode) debugPrint('RoutingService.getDeliveryRoute: invalid coordinates detected, using fallback delivery route');
         return _fallbackDeliveryRoute(pickup, delivery, driverPosition);

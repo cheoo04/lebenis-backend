@@ -180,6 +180,18 @@ class RoutingService {
     List<LatLng>? waypoints,
   }) async {
     try {
+      // Strict coords validation: reject null/non-finite or placeholder (0.0,0.0)
+      bool _validLatLng(LatLng? p) {
+        if (p == null) return false;
+        if (!p.latitude.isFinite || !p.longitude.isFinite) return false;
+        if (p.latitude == 0.0 && p.longitude == 0.0) return false;
+        return true;
+      }
+
+      if (!_validLatLng(origin) || !_validLatLng(destination) || (waypoints != null && waypoints.any((w) => !_validLatLng(w)))) {
+        // Do not call backend with invalid coordinates; return a straight-line fallback
+        return _fallbackStraightLine(origin, destination);
+      }
       final Map<String, dynamic> data = {
         'origin': {'lat': origin.latitude, 'lng': origin.longitude},
         'destination': {'lat': destination.latitude, 'lng': destination.longitude},
@@ -214,6 +226,16 @@ class RoutingService {
     LatLng? driverPosition,
   }) async {
     try {
+      bool _validLatLng(LatLng? p) {
+        if (p == null) return false;
+        if (!p.latitude.isFinite || !p.longitude.isFinite) return false;
+        if (p.latitude == 0.0 && p.longitude == 0.0) return false;
+        return true;
+      }
+
+      if (!_validLatLng(pickup) || !_validLatLng(delivery) || (driverPosition != null && !_validLatLng(driverPosition))) {
+        return _fallbackDeliveryRoute(pickup, delivery, driverPosition);
+      }
       final data = {
         'pickup': {'lat': pickup.latitude, 'lng': pickup.longitude},
         'delivery': {'lat': delivery.latitude, 'lng': delivery.longitude},
