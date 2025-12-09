@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q, Sum
 from django.utils import timezone
 import logging
+import sentry_sdk
 
 from .models import ChatRoom, ChatMessage
 from .serializers import (
@@ -98,6 +99,7 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
                 logger.warning('Create chat room validation failed', extra={
                     'user_id': str(request.user.id) if hasattr(request, 'user') and request.user else None,
                     'payload_keys': list(request.data.keys()) if isinstance(request.data, dict) else None,
+                    'serializer_errors': serializer.errors if hasattr(serializer, 'errors') else None,
                 })
             except Exception:
                 logger.warning('Create chat room validation failed (could not log extra context)')
@@ -106,7 +108,11 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
                     'message': 'create_chat_room: serializer validation error',
                     'level': 'warning',
                     'tags': {'endpoint': 'chat/rooms', 'error': 'validation'},
-                    'extra': {'payload': request.data if isinstance(request.data, dict) else str(request.data), 'user_id': str(request.user.id) if hasattr(request, 'user') and request.user else None}
+                    'extra': {
+                        'payload': request.data if isinstance(request.data, dict) else str(request.data),
+                        'user_id': str(request.user.id) if hasattr(request, 'user') and request.user else None,
+                        'serializer_errors': serializer.errors if hasattr(serializer, 'errors') else None,
+                    }
                 })
             except Exception:
                 logger.debug('sentry capture failed in chat.create validation')

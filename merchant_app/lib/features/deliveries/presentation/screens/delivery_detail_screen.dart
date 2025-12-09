@@ -86,65 +86,85 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
     await showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text('Noter $driverName'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Note globale', style: TextStyle(fontWeight: FontWeight.bold)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(5, (index) {
-                    return IconButton(
-                      icon: Icon(
-                        index < rating ? Icons.star : Icons.star_border,
-                        color: Colors.amber,
-                        size: 32,
+        builder: (context, setState) {
+          final maxWidth = MediaQuery.of(context).size.width - 40.0;
+          final dialogWidth = maxWidth > 420 ? 420.0 : maxWidth;
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: dialogWidth),
+              child: AlertDialog(
+                title: Text('Noter $driverName'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Note globale', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(5, (index) {
+                          final filled = index < rating;
+                          return GestureDetector(
+                            onTap: () => setState(() => rating = index + 1.0),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                              child: Icon(
+                                filled ? Icons.star : Icons.star_border,
+                                color: Colors.amber,
+                                size: 28,
+                              ),
+                            ),
+                          );
+                        }),
                       ),
-                      onPressed: () => setState(() => rating = index + 1.0),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 16),
-                _buildRatingSlider('Ponctualité', punctuality, (val) => setState(() => punctuality = val)),
-                _buildRatingSlider('Professionnalisme', professionalism, (val) => setState(() => professionalism = val)),
-                _buildRatingSlider('Soin du colis', care, (val) => setState(() => care = val)),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: commentController,
-                  decoration: const InputDecoration(
-                    labelText: 'Commentaire (optionnel)',
-                    border: OutlineInputBorder(),
-                    hintText: 'Partagez votre expérience...',
+                      const SizedBox(height: 12),
+                      _buildRatingSlider('Ponctualité', punctuality, (val) => setState(() => punctuality = val)),
+                      const SizedBox(height: 8),
+                      _buildRatingSlider('Professionnalisme', professionalism, (val) => setState(() => professionalism = val)),
+                      const SizedBox(height: 8),
+                      _buildRatingSlider('Soin du colis', care, (val) => setState(() => care = val)),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: commentController,
+                        decoration: const InputDecoration(
+                          labelText: 'Commentaire (optionnel)',
+                          border: OutlineInputBorder(),
+                          hintText: 'Partagez votre expérience...',
+                        ),
+                        maxLines: 3,
+                      ),
+                    ],
                   ),
-                  maxLines: 3,
                 ),
-              ],
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Annuler'),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFA000),
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await _submitRating(
+                        deliveryId: deliveryId,
+                        rating: rating,
+                        comment: commentController.text,
+                        punctualityRating: punctuality,
+                        professionalismRating: professionalism,
+                        careRating: care,
+                      );
+                    },
+                    child: const Text('Envoyer'),
+                  ),
+                ],
+              ),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                await _submitRating(
-                  deliveryId: deliveryId,
-                  rating: rating,
-                  comment: commentController.text,
-                  punctualityRating: punctuality,
-                  professionalismRating: professionalism,
-                  careRating: care,
-                );
-              },
-              child: const Text('Envoyer'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
