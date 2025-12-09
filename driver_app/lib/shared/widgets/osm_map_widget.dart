@@ -70,12 +70,12 @@ class OsmMarkerHelper {
   }) {
     return Marker(
       point: position,
-      width: 40,
-      height: 40,
+      width: 32,
+      height: 32,
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: AppColors.success,
               shape: BoxShape.circle,
@@ -83,28 +83,33 @@ class OsmMarkerHelper {
               boxShadow: [
                 BoxShadow(
                   color: Colors.black26,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  blurRadius: 3,
+                  offset: const Offset(0, 1),
                 ),
               ],
             ),
             child: const Icon(
               Icons.circle_outlined,
               color: Colors.white,
-              size: 20,
+              size: 16,
             ),
           ),
           if (label != null) ...[
             const SizedBox(height: 2),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                label,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 72),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+                ),
               ),
             ),
           ],
@@ -120,12 +125,12 @@ class OsmMarkerHelper {
   }) {
     return Marker(
       point: position,
-      width: 40,
-      height: 40,
+      width: 32,
+      height: 32,
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: AppColors.error,
               shape: BoxShape.circle,
@@ -133,28 +138,33 @@ class OsmMarkerHelper {
               boxShadow: [
                 BoxShadow(
                   color: Colors.black26,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  blurRadius: 3,
+                  offset: const Offset(0, 1),
                 ),
               ],
             ),
             child: const Icon(
               Icons.location_on,
               color: Colors.white,
-              size: 20,
+              size: 16,
             ),
           ),
           if (label != null) ...[
             const SizedBox(height: 2),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                label,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 72),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+                ),
               ),
             ),
           ],
@@ -171,43 +181,48 @@ class OsmMarkerHelper {
   }) {
     return Marker(
       point: position,
-      width: 50,
-      height: 50,
+      width: 40,
+      height: 40,
       child: Transform.rotate(
         angle: heading ?? 0,
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: AppColors.primary,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 3),
+                border: Border.all(color: Colors.white, width: 2),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.primary.withAlpha((0.5 * 255).round()),
-                    blurRadius: 8,
-                    spreadRadius: 2,
+                    blurRadius: 6,
+                    spreadRadius: 1,
                   ),
                 ],
               ),
               child: const Icon(
                 Icons.navigation,
                 color: Colors.white,
-                size: 24,
+                size: 18,
               ),
             ),
             if (label != null) ...[
               const SizedBox(height: 2),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  label,
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 80),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
             ],
