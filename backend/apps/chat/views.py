@@ -90,7 +90,27 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         }
         """
         serializer = CreateChatRoomSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception as e:
+            # Log payload keys and user for easier debugging of 400s
+            try:
+                logger.warning('Create chat room validation failed', extra={
+                    'user_id': str(request.user.id) if hasattr(request, 'user') and request.user else None,
+                    'payload_keys': list(request.data.keys()) if isinstance(request.data, dict) else None,
+                })
+            except Exception:
+                logger.warning('Create chat room validation failed (could not log extra context)')
+            try:
+                sentry_sdk.capture_event({
+                    'message': 'create_chat_room: serializer validation error',
+                    'level': 'warning',
+                    'tags': {'endpoint': 'chat/rooms', 'error': 'validation'},
+                    'extra': {'payload': request.data if isinstance(request.data, dict) else str(request.data), 'user_id': str(request.user.id) if hasattr(request, 'user') and request.user else None}
+                })
+            except Exception:
+                logger.debug('sentry capture failed in chat.create validation')
+            raise
         
         other_user_id = serializer.validated_data['other_user_id']
         delivery_id = serializer.validated_data.get('delivery_id')

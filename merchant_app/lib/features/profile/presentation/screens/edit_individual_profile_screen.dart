@@ -80,6 +80,7 @@ class _EditIndividualProfileScreenState
 
       // Appeler l'API pour mettre à jour le profil du particulier via le provider
       await ref.read(individualProfileProvider.notifier).updateProfile(
+        individualId: widget.individual.id,
         firstName: firstName,
         lastName: lastName,
         phone: phone,

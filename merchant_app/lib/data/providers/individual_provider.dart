@@ -29,13 +29,15 @@ class IndividualProfileNotifier extends Notifier<AsyncValue<IndividualModel?>> {
   }
 
   Future<void> updateProfile({
+    String? individualId,
     String? firstName,
     String? lastName,
     String? phone,
     String? address,
   }) async {
     final currentProfile = state.value;
-    if (currentProfile == null) {
+    final idToUse = currentProfile?.id ?? individualId;
+    if (idToUse == null) {
       throw Exception('Aucun profil à mettre à jour');
     }
 
@@ -43,7 +45,7 @@ class IndividualProfileNotifier extends Notifier<AsyncValue<IndividualModel?>> {
     try {
       final repository = ref.read(individualRepositoryProvider);
       final updatedProfile = await repository.updateProfile(
-        individualId: currentProfile.id,
+        individualId: idToUse,
         firstName: firstName,
         lastName: lastName,
         phone: phone,
