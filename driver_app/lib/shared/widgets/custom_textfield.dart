@@ -29,6 +29,7 @@ class CustomTextField extends StatefulWidget {
   final FocusNode? focusNode;
   final bool autofocus;
   final TextCapitalization? textCapitalization;
+  final bool isCompact;
 
   const CustomTextField({
     super.key,
@@ -55,6 +56,7 @@ class CustomTextField extends StatefulWidget {
     this.focusNode,
     this.autofocus = false,
     this.textCapitalization,
+    this.isCompact = false,
   });
 
   @override
@@ -66,6 +68,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
+    // Infer compact mode when label mentions commune or quartier
+    final effectiveCompact = widget.isCompact || ((widget.label ?? '').toLowerCase().contains('commune')) || ((widget.label ?? '').toLowerCase().contains('quartier'));
+
     return TextFormField(
       controller: widget.controller,
       initialValue: widget.initialValue,
@@ -85,7 +90,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       focusNode: widget.focusNode,
       autofocus: widget.autofocus,
       style: TextStyle(
-        fontSize: 15,
+        fontSize: effectiveCompact ? 14 : 15,
         color: widget.enabled ? AppColors.textPrimary : AppColors.textDisabled,
       ),
       decoration: InputDecoration(
@@ -98,6 +103,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
         suffix: widget.suffix,
         filled: true,
         fillColor: widget.enabled ? Colors.white : Colors.grey.shade100,
+        isDense: effectiveCompact,
+        contentPadding: effectiveCompact ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8) : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: AppColors.border),
