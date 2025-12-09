@@ -24,10 +24,18 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="driver_app">
+  <!-- Apple touch icon (PNG fallback) -->
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <!-- Primary favicon: SVG for modern browsers -->
+  <link rel="icon" type="image/svg+xml" href="/assets/logo_lebeni_business.svg" />
+  <!-- PNG fallbacks for browsers that don't support SVG favicons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/Icon-512.png">
+  <!-- Legacy shortcut icon fallback -->
+  <link rel="shortcut icon" href="icons/Icon-192.png">
+  <!-- Fallback .ico for very old browsers -->
+  <link rel="icon" href="favicon.ico">
 
   <title>driver_app</title>
   <link rel="manifest" href="manifest.json">
