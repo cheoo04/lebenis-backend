@@ -569,6 +569,10 @@ def get_route(request):
     
     origin = request.data.get('origin')
     destination = request.data.get('destination')
+    # Optional context identifiers for structured logging
+    driver_id = request.data.get('driver_id') or request.data.get('driver', {}).get('id') if isinstance(request.data.get('driver'), dict) else request.data.get('driver_id')
+    delivery_id = request.data.get('delivery_id') or request.data.get('id')
+    payload_keys = list(request.data.keys())
     
     if not origin or not destination:
         return Response({
@@ -591,7 +595,8 @@ def get_route(request):
         start_lat=origin_lat,
         start_lon=origin_lon,
         end_lat=dest_lat,
-        end_lon=dest_lon
+        end_lon=dest_lon,
+        context={'driver_id': driver_id, 'delivery_id': delivery_id, 'payload_keys': payload_keys, 'segment': 'single_route'}
     )
     
     if result:
@@ -654,16 +659,23 @@ def get_delivery_route(request):
     pickup = request.data.get('pickup')
     delivery = request.data.get('delivery')
     driver = request.data.get('driver')
+    # Structured context for logging
+    driver_id = request.data.get('driver_id') or (driver.get('id') if isinstance(driver, dict) else None)
+    delivery_id = request.data.get('delivery_id') or request.data.get('id')
+    payload_keys = list(request.data.keys())
     
     if not pickup or not delivery:
         # Log minimal context for debugging (avoid PII in logs)
-        logger.debug('get_delivery_route: missing pickup or delivery', extra={'pickup_present': bool(pickup), 'delivery_present': bool(delivery)})
+        try:
+            logger.debug('get_delivery_route: missing pickup or delivery', extra={'pickup_present': bool(pickup), 'delivery_present': bool(delivery), 'driver_id': driver_id, 'delivery_id': delivery_id, 'payload_keys': payload_keys})
+        except Exception:
+            logger.debug('get_delivery_route: missing pickup or delivery')
         try:
             sentry_sdk.capture_event({
                 'message': 'get_delivery_route: missing pickup or delivery',
                 'level': 'warning',
                 'tags': {'endpoint': 'delivery-route', 'error': 'missing_fields'},
-                'extra': {'pickup_present': bool(pickup), 'delivery_present': bool(delivery)}
+                'extra': {'pickup_present': bool(pickup), 'delivery_present': bool(delivery), 'driver_id': driver_id, 'delivery_id': delivery_id, 'payload_keys': payload_keys}
             })
         except Exception:
             logger.debug('sentry capture failed in get_delivery_route')
@@ -694,13 +706,16 @@ def get_delivery_route(request):
 
     if pickup_lat is None or pickup_lon is None or delivery_lat is None or delivery_lon is None:
         # Detailed invalid coords handling
-        logger.debug('get_delivery_route: invalid coordinates', extra={'payload_keys': list(request.data.keys())})
+        try:
+            logger.debug('get_delivery_route: invalid coordinates', extra={'payload_keys': payload_keys, 'driver_id': driver_id, 'delivery_id': delivery_id})
+        except Exception:
+            logger.debug('get_delivery_route: invalid coordinates')
         try:
             sentry_sdk.capture_event({
                 'message': 'get_delivery_route: invalid coordinates',
                 'level': 'warning',
                 'tags': {'endpoint': 'delivery-route', 'error': 'invalid_coords'},
-                'extra': {'payload_keys': list(request.data.keys())}
+                'extra': {'payload_keys': payload_keys, 'driver_id': driver_id, 'delivery_id': delivery_id}
             })
         except Exception:
             logger.debug('sentry capture failed in get_delivery_route invalid coords')
@@ -751,7 +766,7 @@ def get_delivery_route(request):
     
     # Segment 1: Driver -> Pickup (si driver fourni)
     if driver_lat is not None and driver_lon is not None:
-        route1 = LocationService.get_route(driver_lat, driver_lon, pickup_lat, pickup_lon)
+        route1 = LocationService.get_route(driver_lat, driver_lon, pickup_lat, pickup_lon, context={'driver_id': driver_id, 'delivery_id': delivery_id, 'payload_keys': payload_keys, 'segment': 'driver_to_pickup'})
         if route1:
             legs.append({
                 'name': 'driver_to_pickup',
@@ -765,7 +780,7 @@ def get_delivery_route(request):
             total_duration += route1.get('duration_min', 0)
     
     # Segment 2: Pickup -> Delivery
-    route2 = LocationService.get_route(pickup_lat, pickup_lon, delivery_lat, delivery_lon)
+    route2 = LocationService.get_route(pickup_lat, pickup_lon, delivery_lat, delivery_lon, context={'driver_id': driver_id, 'delivery_id': delivery_id, 'payload_keys': payload_keys, 'segment': 'pickup_to_delivery'})
     if route2:
         legs.append({
             'name': 'pickup_to_delivery',

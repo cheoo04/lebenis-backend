@@ -302,7 +302,8 @@ class LocationService:
         start_lon: float,
         end_lat: float,
         end_lon: float,
-        use_cache: bool = True
+        use_cache: bool = True,
+        context: Optional[Dict] = None,
     ) -> Optional[Dict]:
         """
         Calcule un itinéraire entre 2 points avec polyline pour affichage carte
@@ -324,6 +325,27 @@ class LocationService:
             
             ou None si erreur
         """
+        # Context pour structured logging (driver id, delivery id, payload keys, segment...)
+        context = context or {}
+        driver_id = context.get('driver_id')
+        delivery_id = context.get('delivery_id')
+        payload_keys = context.get('payload_keys')
+        segment = context.get('segment')
+
+        # Log initial call with structured context (non-PII: ids and keys only)
+        try:
+            logger.debug('get_route called', extra={
+                'start': (start_lat, start_lon),
+                'end': (end_lat, end_lon),
+                'driver_id': driver_id,
+                'delivery_id': delivery_id,
+                'payload_keys': payload_keys,
+                'segment': segment,
+            })
+        except Exception:
+            # never fail due to logging
+            pass
+
         # Vérifier le cache
         if use_cache:
             cache_key = f"route:{start_lat:.5f},{start_lon:.5f}:{end_lat:.5f},{end_lon:.5f}"
@@ -347,7 +369,13 @@ class LocationService:
                 return True
 
         if _invalid_point(start_lat, start_lon) or _invalid_point(end_lat, end_lon):
-            logger.warning("get_route: received invalid or placeholder coordinates (e.g. 0.0,0.0). Using straight-line fallback.")
+            try:
+                logger.warning(
+                    "get_route: received invalid or placeholder coordinates (e.g. 0.0,0.0). Using straight-line fallback.",
+                    extra={'driver_id': driver_id, 'delivery_id': delivery_id, 'payload_keys': payload_keys, 'segment': segment}
+                )
+            except Exception:
+                logger.warning("get_route: received invalid or placeholder coordinates (e.g. 0.0,0.0). Using straight-line fallback.")
             # Use haversine fallback and return a minimal route structure
             distance = cls.haversine_distance(start_lat or 0.0, start_lon or 0.0, end_lat or 0.0, end_lon or 0.0)
             result = {
@@ -366,7 +394,14 @@ class LocationService:
                     'message': 'get_route: invalid input coordinates (0,0 or non-finite)',
                     'level': 'warning',
                     'tags': {'endpoint': 'route', 'error': 'invalid_input_coordinates'},
-                    'extra': {'start': (start_lat, start_lon), 'end': (end_lat, end_lon)}
+                    'extra': {
+                        'start': (start_lat, start_lon),
+                        'end': (end_lat, end_lon),
+                        'driver_id': driver_id,
+                        'delivery_id': delivery_id,
+                        'payload_keys': payload_keys,
+                        'segment': segment,
+                    }
                 })
             except Exception:
                 logger.debug('Sentry capture failed for invalid input route')
@@ -385,18 +420,18 @@ class LocationService:
 
         if prefer_ors and cls.ORS_API_KEY:
             logger.info("PREFERENCE: utilisation d'OpenRouteService en priorité")
-            result = cls._get_route_ors(start_lat, start_lon, end_lat, end_lon)
+            result = cls._get_route_ors(start_lat, start_lon, end_lat, end_lon, context=context)
             # Si ORS échoue, tenter OSRM ensuite
             if not result:
                 logger.info("OpenRouteService a échoué, essai OSRM...")
-                result = cls._get_route_osrm(start_lat, start_lon, end_lat, end_lon)
+                result = cls._get_route_osrm(start_lat, start_lon, end_lat, end_lon, context=context)
         else:
             # Essayer OSRM d'abord (gratuit, pas de clé API)
-            result = cls._get_route_osrm(start_lat, start_lon, end_lat, end_lon)
+            result = cls._get_route_osrm(start_lat, start_lon, end_lat, end_lon, context=context)
             # Fallback sur OpenRouteService si OSRM échoue
             if not result and cls.ORS_API_KEY:
                 logger.info("OSRM indisponible, essai OpenRouteService...")
-                result = cls._get_route_ors(start_lat, start_lon, end_lat, end_lon)
+                result = cls._get_route_ors(start_lat, start_lon, end_lat, end_lon, context=context)
         
         # Fallback sur ligne droite si tout échoue
         if not result:
@@ -428,13 +463,20 @@ class LocationService:
         start_lat: float,
         start_lon: float,
         end_lat: float,
-        end_lon: float
+        end_lon: float,
+        context: Optional[Dict] = None,
     ) -> Optional[Dict]:
         """
         Obtenir un itinéraire via OSRM (gratuit, Open Source)
         
         OSRM utilise le format: longitude,latitude (inverse de la convention habituelle)
         """
+        context = context or {}
+        driver_id = context.get('driver_id')
+        delivery_id = context.get('delivery_id')
+        payload_keys = context.get('payload_keys')
+        segment = context.get('segment')
+
         # Add simple retry logic to make OSRM calls more robust in production
         attempts = int(os.getenv('OSRM_RETRY_ATTEMPTS', '2'))
         backoff_base = float(os.getenv('OSRM_RETRY_BACKOFF', '0.5'))
@@ -484,13 +526,22 @@ class LocationService:
                             'source': 'osrm'
                         }
 
-                        logger.info(f"Route OSRM: {result['distance_km']} km, {result['duration_min']} min, {len(polyline_points)} points")
+                        try:
+                            logger.info(
+                                f"Route OSRM: {result['distance_km']} km, {result['duration_min']} min, {len(polyline_points)} points",
+                                extra={'driver_id': driver_id, 'delivery_id': delivery_id, 'payload_keys': payload_keys, 'segment': segment}
+                            )
+                        except Exception:
+                            logger.info(f"Route OSRM: {result['distance_km']} km, {result['duration_min']} min, {len(polyline_points)} points")
                         return result
                     else:
                         logger.warning(f"OSRM response invalide: {data.get('code')}")
                         return None
                 else:
-                    logger.error(f"OSRM erreur HTTP {response.status_code}")
+                    try:
+                        logger.error(f"OSRM erreur HTTP {response.status_code}", extra={'driver_id': driver_id, 'delivery_id': delivery_id, 'payload_keys': payload_keys, 'segment': segment})
+                    except Exception:
+                        logger.error(f"OSRM erreur HTTP {response.status_code}")
                     # Continue to retry on 5xx errors
                     if 500 <= response.status_code < 600 and attempt < attempts:
                         import time
@@ -499,14 +550,20 @@ class LocationService:
                     return None
 
             except requests.exceptions.Timeout:
-                logger.error(f"OSRM timeout (attempt {attempt}/{attempts})")
+                try:
+                    logger.error(f"OSRM timeout (attempt {attempt}/{attempts})", extra={'driver_id': driver_id, 'delivery_id': delivery_id, 'payload_keys': payload_keys, 'segment': segment})
+                except Exception:
+                    logger.error(f"OSRM timeout (attempt {attempt}/{attempts})")
                 if attempt < attempts:
                     import time
                     time.sleep(backoff_base * (2 ** (attempt - 1)))
                     continue
                 return None
             except Exception as e:
-                logger.error(f"Erreur OSRM (attempt {attempt}/{attempts}): {e}")
+                try:
+                    logger.error(f"Erreur OSRM (attempt {attempt}/{attempts}): {e}", extra={'driver_id': driver_id, 'delivery_id': delivery_id, 'payload_keys': payload_keys, 'segment': segment})
+                except Exception:
+                    logger.error(f"Erreur OSRM (attempt {attempt}/{attempts}): {e}")
                 if attempt < attempts:
                     import time
                     time.sleep(backoff_base * (2 ** (attempt - 1)))
@@ -519,7 +576,8 @@ class LocationService:
         start_lat: float,
         start_lon: float,
         end_lat: float,
-        end_lon: float
+        end_lon: float,
+        context: Optional[Dict] = None,
     ) -> Optional[Dict]:
         """
         Obtenir un itinéraire via OpenRouteService (nécessite clé API)
@@ -527,6 +585,12 @@ class LocationService:
         if not cls.ORS_API_KEY:
             return None
             
+        context = context or {}
+        driver_id = context.get('driver_id')
+        delivery_id = context.get('delivery_id')
+        payload_keys = context.get('payload_keys')
+        segment = context.get('segment')
+
         # Add retries for ORS too (useful when network flaps or rate limits)
         attempts = int(os.getenv('ORS_RETRY_ATTEMPTS', '2'))
         backoff_base = float(os.getenv('ORS_RETRY_BACKOFF', '0.5'))
@@ -580,11 +644,17 @@ class LocationService:
                             'source': 'openrouteservice'
                         }
 
-                        logger.info(f"Route ORS: {result['distance_km']} km, {result['duration_min']} min")
+                        try:
+                            logger.info(f"Route ORS: {result['distance_km']} km, {result['duration_min']} min", extra={'driver_id': driver_id, 'delivery_id': delivery_id, 'payload_keys': payload_keys, 'segment': segment})
+                        except Exception:
+                            logger.info(f"Route ORS: {result['distance_km']} km, {result['duration_min']} min")
                         return result
 
                 # Non 200 → retry on 5xx
-                logger.error(f"ORS erreur {response.status_code}: {response.text[:200]}")
+                try:
+                    logger.error(f"ORS erreur {response.status_code}: {response.text[:200]}", extra={'driver_id': driver_id, 'delivery_id': delivery_id, 'payload_keys': payload_keys, 'segment': segment})
+                except Exception:
+                    logger.error(f"ORS erreur {response.status_code}: {response.text[:200]}")
                 if 500 <= response.status_code < 600 and attempt < attempts:
                     import time
                     time.sleep(backoff_base * (2 ** (attempt - 1)))
@@ -592,7 +662,10 @@ class LocationService:
                 return None
 
             except Exception as e:
-                logger.error(f"Erreur OpenRouteService (attempt {attempt}/{attempts}): {e}")
+                try:
+                    logger.error(f"Erreur OpenRouteService (attempt {attempt}/{attempts}): {e}", extra={'driver_id': driver_id, 'delivery_id': delivery_id, 'payload_keys': payload_keys, 'segment': segment})
+                except Exception:
+                    logger.error(f"Erreur OpenRouteService (attempt {attempt}/{attempts}): {e}")
                 if attempt < attempts:
                     import time
                     time.sleep(backoff_base * (2 ** (attempt - 1)))
