@@ -6,6 +6,7 @@ import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/modern_button.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -100,7 +101,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               padding: const EdgeInsets.all(AppSpacing.xxl),
               child: Column(
                 children: [
-                  // Icône de localisation en haut
+                          // Icône / logo en haut
                   FadeTransition(
                     opacity: _fadeAnimation,
                     child: Align(
@@ -112,11 +113,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           color: AppColors.primary.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.location_on,
-                          size: 48,
-                          color: AppColors.primary,
-                        ),
+                                child: SizedBox(
+                                  width: 56,
+                                  height: 56,
+                                  child: SvgPicture.asset(
+                                    'assets/logo_lebeni_business.svg',
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
                       ),
                     ),
                   ),
