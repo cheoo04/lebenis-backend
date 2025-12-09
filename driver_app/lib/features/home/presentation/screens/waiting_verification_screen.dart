@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
@@ -10,11 +11,50 @@ import '../../../../data/providers/driver_provider.dart';
 import '../../../../core/providers/auth_provider.dart';
 
 /// Écran d'attente de vérification - bloque l'accès à toute l'app
-class WaitingVerificationScreen extends ConsumerWidget {
+class WaitingVerificationScreen extends ConsumerStatefulWidget {
   const WaitingVerificationScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WaitingVerificationScreen> createState() => _WaitingVerificationScreenState();
+}
+
+class _WaitingVerificationScreenState extends ConsumerState<WaitingVerificationScreen> {
+  Timer? _timer;
+  bool _isChecking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startPolling();
+  }
+
+  void _startPolling() {
+    // Poll every 10 seconds; safe-guard against overlapping calls
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) async {
+      if (_isChecking) return;
+      _isChecking = true;
+      try {
+        await ref.read(driverProvider.notifier).loadProfile();
+        final verified = ref.read(isDriverVerifiedProvider);
+        if (verified && mounted) {
+          _timer?.cancel();
+          Navigator.of(context).pushReplacementNamed('/home');
+        }
+      } catch (_) {
+        // Ignorer les erreurs réseau intermittentes
+      }
+      _isChecking = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -136,8 +176,26 @@ class WaitingVerificationScreen extends ConsumerWidget {
                   width: double.infinity,
                   child: ModernButton(
                     text: 'Vérifier le statut',
-                    onPressed: () {
-                      ref.invalidate(driverProvider);
+                    onPressed: () async {
+                      try {
+                        await ref.read(driverProvider.notifier).loadProfile();
+                        final verified = ref.read(isDriverVerifiedProvider);
+                        if (verified && context.mounted) {
+                          Navigator.of(context).pushReplacementNamed('/home');
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Votre compte est toujours en attente de vérification.')),
+                            );
+                          }
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Erreur lors de la vérification: $e')),
+                          );
+                        }
+                      }
                     },
                     type: ModernButtonType.outlined,
                   ),
