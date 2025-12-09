@@ -14,7 +14,44 @@ class DeliveryCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Delivery
-        fields = ['pickup_address', 'pickup_address_details', 'pickup_commune', 'pickup_quartier', 'pickup_latitude', 'pickup_longitude', 'delivery_address', 'delivery_commune', 'delivery_quartier', 'delivery_latitude', 'delivery_longitude', 'package_description', 'package_weight_kg', 'package_length_cm', 'package_width_cm', 'package_height_cm', 'package_value', 'is_fragile', 'recipient_name', 'recipient_phone', 'recipient_alternative_phone', 'payment_method', 'cod_amount', 'scheduling_type', 'scheduled_pickup_time']
+        fields = [
+            # Pickup
+            'pickup_address',
+            'pickup_address_details',
+            'pickup_precision',
+            'pickup_commune',
+            'pickup_quartier',
+            'pickup_latitude',
+            'pickup_longitude',
+            # Accept optional pickup proof at creation
+            'pickup_photo',
+            'pickup_signature',
+            # Delivery
+            'delivery_address',
+            'delivery_commune',
+            'delivery_quartier',
+            'delivery_latitude',
+            'delivery_longitude',
+            'delivery_precision',
+            # Package
+            'package_description',
+            'package_weight_kg',
+            'package_length_cm',
+            'package_width_cm',
+            'package_height_cm',
+            'package_value',
+            'is_fragile',
+            # Recipient
+            'recipient_name',
+            'recipient_phone',
+            'recipient_alternative_phone',
+            # Payment
+            'payment_method',
+            'cod_amount',
+            # Scheduling
+            'scheduling_type',
+            'scheduled_pickup_time',
+        ]
     
     def validate_pickup_commune(self, value):
         """Normaliser commune au format Title Case"""
