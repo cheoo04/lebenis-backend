@@ -26,6 +26,7 @@ from apps.merchants.models import Merchant
 from apps.drivers.models import Driver
 from core.permissions import IsMerchant, IsDriver, IsAdmin, IsMerchantOrIndividual
 from apps.notifications.services import notify_delivery_status_change
+import sentry_sdk
 from geopy.distance import geodesic
 from apps.core.location_service import LocationService
 import os
@@ -570,60 +571,105 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             except Exception:
                 REQUIRE_GPS_FOR_PICKUP = False
 
-            # Seuil configurable via env (en km). Par défaut 10 km (~200 m).
+            # Seuil configurable via env (en km). Par défaut 0.2 km.
             try:
-                PICKUP_PROXIMITY_KM = float(os.getenv('PICKUP_PROXIMITY_KM', '10'))
+                PICKUP_PROXIMITY_KM = float(os.getenv('PICKUP_PROXIMITY_KM', '0.2'))
             except Exception:
-                PICKUP_PROXIMITY_KM = 10
+                PICKUP_PROXIMITY_KM = 0.2
 
-            close_enough = True
             distance_km = None
-            try:
-                def _is_missing_coord(lat, lon):
-                    try:
-                        if lat is None or lon is None:
-                            return True
-                        # Treat (0.0, 0.0) as invalid/missing coordinate
-                        return float(lat) == 0.0 and float(lon) == 0.0
-                    except Exception:
-                        return True
 
-                if pickup_coords and not _is_missing_coord(driver_lat, driver_lon):
-                    # Tenter d'utiliser le routing (route réelle) pour une mesure plus exacte
+            def _is_missing_coord(lat, lon):
+                try:
+                    if lat is None or lon is None:
+                        return True
+                    return float(lat) == 0.0 and float(lon) == 0.0
+                except Exception:
+                    return True
+
+            # If pickup has no explicit coords, try to use zone centroid (quartier -> commune)
+            pickup_source = 'coords'
+            if pickup_coords is None:
+                try:
+                    calculator = PricingCalculator()
+                    origin_zone = calculator.get_zone_from_quartier(delivery.pickup_quartier, delivery.pickup_commune)
+                    if getattr(origin_zone, 'default_latitude', None) is not None and getattr(origin_zone, 'default_longitude', None) is not None:
+                        pickup_coords = (float(origin_zone.default_latitude), float(origin_zone.default_longitude))
+                        pickup_source = 'zone_centroid'
+                        logger.debug(f"confirm_pickup: using zone centroid for pickup {pickup_coords}")
+                except Exception:
+                    logger.debug('confirm_pickup: no pickup coords and no zone centroid available')
+
+            # If driver GPS missing or invalid and GPS is required, but driver provided photo/signature, accept (business rule)
+            pickup_photo = request.data.get('pickup_photo') or request.data.get('photo_url') or request.data.get('pickup_photo_url')
+            pickup_signature = request.data.get('pickup_signature') or request.data.get('signature_url') or request.data.get('pickup_signature_url')
+
+            if _is_missing_coord(driver_lat, driver_lon):
+                logger.warning(f"confirm_pickup: missing or invalid driver gps driver=({driver_lat},{driver_lon})")
+                # If proof is provided, allow confirmation even without GPS
+                if pickup_photo or pickup_signature:
+                    logger.info(f"confirm_pickup: accepting pickup based on provided proof (photo/signature) for delivery {delivery.id}")
+                else:
+                    if REQUIRE_GPS_FOR_PICKUP:
+                        # Capture Sentry event to track occurrences in production
+                        try:
+                            event = {
+                                'message': 'confirm_pickup: require_gps',
+                                'level': 'warning',
+                                'tags': {
+                                    'event': 'confirm_pickup_require_gps',
+                                    'pickup_source': pickup_source,
+                                    'env': os.getenv('DJANGO_ENV', os.getenv('ENV', 'unknown')),
+                                },
+                                'extra': {
+                                    'delivery_id': str(getattr(delivery, 'id', None)),
+                                    'driver_id': str(getattr(driver, 'id', None)),
+                                    'driver_coords': {'lat': driver_lat, 'lon': driver_lon},
+                                    'pickup_commune': getattr(delivery, 'pickup_commune', None),
+                                    'driver_last_update': getattr(driver, 'updated_at', None),
+                                }
+                            }
+                            sentry_sdk.capture_event(event)
+                        except Exception:
+                            logger.debug('sentry capture failed for require_gps')
+
+                        return Response({
+                            'error': 'Coordonnées GPS du livreur manquantes ou invalides. Activez le GPS et actualisez votre position.',
+                            'driver_coords': {'lat': driver_lat, 'lon': driver_lon},
+                            'driver_last_update': getattr(driver, 'updated_at', None),
+                            'pickup_source': pickup_source,
+                            'pickup_commune': getattr(delivery, 'pickup_commune', None),
+                            'require_gps': True,
+                        }, status=422)
+
+            # If we have pickup coords and driver coords, compute distance and enforce proximity
+            if pickup_coords is not None and not _is_missing_coord(driver_lat, driver_lon):
+                try:
+                    # Try routing for realistic distance; fallback to geodesic
                     try:
                         route = LocationService.get_route(float(driver_lat), float(driver_lon), float(pickup_coords[0]), float(pickup_coords[1]))
                         if route and isinstance(route, dict) and route.get('distance_km') is not None:
                             distance_km = float(route.get('distance_km'))
                             logger.debug(f"confirm_pickup: routed distance_km={distance_km}")
                         else:
-                            # Fallback: utiliser la distance géodésique
                             driver_pos = (float(driver_lat), float(driver_lon))
                             distance_km = geodesic(pickup_coords, driver_pos).km
                             logger.debug(f"confirm_pickup: fallback geodesic distance_km={distance_km}")
                     except Exception as e:
-                        # Si le service de routing échoue, fallback sur géodesic
                         logger.exception(f"Routing check failed in confirm_pickup, falling back to geodesic: {e}")
                         driver_pos = (float(driver_lat), float(driver_lon))
                         distance_km = geodesic(pickup_coords, driver_pos).km
-                    else:
-                        # Si l'une des coordonnées manque ou est invalide
-                        logger.warning(
-                            f"confirm_pickup: missing or invalid gps data pickup={pickup_coords} driver=({driver_lat},{driver_lon})",
-                        )
-                        if REQUIRE_GPS_FOR_PICKUP:
-                            return Response({
-                                'error': 'Coordonnées GPS du livreur manquantes ou invalides. Autorisation de confirmation refusée.',
-                                'driver_coords': {'lat': driver_lat, 'lon': driver_lon},
-                                'require_gps': True,
-                            }, status=422)
-            except Exception as e:
-                logger.exception(f"Error computing distance for confirm_pickup: {e}")
+                except Exception as e:
+                    logger.exception(f"Error computing distance for confirm_pickup: {e}")
 
-            if distance_km is not None and distance_km > PICKUP_PROXIMITY_KM:
-                return Response({
-                    'error': f"Vous devez être à proximité du point d'enlèvement pour confirmer la récupération (≈{PICKUP_PROXIMITY_KM} km).",
-                    'distance_km': round(distance_km, 3)
-                }, status=status.HTTP_400_BAD_REQUEST)
+                if distance_km is not None and distance_km > PICKUP_PROXIMITY_KM:
+                    return Response({
+                        'error': f"Vous devez être à proximité du point d'enlèvement pour confirmer la récupération (≈{PICKUP_PROXIMITY_KM} km).",
+                        'distance_km': round(distance_km, 3),
+                        'pickup_source': pickup_source,
+                        'pickup_coords': pickup_coords,
+                        'driver_coords': {'lat': driver_lat, 'lon': driver_lon},
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
             # Optionnel: accepter preuve photo/signature fournie au moment de l'enlèvement
             pickup_photo = request.data.get('pickup_photo') or request.data.get('photo_url') or request.data.get('pickup_photo_url')

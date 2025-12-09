@@ -79,7 +79,7 @@ class ChatRepository {
   Future<int> getUnreadCount() async {
     try {
       final response = await _dioClient.get(
-        '${ApiConstants.baseUrl}/api/v1/chat/unread-count/',
+        '${ApiConstants.baseUrl}/api/v1/chat/rooms/unread-count/',
       );
       return response.data['unread_count'] ?? 0;
     } catch (e) {
