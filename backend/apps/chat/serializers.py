@@ -92,7 +92,9 @@ class CreateChatRoomSerializer(serializers.Serializer):
     """Serializer pour créer une nouvelle conversation"""
     
     other_user_id = serializers.UUIDField(required=True)
-    delivery_id = serializers.UUIDField(required=False, allow_null=True)
+    # Accept either a UUID string, null, or an empty string from clients.
+    # We'll normalize to `None` or a UUID string in `validate_delivery_id`.
+    delivery_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     room_type = serializers.ChoiceField(
         choices=['delivery', 'support'],
         default='delivery'
@@ -102,6 +104,23 @@ class CreateChatRoomSerializer(serializers.Serializer):
         allow_blank=True,
         max_length=1000
     )
+
+    def validate_delivery_id(self, value):
+        """Normalize delivery_id: accept None/empty string, or a valid UUID string.
+
+        Returns None when the client sends null/empty, otherwise the canonical
+        UUID string. Raises a ValidationError on invalid UUID format.
+        """
+        if value is None or (isinstance(value, str) and value.strip() == ''):
+            return None
+
+        # If it's already a UUID instance (unlikely), cast to str
+        try:
+            import uuid
+            # uuid.UUID will raise ValueError for invalid formats
+            return str(uuid.UUID(str(value)))
+        except Exception:
+            raise serializers.ValidationError('delivery_id must be a valid UUID or empty')
 
 
 class ChatMessageSerializer(serializers.ModelSerializer):
