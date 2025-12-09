@@ -28,6 +28,7 @@ class ModernTextField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final Function(String)? onFieldSubmitted;
   final TextCapitalization textCapitalization;
+  final bool isCompact;
 
   const ModernTextField({
     super.key,
@@ -50,10 +51,14 @@ class ModernTextField extends StatelessWidget {
     this.textInputAction,
     this.onFieldSubmitted,
     this.textCapitalization = TextCapitalization.none,
+    this.isCompact = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Determine effective compact mode: explicit or inferred from label
+    final effectiveCompact = isCompact || ((label ?? '').toLowerCase().contains('commune')) || ((label ?? '').toLowerCase().contains('quartier'));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -81,16 +86,19 @@ class ModernTextField extends StatelessWidget {
           textInputAction: textInputAction,
           onFieldSubmitted: onFieldSubmitted,
           textCapitalization: textCapitalization,
-          style: AppTypography.bodyMedium,
+          style: AppTypography.bodyMedium.copyWith(fontSize: effectiveCompact ? 14 : null),
           decoration: InputDecoration(
             hintText: hint,
             errorText: errorText,
             filled: true,
             fillColor: enabled ? AppColors.surface : AppColors.background,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.md,
-            ),
+              isDense: effectiveCompact,
+              contentPadding: effectiveCompact
+                  ? const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 8)
+                  : const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                      vertical: AppSpacing.md,
+                    ),
             
             // Bordures arrondies
             border: OutlineInputBorder(

@@ -15,10 +15,15 @@ class ZoneTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(zoneName),
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      title: Text(
+        zoneName,
+        style: const TextStyle(fontSize: 14),
+      ),
       trailing: selected
-          ? const Icon(Icons.check_circle, color: Colors.green)
-          : const Icon(Icons.radio_button_unchecked),
+          ? const Icon(Icons.check_circle, color: Colors.green, size: 20)
+          : const Icon(Icons.radio_button_unchecked, size: 20),
       onTap: onTap,
     );
   }

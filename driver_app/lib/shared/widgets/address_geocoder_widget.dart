@@ -97,6 +97,8 @@ class _AddressGeocoderWidgetState extends ConsumerState<AddressGeocoderWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // Determine compact mode from label (or leave default behaviour)
+    final effectiveCompact = ((widget.label ?? '').toLowerCase().contains('commune')) || ((widget.label ?? '').toLowerCase().contains('quartier'));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,10 +124,13 @@ class _AddressGeocoderWidgetState extends ConsumerState<AddressGeocoderWidget> {
                     onPressed: _geocodeAddress,
                     tooltip: 'Géocoder l\'adresse',
                   ),
+            isDense: effectiveCompact,
+            contentPadding: effectiveCompact ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8) : const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
-          maxLines: 2,
+          maxLines: effectiveCompact ? 1 : 2,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _geocodeAddress(),
+          style: TextStyle(fontSize: effectiveCompact ? 14 : 15),
         ),
         if (_coordinates != null) ...[
           const SizedBox(height: 8),
