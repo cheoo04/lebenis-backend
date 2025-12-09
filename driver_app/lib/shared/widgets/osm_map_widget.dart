@@ -70,50 +70,27 @@ class OsmMarkerHelper {
   }) {
     return Marker(
       point: position,
-      width: 32,
-      height: 32,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: AppColors.success,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.circle_outlined,
-              color: Colors.white,
-              size: 16,
-            ),
-          ),
-          if (label != null) ...[
-            const SizedBox(height: 2),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 72),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  label,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
-                ),
-              ),
+      width: 24,
+      height: 24,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.success,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 2,
+              offset: const Offset(0, 1),
             ),
           ],
-        ],
+        ),
+        child: const Icon(
+          Icons.circle_outlined,
+          color: Colors.white,
+          size: 12,
+        ),
       ),
     );
   }
@@ -125,50 +102,27 @@ class OsmMarkerHelper {
   }) {
     return Marker(
       point: position,
-      width: 32,
-      height: 32,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: AppColors.error,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.location_on,
-              color: Colors.white,
-              size: 16,
-            ),
-          ),
-          if (label != null) ...[
-            const SizedBox(height: 2),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 72),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  label,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
-                ),
-              ),
+      width: 24,
+      height: 24,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.error,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 2,
+              offset: const Offset(0, 1),
             ),
           ],
-        ],
+        ),
+        child: const Icon(
+          Icons.location_on,
+          color: Colors.white,
+          size: 12,
+        ),
       ),
     );
   }
@@ -181,52 +135,29 @@ class OsmMarkerHelper {
   }) {
     return Marker(
       point: position,
-      width: 40,
-      height: 40,
+      width: 32,
+      height: 32,
       child: Transform.rotate(
         angle: heading ?? 0,
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withAlpha((0.5 * 255).round()),
-                    blurRadius: 6,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.navigation,
-                color: Colors.white,
-                size: 18,
-              ),
-            ),
-            if (label != null) ...[
-              const SizedBox(height: 2),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 80),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    label,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
-                  ),
-                ),
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withAlpha((0.5 * 255).round()),
+                blurRadius: 4,
+                spreadRadius: 0,
               ),
             ],
-          ],
+          ),
+          child: const Icon(
+            Icons.navigation,
+            color: Colors.white,
+            size: 14,
+          ),
         ),
       ),
     );
