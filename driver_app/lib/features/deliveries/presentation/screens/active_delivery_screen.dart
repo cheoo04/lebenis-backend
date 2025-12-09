@@ -659,7 +659,6 @@ class _DestinationCard extends StatelessWidget {
             SelectableText(
               address,
               maxLines: 3,
-              overflow: TextOverflow.ellipsis,
               style: AppTypography.bodyLarge,
             ),
 
@@ -692,8 +691,11 @@ class _DestinationCard extends StatelessWidget {
                   ),
                 ),
 
-                // Right: action buttons (bigger, accessible)
-                Row(
+                // Right: action buttons (bigger, accessible) - use Wrap to avoid infinite width during layout
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.xs,
+                  alignment: WrapAlignment.end,
                   children: [
                     ElevatedButton.icon(
                       onPressed: phone != null ? () => onCall(phone) : null,
@@ -706,7 +708,6 @@ class _DestinationCard extends StatelessWidget {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.sm),
                     OutlinedButton.icon(
                       onPressed: () {
                         Helpers.showSnackBar(context, 'Ouverture de Google Maps...');

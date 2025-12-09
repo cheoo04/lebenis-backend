@@ -17,6 +17,10 @@ from .quartiers_data import (
     search_quartiers,
     get_communes_list,
 )
+import logging
+import sentry_sdk
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['GET'])
@@ -669,12 +673,26 @@ def get_delivery_route(request):
             'error': 'Les champs "pickup" et "delivery" sont requis'
         }, status=status.HTTP_400_BAD_REQUEST)
     
-    try:
-        pickup_lat = float(pickup.get('lat') or pickup.get('latitude'))
-        pickup_lon = float(pickup.get('lng') or pickup.get('longitude'))
-        delivery_lat = float(delivery.get('lat') or delivery.get('latitude'))
-        delivery_lon = float(delivery.get('lng') or delivery.get('longitude'))
-    except (TypeError, ValueError, AttributeError):
+    # Safe float parsing helper to avoid TypeError when values are None
+    def _to_float_from(obj, *keys):
+        if not isinstance(obj, dict):
+            return None
+        for k in keys:
+            v = obj.get(k)
+            if v is None:
+                continue
+            try:
+                return float(v)
+            except (TypeError, ValueError):
+                return None
+        return None
+
+    pickup_lat = _to_float_from(pickup, 'lat', 'latitude')
+    pickup_lon = _to_float_from(pickup, 'lng', 'longitude')
+    delivery_lat = _to_float_from(delivery, 'lat', 'latitude')
+    delivery_lon = _to_float_from(delivery, 'lng', 'longitude')
+
+    if pickup_lat is None or pickup_lon is None or delivery_lat is None or delivery_lon is None:
         # Detailed invalid coords handling
         logger.debug('get_delivery_route: invalid coordinates', extra={'payload_keys': list(request.data.keys())})
         try:
