@@ -9,6 +9,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../chat/screens/conversations_list_screen.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../data/providers/driver_provider.dart';
+import '../../../../shared/widgets/loading_widget.dart';
 
 /// Écran principal avec navigation moderne par tabs
 class HomeScreen extends ConsumerStatefulWidget {
@@ -34,6 +35,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/login');
         }
+      }
+      // Charger le profil du driver dès l'ouverture pour éviter un affichage
+      // temporaire du dashboard avant que le provider soit initialisé.
+      try {
+        await ref.read(driverProvider.notifier).loadProfile();
+        await ref.read(driverProvider.notifier).loadStats();
+      } catch (_) {
+        // Ignorer les erreurs ici; l'écran gérera l'état d'erreur via le provider
       }
     });
     
@@ -68,8 +77,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final driverState = ref.watch(driverProvider);
-    
-    // Si le driver n'est pas vérifié, afficher l'écran d'attente
+
+    // Si on est en train de charger le profil et qu'il n'existe pas encore,
+    // afficher un écran de chargement pour éviter le "flash" du profil.
+    if (driverState.isLoading && driverState.driver == null) {
+      return const Scaffold(
+        body: LoadingWidget(message: 'Chargement du profil...'),
+      );
+    }
+
+    // Si le driver existe mais n'est pas vérifié, afficher l'écran d'attente
     if (driverState.driver != null && !driverState.driver!.isVerified) {
       return const WaitingVerificationScreen();
     }

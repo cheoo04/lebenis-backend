@@ -142,6 +142,9 @@ class DriverViewSet(viewsets.ModelViewSet):
         deliveries = Delivery.objects.filter(status='pending')
         
         # Filtre zone (sauf si show_all) - CASE INSENSITIVE
+        # Ensure commune_counts is always defined (avoid UnboundLocalError below)
+        commune_counts = {}
+
         if driver_zones and not show_all:
             # Utiliser Q objects pour faire une recherche insensible à la casse pour chaque zone
             zone_queries = Q()

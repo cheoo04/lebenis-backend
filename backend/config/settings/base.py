@@ -536,3 +536,30 @@ CELERY_BEAT_SCHEDULE = {
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 CELERY_WORKER_LOG_FORMAT = '[%(asctime)s: %(levelname)s/%(processName)s] %(message)s'
 CELERY_WORKER_TASK_LOG_FORMAT = '[%(asctime)s: %(levelname)s/%(processName)s][%(task_name)s(%(task_id)s)] %(message)s'
+
+# --- Diagnostic helper: log resolved broker/backend (sanitized) at startup ---
+import logging
+_logger = logging.getLogger(__name__)
+
+def _mask_redis_url(url: str) -> str:
+    """Return a sanitized version of a redis/rediss URL for logs (hide credentials)."""
+    try:
+        p = urlparse(url)
+        if p.username or p.password:
+            # hide userinfo
+            netloc = '***:***@' + (p.hostname or '')
+            if p.port:
+                netloc += f':{p.port}'
+        else:
+            netloc = f"{p.hostname or ''}{(':'+str(p.port)) if p.port else ''}"
+        return f"{p.scheme}://{netloc}{p.path or ''}"
+    except Exception:
+        return url
+
+# Log the resolved values once (info-level). In production logs this helps
+# confirm which broker the Django/Celery process will attempt to use.
+try:
+    _logger.info("Resolved Celery broker: %s", _mask_redis_url(CELERY_BROKER_URL))
+    _logger.info("Resolved Celery result backend: %s", _mask_redis_url(CELERY_RESULT_BACKEND))
+except Exception:
+    _logger.debug("Could not log Celery broker/result backend (masking failed)")
