@@ -11,6 +11,7 @@ import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_radius.dart';
 import '../../../../shared/widgets/modern_button.dart';
+import '../../../../shared/widgets/small_circle_icon_button.dart';
 import '../../../../shared/widgets/modern_card.dart';
 import '../../../../shared/widgets/status_chip.dart';
 import '../../../../shared/utils/formatters.dart';
@@ -150,7 +151,7 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final delivery = widget.delivery;
+    final delivery = ref.watch(deliveryProvider).activeDelivery ?? widget.delivery;
     final locationState = ref.watch(locationProvider);
     final isGpsReady = ref.watch(isGpsReadyProvider);
 
@@ -518,30 +519,19 @@ class _DestinationCard extends StatelessWidget {
                 ),
                 Row(
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.success,
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.phone),
-                        onPressed: () => onCall(phone),
-                        color: Colors.white,
-                      ),
+                    // Compact phone button
+                    SmallCircleIconButton(
+                      icon: Icons.phone,
+                      backgroundColor: AppColors.success,
+                      onPressed: () => onCall(phone),
                     ),
                     const SizedBox(width: AppSpacing.sm),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.navigation),
-                        onPressed: () {
-                          Helpers.showSnackBar(context, 'Ouverture de Google Maps...');
-                        },
-                        color: Colors.white,
-                      ),
+                    SmallCircleIconButton(
+                      icon: Icons.navigation,
+                      backgroundColor: AppColors.primary,
+                      onPressed: () {
+                        Helpers.showSnackBar(context, 'Ouverture de Google Maps...');
+                      },
                     ),
                   ],
                 ),

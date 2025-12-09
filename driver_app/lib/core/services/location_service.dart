@@ -1,6 +1,7 @@
 // lib/core/services/location_service.dart
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -14,24 +15,47 @@ class LocationService {
 
   /// Vérifier si les permissions de localisation sont accordées
   Future<bool> hasLocationPermission() async {
-    final status = await Permission.locationWhenInUse.status;
-    return status.isGranted;
+    try {
+      final status = await Permission.locationWhenInUse.status;
+      return status.isGranted;
+    } on MissingPluginException catch (e) {
+      if (kDebugMode) debugPrint('Permission plugin missing: $e');
+      return false;
+    } catch (e) {
+      if (kDebugMode) debugPrint('Erreur vérification permission: $e');
+      return false;
+    }
   }
 
   /// Demander les permissions de localisation
   Future<bool> requestLocationPermission() async {
-    final status = await Permission.locationWhenInUse.request();
-    
-    if (status.isDenied || status.isPermanentlyDenied) {
+    try {
+      final status = await Permission.locationWhenInUse.request();
+
+      if (status.isDenied || status.isPermanentlyDenied) {
+        return false;
+      }
+
+      return status.isGranted;
+    } on MissingPluginException catch (e) {
+      if (kDebugMode) debugPrint('Permission plugin missing (request): $e');
+      return false;
+    } catch (e) {
+      if (kDebugMode) debugPrint('Erreur requestLocationPermission: $e');
       return false;
     }
-    
-    return status.isGranted;
   }
 
   /// Ouvrir les paramètres de l'app si permission refusée
-  Future<void> openAppSettings() async {
-    await openAppSettings();
+  /// Ouvrir la page des paramètres d'application (si supportée)
+  Future<void> openAppSettingsPage() async {
+    try {
+      await openAppSettings();
+    } on MissingPluginException catch (e) {
+      if (kDebugMode) debugPrint('openAppSettings plugin missing: $e');
+    } catch (e) {
+      if (kDebugMode) debugPrint('Erreur openAppSettingsPage: $e');
+    }
   }
 
   // ========== SERVICE LOCALISATION ==========

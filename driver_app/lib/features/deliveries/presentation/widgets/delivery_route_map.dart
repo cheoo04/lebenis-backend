@@ -170,117 +170,128 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Carte
-        Container(
-          height: widget.height,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Si le parent contraint la hauteur, on l'utilise. Sinon on tombe
+        // sur la hauteur fournie ou une valeur par défaut sûre.
+        final availableHeight = constraints.maxHeight.isFinite ? constraints.maxHeight : double.nan;
+        final effectiveHeight = widget.height.isFinite
+            ? widget.height
+            : (availableHeight.isFinite ? availableHeight : 300.0);
+
+        return Column(
+          children: [
+            // Carte
+            Container(
+              height: effectiveHeight,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            child: Stack(
-              children: [
-                OsmMapWidget(
-                  center: widget.pickupLocation,
-                  zoom: 14,
-                  markers: _buildMarkers(),
-                  polylines: _buildPolylines(),
-                  mapController: _mapController,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                child: Stack(
+                  children: [
+                    OsmMapWidget(
+                      center: widget.pickupLocation,
+                      zoom: 14,
+                      markers: _buildMarkers(),
+                      polylines: _buildPolylines(),
+                      mapController: _mapController,
+                    ),
+
+                    // Indicateur de chargement
+                    if (_isLoading)
+                      Positioned(
+                        top: AppSpacing.sm,
+                        right: AppSpacing.sm,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 12,
+                                height: 12,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                                ),
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                'Calcul...',
+                                style: TextStyle(fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    // Badge source de la route
+                    if (_routeLoaded && _routeResult != null)
+                      Positioned(
+                        bottom: AppSpacing.sm,
+                        left: AppSpacing.sm,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.check_circle, size: 12, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text(
+                                'Route réelle',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-                
-                // Indicateur de chargement
-                if (_isLoading)
-                  Positioned(
-                    top: AppSpacing.sm,
-                    right: AppSpacing.sm,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 12,
-                            height: 12,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(AppColors.primary),
-                            ),
-                          ),
-                          SizedBox(width: 6),
-                          Text(
-                            'Calcul...',
-                            style: TextStyle(fontSize: 11),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                
-                // Badge source de la route
-                if (_routeLoaded && _routeResult != null)
-                  Positioned(
-                    bottom: AppSpacing.sm,
-                    left: AppSpacing.sm,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check_circle, size: 12, color: Colors.white),
-                          SizedBox(width: 4),
-                          Text(
-                            'Route réelle',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
+              ),
             ),
-          ),
-        ),
-        
-        // Infos de route
-        if (widget.showRouteInfo && _routeResult != null)
-          Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.md),
-            child: RouteInfoCard(route: _routeResult!),
-          ),
-      ],
+
+            // Infos de route
+            if (widget.showRouteInfo && _routeResult != null)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.md),
+                child: RouteInfoCard(route: _routeResult!),
+              ),
+          ],
+        );
+      },
     );
   }
 }

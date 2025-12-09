@@ -23,6 +23,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -35,6 +36,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    // Prevent double submission in the short race window before the provider state updates
+    if (_isSubmitting) return;
+    _isSubmitting = true;
 
     // Unfocus keyboard
     Helpers.unfocus(context);
@@ -62,6 +67,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) return;
       // Ne pas afficher l'erreur ici car elle est déjà dans authState.error
       // et sera affichée par le widget d'erreur en bas de l'écran
+    }
+    finally {
+      _isSubmitting = false;
     }
   }
 

@@ -82,8 +82,25 @@ class DocumentCard extends StatelessWidget {
                     showDialog(
                       context: context,
                       builder: (_) => Dialog(
-                        child: InteractiveViewer(
-                          child: Image.network(url!),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final maxW = MediaQuery.of(context).size.width * 0.9;
+                            final maxH = MediaQuery.of(context).size.height * 0.8;
+                            return SizedBox(
+                              width: maxW,
+                              height: maxH,
+                              child: InteractiveViewer(
+                                panEnabled: true,
+                                scaleEnabled: true,
+                                child: Center(
+                                  child: Image.network(
+                                    url!,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     );
