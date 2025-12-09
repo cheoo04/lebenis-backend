@@ -46,38 +46,22 @@ class OsmMarkerHelper {
   static Marker pickup(LatLng position, {String? label}) {
     return Marker(
       point: position,
-      width: 40,
-      height: 40,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.success,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+      width: 24,
+      height: 24,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.success,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.18),
+              blurRadius: 3,
+              offset: const Offset(0, 1),
             ),
-            child: const Icon(Icons.location_on, color: Colors.white, size: 24),
-          ),
-          if (label != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                label,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-              ),
-            ),
-        ],
+          ],
+        ),
+        child: const Icon(Icons.location_on, color: Colors.white, size: 12),
       ),
     );
   }
@@ -85,38 +69,22 @@ class OsmMarkerHelper {
   static Marker delivery(LatLng position, {String? label}) {
     return Marker(
       point: position,
-      width: 40,
-      height: 40,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.error,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+      width: 24,
+      height: 24,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.error,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.18),
+              blurRadius: 3,
+              offset: const Offset(0, 1),
             ),
-            child: const Icon(Icons.flag, color: Colors.white, size: 24),
-          ),
-          if (label != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                label,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-              ),
-            ),
-        ],
+          ],
+        ),
+        child: const Icon(Icons.flag, color: Colors.white, size: 12),
       ),
     );
   }
@@ -124,39 +92,23 @@ class OsmMarkerHelper {
   static Marker driver(LatLng position, {String? label}) {
     return Marker(
       point: position,
-      width: 40,
-      height: 40,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 6,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+      width: 32,
+      height: 32,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
-            child: const Icon(Icons.local_shipping, color: Colors.white, size: 24),
-          ),
-          if (label != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                label,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-              ),
-            ),
-        ],
+          ],
+        ),
+        child: const Icon(Icons.local_shipping, color: Colors.white, size: 14),
       ),
     );
   }
