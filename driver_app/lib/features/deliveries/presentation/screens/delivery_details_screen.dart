@@ -511,6 +511,8 @@ class _AddressCard extends StatelessWidget {
     required this.iconColor,
     required this.title,
     required this.address,
+    this.contactName,
+    this.contactPhone,
   });
 
   @override

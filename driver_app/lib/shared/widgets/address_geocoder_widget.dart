@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import '../../data/providers/geolocation_provider.dart';
+import '../utils/input_decorations.dart';
 
 /// Widget pour saisir une adresse et la géocoder automatiquement
 class AddressGeocoderWidget extends ConsumerStatefulWidget {
@@ -97,19 +98,20 @@ class _AddressGeocoderWidgetState extends ConsumerState<AddressGeocoderWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Determine compact mode from label (or leave default behaviour)
-    final effectiveCompact = ((widget.label ?? '').toLowerCase().contains('commune')) || ((widget.label ?? '').toLowerCase().contains('quartier'));
+    // Use shared helper to build consistent decoration that can infer compact mode
+    final decoration = compactInputDecoration(
+      label: widget.label ?? 'Adresse complète',
+      hint: widget.hint ?? 'Ex: Rue des Jardins, Cocody',
+      prefixIcon: Icons.location_on,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextField(
           controller: _addressController,
-          decoration: InputDecoration(
-            labelText: widget.label ?? 'Adresse complète',
-            hintText: widget.hint ?? 'Ex: Rue des Jardins, Cocody',
+          decoration: decoration.copyWith(
             border: const OutlineInputBorder(),
-            prefixIcon: const Icon(Icons.location_on),
             suffixIcon: _isLoading
                 ? const Padding(
                     padding: EdgeInsets.all(12.0),
@@ -124,13 +126,11 @@ class _AddressGeocoderWidgetState extends ConsumerState<AddressGeocoderWidget> {
                     onPressed: _geocodeAddress,
                     tooltip: 'Géocoder l\'adresse',
                   ),
-            isDense: effectiveCompact,
-            contentPadding: effectiveCompact ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8) : const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
-          maxLines: effectiveCompact ? 1 : 2,
+          maxLines: (decoration.isDense ?? false) ? 1 : 2,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _geocodeAddress(),
-          style: TextStyle(fontSize: effectiveCompact ? 14 : 15),
+          style: TextStyle(fontSize: (decoration.isDense ?? false) ? 14 : 15),
         ),
         if (_coordinates != null) ...[
           const SizedBox(height: 8),
