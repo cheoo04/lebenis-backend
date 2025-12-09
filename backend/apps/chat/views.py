@@ -2,7 +2,7 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.utils import timezone
 import logging
 
@@ -229,12 +229,12 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             'message': f"Conversation {'archivée' if archive else 'désarchivée'}"
         })
     
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['get'], url_path='unread-count')
     def unread_count(self, request):
         """
         Retourne le nombre total de messages non lus.
-        
-        GET /chat/rooms/unread_count/
+
+        GET /chat/rooms/unread-count/
         """
         user = request.user
         
@@ -242,12 +242,12 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             total_unread = ChatRoom.objects.filter(
                 driver=user,
                 is_active=True
-            ).aggregate(total=models.Sum('driver_unread_count'))['total'] or 0
+            ).aggregate(total=Sum('driver_unread_count'))['total'] or 0
         else:
             total_unread = ChatRoom.objects.filter(
                 other_user=user,
                 is_active=True
-            ).aggregate(total=models.Sum('other_user_unread_count'))['total'] or 0
+            ).aggregate(total=Sum('other_user_unread_count'))['total'] or 0
         
         return Response({'unread_count': total_unread})
 

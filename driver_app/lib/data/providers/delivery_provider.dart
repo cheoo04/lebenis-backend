@@ -23,6 +23,7 @@ class DeliveryState {
   final DeliveryModel? activeDelivery;
   final String? error;
   final String? successMessage;
+  final Map<String, dynamic>? pickupError;
 
   DeliveryState({
     this.isLoading = false,
@@ -30,6 +31,7 @@ class DeliveryState {
     this.activeDelivery,
     this.error,
     this.successMessage,
+    this.pickupError,
   });
 
   DeliveryState copyWith({
@@ -41,6 +43,8 @@ class DeliveryState {
     bool clearError = false,
     bool clearSuccess = false,
     bool clearActiveDelivery = false,
+    Map<String, dynamic>? pickupError,
+    bool clearPickupError = false,
   }) {
     return DeliveryState(
       isLoading: isLoading ?? this.isLoading,
@@ -48,6 +52,7 @@ class DeliveryState {
       activeDelivery: clearActiveDelivery ? null : (activeDelivery ?? this.activeDelivery),
       error: clearError ? null : error,
       successMessage: clearSuccess ? null : successMessage,
+      pickupError: clearPickupError ? null : (pickupError ?? this.pickupError),
     );
   }
 }
@@ -202,9 +207,24 @@ class DeliveryNotifier extends Notifier<DeliveryState> {
         isLoading: false,
         activeDelivery: delivery,
         successMessage: 'Colis récupéré avec succès',
+        clearPickupError: true,
       );
       return true;
     } catch (e) {
+      // Si c'est une ApiException (gérée par DioClient -> ApiException)
+      try {
+        if (e is ApiException) {
+          if (e.statusCode == 422 && e.data is Map<String, dynamic>) {
+            state = state.copyWith(
+              isLoading: false,
+              error: e.message,
+              pickupError: Map<String, dynamic>.from(e.data as Map),
+            );
+            return false;
+          }
+        }
+      } catch (_) {}
+
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),

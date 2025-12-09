@@ -652,6 +652,18 @@ def get_delivery_route(request):
     driver = request.data.get('driver')
     
     if not pickup or not delivery:
+        # Log minimal context for debugging (avoid PII in logs)
+        logger.debug('get_delivery_route: missing pickup or delivery', extra={'pickup_present': bool(pickup), 'delivery_present': bool(delivery)})
+        try:
+            sentry_sdk.capture_event({
+                'message': 'get_delivery_route: missing pickup or delivery',
+                'level': 'warning',
+                'tags': {'endpoint': 'delivery-route', 'error': 'missing_fields'},
+                'extra': {'pickup_present': bool(pickup), 'delivery_present': bool(delivery)}
+            })
+        except Exception:
+            logger.debug('sentry capture failed in get_delivery_route')
+
         return Response({
             'success': False,
             'error': 'Les champs "pickup" et "delivery" sont requis'
@@ -663,9 +675,21 @@ def get_delivery_route(request):
         delivery_lat = float(delivery.get('lat') or delivery.get('latitude'))
         delivery_lon = float(delivery.get('lng') or delivery.get('longitude'))
     except (TypeError, ValueError, AttributeError):
+        # Detailed invalid coords handling
+        logger.debug('get_delivery_route: invalid coordinates', extra={'payload_keys': list(request.data.keys())})
+        try:
+            sentry_sdk.capture_event({
+                'message': 'get_delivery_route: invalid coordinates',
+                'level': 'warning',
+                'tags': {'endpoint': 'delivery-route', 'error': 'invalid_coords'},
+                'extra': {'payload_keys': list(request.data.keys())}
+            })
+        except Exception:
+            logger.debug('sentry capture failed in get_delivery_route invalid coords')
+
         return Response({
             'success': False,
-            'error': 'Coordonnées invalides'
+            'error': 'Coordonnées invalides: vérifiez que les champs lat/lng sont fournis et numériques'
         }, status=status.HTTP_400_BAD_REQUEST)
     
     driver_lat = driver_lon = None

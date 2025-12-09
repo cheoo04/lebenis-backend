@@ -33,6 +33,7 @@ class ActiveDeliveryScreen extends ConsumerStatefulWidget {
 class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
   bool _isProcessing = false;
   DeliveryStep _currentStep = DeliveryStep.goingToPickup;
+  Map<String, dynamic>? _lastPickupError;
 
   @override
   void initState() {
@@ -77,20 +78,25 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
     setState(() => _isProcessing = true);
 
     try {
-      // Ensure we have a fresh GPS position before confirming pickup
+      // Capture les notifiers/état AVANT les opérations asynchrones
       final locNotifier = ref.read(locationProvider.notifier);
+      final deliveryNotifier = ref.read(deliveryProvider.notifier);
       var currentPos = ref.read(currentPositionProvider);
+
+      // Demander une position si nécessaire
       if (currentPos == null) {
         currentPos = await locNotifier.getCurrentPosition();
       }
 
+      // Si le widget a été démonté pendant l'attente, quitter sans utiliser `ref`
+      if (!mounted) return;
+
       if (currentPos == null) {
-        if (!mounted) return;
         Helpers.showErrorSnackBar(context, 'Position GPS introuvable. Activez le GPS ou actualisez la position avant de confirmer.');
         return;
       }
 
-      final success = await ref.read(deliveryProvider.notifier).confirmPickup(id: widget.delivery.id);
+      final success = await deliveryNotifier.confirmPickup(id: widget.delivery.id);
 
       if (!mounted) return;
 
@@ -172,6 +178,19 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
     final delivery = ref.watch(deliveryProvider).activeDelivery ?? widget.delivery;
     final locationState = ref.watch(locationProvider);
     final isGpsReady = ref.watch(isGpsReadyProvider);
+    final pickupError = ref.watch(deliveryProvider).pickupError;
+
+    // Show the pickup error dialog once per distinct error payload
+    if (pickupError != null && pickupError != _lastPickupError) {
+      _lastPickupError = pickupError;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _showPickupErrorDialog(pickupError);
+        }
+      });
+    } else if (pickupError == null && _lastPickupError != null) {
+      _lastPickupError = null;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -186,155 +205,259 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Map Section with real route
-          Expanded(
-            flex: 2,
-            child: Stack(
-              children: [
-                // Real Map with Route
-                DeliveryRouteMap(
-                  pickupLocation: LatLng(
-                    delivery.pickupLatitude,
-                    delivery.pickupLongitude,
-                  ),
-                  deliveryLocation: LatLng(
-                    delivery.deliveryLatitude,
-                    delivery.deliveryLongitude,
-                  ),
-                  currentLocation: locationState.currentPosition != null
-                      ? LatLng(
-                          locationState.currentPosition!.latitude,
-                          locationState.currentPosition!.longitude,
-                        )
-                      : null,
-                  showRouteInfo: false,
-                  height: double.infinity,
-                ),
-                
-                // GPS Status Indicator
-                Positioned(
-                  top: AppSpacing.md,
-                  right: AppSpacing.md,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.sm,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isGpsReady ? AppColors.success : AppColors.warning,
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 8,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          locationState.isTracking ? Icons.gps_fixed : Icons.gps_off,
-                          color: Colors.white,
-                          size: 20.0,
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          locationState.isTracking ? 'GPS Actif' : 'GPS Inactif',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Delivery Info Section
-          Expanded(
-            flex: 3,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Map Section with real route - fixed proportional height to avoid overflow
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.36,
+              child: Stack(
+                fit: StackFit.expand,
                 children: [
-                  // Step Indicator
-                  _StepIndicator(currentStep: _currentStep),
-
-                  const SizedBox(height: AppSpacing.xl),
-
-                  // Current Destination Card
-                  _DestinationCard(
-                    step: _currentStep,
-                    delivery: delivery,
-                    onCall: _callContact,
-                  ),
-
-                  const SizedBox(height: AppSpacing.xl),
-
-                  // Delivery Info
-                  _InfoCard(
-                    icon: Icons.inventory_2_outlined,
-                    title: 'Informations',
-                    items: [
-                      if (delivery.packageDescription.isNotEmpty)
-                        InfoItem(
-                          label: 'Description',
-                          value: delivery.packageDescription,
-                        ),
-                      InfoItem(
-                        label: 'Montant',
-                        value: Formatters.formatPrice(delivery.price),
-                      ),
-                      InfoItem(
-                        label: 'Distance',
-                        value: Formatters.formatDistance(delivery.distanceKm),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: AppSpacing.xl),
-
-                  // Action Buttons
-                  if (_currentStep == DeliveryStep.goingToPickup) ...[
-                    ModernButton(
-                      text: 'Confirmer la récupération',
-                      onPressed: _isProcessing ? null : _confirmPickup,
-                      isLoading: _isProcessing,
-                      icon: Icons.check_circle,
-                      type: ModernButtonType.success,
+                  // Real Map with Route
+                  DeliveryRouteMap(
+                    pickupLocation: LatLng(
+                      delivery.pickupLatitude,
+                      delivery.pickupLongitude,
                     ),
-                  ] else if (_currentStep == DeliveryStep.goingToDelivery) ...[
-                    ModernButton(
-                      text: 'Confirmer la livraison',
-                      onPressed: _isProcessing ? null : _goToConfirmDelivery,
-                      isLoading: _isProcessing,
-                      icon: Icons.check_circle,
-                      type: ModernButtonType.success,
+                    deliveryLocation: LatLng(
+                      delivery.deliveryLatitude,
+                      delivery.deliveryLongitude,
                     ),
-                  ],
-
-                  const SizedBox(height: AppSpacing.md),
-
-                  ModernButton(
-                    text: 'Annuler la livraison',
-                    onPressed: _isProcessing ? null : _cancelDelivery,
-                    icon: Icons.cancel,
-                    type: ModernButtonType.outlined,
+                    currentLocation: locationState.currentPosition != null
+                        ? LatLng(
+                            locationState.currentPosition!.latitude,
+                            locationState.currentPosition!.longitude,
+                          )
+                        : null,
+                    showRouteInfo: false,
+                    height: double.infinity,
                   ),
 
-                  const SizedBox(height: AppSpacing.lg),
+                  // GPS Status Indicator (smaller, constrained)
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isGpsReady ? AppColors.success : AppColors.warning,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            locationState.isTracking ? Icons.gps_fixed : Icons.gps_off,
+                            color: Colors.white,
+                            size: 16.0,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            locationState.isTracking ? 'GPS Actif' : 'GPS Inactif',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-        ],
+
+            // Delivery Info Section (flexible, scrollable)
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Step Indicator
+                    _StepIndicator(currentStep: _currentStep),
+
+                    const SizedBox(height: AppSpacing.xl),
+
+                    // Current Destination Card
+                    _DestinationCard(
+                      step: _currentStep,
+                      delivery: delivery,
+                      onCall: _callContact,
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+
+                    // Delivery Info
+                    _InfoCard(
+                      icon: Icons.inventory_2_outlined,
+                      title: 'Informations',
+                      items: [
+                        if (delivery.packageDescription.isNotEmpty)
+                          InfoItem(
+                            label: 'Description',
+                            value: delivery.packageDescription,
+                          ),
+                        InfoItem(
+                          label: 'Montant',
+                          value: Formatters.formatPrice(delivery.price),
+                        ),
+                        InfoItem(
+                          label: 'Distance',
+                          value: Formatters.formatDistance(delivery.distanceKm),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+
+                    // Action Buttons
+                    Align(
+                      alignment: Alignment.center,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 520),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (_currentStep == DeliveryStep.goingToPickup) ...[
+                              ModernButton(
+                                text: 'Confirmer la récupération',
+                                onPressed: _isProcessing ? null : _confirmPickup,
+                                isLoading: _isProcessing,
+                                icon: Icons.check_circle,
+                                type: ModernButtonType.success,
+                              ),
+                            ] else if (_currentStep == DeliveryStep.goingToDelivery) ...[
+                              ModernButton(
+                                text: 'Confirmer la livraison',
+                                onPressed: _isProcessing ? null : _goToConfirmDelivery,
+                                isLoading: _isProcessing,
+                                icon: Icons.check_circle,
+                                type: ModernButtonType.success,
+                              ),
+                            ],
+
+                            const SizedBox(height: AppSpacing.md),
+
+                            ModernButton(
+                              text: 'Annuler la livraison',
+                              onPressed: _isProcessing ? null : _cancelDelivery,
+                              icon: Icons.cancel,
+                              type: ModernButtonType.outlined,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: AppSpacing.lg),
+                    // Bottom safe spacing
+                    SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Future<void> _showPickupErrorDialog(Map<String, dynamic> error) async {
+    final locNotifier = ref.read(locationProvider.notifier);
+    final deliveryNotifier = ref.read(deliveryProvider.notifier);
+
+    final message = error['error'] ?? 'La confirmation a échoué car la position GPS est requise.';
+    final driverCoords = error['driver_coords'];
+    final pickupCommune = error['pickup_commune'];
+    final pickupSource = error['pickup_source'];
+    final driverLastUpdate = error['driver_last_update'];
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Position GPS requise'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(message),
+              if (pickupCommune != null) ...[
+                const SizedBox(height: 8),
+                Text('Commune de fallback: $pickupCommune', style: Theme.of(context).textTheme.bodySmall),
+              ],
+              if (pickupSource != null) ...[
+                const SizedBox(height: 6),
+                Text('Source des coordonnées: $pickupSource', style: Theme.of(context).textTheme.bodySmall),
+              ],
+              if (driverCoords != null) ...[
+                const SizedBox(height: 8),
+                Text('Position serveur: $driverCoords', style: Theme.of(context).textTheme.bodySmall),
+              ],
+              if (driverLastUpdate != null) ...[
+                const SizedBox(height: 6),
+                Text('Dernière mise à jour GPS: $driverLastUpdate', style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                try {
+                  final pos = await locNotifier.getCurrentPosition();
+                  if (!mounted) return;
+                  if (pos != null) {
+                    Helpers.showSuccessSnackBar(context, 'Position actualisée');
+                  } else {
+                    Helpers.showErrorSnackBar(context, 'Impossible d\'obtenir la position. Activez le GPS et réessayez.');
+                  }
+                } catch (e) {
+                  if (!mounted) return;
+                  Helpers.showErrorSnackBar(context, 'Erreur lors de l\'actualisation de la position: $e');
+                }
+              },
+              child: const Text('Actualiser la position'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                setState(() => _isProcessing = true);
+                try {
+                  final success = await deliveryNotifier.confirmPickup(id: widget.delivery.id);
+                  if (!mounted) return;
+                  if (success) {
+                    Helpers.showSuccessSnackBar(context, 'Colis récupéré avec succès!');
+                    setState(() {
+                      _currentStep = DeliveryStep.goingToDelivery;
+                    });
+                  } else {
+                    final err = ref.read(deliveryProvider).error ?? 'Échec lors de la confirmation';
+                    Helpers.showErrorSnackBar(context, err);
+                  }
+                } catch (e) {
+                  if (!mounted) return;
+                  Helpers.showErrorSnackBar(context, 'Erreur: $e');
+                } finally {
+                  if (mounted) setState(() => _isProcessing = false);
+                }
+              },
+              child: const Text('Réessayer'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -486,70 +609,115 @@ class _DestinationCard extends StatelessWidget {
     final phone = isPickup ? null : delivery.recipientPhone;
 
     return Card(
-      elevation: 4,
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(
-                  isPickup ? Icons.circle_outlined : Icons.location_on,
-                  color: isPickup ? AppColors.success : AppColors.error,
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: (isPickup ? AppColors.success : AppColors.error).withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isPickup ? Icons.storefront : Icons.home,
+                    color: isPickup ? AppColors.success : AppColors.error,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                Text(
-                  isPickup ? 'Aller récupérer' : 'Livrer à',
-                  style: AppTypography.h3,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isPickup ? 'Aller récupérer' : 'Livrer à',
+                        style: AppTypography.h3,
+                      ),
+                      const SizedBox(height: 4),
+                      if (name != null)
+                        Text(
+                          name!,
+                          style: AppTypography.labelLarge.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),
+
             const SizedBox(height: AppSpacing.md),
-            Text(
+
+            // Address - allow up to 3 lines and selectable for copy
+            SelectableText(
               address,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
               style: AppTypography.bodyLarge,
             ),
+
             const SizedBox(height: AppSpacing.md),
             const Divider(),
             const SizedBox(height: AppSpacing.md),
+
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (name != null) ...[
-                      Text(
-                        name,
-                        style: AppTypography.labelLarge,
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                    ],
-                    if (phone != null)
-                      Text(
-                        Formatters.formatPhoneNumber(phone),
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: AppColors.textSecondary,
+                // Left: contact info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (phone != null) ...[
+                        Text(
+                          Formatters.formatPhoneNumber(phone),
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
+                        const SizedBox(height: AppSpacing.xs),
+                      ],
+                      Text(
+                        delivery.pickupCommune ?? '',
+                        style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                       ),
-                  ],
+                    ],
+                  ),
                 ),
+
+                // Right: action buttons (bigger, accessible)
                 Row(
                   children: [
-                    // Compact phone button
-                    SmallCircleIconButton(
-                      icon: Icons.phone,
-                      backgroundColor: AppColors.success,
-                      onPressed: () => onCall(phone),
+                    ElevatedButton.icon(
+                      onPressed: phone != null ? () => onCall(phone) : null,
+                      icon: const Icon(Icons.phone, size: 18),
+                      label: const Text('Appeler'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.success,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
-                    SmallCircleIconButton(
-                      icon: Icons.navigation,
-                      backgroundColor: AppColors.primary,
+                    OutlinedButton.icon(
                       onPressed: () {
                         Helpers.showSnackBar(context, 'Ouverture de Google Maps...');
                       },
+                      icon: const Icon(Icons.navigation, size: 18),
+                      label: const Text('Itinéraire'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                     ),
                   ],
                 ),
@@ -576,6 +744,8 @@ class _InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
@@ -583,26 +753,44 @@ class _InfoCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 24.0),
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, size: 20.0, color: AppColors.primary),
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Text(title, style: AppTypography.labelLarge),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
+
+            // Items: make label secondary and value wrap if long
             ...items.map((item) => Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        item.label,
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: AppColors.textSecondary,
+                      Expanded(
+                        flex: 4,
+                        child: Text(
+                          item.label,
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
-                      Text(
-                        item.value,
-                        style: AppTypography.bodyMedium,
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        flex: 6,
+                        child: Text(
+                          item.value,
+                          textAlign: TextAlign.right,
+                          style: AppTypography.bodyMedium,
+                        ),
                       ),
                     ],
                   ),
