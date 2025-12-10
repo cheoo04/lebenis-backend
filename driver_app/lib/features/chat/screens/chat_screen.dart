@@ -251,12 +251,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _messageController.clear();
     setState(() => _isTyping = false);
 
+    final messenger = ScaffoldMessenger.of(context);
     final success = await ref
         .read(chatMessagesProvider(widget.chatRoom.id).notifier)
         .sendTextMessage(text);
 
     if (!success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text('Erreur lors de l\'envoi du message')),
       );
     }
@@ -295,6 +296,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
     );
 
+    final messenger = ScaffoldMessenger.of(context);
     try {
       // Upload vers Cloudinary
       final cloudinaryService = ref.read(cloudinaryServiceProvider);
@@ -320,7 +322,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           .sendImageMessage(imageUrl);
 
       if (!success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(content: Text('Erreur lors de l\'envoi de l\'image')),
         );
       }
@@ -330,8 +332,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       // Fermer le dialog
       if (mounted) {
         Navigator.of(context).pop();
-        
-        ScaffoldMessenger.of(context).showSnackBar(
+
+        messenger.showSnackBar(
           SnackBar(content: Text('Erreur upload: $e')),
         );
       }
@@ -351,13 +353,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           );
 
       if (!success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.showSnackBar(
           const SnackBar(content: Text('Erreur lors de l\'envoi de la position')),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.showSnackBar(
           SnackBar(content: Text('Erreur: $e')),
         );
       }

@@ -103,9 +103,10 @@ class _NotificationHistoryScreenState
           ),
           TextButton(
             onPressed: () {
+              final messenger = ScaffoldMessenger.of(context);
               ref.read(notificationProvider.notifier).deleteNotification(notification.id);
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
+              messenger.showSnackBar(
                 const SnackBar(content: Text('Notification supprimée')),
               );
             },
@@ -143,8 +144,9 @@ class _NotificationHistoryScreenState
               icon: const Icon(Icons.mark_email_read),
               tooltip: 'Tout marquer comme lu',
               onPressed: () {
+                final messenger = ScaffoldMessenger.of(context);
                 ref.read(notificationProvider.notifier).markAllAsRead();
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   const SnackBar(
                     content: Text('Toutes les notifications ont été marquées comme lues'),
                   ),

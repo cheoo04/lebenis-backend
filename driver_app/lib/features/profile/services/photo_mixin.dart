@@ -10,6 +10,7 @@ mixin PhotoMixin<T extends StatefulWidget> on State<T> {
     required BuildContext context,
     required Function(dynamic file, Uint8List bytes) onPhotoPicked,
   }) async {
+    final messenger = ScaffoldMessenger.of(context);
     try {
       final localContext = context;
       final ImagePicker picker = ImagePicker();
@@ -52,23 +53,17 @@ mixin PhotoMixin<T extends StatefulWidget> on State<T> {
       final bytes = await pickedFile.readAsBytes();
       if (!mounted) return;
       if (bytes.length > 5 * 1024 * 1024) {
-        ScaffoldMessenger.of(localContext).showSnackBar(
-          const SnackBar(content: Text('Fichier trop volumineux (max 5MB)')),
-        );
+        messenger.showSnackBar(const SnackBar(content: Text('Fichier trop volumineux (max 5MB)')));
         return;
       }
 
       onPhotoPicked(pickedFile, bytes);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Photo sélectionnée')),
-      );
+      messenger.showSnackBar(const SnackBar(content: Text('Photo sélectionnée')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text('Erreur: $e')));
     }
   }
 

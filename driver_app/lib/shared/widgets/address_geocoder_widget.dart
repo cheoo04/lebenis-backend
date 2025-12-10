@@ -44,9 +44,10 @@ class _AddressGeocoderWidgetState extends ConsumerState<AddressGeocoderWidget> {
   bool _isLoading = false;
 
   Future<void> _geocodeAddress() async {
+    final messenger = ScaffoldMessenger.of(context);
     final address = _addressController.text.trim();
     if (address.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text('Veuillez entrer une adresse')),
       );
       return;
@@ -69,7 +70,7 @@ class _AddressGeocoderWidgetState extends ConsumerState<AddressGeocoderWidget> {
           _isLoading = false;
         });
         widget.onLocationSelected(result);
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('✅ Adresse géocodée avec succès'),
             backgroundColor: Colors.green,
@@ -77,7 +78,7 @@ class _AddressGeocoderWidgetState extends ConsumerState<AddressGeocoderWidget> {
         );
       } else {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('❌ Impossible de localiser cette adresse'),
             backgroundColor: Colors.red,
@@ -87,7 +88,7 @@ class _AddressGeocoderWidgetState extends ConsumerState<AddressGeocoderWidget> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
           content: Text('Erreur: $error'),
           backgroundColor: Colors.red,

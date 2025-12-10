@@ -27,6 +27,7 @@ class _LocationPickerWidgetState extends State<LocationPickerWidget> {
   String? _error;
 
   Future<void> _getCurrentLocation() async {
+    final messenger = ScaffoldMessenger.of(context);
     setState(() {
       _loading = true;
       _error = null;
@@ -71,7 +72,7 @@ class _LocationPickerWidgetState extends State<LocationPickerWidget> {
       widget.onLocationPicked(location);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('✅ Position obtenue avec succès'),
             backgroundColor: Colors.green,
@@ -85,7 +86,7 @@ class _LocationPickerWidgetState extends State<LocationPickerWidget> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text('❌ Erreur: ${e.toString()}'),
             backgroundColor: Colors.red,

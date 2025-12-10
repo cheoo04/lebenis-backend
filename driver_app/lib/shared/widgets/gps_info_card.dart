@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 class GpsInfoCard extends StatelessWidget {
   final String title;
   final String address;
-  final double latitude;
-  final double longitude;
+  final double? latitude;
+  final double? longitude;
+  
+  // Allow nullable coordinates (some deliveries may not have precise GPS)
+  // Use nullable doubles for compatibility with `DeliveryModel` which may have nulls.
+  // When null, `hasCoordinates` will be false.
+  // Keep `distanceKm` nullable.
   final double? distanceKm;
   final VoidCallback? onNavigate;
   final Color? color;
@@ -21,7 +26,8 @@ class GpsInfoCard extends StatelessWidget {
     this.color,
   });
 
-  bool get hasCoordinates => latitude != 0.0 && longitude != 0.0;
+  // Updated: coordinates may be null
+  bool get hasCoordinates => latitude != null && longitude != null && latitude != 0.0 && longitude != 0.0;
 
   @override
   Widget build(BuildContext context) {

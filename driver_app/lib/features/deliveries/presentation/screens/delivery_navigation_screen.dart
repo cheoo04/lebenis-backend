@@ -65,20 +65,57 @@ class _DeliveryNavigationScreenState extends ConsumerState<DeliveryNavigationScr
     final delivery = widget.delivery;
 
     // Determine coordinates: prefer provided delivery model, otherwise use raw coords
-    final pickup = (delivery != null)
-      ? LatLng(delivery.pickupLatitude, delivery.pickupLongitude)
-      : LatLng(widget.pickupLat ?? 0.0, widget.pickupLng ?? 0.0);
+    LatLng? pickup;
+    if (delivery != null) {
+      if (delivery.pickupLatitude != null && delivery.pickupLongitude != null) {
+        pickup = LatLng(delivery.pickupLatitude!, delivery.pickupLongitude!);
+      }
+    } else if (widget.pickupLat != null && widget.pickupLng != null) {
+      pickup = LatLng(widget.pickupLat!, widget.pickupLng!);
+    }
 
-    final dest = (delivery != null)
-      ? LatLng(delivery.deliveryLatitude, delivery.deliveryLongitude)
-      : LatLng(widget.destLat ?? 0.0, widget.destLng ?? 0.0);
+    LatLng? dest;
+    if (delivery != null) {
+      if (delivery.deliveryLatitude != null && delivery.deliveryLongitude != null) {
+        dest = LatLng(delivery.deliveryLatitude!, delivery.deliveryLongitude!);
+      }
+    } else if (widget.destLat != null && widget.destLng != null) {
+      dest = LatLng(widget.destLat!, widget.destLng!);
+    }
+
+    // If we don't have valid coordinates, show an informative placeholder
+    if (pickup == null || dest == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Navigation'),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.location_off, size: 48, color: Colors.grey),
+                const SizedBox(height: 12),
+                const Text('Coordonnées de la livraison indisponibles.'),
+                const SizedBox(height: 8),
+                const Text('Actualisez la livraison ou contactez le support pour obtenir des coordonnées GPS.'),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     // Include current driver position when available so backend can compute
     // a realistic route starting from the driver's location.
     final currentPos = ref.watch(currentPositionProvider);
     final driverPosition = (currentPos != null) ? LatLng(currentPos.latitude, currentPos.longitude) : null;
+    // At this point we have ensured pickup and dest are non-null (we returned earlier if missing).
+    final pickupNN = pickup;
+    final destNN = dest;
 
-    final routeAsync = ref.watch(deliveryRouteProvider(DeliveryRouteRequest(pickup: pickup, delivery: dest, driverPosition: driverPosition)));
+    final routeAsync = ref.watch(deliveryRouteProvider(DeliveryRouteRequest(pickup: pickupNN, delivery: destNN, driverPosition: driverPosition)));
 
     final pickupCity = delivery != null ? _cityFromAddress(delivery.pickupAddress) : '';
     final pickupNeighborhood = delivery != null ? _neighborhoodFromAddress(delivery.pickupAddress) : '';
@@ -90,10 +127,10 @@ class _DeliveryNavigationScreenState extends ConsumerState<DeliveryNavigationScr
       appBar: AppBar(
         title: const Text('Navigation'),
       ),
-      body: (widget.routeOverride != null)
-          ? _buildBody(context, pickup, dest, widget.routeOverride, precision)
-          : routeAsync.when(
-              data: (routeResult) => _buildBody(context, pickup, dest, routeResult, precision),
+        body: (widget.routeOverride != null)
+            ? _buildBody(context, pickupNN, destNN, widget.routeOverride, precision)
+            : routeAsync.when(
+              data: (routeResult) => _buildBody(context, pickupNN, destNN, routeResult, precision),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (err, st) => Center(
                 child: Padding(

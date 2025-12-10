@@ -143,11 +143,23 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
   }
 
   Future<void> _startDelivery() async {
-    // Navigate to active delivery screen
-    Navigator.of(context).pushReplacementNamed(
-      '/active-delivery',
-      arguments: widget.delivery,
-    );
+    setState(() => _isProcessing = true);
+    try {
+      // Si le backend propose un endpoint pour démarrer, appeler ici (sinon, local only)
+      // Exemple: await ref.read(deliveryProvider.notifier).startDelivery(widget.delivery.id);
+      final notifier = ref.read(deliveryProvider.notifier);
+      final updated = widget.delivery.copyWith(status: BackendConstants.deliveryStatusInProgress);
+      notifier.setActiveDelivery(updated);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed(
+        '/active-delivery',
+        arguments: updated,
+      );
+    } catch (e) {
+      if (mounted) Helpers.showErrorSnackBar(context, 'Erreur: $e');
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
   }
 
   Color _getStatusColor() {
