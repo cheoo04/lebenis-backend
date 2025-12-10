@@ -23,8 +23,11 @@ class _BreakToggleWidgetState extends ConsumerState<BreakToggleWidget> {
   @override
   void initState() {
     super.initState();
-    // Charger le statut au démarrage
-    Future.microtask(() => ref.read(breakProvider.notifier).loadBreakStatus());
+    // Charger le statut au démarrage (guarded to avoid using `ref` after unmount)
+    Future.microtask(() async {
+      if (!mounted) return;
+      await ref.read(breakProvider.notifier).loadBreakStatus();
+    });
   }
 
   Future<void> _toggleBreak() async {

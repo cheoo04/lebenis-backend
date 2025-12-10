@@ -27,8 +27,11 @@ class _NotificationHistoryScreenState
   @override
   void initState() {
     super.initState();
-    // Charger les notifications au démarrage
-    Future.microtask(() => ref.read(notificationProvider.notifier).loadNotifications());
+    // Charger les notifications au démarrage (guarded)
+    Future.microtask(() async {
+      if (!mounted) return;
+      await ref.read(notificationProvider.notifier).loadNotifications();
+    });
     
     // Écouter le scroll pour pagination
     _scrollController.addListener(_onScroll);

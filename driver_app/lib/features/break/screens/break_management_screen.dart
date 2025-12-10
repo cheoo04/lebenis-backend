@@ -25,8 +25,11 @@ class _BreakManagementScreenState extends ConsumerState<BreakManagementScreen> {
   @override
   void initState() {
     super.initState();
-    // Charger le statut au démarrage
-    Future.microtask(() => ref.read(breakProvider.notifier).loadBreakStatus());
+    // Charger le statut au démarrage (guarded)
+    Future.microtask(() async {
+      if (!mounted) return;
+      await ref.read(breakProvider.notifier).loadBreakStatus();
+    });
   }
 
   Future<void> _onRefresh() async {

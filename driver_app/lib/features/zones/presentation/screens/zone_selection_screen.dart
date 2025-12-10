@@ -14,8 +14,11 @@ class _ZoneSelectionScreenState extends ConsumerState<ZoneSelectionScreen> {
   @override
   void initState() {
     super.initState();
-    // Charger les zones automatiquement au démarrage
-    Future.microtask(() => ref.read(zoneProvider.notifier).loadZones());
+    // Charger les zones automatiquement au démarrage (guarded)
+    Future.microtask(() async {
+      if (!mounted) return;
+      await ref.read(zoneProvider.notifier).loadZones();
+    });
   }
 
   @override
