@@ -51,11 +51,13 @@ class ModernButton extends StatelessWidget {
     final buttonColors = _getColors();
     final buttonSize = _getSize();
     final buttonTextStyle = _getTextStyle();
-
-    return SizedBox(
-      width: fullWidth ? double.infinity : null,
-      height: buttonSize.height,
-      child: ElevatedButton(
+    // Use LayoutBuilder to avoid forcing infinite width inside unbounded parents
+    return LayoutBuilder(builder: (context, constraints) {
+      final canUseFullWidth = fullWidth && constraints.maxWidth.isFinite;
+      return SizedBox(
+        width: canUseFullWidth ? double.infinity : null,
+        height: buttonSize.height,
+        child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: buttonColors.background,
@@ -96,8 +98,8 @@ class ModernButton extends StatelessWidget {
                   ),
                 ],
               ),
-      ),
-    );
+      );
+    });
   }
 
   /// Retourne les couleurs selon le type de bouton

@@ -197,46 +197,47 @@ class _WaitingVerificationScreenState extends ConsumerState<WaitingVerificationS
                 const SizedBox(height: AppSpacing.xxl),
                 
                 // Bouton pour compléter le profil
-                SizedBox(
-                  width: double.infinity,
-                  child: ModernButton(
-                    text: 'Compléter mon profil',
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/profile');
-                    },
-                    type: ModernButtonType.primary,
-                  ),
+                ModernButton(
+                  text: 'Compléter mon profil',
+                  onPressed: () async {
+                    // Stop polling while the user edits their profile to avoid
+                    // concurrent network requests and confusing UI behavior.
+                    _timer?.cancel();
+                    await Navigator.of(context).pushNamed('/profile');
+                    // Restart polling when the user returns to this screen.
+                    if (mounted) {
+                      _startPolling();
+                    }
+                  },
+                  type: ModernButtonType.primary,
                 ),
                 const SizedBox(height: AppSpacing.md),
                 
                 // Bouton pour vérifier le statut
-                SizedBox(
-                  width: double.infinity,
-                  child: ModernButton(
-                    text: 'Vérifier le statut',
-                    onPressed: () async {
-                      try {
-                        await ref.read(driverProvider.notifier).loadProfile();
-                        final verified = ref.read(isDriverVerifiedProvider);
-                        if (verified && context.mounted) {
-                          Navigator.of(context).pushReplacementNamed('/home');
-                        } else {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Votre compte est toujours en attente de vérification.')),
-                            );
-                          }
-                        }
-                      } catch (e) {
+                ModernButton(
+                  text: 'Vérifier le statut',
+                  onPressed: () async {
+                    try {
+                      await ref.read(driverProvider.notifier).loadProfile();
+                      final verified = ref.read(isDriverVerifiedProvider);
+                      if (verified && context.mounted) {
+                        Navigator.of(context).pushReplacementNamed('/home');
+                      } else {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Erreur lors de la vérification: $e')),
+                            const SnackBar(content: Text('Votre compte est toujours en attente de vérification.')),
                           );
                         }
                       }
-                    },
-                    type: ModernButtonType.outlined,
-                  ),
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Erreur lors de la vérification: $e')),
+                        );
+                      }
+                    }
+                  },
+                  type: ModernButtonType.outlined,
                 ),
                 const SizedBox(height: AppSpacing.xxl),
                 
