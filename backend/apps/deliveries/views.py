@@ -575,7 +575,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             try:
                 PICKUP_PROXIMITY_KM = float(os.getenv('PICKUP_PROXIMITY_KM', '0.2'))
             except Exception:
-                PICKUP_PROXIMITY_KM = 0.2
+                PICKUP_PROXIMITY_KM = 500.0  # fallback très permissif en cas d'erreur
 
             distance_km = None
 

@@ -173,7 +173,9 @@ class DeliveryRepository {
         fieldName: 'pickup_photo',
         additionalData: data,
       );
-      return DeliveryModel.fromJson(response.data);
+      final respData = response.data;
+      final payload = (respData is Map && respData.containsKey('delivery')) ? respData['delivery'] : respData;
+      return DeliveryModel.fromJson(payload);
     }
 
     // Sinon, simple POST
@@ -181,7 +183,9 @@ class DeliveryRepository {
       ApiConstants.confirmPickup(id),
       data: data,
     );
-    return DeliveryModel.fromJson(response.data);
+    final respData = response.data;
+    final payload = (respData is Map && respData.containsKey('delivery')) ? respData['delivery'] : respData;
+    return DeliveryModel.fromJson(payload);
   }
 
   /// Confirmer livraison au destinataire (delivery)
@@ -251,7 +255,9 @@ class DeliveryRepository {
       ApiConstants.confirmDelivery(id),
       data: data,
     );
-    return DeliveryModel.fromJson(response.data);
+    final respData = response.data;
+    final payload = (respData is Map && respData.containsKey('delivery')) ? respData['delivery'] : respData;
+    return DeliveryModel.fromJson(payload);
   }
 
   /// Annuler une livraison

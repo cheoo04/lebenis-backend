@@ -165,9 +165,9 @@ class NotificationNotifier extends Notifier<NotificationState> {
 
       // Décrémenter le compteur de non lues si nécessaire
       final notification = state.notifications.firstWhere((n) => n.id == notificationId);
-      final newUnreadCount = notification.isRead
+        final newUnreadCount = notification.isRead
           ? state.unreadCount
-          : (state.unreadCount - 1).clamp(0, double.infinity).toInt();
+          : ((state.unreadCount - 1) < 0 ? 0 : (state.unreadCount - 1));
 
       state = state.copyWith(
         notifications: updatedList,
@@ -213,9 +213,9 @@ class NotificationNotifier extends Notifier<NotificationState> {
       final updatedList = state.notifications.where((n) => n.id != notificationId).toList();
 
       // Décrémenter le compteur si c'était une notification non lue
-      final newUnreadCount = notification.isRead
+        final newUnreadCount = notification.isRead
           ? state.unreadCount
-          : (state.unreadCount - 1).clamp(0, double.infinity).toInt();
+          : ((state.unreadCount - 1) < 0 ? 0 : (state.unreadCount - 1));
 
       state = state.copyWith(
         notifications: updatedList,

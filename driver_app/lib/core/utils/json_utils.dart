@@ -7,7 +7,11 @@ library;
 int safeInt(dynamic v, [int fallback = 0]) {
   if (v == null) return fallback;
   if (v is int) return v;
-  if (v is num) return v.toInt();
+  if (v is num) {
+    // Protect against NaN / Infinity which would throw on toInt()
+    if (v is double && !v.isFinite) return fallback;
+    return v.toInt();
+  }
   final s = v.toString();
   return int.tryParse(s) ?? fallback;
 }
@@ -15,7 +19,10 @@ int safeInt(dynamic v, [int fallback = 0]) {
 int? safeIntNullable(dynamic v) {
   if (v == null) return null;
   if (v is int) return v;
-  if (v is num) return v.toInt();
+  if (v is num) {
+    if (v is double && !v.isFinite) return null;
+    return v.toInt();
+  }
   final s = v.toString();
   return int.tryParse(s);
 }

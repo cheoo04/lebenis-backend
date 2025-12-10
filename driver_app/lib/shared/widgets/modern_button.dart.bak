@@ -52,57 +52,54 @@ class ModernButton extends StatelessWidget {
     final buttonSize = _getSize();
     final buttonTextStyle = _getTextStyle();
     // Use LayoutBuilder to avoid forcing infinite width inside unbounded parents
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final canUseFullWidth = fullWidth && constraints.maxWidth.isFinite;
-        return SizedBox(
-          width: canUseFullWidth ? double.infinity : null,
-          height: buttonSize.height,
-          child: ElevatedButton(
-            onPressed: isLoading ? null : onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: buttonColors.background,
-              foregroundColor: buttonColors.foreground,
-              elevation: type == ModernButtonType.outlined || type == ModernButtonType.text ? 0 : 2,
-              shadowColor: AppColors.shadow,
-              padding: EdgeInsets.symmetric(
-                horizontal: buttonSize.paddingHorizontal,
-                vertical: buttonSize.paddingVertical,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(customRadius ?? buttonSize.radius),
-                side: type == ModernButtonType.outlined
-                    ? BorderSide(color: buttonColors.background, width: 1.5)
-                    : BorderSide.none,
-              ),
-            ),
-            child: isLoading
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(buttonColors.foreground),
-                    ),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (icon != null) ...[
-                        Icon(icon, size: buttonSize.iconSize),
-                        SizedBox(width: AppSpacing.sm),
-                      ],
-                      Text(
-                        text,
-                        style: buttonTextStyle,
-                      ),
-                    ],
-                  ),
+    return LayoutBuilder(builder: (context, constraints) {
+      final canUseFullWidth = fullWidth && constraints.maxWidth.isFinite;
+      return SizedBox(
+        width: canUseFullWidth ? double.infinity : null,
+        height: buttonSize.height,
+        child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: buttonColors.background,
+          foregroundColor: buttonColors.foreground,
+          elevation: type == ModernButtonType.outlined || type == ModernButtonType.text ? 0 : 2,
+          shadowColor: AppColors.shadow,
+          padding: EdgeInsets.symmetric(
+            horizontal: buttonSize.paddingHorizontal,
+            vertical: buttonSize.paddingVertical,
           ),
-        );
-      },
-    );
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(customRadius ?? buttonSize.radius),
+            side: type == ModernButtonType.outlined
+                ? BorderSide(color: buttonColors.background, width: 1.5)
+                : BorderSide.none,
+          ),
+        ),
+        child: isLoading
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(buttonColors.foreground),
+                ),
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: buttonSize.iconSize),
+                    SizedBox(width: AppSpacing.sm),
+                  ],
+                  Text(
+                    text,
+                    style: buttonTextStyle,
+                  ),
+                ],
+              ),
+      );
+    });
   }
 
   /// Retourne les couleurs selon le type de bouton

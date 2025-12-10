@@ -62,7 +62,9 @@ class AppTheme {
           elevation: 0,
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.textWhite,
-          minimumSize: const Size(double.infinity, 48),
+          // Use 0 width here so the theme doesn't force an infinite width
+          // which would break layout inside unbounded parents (Wrap/Row).
+          minimumSize: const Size(0, 48),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.buttonPaddingHorizontal,
             vertical: AppSpacing.buttonPaddingVertical,
@@ -87,7 +89,8 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary, width: 1.5),
-          minimumSize: const Size(double.infinity, 48),
+          // Use 0 width to avoid forcing infinite width from the theme.
+          minimumSize: const Size(0, 48),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.buttonPaddingHorizontal,
             vertical: AppSpacing.buttonPaddingVertical,
