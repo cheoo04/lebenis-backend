@@ -217,6 +217,7 @@ class _WaitingVerificationScreenState extends ConsumerState<WaitingVerificationS
                 ModernButton(
                   text: 'Vérifier le statut',
                   onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
                     try {
                       await ref.read(driverProvider.notifier).loadProfile();
                       final verified = ref.read(isDriverVerifiedProvider);
@@ -224,14 +225,14 @@ class _WaitingVerificationScreenState extends ConsumerState<WaitingVerificationS
                         Navigator.of(context).pushReplacementNamed('/home');
                       } else {
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          messenger.showSnackBar(
                             const SnackBar(content: Text('Votre compte est toujours en attente de vérification.')),
                           );
                         }
                       }
                     } catch (e) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        messenger.showSnackBar(
                           SnackBar(content: Text('Erreur lors de la vérification: $e')),
                         );
                       }

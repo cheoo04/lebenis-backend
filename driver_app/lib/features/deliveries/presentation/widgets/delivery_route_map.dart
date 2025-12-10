@@ -14,8 +14,9 @@ import '../../../../core/services/routing_service.dart';
 
 /// Widget de carte qui charge automatiquement la route réelle depuis l'API
 class DeliveryRouteMap extends ConsumerStatefulWidget {
-  final LatLng pickupLocation;
-  final LatLng deliveryLocation;
+  // Pickup and delivery coordinates may be null (server may not provide exact GPS)
+  final LatLng? pickupLocation;
+  final LatLng? deliveryLocation;
   final LatLng? currentLocation;
   final VoidCallback? onMapCreated;
   final double height;
@@ -23,8 +24,8 @@ class DeliveryRouteMap extends ConsumerStatefulWidget {
 
   const DeliveryRouteMap({
     super.key,
-    required this.pickupLocation,
-    required this.deliveryLocation,
+    this.pickupLocation,
+    this.deliveryLocation,
     this.currentLocation,
     this.onMapCreated,
     this.height = 300,
@@ -66,6 +67,9 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
   Future<void> _loadRealRoute() async {
     if (_routeLoaded || _isLoading) return;
 
+    // If we don't have both endpoints, nothing to load
+    if (widget.pickupLocation == null || widget.deliveryLocation == null) return;
+
     setState(() {
       _isLoading = true;
     });
@@ -73,8 +77,8 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
     try {
       final routingService = ref.read(routingServiceProvider);
       final route = await routingService.getDeliveryRoute(
-        pickup: widget.pickupLocation,
-        delivery: widget.deliveryLocation,
+        pickup: widget.pickupLocation!,
+        delivery: widget.deliveryLocation!,
         driverPosition: widget.currentLocation,
       );
 
@@ -96,8 +100,8 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
 
   void _fitBounds() {
     final points = [
-      widget.pickupLocation,
-      widget.deliveryLocation,
+      if (widget.pickupLocation != null) widget.pickupLocation!,
+      if (widget.deliveryLocation != null) widget.deliveryLocation!,
       if (widget.currentLocation != null) widget.currentLocation!,
     ];
 
@@ -117,16 +121,20 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
     final markers = <Marker>[];
 
     // Pickup marker
-    markers.add(OsmMarkerHelper.pickup(
-      position: widget.pickupLocation,
-      label: 'Récup',
-    ));
+    if (widget.pickupLocation != null) {
+      markers.add(OsmMarkerHelper.pickup(
+        position: widget.pickupLocation!,
+        label: 'Récup',
+      ));
+    }
 
     // Delivery marker
-    markers.add(OsmMarkerHelper.delivery(
-      position: widget.deliveryLocation,
-      label: 'Livr',
-    ));
+    if (widget.deliveryLocation != null) {
+      markers.add(OsmMarkerHelper.delivery(
+        position: widget.deliveryLocation!,
+        label: 'Livr',
+      ));
+    }
 
     // Current location marker
     if (widget.currentLocation != null) {
@@ -156,8 +164,8 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
     if (widget.currentLocation != null) {
       fallbackPoints.add(widget.currentLocation!);
     }
-    fallbackPoints.add(widget.pickupLocation);
-    fallbackPoints.add(widget.deliveryLocation);
+    if (widget.pickupLocation != null) fallbackPoints.add(widget.pickupLocation!);
+    if (widget.deliveryLocation != null) fallbackPoints.add(widget.deliveryLocation!);
 
     return [
       OsmMarkerHelper.route(
@@ -198,13 +206,33 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 child: Stack(
                   children: [
-                    OsmMapWidget(
-                      center: widget.pickupLocation,
-                      zoom: 14,
-                      markers: _buildMarkers(),
-                      polylines: _buildPolylines(),
-                      mapController: _mapController,
-                    ),
+                    // Show map only when we have at least pickup and delivery coords
+                    if (widget.pickupLocation != null && widget.deliveryLocation != null)
+                      OsmMapWidget(
+                        center: widget.pickupLocation!,
+                        zoom: 14,
+                        markers: _buildMarkers(),
+                        polylines: _buildPolylines(),
+                        mapController: _mapController,
+                      )
+                    else
+                      // Lightweight placeholder when coords missing
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.location_off, size: 36, color: Colors.grey),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Coordonnées manquantes pour la carte',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
 
                     // Indicateur de chargement
                     if (_isLoading)
@@ -328,7 +356,7 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
 
 /// Carte d'informations sur la route
 class RouteInfoCard extends StatelessWidget {
-  final DeliveryRouteResult route;
+  final DeliveryRouteResult? route;
 
   const RouteInfoCard({
     super.key,
@@ -356,9 +384,9 @@ class RouteInfoCard extends StatelessWidget {
           _InfoItem(
             icon: Icons.route,
             label: 'Distance',
-            value: route.totalDistanceKm.isFinite
-                ? '${route.totalDistanceKm.toStringAsFixed(1)} km'
-                : '—',
+            value: (route != null && route!.totalDistanceKm.isFinite)
+              ? '${route!.totalDistanceKm.toStringAsFixed(1)} km'
+              : '—',
             color: AppColors.primary,
           ),
           Container(
@@ -369,9 +397,9 @@ class RouteInfoCard extends StatelessWidget {
           _InfoItem(
             icon: Icons.timer,
             label: 'Durée estimée',
-            value: route.totalDurationMin.isFinite
-                ? '~${route.totalDurationMin.toStringAsFixed(0)} min'
-                : '—',
+            value: (route != null && route!.totalDurationMin.isFinite)
+              ? '~${route!.totalDurationMin.toStringAsFixed(0)} min'
+              : '—',
             color: AppColors.warning,
           ),
         ],

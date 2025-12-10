@@ -5,7 +5,6 @@ import 'package:latlong2/latlong.dart';
 import '../../../../core/constants/backend_constants.dart';
 import '../../../../core/providers/delivery_provider.dart';
 import '../../../../core/providers/location_provider.dart';
-import '../../../../data/providers/driver_provider.dart';
 import '../../../../data/models/delivery_model.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../theme/app_typography.dart';
@@ -14,6 +13,8 @@ import '../../../../shared/widgets/modern_button.dart';
 import '../../../../shared/utils/formatters.dart';
 import '../../../../shared/utils/helpers.dart';
 import '../widgets/delivery_route_map.dart';
+import '../../../../core/routes/app_router.dart';
+import '../../../../core/utils/navigation_utils.dart';
 
 class ActiveDeliveryScreen extends ConsumerStatefulWidget {
   final DeliveryModel delivery;
@@ -42,6 +43,14 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
   void _initializeDelivery() {
     // Start GPS tracking
     ref.read(locationProvider.notifier).startTracking();
+    // Ensure deliveryProvider has the active delivery set so UI reads from a single source of truth
+    try {
+      final notifier = ref.read(deliveryProvider.notifier);
+      final currentActive = ref.read(deliveryProvider).activeDelivery;
+      if (currentActive == null) {
+        notifier.setActiveDelivery(widget.delivery);
+      }
+    } catch (_) {}
   }
 
   void _determineCurrentStep() {
@@ -75,15 +84,12 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
     setState(() => _isProcessing = true);
 
     try {
-      // Capture les notifiers/état AVANT les opérations asynchrones
       final locNotifier = ref.read(locationProvider.notifier);
       final deliveryNotifier = ref.read(deliveryProvider.notifier);
-      var currentPos = ref.read(currentPositionProvider);
 
-      // Demander une position si nécessaire
-      currentPos ??= await locNotifier.getCurrentPosition();
+      // Forcer une actualisation de la position juste avant la confirmation
+      final currentPos = await locNotifier.getCurrentPosition(force: true);
 
-      // Si le widget a été démonté pendant l'attente, quitter sans utiliser `ref`
       if (!mounted) return;
 
       if (currentPos == null) {
@@ -209,25 +215,56 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Real Map with Route
-                  DeliveryRouteMap(
-                    pickupLocation: LatLng(
-                      delivery.pickupLatitude,
-                      delivery.pickupLongitude,
+                  // Real Map with Route (only when coords are available)
+                  if (delivery.pickupLatitude != null &&
+                      delivery.pickupLongitude != null &&
+                      delivery.deliveryLatitude != null &&
+                      delivery.deliveryLongitude != null)
+                    DeliveryRouteMap(
+                      pickupLocation: LatLng(
+                        delivery.pickupLatitude!,
+                        delivery.pickupLongitude!,
+                      ),
+                      deliveryLocation: LatLng(
+                        delivery.deliveryLatitude!,
+                        delivery.deliveryLongitude!,
+                      ),
+                      currentLocation: locationState.currentPosition != null
+                          ? LatLng(
+                              locationState.currentPosition!.latitude,
+                              locationState.currentPosition!.longitude,
+                            )
+                          : null,
+                      showRouteInfo: false,
+                      height: double.infinity,
+                    )
+                  else
+                    // Fallback when coordinates are missing: show a lightweight placeholder
+                    Container(
+                      color: Colors.grey[100],
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.location_off, size: 36, color: Colors.grey),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Coordonnées non disponibles',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Actualisez la position ou contactez le support.',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                    deliveryLocation: LatLng(
-                      delivery.deliveryLatitude,
-                      delivery.deliveryLongitude,
-                    ),
-                    currentLocation: locationState.currentPosition != null
-                        ? LatLng(
-                            locationState.currentPosition!.latitude,
-                            locationState.currentPosition!.longitude,
-                          )
-                        : null,
-                    showRouteInfo: false,
-                    height: double.infinity,
-                  ),
 
                   // GPS Status Indicator (smaller, constrained)
                   Positioned(
@@ -411,16 +448,18 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
               onPressed: () async {
                 Navigator.of(context).pop();
                 try {
+                  final messenger = ScaffoldMessenger.of(context);
                   final pos = await locNotifier.getCurrentPosition();
                   if (!mounted) return;
                   if (pos != null) {
-                    Helpers.showSuccessSnackBar(context, 'Position actualisée');
+                    messenger.showSnackBar(const SnackBar(content: Text('Position actualisée'), backgroundColor: Colors.green));
                   } else {
-                    Helpers.showErrorSnackBar(context, 'Impossible d\'obtenir la position. Activez le GPS et réessayez.');
+                    messenger.showSnackBar(const SnackBar(content: Text('Impossible d\'obtenir la position. Activez le GPS et réessayez.'), backgroundColor: Colors.red));
                   }
                 } catch (e) {
                   if (!mounted) return;
-                  Helpers.showErrorSnackBar(context, 'Erreur lors de l\'actualisation de la position: $e');
+                  final messenger = ScaffoldMessenger.of(context);
+                  messenger.showSnackBar(SnackBar(content: Text('Erreur lors de l\'actualisation de la position: $e'), backgroundColor: Colors.red));
                 }
               },
               child: const Text('Actualiser la position'),
@@ -429,21 +468,24 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
               onPressed: () async {
                 Navigator.of(context).pop();
                 setState(() => _isProcessing = true);
+                final messenger = ScaffoldMessenger.of(context);
                 try {
                   final success = await deliveryNotifier.confirmPickup(id: widget.delivery.id);
                   if (!mounted) return;
                   if (success) {
-                    Helpers.showSuccessSnackBar(context, 'Colis récupéré avec succès!');
-                    setState(() {
-                      _currentStep = DeliveryStep.goingToDelivery;
-                    });
+                    messenger.showSnackBar(const SnackBar(content: Text('Colis récupéré avec succès!'), backgroundColor: Colors.green));
+                    if (mounted) {
+                      setState(() {
+                        _currentStep = DeliveryStep.goingToDelivery;
+                      });
+                    }
                   } else {
                     final err = ref.read(deliveryProvider).error ?? 'Échec lors de la confirmation';
-                    Helpers.showErrorSnackBar(context, err);
+                    messenger.showSnackBar(SnackBar(content: Text(err), backgroundColor: Colors.red));
                   }
                 } catch (e) {
                   if (!mounted) return;
-                  Helpers.showErrorSnackBar(context, 'Erreur: $e');
+                  messenger.showSnackBar(SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red));
                 } finally {
                   if (mounted) setState(() => _isProcessing = false);
                 }
@@ -466,9 +508,28 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
             ListTile(
               leading: const Icon(Icons.navigation),
               title: const Text('Ouvrir dans Google Maps'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                Helpers.showSnackBar(context, 'Ouverture de Google Maps...');
+                // Choose target based on current step
+                final delivery = ref.read(deliveryProvider).activeDelivery ?? widget.delivery;
+                final target = (_currentStep == DeliveryStep.goingToDelivery)
+                    ? delivery.deliveryLatitude != null && delivery.deliveryLongitude != null
+                        ? [delivery.deliveryLatitude, delivery.deliveryLongitude]
+                        : null
+                    : delivery.pickupLatitude != null && delivery.pickupLongitude != null
+                        ? [delivery.pickupLatitude, delivery.pickupLongitude]
+                        : null;
+
+                if (target == null || target.length != 2) {
+                  Helpers.showSnackBar(context, 'Coordonnées GPS indisponibles');
+                  return;
+                }
+
+                try {
+                  await openNavigationApp(latitude: target[0] as double, longitude: target[1] as double, label: delivery.trackingNumber);
+                } catch (e) {
+                  Helpers.showErrorSnackBar(context, 'Impossible d\'ouvrir une application de navigation: $e');
+                }
               },
             ),
             ListTile(
@@ -679,7 +740,7 @@ class _DestinationCard extends StatelessWidget {
                         const SizedBox(height: AppSpacing.xs),
                       ],
                       Text(
-                        delivery.pickupCommune ?? '',
+                        delivery.pickupCommune,
                         style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                       ),
                     ],
@@ -705,7 +766,13 @@ class _DestinationCard extends StatelessWidget {
                     ),
                     OutlinedButton.icon(
                       onPressed: () {
-                        Helpers.showSnackBar(context, 'Ouverture de Google Maps...');
+                        // Open internal navigation screen if coords available, otherwise show message
+                        if ((delivery.pickupLatitude != null && delivery.pickupLongitude != null) &&
+                            (delivery.deliveryLatitude != null && delivery.deliveryLongitude != null)) {
+                          Navigator.of(context).pushNamed(AppRouter.deliveryMap, arguments: delivery);
+                        } else {
+                          Helpers.showSnackBar(context, 'Coordonnées indisponibles pour l\'itinéraire.');
+                        }
                       },
                       icon: const Icon(Icons.navigation, size: 18),
                       label: const Text('Itinéraire'),

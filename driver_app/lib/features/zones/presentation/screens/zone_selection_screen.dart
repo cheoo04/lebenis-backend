@@ -62,12 +62,11 @@ class _ZoneSelectionScreenState extends ConsumerState<ZoneSelectionScreen> {
                       ElevatedButton.icon(
                         onPressed: zoneState.zones.any((z) => z.selected)
                             ? () async {
-                                await notifier.saveSelectedZones();
-                                // ignore: use_build_context_synchronously
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Zones sauvegardées !')),
-                                );
-                              }
+                                  final messenger = ScaffoldMessenger.of(context);
+                                  await notifier.saveSelectedZones();
+                                  if (!mounted) return;
+                                  messenger.showSnackBar(const SnackBar(content: Text('Zones sauvegardées !')));
+                                }
                             : null,
                         icon: const Icon(Icons.save),
                         label: const Text('Sauvegarder mes zones'),

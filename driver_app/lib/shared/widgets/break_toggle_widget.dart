@@ -31,6 +31,7 @@ class _BreakToggleWidgetState extends ConsumerState<BreakToggleWidget> {
   }
 
   Future<void> _toggleBreak() async {
+    final messenger = ScaffoldMessenger.of(context);
     final state = ref.read(breakProvider);
     final isOnBreak = state.breakStatus?.isOnBreak ?? false;
 
@@ -64,7 +65,7 @@ class _BreakToggleWidgetState extends ConsumerState<BreakToggleWidget> {
         if (confirm == true) {
           await ref.read(breakProvider.notifier).endBreak();
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+            messenger.showSnackBar(
               SnackBar(
                 content: Text(
                   'Pause terminée (${_formatDuration(state.currentDuration)})',
@@ -78,7 +79,7 @@ class _BreakToggleWidgetState extends ConsumerState<BreakToggleWidget> {
         // Démarrer la pause directement
         await ref.read(breakProvider.notifier).startBreak();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
             const SnackBar(
               content: Text('☕ Pause démarrée - Bon repos !'),
               backgroundColor: AppColors.warning,
@@ -88,7 +89,7 @@ class _BreakToggleWidgetState extends ConsumerState<BreakToggleWidget> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text('Erreur: ${e.toString()}'),
             backgroundColor: AppColors.error,

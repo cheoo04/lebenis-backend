@@ -15,14 +15,14 @@ class DeliveryModel {
   final String pickupCommune;
   final String pickupQuartier;
   final String pickupPrecision;
-  final double pickupLatitude;
-  final double pickupLongitude;
+  final double? pickupLatitude;
+  final double? pickupLongitude;
   final String deliveryAddress;
   final String deliveryCommune;
   final String deliveryQuartier;
   final String deliveryPrecision;
-  final double deliveryLatitude;
-  final double deliveryLongitude;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
   
   // Destinataire
   final String recipientName;
@@ -111,22 +111,22 @@ class DeliveryModel {
         pickupQuartier: json['pickup_quartier']?.toString() ?? '',
         pickupPrecision: json['pickup_precision']?.toString() ?? json['pickup_address_details']?.toString() ?? '',
         pickupLatitude: json['pickup_latitude'] != null
-          ? double.tryParse(json['pickup_latitude'].toString()) ?? 0.0
-          : 0.0,
+          ? double.tryParse(json['pickup_latitude'].toString())
+          : null,
       pickupLongitude: json['pickup_longitude'] != null
-          ? double.tryParse(json['pickup_longitude'].toString()) ?? 0.0
-          : 0.0,
+          ? double.tryParse(json['pickup_longitude'].toString())
+          : null,
       // Delivery
         deliveryAddress: json['delivery_address']?.toString() ?? '',
         deliveryCommune: json['delivery_commune']?.toString() ?? '',
         deliveryQuartier: json['delivery_quartier']?.toString() ?? '',
         deliveryPrecision: json['delivery_precision']?.toString() ?? json['delivery_address']?.toString() ?? '',
         deliveryLatitude: json['delivery_latitude'] != null
-          ? double.tryParse(json['delivery_latitude'].toString()) ?? 0.0
-          : 0.0,
+          ? double.tryParse(json['delivery_latitude'].toString())
+          : null,
       deliveryLongitude: json['delivery_longitude'] != null
-          ? double.tryParse(json['delivery_longitude'].toString()) ?? 0.0
-          : 0.0,
+          ? double.tryParse(json['delivery_longitude'].toString())
+          : null,
       // Recipient
       recipientName: json['recipient_name']?.toString() ?? '',
       recipientPhone: json['recipient_phone']?.toString() ?? '',

@@ -61,8 +61,8 @@ void main() {
         totalDurationMin: 5.0,
         legs: [],
         allPolylinePoints: [
-          RoutePoint(lat: delivery.pickupLatitude, lng: delivery.pickupLongitude),
-          RoutePoint(lat: delivery.deliveryLatitude, lng: delivery.deliveryLongitude),
+          RoutePoint(lat: delivery.pickupLatitude!, lng: delivery.pickupLongitude!),
+          RoutePoint(lat: delivery.deliveryLatitude!, lng: delivery.deliveryLongitude!),
         ],
       );
 
@@ -127,8 +127,8 @@ void main() {
         totalDurationMin: 7.0,
         legs: [],
         allPolylinePoints: [
-          RoutePoint(lat: delivery.pickupLatitude, lng: delivery.pickupLongitude),
-          RoutePoint(lat: delivery.deliveryLatitude, lng: delivery.deliveryLongitude),
+          RoutePoint(lat: delivery.pickupLatitude!, lng: delivery.pickupLongitude!),
+          RoutePoint(lat: delivery.deliveryLatitude!, lng: delivery.deliveryLongitude!),
         ],
       );
 
