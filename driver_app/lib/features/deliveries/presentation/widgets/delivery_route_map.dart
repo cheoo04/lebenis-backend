@@ -46,6 +46,7 @@ class _DeliveryRouteMapState extends ConsumerState<DeliveryRouteMap> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _fitBounds();
       _loadRealRoute();
       widget.onMapCreated?.call();
