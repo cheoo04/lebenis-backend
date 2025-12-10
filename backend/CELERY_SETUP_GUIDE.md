@@ -38,7 +38,7 @@ Dans `config/settings/base.py` :
 # Celery Broker (Redis)
 # CELERY_BROKER_URL = 'redis://localhost:6379/0'
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-# utiliser redis cloud 
+# utiliser redis cloud
 
 # Timezone (Côte d'Ivoire)
 CELERY_TIMEZONE = 'Africa/Abidjan'  # UTC+0
@@ -51,9 +51,10 @@ CELERY_TIMEZONE = 'Africa/Abidjan'  # UTC+0
 ### 1. Paiements Quotidiens (23h59)
 
 **Tâche** : `apps.payments.tasks.process_daily_payouts`  
-**Planification** : Chaque jour à 23h59  
+**Planification** : Chaque jour à 23h59
 
 **Fonctionnement** :
+
 1. Récupère tous les drivers avec paiements `completed` du jour
 2. Pour chaque driver :
    - Crée un `DailyPayout` groupé
@@ -64,6 +65,7 @@ CELERY_TIMEZONE = 'Africa/Abidjan'  # UTC+0
 3. Génère un rapport dans les logs
 
 **Exemple de log** :
+
 ```
 🚀 Démarrage du traitement des paiements quotidiens (23h59)
 💰 Payout créé pour Jean Kouassi: 24000.00 CFA (8 paiements)
@@ -79,9 +81,10 @@ CELERY_TIMEZONE = 'Africa/Abidjan'  # UTC+0
 ### 2. Vérification Payouts en Attente (toutes les heures)
 
 **Tâche** : `apps.payments.tasks.check_pending_payouts`  
-**Planification** : Toutes les heures à :00  
+**Planification** : Toutes les heures à :00
 
 **Fonctionnement** :
+
 - Vérifie les payouts avec statut `processing` de moins de 24h
 - Appelle `OrangeMoneyService.check_payment_status()`
 - Met à jour le statut si `SUCCESS` ou `FAILED`
@@ -94,9 +97,10 @@ CELERY_TIMEZONE = 'Africa/Abidjan'  # UTC+0
 ### 3. Reset Durées de Pause (minuit)
 
 **Tâche** : `apps.payments.tasks.reset_daily_break_durations`  
-**Planification** : Chaque jour à 00h00  
+**Planification** : Chaque jour à 00h00
 
 **Fonctionnement** :
+
 - Réinitialise `total_break_duration_today` à `0` pour tous les drivers
 - Met à jour `last_break_reset` à la date du jour
 
@@ -285,7 +289,6 @@ celery -A config inspect scheduled
 - Stockez `REDIS_URL` dans le secret manager de votre hébergeur (Render/Heroku/GCP secret manager, etc.) et ne commitez jamais les secrets en clair.
 - Si vous avez des exigences réseau (VPC peering, IP allowlist), configurez-les côté Redis Cloud et/ou côté hébergeur.
 
-
 ---
 
 ### Lancer Celery Worker
@@ -303,18 +306,19 @@ celery -A config worker -l info --detach
 ```
 
 **Logs attendus** :
+
 ```
  -------------- celery@hostname v5.3.4 (emerald-rush)
---- ***** ----- 
+--- ***** -----
 -- ******* ---- Linux-6.x.x-x86_64 2025-01-24 23:00:00
-- *** --- * --- 
+- *** --- * ---
 - ** ---------- [config]
 - ** ---------- .> app:         lebenis:0x...
 - ** ---------- .> transport:   redis://localhost:6379/0
 - ** ---------- .> results:     redis://localhost:6379/0
 - *** --- * --- .> concurrency: 4 (prefork)
 -- ******* ---- .> task events: OFF
---- ***** ----- 
+--- ***** -----
  -------------- [queues]
                 .> celery           exchange=celery(direct) key=celery
 
@@ -341,6 +345,7 @@ celery -A config beat -l info --detach
 ```
 
 **Logs attendus** :
+
 ```
 celery beat v5.3.4 is starting.
 LocalTime -> 2025-01-24 23:59:00
@@ -402,11 +407,13 @@ Accéder à `/admin/` :
 ### 1. Logs Celery
 
 Les logs Celery affichent :
+
 - Tâches exécutées
 - Résultats des transferts Orange Money
 - Erreurs éventuelles
 
 **Exemple** :
+
 ```
 [2025-01-24 23:59:05: INFO/MainProcess] Task apps.payments.tasks.process_daily_payouts[...] received
 🚀 Démarrage du traitement des paiements quotidiens (23h59)
@@ -512,11 +519,13 @@ sudo systemctl enable celerybeat
 ### Problème : Redis Connection Refused
 
 **Erreur** :
+
 ```
 ConnectionRefusedError: [Errno 111] Connection refused
 ```
 
 **Solution** :
+
 ```bash
 # Vérifier Redis
 redis-cli ping
@@ -533,12 +542,14 @@ netstat -tulnp | grep 6379
 ### Problème : Tâche ne s'exécute pas
 
 **Vérifications** :
+
 1. Celery Worker est démarré ?
 2. Celery Beat est démarré ?
 3. Timezone correcte dans settings ?
 4. Logs Celery pour erreurs ?
 
 **Debug** :
+
 ```bash
 # Vérifier tâches planifiées
 celery -A config inspect scheduled
@@ -554,6 +565,7 @@ celery -A config inspect active
 **Cause** : Tâche exécutée plusieurs fois.
 
 **Solution** :
+
 - Vérifier qu'un seul Celery Beat tourne
 - Ajouter idempotence dans la tâche (vérifier si DailyPayout existe déjà)
 
@@ -575,11 +587,13 @@ celery -A config inspect active
 ## 🎯 Prochaines Étapes
 
 1. **Tester en sandbox** :
+
    - Créer des paiements test
    - Attendre 23h59 ou déclencher manuellement
    - Vérifier transferts Orange Money
 
 2. **Monitoring** :
+
    - Configurer alertes si tâche échoue
    - Logs centralisés (Sentry, CloudWatch, etc.)
 
