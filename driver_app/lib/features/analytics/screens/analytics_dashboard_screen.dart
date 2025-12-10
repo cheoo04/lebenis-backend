@@ -25,6 +25,7 @@ class _AnalyticsDashboardScreenState
     super.initState();
     // Load analytics on screen init
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _loadAnalytics();
     });
   }

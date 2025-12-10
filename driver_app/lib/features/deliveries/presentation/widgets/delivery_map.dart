@@ -35,6 +35,7 @@ class _DeliveryMapState extends State<DeliveryMap> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _fitBounds();
       widget.onMapCreated?.call();
     });

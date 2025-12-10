@@ -44,6 +44,7 @@ class _DeliveryNavigationScreenState extends ConsumerState<DeliveryNavigationScr
     // a driver position to the routing service. Use a post-frame callback to
     // ensure `ref` is available.
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       try {
         ref.read(locationProvider.notifier).startTracking();
       } catch (_) {

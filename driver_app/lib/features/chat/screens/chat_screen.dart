@@ -34,6 +34,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     
     // Marquer comme lu au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       ref.read(chatRoomsProvider.notifier).markAsRead(widget.chatRoom.id);
     });
   }
@@ -130,6 +131,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     // Scroller vers le bas après le build
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
