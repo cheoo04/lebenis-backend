@@ -2,13 +2,13 @@
 
 ## Pourquoi 2 comptes?
 
-| Service | Heures/mois | Solution |
-|---------|-------------|----------|
-| Web Service | 750h | Compte 1 |
-| Background Worker | 750h | Compte 2 |
-| Cron Job (Beat) | 750h | Compte 2 |
-| Database PostgreSQL | Illimité | Compte 1 |
-| Redis Cloud | Illimité | Votre forfait payant |
+| Service             | Heures/mois | Solution             |
+| ------------------- | ----------- | -------------------- |
+| Web Service         | 750h        | Compte 1             |
+| Background Worker   | 750h        | Compte 2             |
+| Cron Job (Beat)     | 750h        | Compte 2             |
+| Database PostgreSQL | Illimité    | Compte 1             |
+| Redis Cloud         | Illimité    | Votre forfait payant |
 
 **Total: 0€/mois** (sauf Redis Cloud déjà payé)
 
@@ -20,16 +20,19 @@
 **Branch:** `main`
 
 **Build Command:**
+
 ```bash
 pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
 ```
 
 **Start Command:**
+
 ```bash
 gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
 ```
 
 **Variables d'environnement:**
+
 ```env
 DJANGO_SETTINGS_MODULE=config.settings.production
 DATABASE_URL=<auto-généré par Render>
@@ -64,12 +67,14 @@ CLOUDINARY_API_SECRET=...
 ### ⚠️ Important: Fork ou partage du repo
 
 **Option A: Fork public (recommandé)**
+
 ```bash
 # Sur GitHub, faire un Fork du repo
 # Le compte 2 pointera vers le fork
 ```
 
 **Option B: Collaborateur**
+
 ```bash
 # Ajouter le compte 2 comme collaborateur sur le repo principal
 # Settings → Collaborators → Add people
@@ -81,16 +86,19 @@ CLOUDINARY_API_SECRET=...
 **Branch:** `main`
 
 **Build Command:**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 **Start Command:**
+
 ```bash
 celery -A config worker --loglevel=info --concurrency=2 --max-tasks-per-child=100
 ```
 
 **Variables d'environnement:**
+
 ```env
 DJANGO_SETTINGS_MODULE=config.settings.production
 
@@ -117,11 +125,13 @@ FCM_SERVER_KEY=...
 **Schedule:** `*/15 * * * *` (toutes les 15 minutes)
 
 **Build Command:**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 **Start Command:**
+
 ```bash
 celery -A config beat --loglevel=info --max-interval=15
 ```
@@ -140,6 +150,7 @@ celery -A config beat --loglevel=info --max-interval=15
 4. Copier **External Database URL**
 
 **Format:**
+
 ```
 postgresql://user:password@dpg-xxxxx-a.oregon-postgres.render.com:5432/lebenis_db
 ```
@@ -218,11 +229,13 @@ postgresql://user:password@dpg-xxxxx-a.oregon-postgres.render.com:5432/lebenis_d
 Si vous ne voulez vraiment qu'**1 seul compte Render gratuit**, utilisez:
 
 **Start Command:**
+
 ```bash
 ./start_with_celery.sh
 ```
 
 **Mais:**
+
 - ❌ Pas de Celery Beat (pas de tâches planifiées)
 - ❌ Worker + Web dans le même processus (instable)
 - ⚠️ Si le service sleep (15 min inactivité), tout s'arrête
@@ -231,11 +244,11 @@ Si vous ne voulez vraiment qu'**1 seul compte Render gratuit**, utilisez:
 
 ## Recommandation finale
 
-| Scénario | Solution | Coût |
-|----------|----------|------|
-| **Production sérieuse** | 2 comptes Render gratuits | 0€ |
-| **Test/Démo** | 1 compte + `start_with_celery.sh` | 0€ |
-| **Pas de contrainte budget** | render.yaml sur 1 compte payant | ~15€/mois |
+| Scénario                     | Solution                          | Coût      |
+| ---------------------------- | --------------------------------- | --------- |
+| **Production sérieuse**      | 2 comptes Render gratuits         | 0€        |
+| **Test/Démo**                | 1 compte + `start_with_celery.sh` | 0€        |
+| **Pas de contrainte budget** | render.yaml sur 1 compte payant   | ~15€/mois |
 
 **Mon conseil: Utiliser 2 comptes gratuits** → C'est 100% gratuit et production-ready!
 
@@ -244,6 +257,7 @@ Si vous ne voulez vraiment qu'**1 seul compte Render gratuit**, utilisez:
 ## Checklist de déploiement
 
 ### Compte 1 (Principal)
+
 - [ ] Web Service créé
 - [ ] PostgreSQL Database créée
 - [ ] `DATABASE_URL` automatiquement configurée
@@ -252,6 +266,7 @@ Si vous ne voulez vraiment qu'**1 seul compte Render gratuit**, utilisez:
 - [ ] Noter l'**External Database URL**
 
 ### Compte 2 (Secondaire)
+
 - [ ] Accès au repo configuré (fork ou collaborateur)
 - [ ] Background Worker créé
 - [ ] Cron Job créé
@@ -262,6 +277,7 @@ Si vous ne voulez vraiment qu'**1 seul compte Render gratuit**, utilisez:
 - [ ] Beat schedule actif (vérifier logs)
 
 ### Tests
+
 - [ ] Test Redis: `python test_redis_celery.py`
 - [ ] Créer une tâche depuis Django Admin
 - [ ] Vérifier que le Worker l'exécute
@@ -274,10 +290,12 @@ Si vous ne voulez vraiment qu'**1 seul compte Render gratuit**, utilisez:
 En cas de problème:
 
 1. **Worker ne se connecte pas à Redis:**
+
    - Vérifier `REDIS_URL` commence par `rediss://`
    - Vérifier `REQUIRE_REDIS_SSL=true`
 
 2. **Worker ne se connecte pas à PostgreSQL:**
+
    - Utiliser l'**External Database URL** (pas l'interne)
    - Format: `postgresql://...@dpg-xxxxx-a.oregon-postgres.render.com:5432/...`
 
