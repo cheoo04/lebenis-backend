@@ -12,13 +12,15 @@ final merchantRepositoryProvider = Provider<MerchantRepository>((ref) {
 class MerchantStatsNotifier extends Notifier<AsyncValue<MerchantStatsModel?>> {
   @override
   AsyncValue<MerchantStatsModel?> build() {
+    // Déclencher le chargement initial automatiquement
+    Future.microtask(() => loadStats());
     return const AsyncValue.loading();
   }
 
   Future<void> loadStats({int periodDays = 30}) async {
     state = const AsyncValue.loading();
     try {
-      final repository = ref.watch(merchantRepositoryProvider);
+      final repository = ref.read(merchantRepositoryProvider);
       final stats = await repository.getStats(periodDays: periodDays);
       state = AsyncValue.data(stats);
     } catch (e, st) {
