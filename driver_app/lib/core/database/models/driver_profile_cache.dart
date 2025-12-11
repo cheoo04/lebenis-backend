@@ -87,10 +87,23 @@ class DriverProfileCache extends HiveObject {
   
   /// Factory depuis JSON API
   factory DriverProfileCache.fromJson(Map<String, dynamic> json) {
-    final user = json['user'] as Map<String, dynamic>? ?? {};
+    // Validation stricte pour éviter les null
+    if (json['id'] == null) {
+      throw ArgumentError('Profile ID is null');
+    }
+    
+    // Safe cast pour user
+    Map<String, dynamic> user = {};
+    if (json['user'] != null) {
+      if (json['user'] is Map<String, dynamic>) {
+        user = json['user'] as Map<String, dynamic>;
+      } else if (json['user'] is Map) {
+        user = Map<String, dynamic>.from(json['user'] as Map);
+      }
+    }
     
     return DriverProfileCache()
-      ..serverId = json['id']?.toString() ?? ''
+      ..serverId = json['id'].toString()
       ..userId = user['id']?.toString() ?? ''
       ..firstName = user['first_name']?.toString() ?? ''
       ..lastName = user['last_name']?.toString() ?? ''

@@ -456,16 +456,22 @@ MTN_MOMO_ENVIRONMENT = config('MTN_MOMO_ENVIRONMENT', default='sandbox')
 from urllib.parse import urlparse
 import os
 
-# Read raw redis url (used by other services too)
-RAW_REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+def _clean_url(url: str) -> str:
+    """Remove whitespace/newlines from URL that may come from env vars."""
+    if url:
+        return url.strip().replace('\n', '').replace('\r', '').replace(' ', '')
+    return url
+
+# Read raw redis url (used by other services too) - CLEAN IT!
+RAW_REDIS_URL = _clean_url(config('REDIS_URL', default='redis://localhost:6379/0'))
 
 # Normalize: if broker/result-specific env vars are set, prefer them
-_env_broker = os.environ.get('CELERY_BROKER_URL') or os.environ.get('BROKER_URL')
-_env_result = os.environ.get('CELERY_RESULT_BACKEND')
+_env_broker = _clean_url(os.environ.get('CELERY_BROKER_URL') or os.environ.get('BROKER_URL') or '')
+_env_result = _clean_url(os.environ.get('CELERY_RESULT_BACKEND') or '')
 
 # If explicit CELERY_* env vars present use them, else fall back to RAW_REDIS_URL
-CELERY_BROKER_URL = config('CELERY_BROKER_URL', default=_env_broker or RAW_REDIS_URL)
-CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default=_env_result or RAW_REDIS_URL)
+CELERY_BROKER_URL = _clean_url(config('CELERY_BROKER_URL', default=_env_broker or RAW_REDIS_URL))
+CELERY_RESULT_BACKEND = _clean_url(config('CELERY_RESULT_BACKEND', default=_env_result or RAW_REDIS_URL))
 
 # If RAW_REDIS_URL uses redis:// but contains SSL query params or an env toggle,
 # promote it to rediss:// to satisfy Redis client expectations.

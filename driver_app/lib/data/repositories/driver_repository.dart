@@ -55,7 +55,10 @@ class DriverRepository {
     } catch (e) {
       if (kDebugMode) {
         debugPrint('❌ Error reading cached profile: $e');
+        debugPrint('🗑️ Clearing corrupted cache...');
       }
+      // Supprimer le cache corrompu
+      _hiveService.clearDriverCache();
       return null;
     }
   }
