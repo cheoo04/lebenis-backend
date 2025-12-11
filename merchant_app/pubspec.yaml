@@ -81,8 +81,8 @@ dev_dependencies:
 
 flutter_icons:
   android: true
-  ios: true
-  image_path: "assets/logo_lebeni_business.svg"
+  ios: false
+  image_path: "assets/logo_lebeni_business.jpg"
 
 flutter:
   uses-material-design: true
