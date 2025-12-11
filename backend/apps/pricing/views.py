@@ -10,11 +10,28 @@ from .assign_permissions import AssignZonesPermissionMixin
 from .permissions import PricingViewSetPermissionMixin
 from .assign_serializers import AssignZonesSerializer
 import logging
+import unicodedata
 from .models import PricingZone, ZonePricingMatrix
 from .serializers import PricingZoneSerializer, ZonePricingMatrixSerializer, CalculatePriceSerializer
 from .calculator import PricingCalculator
 from apps.drivers.models import DriverZone, Driver
 from apps.core.quartiers_data import get_communes_list, get_commune_display_name
+
+
+def normalize_commune(name: str) -> str:
+    """
+    Normalise un nom de commune pour la comparaison :
+    - Supprime les accents
+    - Convertit en majuscules
+    Ex: "Adjamé" -> "ADJAME", "Port-Bouët" -> "PORT-BOUET"
+    """
+    if not name:
+        return ""
+    # Décompose les caractères accentués et supprime les accents
+    nfkd = unicodedata.normalize('NFKD', name)
+    ascii_str = ''.join(c for c in nfkd if not unicodedata.combining(c))
+    # Majuscules seulement (on garde les tirets)
+    return ascii_str.upper()
 
 
 # ============================================================================
@@ -210,13 +227,25 @@ class PricingZoneViewSet(PricingViewSetPermissionMixin, viewsets.ModelViewSet):
         except Exception as e:
             logger.error(f"[with_selection] Aucun profil Driver trouvé pour user.id={user.id}, email={getattr(user, 'email', None)}, erreur={e}")
             return Response({'detail': "Seuls les livreurs peuvent accéder à leurs zones. Aucun profil driver trouvé pour cet utilisateur."}, status=403)
+        
         # Support simple aggregation by commune when requested by client
         group_by = request.query_params.get('group_by')
         if group_by == 'commune':
             communes_qs = self.get_queryset().values_list('commune', flat=True).distinct()
+            
+            # Récupérer toutes les communes assignées au driver et les normaliser
+            driver_communes = set(
+                normalize_commune(dz.commune) 
+                for dz in DriverZone.objects.filter(driver=driver)
+            )
+            logger.info(f"[with_selection] Communes du driver (normalisées): {driver_communes}")
+            
             communes = []
             for c in communes_qs:
-                selected = DriverZone.objects.filter(driver=driver, commune__iexact=c).exists()
+                # Comparer les communes normalisées (sans accents, majuscules)
+                normalized_c = normalize_commune(c)
+                selected = normalized_c in driver_communes
+                logger.info(f"[with_selection] Commune '{c}' -> normalisée '{normalized_c}', selected={selected}")
                 try:
                     display = get_commune_display_name(c)
                 except Exception:
