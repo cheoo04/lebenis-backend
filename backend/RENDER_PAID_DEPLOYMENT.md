@@ -73,6 +73,7 @@
 4. **IMPORTANT**: Changer `redis://` en `rediss://` (SSL)
 
 **Format attendu:**
+
 ```
 rediss://default:VOTRE_PASSWORD@redis-12345.c123.us-east-1-2.ec2.redns.redis-cloud.com:12345
 ```
@@ -87,6 +88,7 @@ python test_redis_celery.py
 ```
 
 **Résultat attendu:**
+
 ```
 ✅ Redis: Connecté
 ✅ Celery Broker: OK
@@ -101,11 +103,13 @@ python test_redis_celery.py
 #### Option A: Via render.yaml (Recommandé - Automatique)
 
 1. **Vérifier que render.yaml existe:**
+
 ```bash
 ls backend/render.yaml
 ```
 
 2. **Commiter et pusher:**
+
 ```bash
 git add backend/render.yaml backend/requirements.txt
 git commit -m "Add Render Blueprint with Redis + Celery"
@@ -113,6 +117,7 @@ git push origin main
 ```
 
 3. **Sur Render Dashboard:**
+
    - Aller sur https://dashboard.render.com/
    - Cliquer "New" → "Blueprint"
    - Sélectionner votre repository
@@ -175,6 +180,7 @@ ORANGE_MONEY_CLIENT_SECRET=xxxxx
 #### 3.2 Variable spécifique au Web Service
 
 **Uniquement pour le Web Service:**
+
 ```env
 DATABASE_URL=<auto-généré par Render>
 ```
@@ -188,6 +194,7 @@ DATABASE_URL=<auto-généré par Render>
 ### 1. Vérifier les logs
 
 #### Web Service
+
 ```
 ✅ Django version 4.2.7
 ✅ Resolved Celery broker: rediss://***:***@...
@@ -196,6 +203,7 @@ DATABASE_URL=<auto-généré par Render>
 ```
 
 #### Background Worker
+
 ```
 ✅ Connected to rediss://***:***@...
 ✅ celery@worker v5.3.4 (emerald-rush)
@@ -203,6 +211,7 @@ DATABASE_URL=<auto-généré par Render>
 ```
 
 #### Cron Job (Beat)
+
 ```
 ✅ celery beat v5.3.4 (emerald-rush) is starting.
 ✅ Scheduler: Sending due task daily-driver-payouts
@@ -360,6 +369,7 @@ Sur Render Dashboard → Service → **Logs**
 ### ❌ Worker ne démarre pas
 
 **Vérifications:**
+
 1. Variables d'environnement identiques au Web Service?
 2. `REDIS_URL` accessible?
 3. Logs du Worker pour voir l'erreur exacte
@@ -367,6 +377,7 @@ Sur Render Dashboard → Service → **Logs**
 ### ❌ Beat n'envoie pas de tâches
 
 **Vérifications:**
+
 1. Cron Job schedule correct? (`*/15 * * * *`)
 2. Beat connecté à Redis? (voir logs)
 3. Tâches définies dans `base.py`? (vérifier `CELERY_BEAT_SCHEDULE`)
@@ -375,14 +386,14 @@ Sur Render Dashboard → Service → **Logs**
 
 ## 💰 Coûts mensuels
 
-| Service | Plan | Prix/mois |
-|---------|------|-----------|
-| Web Service | Starter | $7 |
-| Background Worker | Starter | $7 |
-| Cron Job | Starter | $7 |
-| PostgreSQL | Starter | $7 |
-| Redis Cloud | Basic | ~$5 |
-| **TOTAL** | | **~$33/mois** |
+| Service           | Plan    | Prix/mois     |
+| ----------------- | ------- | ------------- |
+| Web Service       | Starter | $7            |
+| Background Worker | Starter | $7            |
+| Cron Job          | Starter | $7            |
+| PostgreSQL        | Starter | $7            |
+| Redis Cloud       | Basic   | ~$5           |
+| **TOTAL**         |         | **~$33/mois** |
 
 **Optimisation:** Si budget serré, utiliser Starter ($7) au lieu de Standard ($25) pour chaque service.
 
