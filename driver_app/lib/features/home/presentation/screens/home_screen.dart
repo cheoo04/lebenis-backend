@@ -85,6 +85,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       );
     }
 
+    // Si le chargement est terminé mais le driver est null (erreur/token expiré),
+    // rediriger automatiquement vers la page de connexion
+    if (!driverState.isLoading && driverState.driver == null) {
+      // Utiliser addPostFrameCallback pour éviter les erreurs de navigation pendant le build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(authProvider.notifier).logout();
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      });
+      
+      return const Scaffold(
+        body: LoadingWidget(message: 'Session expirée, redirection...'),
+      );
+    }
+
     // Si le driver existe mais n'est pas vérifié, afficher l'écran d'attente
     if (driverState.driver != null && !driverState.driver!.isVerified) {
       return const WaitingVerificationScreen();

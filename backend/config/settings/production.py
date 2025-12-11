@@ -167,7 +167,13 @@ LOGGING = {
 }
 
 # Cache - Redis Cloud (activé)
-REDIS_URL = config('REDIS_URL', default='')
+def _clean_redis_url(url: str) -> str:
+    """Remove whitespace/newlines from URL that may come from env vars."""
+    if url:
+        return url.strip().replace('\n', '').replace('\r', '').replace(' ', '')
+    return url
+
+REDIS_URL = _clean_redis_url(config('REDIS_URL', default=''))
 if REDIS_URL:
     import ssl
     from urllib.parse import urlparse

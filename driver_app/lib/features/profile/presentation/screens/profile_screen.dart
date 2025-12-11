@@ -89,6 +89,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       );
     }
 
+    // Gérer le cas où le driver est null après chargement (erreur/token expiré)
+    // Rediriger automatiquement vers la page de connexion
+    if (!driverState.isLoading && driver == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(authProvider.notifier).logout();
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      });
+      
+      return const Scaffold(
+        body: LoadingWidget(message: 'Session expirée, redirection...'),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(

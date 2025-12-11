@@ -281,6 +281,12 @@ class HiveService {
     return _profile.get('current');
   }
   
+  /// Supprimer le cache du profil driver (en cas de corruption)
+  Future<void> clearDriverCache() async {
+    await _profile.clear();
+    developer.log('🗑️ Driver profile cache cleared');
+  }
+
   /// Mettre à jour la disponibilité
   Future<void> updateDriverAvailability(bool isAvailable) async {
     final profile = _profile.get('current');
