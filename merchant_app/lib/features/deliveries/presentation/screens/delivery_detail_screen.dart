@@ -448,7 +448,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                     icon: Icons.chat,
                     onPressed: () => _openChat(
                       delivery.driver!.id,
-                      delivery.trackingNumber,
+                      delivery.id,  // UUID de la livraison, pas le tracking number
                     ),
                     backgroundColor: Colors.blue,
                   ),
