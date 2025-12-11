@@ -1,15 +1,15 @@
-# Render.com Blueprint pour LeBeni Backend
+# Render.com Blueprint pour LeBeni Backend (1 seul service - 7$/mois)
 # Documentation: https://render.com/docs/blueprint-spec
 
 services:
   # ============================================================================
-  # WEB SERVICE - Django + Gunicorn
+  # WEB SERVICE - Django + Gunicorn + Celery Worker combinés
   # ============================================================================
   - type: web
     name: lebenis-backend
     runtime: python
-    plan: starter # Compte payant
-    region: frankfurt # ou oregon, singapore selon localisation
+    plan: starter # 7$/mois
+    region: frankfurt
     rootDir: backend
 
     buildCommand: |
@@ -18,17 +18,9 @@ services:
       python manage.py collectstatic --noinput
       python manage.py migrate
 
-    startCommand: |
-      gunicorn config.wsgi:application \
-        --bind 0.0.0.0:$PORT \
-        --workers 2 \
-        --threads 4 \
-        --timeout 120 \
-        --access-logfile - \
-        --error-logfile - \
-        --log-level info
+    startCommand: ./start_with_celery.sh
 
-    healthCheckPath: /health/
+    healthCheckPath: /admin/login/
 
     envVars:
       - key: PYTHON_VERSION
@@ -99,114 +91,9 @@ services:
       - key: SENTRY_DSN
         sync: false
 
-  # ============================================================================
-  # BACKGROUND WORKER - Celery Worker
-  # ============================================================================
-  - type: worker
-    name: lebenis-celery-worker
-    runtime: python
-    plan: starter # Compte payant
-    rootDir: backend
-    region: frankfurt
-
-    buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
-
-    startCommand: |
-      celery -A config worker \
-        --loglevel=info \
-        --concurrency=2 \
-        --max-tasks-per-child=100 \
-        --max-memory-per-child=200000
-
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.0
-
-      - key: DJANGO_SETTINGS_MODULE
-        value: config.settings.production
-
-      - key: SECRET_KEY
-        fromService:
-          name: lebenis-backend
-          type: web
-          envVarKey: SECRET_KEY
-
-      - key: DATABASE_URL
-        fromDatabase:
-          name: lebenis-db
-          property: connectionString
-
-      - key: REDIS_URL
-        sync: false # À configurer manuellement
-
-      - key: REQUIRE_REDIS_SSL
-        value: true
-
-      # Copier toutes les autres variables du web service
-      - key: SENDGRID_API_KEY
-        sync: false
-
-      - key: FCM_SERVER_KEY
-        sync: false
-
-      - key: FIREBASE_DATABASE_URL
-        sync: false
-
-      - key: CLOUDINARY_CLOUD_NAME
-        sync: false
-
-      - key: CLOUDINARY_API_KEY
-        sync: false
-
-      - key: CLOUDINARY_API_SECRET
-        sync: false
-
-  # ============================================================================
-  # CRON JOB - Celery Beat
-  # ============================================================================
-  - type: cron
-    name: lebenis-celery-beat
-    runtime: python
-    plan: starter # Compte payant
-    rootDir: backend
-    region: frankfurt
-
-    schedule: "*/15 * * * *" # Toutes les 15 minutes
-
-    buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
-
-    startCommand: |
-      celery -A config beat \
-        --loglevel=info \
-        --max-interval=15
-
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.0
-
-      - key: DJANGO_SETTINGS_MODULE
-        value: config.settings.production
-
-      - key: SECRET_KEY
-        fromService:
-          name: lebenis-backend
-          type: web
-          envVarKey: SECRET_KEY
-
-      - key: DATABASE_URL
-        fromDatabase:
-          name: lebenis-db
-          property: connectionString
-
-      - key: REDIS_URL
-        sync: false
-
-      - key: REQUIRE_REDIS_SSL
-        value: true
+# ============================================================================
+# DATABASE - PostgreSQL (gratuit pendant 90 jours)
+# ============================================================================
 
 # ============================================================================
 # DATABASE - PostgreSQL
