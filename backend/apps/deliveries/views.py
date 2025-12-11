@@ -576,9 +576,9 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             except Exception:
                 REQUIRE_GPS_FOR_PICKUP = False
 
-            # Seuil configurable via env (en km). Par défaut 0.2 km.
+            # Seuil configurable via env (en km). Par défaut 1 km.
             try:
-                PICKUP_PROXIMITY_KM = float(os.getenv('PICKUP_PROXIMITY_KM', '0.2'))
+                PICKUP_PROXIMITY_KM = float(os.getenv('PICKUP_PROXIMITY_KM', '1.0'))
             except Exception:
                 PICKUP_PROXIMITY_KM = 500.0  # fallback très permissif en cas d'erreur
 

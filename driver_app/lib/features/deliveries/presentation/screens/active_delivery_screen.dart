@@ -182,6 +182,32 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
     }
   }
 
+  /// Ouvre Google Maps pour naviguer vers le point d'enlèvement
+  Future<void> _openNavigationToPickup() async {
+    final delivery = ref.read(deliveryProvider).activeDelivery ?? widget.delivery;
+    
+    if (delivery.pickupLatitude == null || delivery.pickupLongitude == null) {
+      Helpers.showErrorSnackBar(context, 'Coordonnées du point d\'enlèvement non disponibles');
+      return;
+    }
+    
+    final lat = delivery.pickupLatitude!;
+    final lon = delivery.pickupLongitude!;
+    
+    // Essayer Google Maps d'abord, puis fallback sur une URL web
+    final googleMapsUri = Uri.parse('google.navigation:q=$lat,$lon&mode=d');
+    final webMapsUri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lon&travelmode=driving');
+    
+    if (await canLaunchUrl(googleMapsUri)) {
+      await launchUrl(googleMapsUri);
+    } else if (await canLaunchUrl(webMapsUri)) {
+      await launchUrl(webMapsUri, mode: LaunchMode.externalApplication);
+    } else {
+      if (!mounted) return;
+      Helpers.showErrorSnackBar(context, 'Impossible d\'ouvrir la navigation');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final delivery = ref.watch(deliveryProvider).activeDelivery ?? widget.delivery;
@@ -421,89 +447,172 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
     final locNotifier = ref.read(locationProvider.notifier);
     final deliveryNotifier = ref.read(deliveryProvider.notifier);
 
-    final message = error['error'] ?? 'La confirmation a échoué car la position GPS est requise.';
+    final message = error['error'] ?? 'La confirmation a échoué.';
     final driverCoords = error['driver_coords'];
     final pickupCommune = error['pickup_commune'];
-    final pickupSource = error['pickup_source'];
     final driverLastUpdate = error['driver_last_update'];
+    final distanceKm = error['distance_km'];
+    final requireGps = error['require_gps'] == true;
+
+    // Déterminer le type d'erreur
+    final bool isTooFarError = distanceKm != null;
+    final String title = isTooFarError 
+        ? 'Vous êtes trop loin' 
+        : 'Position GPS requise';
+    final IconData icon = isTooFarError 
+        ? Icons.location_off 
+        : Icons.gps_off;
+    final Color iconColor = isTooFarError 
+        ? AppColors.warning 
+        : AppColors.error;
 
     await showDialog<void>(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Position GPS requise'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+          title: Row(
             children: [
-              Text(message),
-              if (pickupCommune != null) ...[
-                const SizedBox(height: 8),
-                Text('Commune de fallback: $pickupCommune', style: Theme.of(context).textTheme.bodySmall),
-              ],
-              if (pickupSource != null) ...[
-                const SizedBox(height: 6),
-                Text('Source des coordonnées: $pickupSource', style: Theme.of(context).textTheme.bodySmall),
-              ],
-              if (driverCoords != null) ...[
-                const SizedBox(height: 8),
-                Text('Position serveur: $driverCoords', style: Theme.of(context).textTheme.bodySmall),
-              ],
-              if (driverLastUpdate != null) ...[
-                const SizedBox(height: 6),
-                Text('Dernière mise à jour GPS: $driverLastUpdate', style: Theme.of(context).textTheme.bodySmall),
-              ],
+              Icon(icon, color: iconColor, size: 28),
+              const SizedBox(width: 12),
+              Expanded(child: Text(title)),
             ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  message,
+                  style: const TextStyle(fontSize: 15),
+                ),
+                if (isTooFarError) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.directions_walk, color: AppColors.warning),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Distance actuelle: ${(distanceKm as num).toStringAsFixed(1)} km',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Rendez-vous au point d\'enlèvement indiqué sur la carte pour confirmer la récupération du colis.',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+                if (!isTooFarError && requireGps) ...[
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Activez votre GPS et actualisez votre position avant de confirmer.',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+                if (pickupCommune != null) ...[
+                  const SizedBox(height: 12),
+                  Text('📍 Point d\'enlèvement: $pickupCommune', style: Theme.of(context).textTheme.bodySmall),
+                ],
+                if (driverCoords != null && !isTooFarError) ...[
+                  const SizedBox(height: 6),
+                  Text('Position serveur: $driverCoords', style: Theme.of(context).textTheme.bodySmall),
+                ],
+                if (driverLastUpdate != null && !isTooFarError) ...[
+                  const SizedBox(height: 6),
+                  Text('Dernière mise à jour: $driverLastUpdate', style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ],
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: () async {
+              onPressed: () {
                 Navigator.of(context).pop();
-                try {
-                  final messenger = ScaffoldMessenger.of(context);
-                  final pos = await locNotifier.getCurrentPosition();
-                  if (!mounted) return;
-                  if (pos != null) {
-                    messenger.showSnackBar(const SnackBar(content: Text('Position actualisée'), backgroundColor: Colors.green));
-                  } else {
-                    messenger.showSnackBar(const SnackBar(content: Text('Impossible d\'obtenir la position. Activez le GPS et réessayez.'), backgroundColor: Colors.red));
-                  }
-                } catch (e) {
-                  if (!mounted) return;
-                  final messenger = ScaffoldMessenger.of(context);
-                  messenger.showSnackBar(SnackBar(content: Text('Erreur lors de l\'actualisation de la position: $e'), backgroundColor: Colors.red));
-                }
+                // Réinitialiser l'erreur
+                ref.read(deliveryProvider.notifier).clearPickupError();
               },
-              child: const Text('Actualiser la position'),
+              child: const Text('Fermer'),
             ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                setState(() => _isProcessing = true);
-                final messenger = ScaffoldMessenger.of(context);
-                try {
-                  final success = await deliveryNotifier.confirmPickup(id: widget.delivery.id);
-                  if (!mounted) return;
-                  if (success) {
-                    messenger.showSnackBar(const SnackBar(content: Text('Colis récupéré avec succès!'), backgroundColor: Colors.green));
-                    if (mounted) {
-                      setState(() {
-                        _currentStep = DeliveryStep.goingToDelivery;
-                      });
+            if (!isTooFarError)
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  try {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final pos = await locNotifier.getCurrentPosition();
+                    if (!mounted) return;
+                    if (pos != null) {
+                      messenger.showSnackBar(const SnackBar(content: Text('Position actualisée'), backgroundColor: Colors.green));
+                    } else {
+                      messenger.showSnackBar(const SnackBar(content: Text('Impossible d\'obtenir la position. Activez le GPS et réessayez.'), backgroundColor: Colors.red));
                     }
-                  } else {
-                    final err = ref.read(deliveryProvider).error ?? 'Échec lors de la confirmation';
-                    messenger.showSnackBar(SnackBar(content: Text(err), backgroundColor: Colors.red));
+                  } catch (e) {
+                    if (!mounted) return;
+                    final messenger = ScaffoldMessenger.of(context);
+                    messenger.showSnackBar(SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red));
                   }
-                } catch (e) {
-                  if (!mounted) return;
-                  messenger.showSnackBar(SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red));
-                } finally {
-                  if (mounted) setState(() => _isProcessing = false);
-                }
-              },
-              child: const Text('Réessayer'),
-            ),
+                },
+                child: const Text('Actualiser la position'),
+              ),
+            if (isTooFarError)
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Ouvrir la navigation vers le point d'enlèvement
+                  _openNavigationToPickup();
+                },
+                icon: const Icon(Icons.navigation),
+                label: const Text('Naviguer'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+              )
+            else
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  setState(() => _isProcessing = true);
+                  final messenger = ScaffoldMessenger.of(context);
+                  try {
+                    final success = await deliveryNotifier.confirmPickup(id: widget.delivery.id);
+                    if (!mounted) return;
+                    if (success) {
+                      messenger.showSnackBar(const SnackBar(content: Text('Colis récupéré avec succès!'), backgroundColor: Colors.green));
+                      if (mounted) {
+                        setState(() {
+                          _currentStep = DeliveryStep.goingToDelivery;
+                        });
+                      }
+                    } else {
+                      final err = ref.read(deliveryProvider).error ?? 'Échec lors de la confirmation';
+                      messenger.showSnackBar(SnackBar(content: Text(err), backgroundColor: Colors.red));
+                    }
+                  } catch (e) {
+                    if (!mounted) return;
+                    messenger.showSnackBar(SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red));
+                  } finally {
+                    if (mounted) setState(() => _isProcessing = false);
+                  }
+                },
+                child: const Text('Réessayer'),
+              ),
           ],
         );
       },
