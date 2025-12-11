@@ -208,6 +208,155 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
     }
   }
 
+  /// Calcule la distance entre la position actuelle et le point de récupération
+  double? _calculateDistanceToPickup(DeliveryModel delivery, dynamic locationState) {
+    if (delivery.pickupLatitude == null || delivery.pickupLongitude == null) {
+      return null;
+    }
+    if (locationState.currentPosition == null) {
+      return null;
+    }
+    
+    final Distance distance = const Distance();
+    final currentPos = LatLng(
+      locationState.currentPosition!.latitude,
+      locationState.currentPosition!.longitude,
+    );
+    final pickupPos = LatLng(
+      delivery.pickupLatitude!,
+      delivery.pickupLongitude!,
+    );
+    
+    // Retourne la distance en km
+    return distance.as(LengthUnit.Kilometer, currentPos, pickupPos);
+  }
+
+  /// Construit le widget affichant la distance au point de récupération
+  Widget _buildDistanceToPickupCard(DeliveryModel delivery, dynamic locationState) {
+    final distanceKm = _calculateDistanceToPickup(delivery, locationState);
+    
+    if (distanceKm == null) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.gps_off, color: Colors.grey[600]),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Position GPS en cours de récupération...',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // Déterminer la couleur et l'icône selon la distance
+    final bool isClose = distanceKm <= 1.0; // Seuil de 1 km
+    final bool isVeryClose = distanceKm <= 0.2; // Moins de 200m
+    
+    Color bgColor;
+    Color borderColor;
+    Color iconColor;
+    IconData icon;
+    String message;
+    
+    if (isVeryClose) {
+      bgColor = AppColors.success.withValues(alpha: 0.1);
+      borderColor = AppColors.success.withValues(alpha: 0.3);
+      iconColor = AppColors.success;
+      icon = Icons.check_circle;
+      message = 'Vous êtes au point de récupération';
+    } else if (isClose) {
+      bgColor = AppColors.success.withValues(alpha: 0.1);
+      borderColor = AppColors.success.withValues(alpha: 0.3);
+      iconColor = AppColors.success;
+      icon = Icons.near_me;
+      message = 'Vous pouvez confirmer la récupération';
+    } else {
+      bgColor = AppColors.warning.withValues(alpha: 0.1);
+      borderColor = AppColors.warning.withValues(alpha: 0.3);
+      iconColor = AppColors.warning;
+      icon = Icons.directions_walk;
+      message = 'Rapprochez-vous du point de récupération';
+    }
+    
+    // Formater la distance
+    String distanceText;
+    if (distanceKm < 1) {
+      distanceText = '${(distanceKm * 1000).round()} m';
+    } else {
+      distanceText = '${distanceKm.toStringAsFixed(1)} km';
+    }
+    
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: iconColor, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Distance au point de récupération',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      distanceText,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: iconColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (!isClose)
+                TextButton.icon(
+                  onPressed: _openNavigationToPickup,
+                  icon: const Icon(Icons.navigation, size: 18),
+                  label: const Text('Naviguer'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: TextStyle(
+              fontSize: 13,
+              color: iconColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final delivery = ref.watch(deliveryProvider).activeDelivery ?? widget.delivery;
@@ -396,6 +545,12 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            // Afficher la distance au point de récupération si on est en phase de pickup
+                            if (delivery.status == 'assigned' && _currentStep == DeliveryStep.goingToPickup) ...[
+                              _buildDistanceToPickupCard(delivery, locationState),
+                              const SizedBox(height: AppSpacing.md),
+                            ],
+                            
                             // Statut 'assigned' - Afficher "Démarrer la récupération"
                             if (delivery.status == 'assigned' && _currentStep == DeliveryStep.goingToPickup) ...[
                               ModernButton(
