@@ -1,0 +1,216 @@
+# Render.com Blueprint pour LeBeni Backend
+# Documentation: https://render.com/docs/blueprint-spec
+
+services:
+  # ============================================================================
+  # WEB SERVICE - Django + Gunicorn
+  # ============================================================================
+  - type: web
+    name: lebenis-backend
+    runtime: python
+    plan: Free # Plan gratuit
+    region: frankfurt # ou oregon, singapore selon localisation
+
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+      python manage.py migrate
+
+    startCommand: |
+      gunicorn config.wsgi:application \
+        --bind 0.0.0.0:$PORT \
+        --workers 2 \
+        --threads 4 \
+        --timeout 120 \
+        --access-logfile - \
+        --error-logfile - \
+        --log-level info
+
+    healthCheckPath: /health/
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lebenis-db
+          property: connectionString
+
+      - key: REDIS_URL
+        sync: false # À configurer manuellement (Redis Cloud)
+
+      - key: REQUIRE_REDIS_SSL
+        value: true
+
+      - key: ALLOWED_HOSTS
+        value: lebenis-backend.onrender.com,localhost
+
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://lebenis.com,https://www.lebenis.com
+
+      # Email (SendGrid)
+      - key: SENDGRID_API_KEY
+        sync: false
+
+      - key: DEFAULT_FROM_EMAIL
+        value: noreply@lebenis.com
+
+      # Firebase
+      - key: FCM_SERVER_KEY
+        sync: false
+
+      - key: FIREBASE_DATABASE_URL
+        sync: false
+
+      # Google Maps
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+
+      # Mobile Money
+      - key: ORANGE_MONEY_CLIENT_ID
+        sync: false
+
+      - key: ORANGE_MONEY_CLIENT_SECRET
+        sync: false
+
+      - key: MTN_MOMO_SUBSCRIPTION_KEY
+        sync: false
+
+      # Cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+
+      - key: CLOUDINARY_API_KEY
+        sync: false
+
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+      # Sentry
+      - key: SENTRY_DSN
+        sync: false
+
+  # ============================================================================
+  # BACKGROUND WORKER - Celery Worker
+  # ============================================================================
+  - type: worker
+    name: lebenis-celery-worker
+    runtime: python
+    plan: starter # Plan gratuit
+    region: frankfurt
+
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+
+    startCommand: |
+      celery -A config worker \
+        --loglevel=info \
+        --concurrency=2 \
+        --max-tasks-per-child=100 \
+        --max-memory-per-child=200000
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+
+      - key: SECRET_KEY
+        fromService:
+          name: lebenis-backend
+          type: web
+          envVarKey: SECRET_KEY
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lebenis-db
+          property: connectionString
+
+      - key: REDIS_URL
+        sync: false # À configurer manuellement
+
+      - key: REQUIRE_REDIS_SSL
+        value: true
+
+      # Copier toutes les autres variables du web service
+      - key: SENDGRID_API_KEY
+        sync: false
+
+      - key: FCM_SERVER_KEY
+        sync: false
+
+      - key: FIREBASE_DATABASE_URL
+        sync: false
+
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+
+      - key: CLOUDINARY_API_KEY
+        sync: false
+
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+  # ============================================================================
+  # CRON JOB - Celery Beat
+  # ============================================================================
+  - type: cron
+    name: lebenis-celery-beat
+    runtime: python
+    plan: starter # Gratuit
+    region: frankfurt
+
+    schedule: "*/15 * * * *" # Toutes les 15 minutes
+
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+
+    startCommand: |
+      celery -A config beat \
+        --loglevel=info \
+        --max-interval=15
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+
+      - key: SECRET_KEY
+        fromService:
+          name: lebenis-backend
+          type: web
+          envVarKey: SECRET_KEY
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lebenis-db
+          property: connectionString
+
+      - key: REDIS_URL
+        sync: false
+
+      - key: REQUIRE_REDIS_SSL
+        value: true
+
+# ============================================================================
+# DATABASE - PostgreSQL
+# ============================================================================
+databases:
+  - name: lebenis-db
+    databaseName: lebenis
+    user: lebenis
+    plan: starter # Plan gratuit (expire après 90 jours)
+    region: frankfurt
