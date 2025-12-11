@@ -191,20 +191,15 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
       return;
     }
     
-    final lat = delivery.pickupLatitude!;
-    final lon = delivery.pickupLongitude!;
-    
-    // Essayer Google Maps d'abord, puis fallback sur une URL web
-    final googleMapsUri = Uri.parse('google.navigation:q=$lat,$lon&mode=d');
-    final webMapsUri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lon&travelmode=driving');
-    
-    if (await canLaunchUrl(googleMapsUri)) {
-      await launchUrl(googleMapsUri);
-    } else if (await canLaunchUrl(webMapsUri)) {
-      await launchUrl(webMapsUri, mode: LaunchMode.externalApplication);
-    } else {
+    try {
+      await openNavigationApp(
+        latitude: delivery.pickupLatitude!,
+        longitude: delivery.pickupLongitude!,
+        label: delivery.trackingNumber,
+      );
+    } catch (e) {
       if (!mounted) return;
-      Helpers.showErrorSnackBar(context, 'Impossible d\'ouvrir la navigation');
+      Helpers.showErrorSnackBar(context, 'Impossible d\'ouvrir la navigation: $e');
     }
   }
 
