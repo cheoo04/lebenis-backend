@@ -390,9 +390,10 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], permission_classes=[IsDriver])
     def summary(self, request):
         """
-        GET /api/v1/payments/earnings/summary/
+        GET /api/v1/payments/earnings/summary/?period=week
         
-        Résumé des gains du driver connecté.
+        Résumé des gains du driver connecté par période.
+        Périodes supportées: 'today', 'week', 'month'
         """
         try:
             driver = Driver.objects.get(user=request.user)
@@ -402,19 +403,36 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         
+        # Base queryset - DriverEarning for this driver
         earnings = DriverEarning.objects.filter(driver=driver)
         
-        summary = {
-            'total_earnings': earnings.aggregate(Sum('total_earning'))['total_earning__sum'] or Decimal('0'),
-            'pending_amount': earnings.filter(status='pending').aggregate(Sum('total_earning'))['total_earning__sum'] or Decimal('0'),
-            'approved_amount': earnings.filter(status='approved').aggregate(Sum('total_earning'))['total_earning__sum'] or Decimal('0'),
-            'paid_amount': earnings.filter(status='paid').aggregate(Sum('total_earning'))['total_earning__sum'] or Decimal('0'),
-            'total_deliveries': earnings.count(),
-            'pending_deliveries': earnings.filter(status='pending').count()
-        }
+        # Filter by period
+        period = request.query_params.get('period', 'week')
+        now = datetime.now()
         
-        serializer = DriverEarningSummarySerializer(summary)
-        return Response(serializer.data)
+        if period == 'today':
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            earnings = earnings.filter(created_at__gte=start)
+        elif period == 'week':
+            start = now - timedelta(days=now.weekday())  # début de la semaine
+            start = start.replace(hour=0, minute=0, second=0, microsecond=0)
+            earnings = earnings.filter(created_at__gte=start)
+        elif period == 'month':
+            start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            earnings = earnings.filter(created_at__gte=start)
+        
+        # Aggregate data from DriverEarning
+        total_driver_amount = earnings.aggregate(Sum('total_earning'))['total_earning__sum'] or Decimal('0')
+        payment_count = earnings.count()
+        
+        # Return in format expected by Flutter app
+        return Response({
+            'period': period,
+            'driver_amount': str(total_driver_amount),
+            'total_commission': '0',  # Commission calculée différemment pour DriverEarning
+            'payment_count': payment_count,
+            'payments': []  # Liste vide pour éviter de charger trop de données
+        })
 
     @action(detail=False, methods=['POST'], permission_classes=[IsAdmin])
     def bulk_approve(self, request):
@@ -808,15 +826,15 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
         
         now = timezone.now()
         
-        # Lifetime stats
-        all_payments = Payment.objects.filter(driver=driver, status='completed')
-        lifetime_earnings = all_payments.aggregate(Sum('driver_amount'))['driver_amount__sum'] or Decimal('0')
-        lifetime_deliveries = all_payments.count()
+        # Lifetime stats - using DriverEarning (actual driver earnings)
+        all_earnings = DriverEarning.objects.filter(driver=driver)
+        lifetime_earnings = all_earnings.aggregate(Sum('total_earning'))['total_earning__sum'] or Decimal('0')
+        lifetime_deliveries = all_earnings.count()
         
         # This month
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        this_month = all_payments.filter(created_at__gte=month_start)
-        month_earnings = this_month.aggregate(Sum('driver_amount'))['driver_amount__sum'] or Decimal('0')
+        this_month = all_earnings.filter(created_at__gte=month_start)
+        month_earnings = this_month.aggregate(Sum('total_earning'))['total_earning__sum'] or Decimal('0')
         month_deliveries = this_month.count()
         
         # Last month
@@ -825,33 +843,39 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             last_month_start = now.replace(month=now.month - 1, day=1, hour=0, minute=0, second=0, microsecond=0)
         
-        last_month = all_payments.filter(
+        last_month = all_earnings.filter(
             created_at__gte=last_month_start,
             created_at__lt=month_start
         )
-        last_month_earnings = last_month.aggregate(Sum('driver_amount'))['driver_amount__sum'] or Decimal('0')
+        last_month_earnings = last_month.aggregate(Sum('total_earning'))['total_earning__sum'] or Decimal('0')
         last_month_deliveries = last_month.count()
         
-        # By payment method
-        payment_methods = {}
-        for method in ['orange_money', 'mtn_money', 'moov_money', 'wave', 'cash']:
-            method_total = all_payments.filter(
-                payment_method=method
-            ).aggregate(Sum('driver_amount'))['driver_amount__sum'] or Decimal('0')
-            payment_methods[method] = str(method_total)
+        # By payment method - from related deliveries
+        payment_methods = {'orange_money': 0, 'mtn_money': 0, 'moov_money': 0, 'wave': 0, 'cash': 0}
+        for earning in all_earnings.select_related('delivery'):
+            if earning.delivery and earning.delivery.payment_method:
+                method = earning.delivery.payment_method
+                if method in payment_methods:
+                    payment_methods[method] += 1
+        
+        # Calculate average per payment
+        average_per_payment = Decimal('0')
+        if lifetime_deliveries > 0:
+            average_per_payment = lifetime_earnings / lifetime_deliveries
         
         return Response({
             'lifetime': {
-                'total_earnings': str(lifetime_earnings),
-                'total_deliveries': lifetime_deliveries
+                'total_earned': str(lifetime_earnings),
+                'total_payments': lifetime_deliveries,
+                'average_per_payment': str(average_per_payment)
             },
             'this_month': {
-                'earnings': str(month_earnings),
-                'deliveries': month_deliveries
+                'total_earned': str(month_earnings),
+                'total_payments': month_deliveries
             },
             'last_month': {
-                'earnings': str(last_month_earnings),
-                'deliveries': last_month_deliveries
+                'total_earned': str(last_month_earnings),
+                'total_payments': last_month_deliveries
             },
             'payment_methods': payment_methods
         })

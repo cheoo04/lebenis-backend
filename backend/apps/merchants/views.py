@@ -239,6 +239,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
 
         # Format revenue values as strings to preserve existing response shape
         stats['revenue']['period_revenue'] = str(stats['revenue']['period_revenue'])
+        stats['revenue']['total_revenue'] = str(stats['revenue']['total_revenue'])
         stats['revenue']['total_billed'] = str(stats['revenue']['total_billed'])
         stats['revenue']['paid'] = str(stats['revenue']['paid'])
         stats['revenue']['pending_payment'] = str(stats['revenue']['pending_payment'])
