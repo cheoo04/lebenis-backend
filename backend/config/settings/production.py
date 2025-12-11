@@ -166,18 +166,35 @@ LOGGING = {
     },
 }
 
-# Cache - Redis recommandé pour production (optionnel)
-# REDIS_URL = config('REDIS_URL', default='')
-# if REDIS_URL:
-#     CACHES = {
-#         'default': {
-#             'BACKEND': 'django_redis.cache.RedisCache',
-#             'LOCATION': REDIS_URL,
-#             'OPTIONS': {
-#                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-#             }
-#         }
-#     }
+# Cache - Redis Cloud (activé)
+REDIS_URL = config('REDIS_URL', default='')
+if REDIS_URL:
+    import ssl
+    from urllib.parse import urlparse
+    
+    # Déterminer si SSL/TLS est nécessaire
+    parsed_redis = urlparse(REDIS_URL)
+    redis_ssl_options = {}
+    
+    if parsed_redis.scheme == 'rediss':
+        # Redis Cloud nécessite SSL mais sans vérification stricte du certificat
+        redis_ssl_options = {
+            'ssl_cert_reqs': None,  # Accepter les certificats auto-signés
+            'ssl_check_hostname': False,
+        }
+    
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'CONNECTION_POOL_KWARGS': redis_ssl_options,
+                'SOCKET_CONNECT_TIMEOUT': 5,
+                'SOCKET_TIMEOUT': 5,
+            }
+        }
+    }
 
 
 # Rate limiting (protection DDoS)

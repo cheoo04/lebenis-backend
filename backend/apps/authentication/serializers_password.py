@@ -53,5 +53,5 @@ class ChangePasswordSerializer(serializers.Serializer):
         """Vérifier l'ancien mot de passe"""
         user = self.context['request'].user
         if not user.check_password(value):
-            raise serializers.ValidationError("Mot de passe actuel incorrect.")
+            raise serializers.ValidationError("Mot de passe incorrect.")
         return value
