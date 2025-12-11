@@ -195,6 +195,14 @@ if REDIS_URL:
             }
         }
     }
+else:
+    # Fallback: utiliser le cache en mémoire si Redis n'est pas configuré
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake',
+        }
+    }
 
 
 # Rate limiting (protection DDoS)
