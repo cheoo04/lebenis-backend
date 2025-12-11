@@ -80,9 +80,9 @@ class PricingCalculator:
             
             if not zone:
                 # REFUSE la commune invalide
-                available_communes = sorted(set([
-                    z.commune for z in PricingZone.objects.filter(is_active=True).values_list('commune', flat=True)
-                ]))
+                available_communes = sorted(set(
+                    PricingZone.objects.filter(is_active=True).values_list('commune', flat=True)
+                ))
                 
                 communes_list = ', '.join(available_communes)
                 

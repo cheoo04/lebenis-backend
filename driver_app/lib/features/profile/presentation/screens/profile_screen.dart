@@ -259,7 +259,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     child: ModernStatCard(
                       icon: Icons.local_shipping_outlined,
                       label: 'Livraisons',
-                      value: '${stats?['total_deliveries'] ?? 0}',
+                      value: '${stats?['deliveries']?['total_all_time'] ?? driver?.totalDeliveries ?? 0}',
                       color: AppColors.blue,
                     ),
                   ),
@@ -274,16 +274,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     child: ModernStatCard(
                       icon: Icons.check_circle_outline,
                       label: 'Complétées',
-                      value: '${stats?['completed_deliveries'] ?? 0}',
+                      value: '${stats?['performance']?['successful_deliveries'] ?? driver?.successfulDeliveries ?? 0}',
                       color: AppColors.green,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: ModernStatCard(
-                      icon: Icons.attach_money,
+                      icon: Icons.payments_outlined,
                       label: 'Gains',
-                      value: Formatters.formatPrice((stats?['total_earnings'] ?? 0).toDouble()),
+                      value: Formatters.formatPrice(double.tryParse(stats?['earnings']?['total_earned']?.toString() ?? '0') ?? 0.0),
                       color: AppColors.primary,
                     ),
                   ),

@@ -219,10 +219,12 @@ class DriverZone(models.Model):
         """
         Normalise et valide la commune avant sauvegarde :
         - utilise la liste canonique via `apps.core.quartiers_data.get_communes_list()`
-        - stocke la commune en MAJUSCULE (ex: 'COCODY') pour être cohérent
+        - stocke la commune en MAJUSCULE sans accent (ex: 'COCODY', 'ADJAME') pour être cohérent
           avec les données de `QUARTIERS_ABIDJAN_COMPLET` et les recherches
           `commune__iexact` présentes dans le codebase.
         """
+        import unicodedata
+        
         try:
             from apps.core.quartiers_data import get_communes_list
         except Exception:
@@ -232,16 +234,19 @@ class DriverZone(models.Model):
         if not raw:
             raise ValidationError({'commune': 'Le champ commune est requis.'})
 
-        commune_upper = raw.upper()
+        # Normalise: supprime les accents et convertit en majuscules
+        nfkd = unicodedata.normalize('NFKD', raw)
+        commune_normalized = ''.join(c for c in nfkd if not unicodedata.combining(c)).upper()
+        
         communes = get_communes_list()
         # `get_communes_list()` retourne les communes telles qu'elles sont
-        # définies dans QUARTIERS_ABIDJAN_COMPLET (MAJUSCULES)
-        if commune_upper not in communes:
+        # définies dans QUARTIERS_ABIDJAN_COMPLET (MAJUSCULES sans accent)
+        if commune_normalized not in communes:
             raise ValidationError({
                 'commune': (
                     f"Commune invalide '{raw}'. Valeurs autorisées: {', '.join(communes)}"
                 )
             })
 
-        self.commune = commune_upper
+        self.commune = commune_normalized
         return super().save(*args, **kwargs)
