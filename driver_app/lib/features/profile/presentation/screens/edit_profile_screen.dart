@@ -43,6 +43,7 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with PhotoMixin<EditProfileScreen> {
 
   /// Suppression effective d'un document véhicule (via service)
+  // ignore: unused_element
   Future<void> _deleteVehicleDocument(String type) async {
     setState(() => _isSubmitting = true);
     final result = await ProfileService.deleteVehicleDocument(
@@ -158,6 +159,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
   ];
 
   // ========== SERVICES ==========
+  // Note: CloudinaryDirectService is kept for future use
+  // ignore: unused_field
   late final CloudinaryDirectService _cloudinaryDirectService;
 
   // ========== LIFECYCLE ==========
@@ -242,7 +245,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
     _phoneController.text = driver.phone;
     _selectedVehicleType = driver.vehicleType;
     _vehicleTypeController.text = driver.vehicleTypeLabel;
-    _vehiclePlateController.text = driver.vehicleRegistration ?? '';
+    _vehiclePlateController.text = driver.vehicleRegistration;
     _vehicleCapacityController.text = driver.vehicleCapacityKg.toString();
     // Vehicle Documents
     _initialInsuranceUrl = driver.vehicleInsurance;
@@ -351,6 +354,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
   }
 
   /// Generic photo picker method (refactored)
+  // ignore: unused_element
   Future<void> _pickPhoto({
     required Function(dynamic file, Uint8List bytes) onPhotoPicked,
   }) async {
@@ -419,6 +423,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
 
   // ========== PROFILE PHOTO DELETION ==========
 
+  // ignore: unused_element
   Future<void> _deleteProfilePhoto() async {
     final confirmed = await Helpers.showConfirmDialog(
       context,
@@ -716,6 +721,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
         return plate.replaceAll(RegExp(r'[^A-Za-z0-9 ]'), '').toUpperCase();
       }
       String? formatDate(DateTime? d) => d?.toIso8601String().split('T').first;
+      // Keeping truncate for future use
+      // ignore: unused_element
       String? truncate(String? s, int max) => (s != null && s.length > max) ? s.substring(0, max) : s;
 
       final updateData = <String, dynamic>{
@@ -776,6 +783,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
       if (success) {
         _resetPhotoState();
         await Future.delayed(const Duration(milliseconds: 500));
+        // ignore: unused_result
         ref.refresh(driverProvider);
         _clearImageCache();
         if (!mounted) return;

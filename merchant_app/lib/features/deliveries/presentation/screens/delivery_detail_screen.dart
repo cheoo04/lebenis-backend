@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../theme/app_theme.dart';
 import '../../../../data/providers/delivery_provider.dart';
 import '../../../../shared/widgets/modern_button.dart';
-import '../../../../core/providers.dart';
 import 'tracking_screen.dart';
 import '../../../chat/screens/chat_screen.dart';
 import '../../../chat/providers/chat_provider.dart';
@@ -66,6 +65,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
     }
   }
 
+  // ignore: unused_element
   Future<void> _downloadPDF() async {
     // PDF download removed for deliveries per request.
     // Keep method stub for compatibility but do nothing.
@@ -291,11 +291,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
       ),
       body: deliveryState.when(
         data: (delivery) {
-          if (delivery == null) {
-            return const Center(child: Text('Livraison introuvable'));
-          }
-
-          final status = delivery.status ?? 'unknown';
+          final status = delivery.status;
           final statusInfo = _getStatusInfo(status);
           final canCancel = status == 'pending';
 
@@ -309,14 +305,14 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [statusInfo['color'], statusInfo['color'].withOpacity(0.7)],
+                      colors: [statusInfo['color'], statusInfo['color'].withValues(alpha: 0.7)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: statusInfo['color'].withOpacity(0.3),
+                        color: statusInfo['color'].withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -360,8 +356,8 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                   icon: Icons.person,
                   title: 'Destinataire',
                   children: [
-                    _buildInfoRow('Nom', delivery.recipientName ?? 'N/A'),
-                    _buildInfoRow('Téléphone', delivery.recipientPhone ?? 'N/A'),
+                    _buildInfoRow('Nom', delivery.recipientName.isNotEmpty ? delivery.recipientName : 'N/A'),
+                    _buildInfoRow('Téléphone', delivery.recipientPhone.isNotEmpty ? delivery.recipientPhone : 'N/A'),
                   ],
                 ),
 
@@ -374,8 +370,8 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                   children: [
                     _buildAddressRow(
                       'Récupération',
-                      delivery.pickupCommune ?? 'N/A',
-                      delivery.pickupAddress ?? '',
+                      delivery.pickupCommune.isNotEmpty ? delivery.pickupCommune : 'N/A',
+                      delivery.pickupAddress,
                       Colors.blue,
                     ),
                     const SizedBox(height: 12),
@@ -383,8 +379,8 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                     const SizedBox(height: 12),
                     _buildAddressRow(
                       'Livraison',
-                      delivery.deliveryCommune ?? 'N/A',
-                      delivery.deliveryAddress ?? '',
+                      delivery.deliveryCommune.isNotEmpty ? delivery.deliveryCommune : 'N/A',
+                      delivery.deliveryAddress,
                       Colors.green,
                     ),
                   ],
@@ -397,10 +393,9 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                   icon: Icons.inventory_2,
                   title: 'Informations colis',
                   children: [
-                    _buildInfoRow('Description', delivery.packageDescription ?? 'N/A'),
-                    _buildInfoRow('Poids', '${delivery.packageWeightKg ?? 0} kg'),
-                    if (delivery.price != null)
-                      _buildInfoRow('Prix', '${delivery.price!.toStringAsFixed(0)} FCFA'),
+                    _buildInfoRow('Description', delivery.packageDescription.isNotEmpty ? delivery.packageDescription : 'N/A'),
+                    _buildInfoRow('Poids', '${delivery.packageWeightKg} kg'),
+                    _buildInfoRow('Prix', '${delivery.price.toStringAsFixed(0)} FCFA'),
                   ],
                 ),
 
@@ -426,8 +421,8 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                     icon: Icons.local_shipping,
                     title: 'Livreur assigné',
                     children: [
-                      _buildInfoRow('Nom', delivery.driver!.firstName ?? 'N/A'),
-                      _buildInfoRow('Téléphone', delivery.driver!.phoneNumber ?? 'N/A'),
+                      _buildInfoRow('Nom', delivery.driver!.firstName.isNotEmpty ? delivery.driver!.firstName : 'N/A'),
+                      _buildInfoRow('Téléphone', delivery.driver!.phoneNumber.isNotEmpty ? delivery.driver!.phoneNumber : 'N/A'),
                     ],
                   ),
                 ],
@@ -460,14 +455,13 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
 
                 if (delivery.driver != null) const SizedBox(height: 12),
 
-                // Bouton Noter le livreur (seulement si livraison terminée)
                 if (status == 'delivered' && delivery.driver != null)
                   ModernButton(
                     text: 'Noter le livreur',
                     icon: Icons.star,
                     onPressed: () => _showRatingDialog(
                       delivery.id,
-                      delivery.driver!.firstName ?? 'le livreur',
+                      delivery.driver!.firstName.isNotEmpty ? delivery.driver!.firstName : 'le livreur',
                     ),
                     backgroundColor: Colors.amber,
                   ),
@@ -554,7 +548,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -624,7 +618,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(Icons.location_on, color: color, size: 18),

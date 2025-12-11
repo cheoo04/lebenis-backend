@@ -117,10 +117,7 @@ class _DeliveryNavigationScreenState extends ConsumerState<DeliveryNavigationScr
 
     final routeAsync = ref.watch(deliveryRouteProvider(DeliveryRouteRequest(pickup: pickupNN, delivery: destNN, driverPosition: driverPosition)));
 
-    final pickupCity = delivery != null ? _cityFromAddress(delivery.pickupAddress) : '';
-    final pickupNeighborhood = delivery != null ? _neighborhoodFromAddress(delivery.pickupAddress) : '';
-    final deliveryCity = delivery != null ? _cityFromAddress(delivery.deliveryAddress) : '';
-    final deliveryNeighborhood = delivery != null ? _neighborhoodFromAddress(delivery.deliveryAddress) : '';
+    // Précisions additionnelles pour l'affichage
     final precision = delivery?.notes ?? '';
 
     return Scaffold(

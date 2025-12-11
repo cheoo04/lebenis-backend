@@ -70,7 +70,7 @@ class MerchantStatsModel {
       cancelled: deliveries['cancelled'] ?? 0,
       successRate: _parseDouble(deliveries['success_rate']),
       periodRevenue: _parseDouble(revenue['period_revenue']),
-      totalRevenue: _parseDouble(revenue['total_revenue']) ?? _parseDouble(revenue['total_billed']),
+      totalRevenue: _parseDouble(revenue['total_revenue']),
       totalBilled: _parseDouble(revenue['total_billed']),
       paid: _parseDouble(revenue['paid']),
       pendingPayment: _parseDouble(revenue['pending_payment']),

@@ -106,9 +106,9 @@ class _UploadDocumentsScreenState extends ConsumerState<UploadDocumentsScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.info.withOpacity(0.1),
+                color: AppColors.info.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                border: Border.all(color: AppColors.info.withOpacity(0.3)),
+                border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
               ),
               child: const Row(
                 children: [
@@ -192,7 +192,7 @@ class _UploadDocumentsScreenState extends ConsumerState<UploadDocumentsScreen> {
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: Border.all(
-          color: file != null ? AppColors.success : AppColors.textSecondary.withOpacity(0.3),
+          color: file != null ? AppColors.success : AppColors.textSecondary.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: AppTheme.cardShadow,
@@ -205,7 +205,7 @@ class _UploadDocumentsScreenState extends ConsumerState<UploadDocumentsScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                 ),
                 child: Icon(icon, color: AppColors.primary, size: 28),
@@ -242,7 +242,7 @@ class _UploadDocumentsScreenState extends ConsumerState<UploadDocumentsScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: Row(

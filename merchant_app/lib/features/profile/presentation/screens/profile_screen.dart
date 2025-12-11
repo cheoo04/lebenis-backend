@@ -15,7 +15,7 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(userProfileProvider);
-    final isMerchant = ref.watch(isMerchantProvider);
+    // Note: isMerchantProvider disponible si nécessaire
 
     return Scaffold(
       appBar: AppBar(

@@ -44,7 +44,7 @@ class ModernInfoCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
+                    color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                   ),
                   child: Icon(icon, color: color, size: 26),

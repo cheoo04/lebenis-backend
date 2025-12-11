@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import '../../core/network/dio_client.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/services/auth_service.dart';
@@ -52,7 +51,7 @@ class AuthRepository {
   }
   
   // Alias pour compatibilité (déprécié)
-  @deprecated
+  @Deprecated('Use register() instead. Will be removed in future versions.')
   Future<UserModel> registerMerchant({
     required String email,
     required String password,

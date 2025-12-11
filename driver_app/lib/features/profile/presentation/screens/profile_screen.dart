@@ -46,6 +46,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _goToEditProfile() async {
     final result = await Navigator.of(context).pushNamed('/edit-profile');
     if (result == true && mounted) {
+      // ignore: unused_result
       ref.refresh(driverProvider);
       await Future.wait([
         ref.read(driverProvider.notifier).loadProfile(),

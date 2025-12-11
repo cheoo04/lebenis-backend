@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/backend_constants.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/providers/delivery_provider.dart';
-import '../../../../data/providers/driver_provider.dart';
 import '../../../../data/providers/delivery_provider.dart' as dp;
 import '../../../../data/models/delivery_model.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -148,7 +147,7 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
     final availableState = ref.watch(dp.availableDeliveriesNotifierProvider);
     final availableDeliveries = ref.watch(dp.availableDeliveriesProvider);
     final activeDeliveryCount = ref.watch(activeDeliveryCountProvider);
-    final driver = ref.watch(currentDriverProvider);
+    // Note: currentDriverProvider disponible si nécessaire
     
     // Combiner les livraisons selon l'onglet sélectionné
     final allDeliveries = _selectedStatus == 'available' 
@@ -282,8 +281,8 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
                                     deliveryAddress: delivery.deliveryAddress,
                                     deliveryCommune: delivery.deliveryCommune,
                                     status: delivery.status,
-                                    amount: delivery.price?.toString(),
-                                    distance: delivery.distanceKm?.toString(),
+                                    amount: delivery.price.toString(),
+                                    distance: delivery.distanceKm.toString(),
                                     createdAt: delivery.createdAt,
                                     onTap: () => _navigateToDetails(delivery),
                                     showAcceptButton: _selectedStatus == 'available',

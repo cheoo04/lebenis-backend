@@ -510,21 +510,18 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _AddressCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String title;
   final String address;
-  final String? contactName;
-  final String? contactPhone;
 
   const _AddressCard({
     required this.icon,
     required this.iconColor,
     required this.title,
     required this.address,
-    this.contactName,
-    this.contactPhone,
   });
 
   @override
@@ -550,45 +547,6 @@ class _AddressCard extends StatelessWidget {
               address,
               style: AppTypography.bodyMedium,
             ),
-            if (contactName != null || contactPhone != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              const Divider(),
-              const SizedBox(height: AppSpacing.sm),
-              if (contactName != null)
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.person_outline,
-                      size: 20.0,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      contactName!,
-                      style: AppTypography.bodyMedium,
-                    ),
-                  ],
-                ),
-              if (contactPhone != null) ...[
-                const SizedBox(height: AppSpacing.sm),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.phone_outlined,
-                      size: 20.0,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      Formatters.formatPhoneNumber(contactPhone!),
-                      style: AppTypography.bodyMedium.copyWith(
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
           ],
         ),
       ),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// GPS position gathering removed from simplified UI
-import '../../../../core/providers/quartier_provider.dart';
 import '../../../../data/providers/delivery_provider.dart';
 import '../../../../data/providers/pricing_provider.dart';
 import '../../../../shared/widgets/quartier_search_widget.dart';
@@ -74,14 +72,6 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
     _packageValueController.dispose();
     _codAmountController.dispose();
     super.dispose();
-  }
-
-  Future<void> _getCurrentLocation() async {
-    // removed: simplified UI does not request current location
-  }
-
-  Future<void> _getDeliveryLocation() async {
-    // removed: simplified UI does not request current location
   }
 
   Future<void> _estimatePrice() async {
@@ -566,7 +556,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryColor.withOpacity(0.3),
+                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),

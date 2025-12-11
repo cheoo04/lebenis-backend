@@ -73,8 +73,7 @@ final uploadServiceProvider = Provider<UploadService>((ref) {
 });
 
 final pdfReportServiceProvider = Provider<PDFReportService>((ref) {
-  final dioClient = ref.watch(dioClientProvider);
-  return PDFReportService(dioClient);
+  return PDFReportService();
 });
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {

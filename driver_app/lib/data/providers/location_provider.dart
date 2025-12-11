@@ -189,7 +189,7 @@ class LocationNotifier extends Notifier<LocationState> {
     await _checkPermissionsAndService();
   }
 
-  @override
+  /// Nettoyer les ressources
   void dispose() {
     stopTracking();
     _updateTimer?.cancel();

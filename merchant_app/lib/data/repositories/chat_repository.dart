@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../../core/network/dio_client.dart';
 import '../models/chat/chat_room_model.dart';
@@ -124,7 +123,7 @@ class ChatRepository {
       });
 
       // Trier par timestamp (plus récent en dernier)
-      messages.sort((a, b) => (a.timestamp ?? DateTime.now()).compareTo(b.timestamp ?? DateTime.now()));
+      messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
       return messages;
     });

@@ -4,11 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../theme/app_theme.dart';
-import '../../../../theme/app_colors.dart';
 import '../../../../data/providers/delivery_provider.dart';
 import '../../../../shared/widgets/osm_map_widget.dart';
 import '../../../../core/providers/routing_provider.dart';
-import '../../../../core/services/routing_service.dart';
 
 class TrackingScreen extends ConsumerStatefulWidget {
   final String deliveryId;
@@ -46,7 +44,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
   }
 
   /// Charge l'itinéraire réel depuis l'API
-  Future<void> _loadRealRoute(delivery) async {
+  Future<void> _loadRealRoute(dynamic delivery) async {
     if (_routeLoaded) return;
     
     // Vérifier qu'on a les coordonnées nécessaires
@@ -79,11 +77,12 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
           _routeLoaded = true;
         });
       }
-    } catch (e) {
+    } catch (_) {
+      // Silently ignore routing errors - fallback to straight line
     }
   }
 
-  List<Marker> _buildMarkers(delivery) {
+  List<Marker> _buildMarkers(dynamic delivery) {
     final markers = <Marker>[];
 
     // Pickup marker
@@ -114,7 +113,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
     return markers;
   }
 
-  List<Polyline> _buildPolylines(delivery) {
+  List<Polyline> _buildPolylines(dynamic delivery) {
     // Utiliser la route réelle si disponible
     if (_routePoints != null && _routePoints!.length >= 2) {
       return [OsmMarkerHelper.route(_routePoints!, color: AppTheme.primaryColor)];
@@ -171,10 +170,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
         children: [
           deliveryState.when(
             data: (delivery) {
-              if (delivery == null) {
-                return const Center(child: Text('Livraison introuvable'));
-              }
-
               // Charger la route réelle (une seule fois)
               if (!_routeLoaded) {
                 _loadRealRoute(delivery);
@@ -225,9 +220,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
             right: 0,
             child: deliveryState.whenOrNull(
               data: (delivery) {
-                if (delivery == null) return const SizedBox.shrink();
-
-                final status = delivery.status ?? 'unknown';
+                final status = delivery.status;
                 final statusInfo = _getStatusInfo(status);
 
                 return Container(
@@ -237,7 +230,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 10,
                         offset: const Offset(0, -2),
                       ),
@@ -260,7 +253,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: statusInfo['color'].withOpacity(0.1),
+                              color: statusInfo['color'].withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(
@@ -284,7 +277,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '${delivery.pickupCommune ?? "N/A"} → ${delivery.deliveryCommune ?? "N/A"}',
+                                  '${delivery.pickupCommune.isNotEmpty ? delivery.pickupCommune : "N/A"} → ${delivery.deliveryCommune.isNotEmpty ? delivery.deliveryCommune : "N/A"}',
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: Colors.grey[600],
@@ -302,7 +295,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
                         Row(
                           children: [
                             CircleAvatar(
-                              backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                              backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
                               child: const Icon(Icons.person, color: AppTheme.primaryColor),
                             ),
                             const SizedBox(width: 12),
@@ -311,14 +304,14 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    delivery.driver!.firstName ?? 'Livreur',
+                                    delivery.driver!.firstName.isNotEmpty ? delivery.driver!.firstName : 'Livreur',
                                     style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                   Text(
-                                    delivery.driver!.phoneNumber ?? '',
+                                    delivery.driver!.phoneNumber,
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: Colors.grey[600],
@@ -357,7 +350,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
