@@ -58,7 +58,13 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
 
   void _determineCurrentStep() {
     switch (widget.delivery.status) {
+      case 'assigned':
+        // Livreur assigné - doit aller récupérer le colis
+        _currentStep = DeliveryStep.goingToPickup;
+        break;
+      case 'picked_up':
       case BackendConstants.deliveryStatusInProgress:
+        // Colis récupéré - en route vers la livraison
         _currentStep = DeliveryStep.goingToDelivery;
         break;
       default:
@@ -377,23 +383,18 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            if (delivery.status == 'assigned') ...[
-                              ModernButton(
-                                text: 'Démarrer la livraison',
-                                onPressed: _isProcessing ? null : _startDelivery,
-                                isLoading: _isProcessing,
-                                icon: Icons.play_arrow,
-                                type: ModernButtonType.success,
-                              ),
-                            ] else if (_currentStep == DeliveryStep.goingToPickup) ...[
+                            // Statut 'assigned' - Afficher "Démarrer la récupération"
+                            if (delivery.status == 'assigned' && _currentStep == DeliveryStep.goingToPickup) ...[
                               ModernButton(
                                 text: 'Confirmer la récupération',
                                 onPressed: _isProcessing ? null : _confirmPickup,
                                 isLoading: _isProcessing,
-                                icon: Icons.check_circle,
+                                icon: Icons.inventory_2,
                                 type: ModernButtonType.success,
                               ),
-                            ] else if (_currentStep == DeliveryStep.goingToDelivery && delivery.status == BackendConstants.deliveryStatusInProgress) ...[
+                            // Statut 'picked_up' ou 'in_progress' - Afficher "Confirmer la livraison"
+                            ] else if (delivery.status == 'picked_up' || 
+                                       delivery.status == BackendConstants.deliveryStatusInProgress) ...[
                               ModernButton(
                                 text: 'Confirmer la livraison',
                                 onPressed: _isProcessing ? null : _goToConfirmDelivery,
