@@ -12,6 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.http import Http404
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from apps.payments.models import DriverEarning
 from decimal import Decimal
@@ -27,6 +28,7 @@ from apps.merchants.models import Merchant
 from apps.drivers.models import Driver
 from core.permissions import IsMerchant, IsDriver, IsAdmin, IsMerchantOrIndividual
 from apps.notifications.services import notify_delivery_status_change
+from core.cloudinary_service import CloudinaryService
 import sentry_sdk
 from geopy.distance import geodesic
 from apps.core.location_service import LocationService
@@ -43,6 +45,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['tracking_number', 'recipient_name']
     ordering_fields = ['created_at', 'delivered_at']
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     
     def get_serializer_class(self):
         """Utilise DeliveryCreateSerializer pour la création, DeliverySerializer pour le reste"""
@@ -807,18 +810,47 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
 
         # Récupérer les données optionnelles (support des 2 formats)
-        delivery_photo = request.data.get('delivery_photo') or request.data.get('photo_url')
-        recipient_signature = request.data.get('recipient_signature') or request.data.get('signature_url')
+        # Support fichiers uploadés OU URLs directes
+        photo_url = None
+        signature_url = None
         notes = request.data.get('notes') or request.data.get('delivery_notes')
+
+        # Gérer la photo de livraison
+        if 'delivery_photo' in request.FILES:
+            try:
+                photo_file = request.FILES['delivery_photo']
+                photo_url = CloudinaryService.upload_delivery_photo(
+                    photo_file, str(delivery.id), 'photo'
+                )
+                logger.info(f"Photo livraison uploadée: {photo_url}")
+            except Exception as e:
+                logger.error(f"Erreur upload photo: {e}")
+                # Ne pas bloquer la confirmation si l'upload échoue
+        elif request.data.get('delivery_photo') or request.data.get('photo_url'):
+            # URL directe fournie
+            photo_url = request.data.get('delivery_photo') or request.data.get('photo_url')
+
+        # Gérer la signature du destinataire
+        if 'recipient_signature' in request.FILES:
+            try:
+                signature_file = request.FILES['recipient_signature']
+                signature_url = CloudinaryService.upload_delivery_photo(
+                    signature_file, str(delivery.id), 'signature'
+                )
+                logger.info(f"Signature uploadée: {signature_url}")
+            except Exception as e:
+                logger.error(f"Erreur upload signature: {e}")
+        elif request.data.get('recipient_signature') or request.data.get('signature_url'):
+            signature_url = request.data.get('recipient_signature') or request.data.get('signature_url')
 
         # Mettre à jour la livraison
         delivery.status = 'delivered'
         delivery.delivered_at = timezone.now()
 
-        if delivery_photo:
-            delivery.photo_url = delivery_photo
-        if recipient_signature:
-            delivery.signature_url = recipient_signature
+        if photo_url:
+            delivery.photo_url = photo_url
+        if signature_url:
+            delivery.signature_url = signature_url
         if notes:
             delivery.delivery_notes = notes
 

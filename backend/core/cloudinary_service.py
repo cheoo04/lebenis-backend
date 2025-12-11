@@ -168,6 +168,56 @@ class CloudinaryService:
             raise Exception(f'Erreur upload document: {str(e)}')
     
     @classmethod
+    def upload_delivery_photo(cls, file, delivery_id, photo_type='photo'):
+        """
+        Upload une photo de preuve de livraison
+        
+        Args:
+            file: Fichier Django UploadedFile
+            delivery_id: ID de la livraison
+            photo_type: Type de photo ('photo' ou 'signature')
+        
+        Returns:
+            str: URL sécurisée de l'image
+        
+        Raises:
+            ValidationError: Si validation échoue
+        """
+        cls._configure_cloudinary()
+        
+        cls._validate_file(
+            file,
+            max_size=cls.MAX_FILE_SIZE,
+            allowed_types=cls.ALLOWED_IMAGE_TYPES
+        )
+        
+        import time
+        timestamp = int(time.time())
+        public_id = f"delivery_{delivery_id}_{photo_type}_{timestamp}"
+        
+        try:
+            file.seek(0)
+            result = cloudinary.uploader.upload(
+                file,
+                public_id=public_id,
+                resource_type='image',
+                folder=f'lebenis/deliveries/{photo_type}s',
+                transformation=[
+                    {'width': 1200, 'height': 1200, 'crop': 'limit'},
+                    {'quality': 'auto:good'},
+                    {'fetch_format': 'auto'}
+                ],
+            )
+            
+            secure_url = result.get('secure_url')
+            if not secure_url:
+                raise Exception("Cloudinary n'a pas retourné d'URL !")
+            return secure_url
+        
+        except Exception as e:
+            raise Exception(f'Erreur upload photo livraison: {str(e)}')
+
+    @classmethod
     def delete_image(cls, url):
         """
         Supprime une image de Cloudinary
