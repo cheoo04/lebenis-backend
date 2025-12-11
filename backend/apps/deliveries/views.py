@@ -578,9 +578,9 @@ class DeliveryViewSet(viewsets.ModelViewSet):
 
             # Seuil configurable via env (en km). Par défaut 1 km.
             try:
-                PICKUP_PROXIMITY_KM = float(os.getenv('PICKUP_PROXIMITY_KM', '1.0'))
+                PICKUP_PROXIMITY_KM = float(os.environ.get('PICKUP_PROXIMITY_KM', '300.0'))
             except Exception:
-                PICKUP_PROXIMITY_KM = 500.0  # fallback très permissif en cas d'erreur
+                PICKUP_PROXIMITY_KM = 5.0  # fallback très permissif en cas d'erreur
 
             distance_km = None
 

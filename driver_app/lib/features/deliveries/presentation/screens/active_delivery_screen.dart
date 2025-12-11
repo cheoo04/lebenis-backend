@@ -266,7 +266,7 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
     }
     
     // Déterminer la couleur et l'icône selon la distance
-    final bool isClose = distanceKm <= 1.0; // Seuil de 1 km
+    final bool isClose = distanceKm <= 300.0; // Seuil de 300 km pour les tests
     final bool isVeryClose = distanceKm <= 0.2; // Moins de 200m
     
     Color bgColor;
@@ -569,7 +569,7 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
                               Builder(
                                 builder: (context) {
                                   final distanceToPickup = _calculateDistanceToPickup(delivery, locationState);
-                                  final bool canConfirm = distanceToPickup != null && distanceToPickup <= 1.0;
+                                  final bool canConfirm = distanceToPickup != null && distanceToPickup <= 300.0; // 300 km pour tests
                                   
                                   return ModernButton(
                                     text: 'Confirmer la récupération',
