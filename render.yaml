@@ -8,8 +8,9 @@ services:
   - type: web
     name: lebenis-backend
     runtime: python
-    plan: Free # Plan gratuit
+    plan: starter # Compte payant
     region: frankfurt # ou oregon, singapore selon localisation
+    rootDir: backend
 
     buildCommand: |
       pip install --upgrade pip
@@ -104,7 +105,8 @@ services:
   - type: worker
     name: lebenis-celery-worker
     runtime: python
-    plan: starter # Plan gratuit
+    plan: starter # Compte payant
+    rootDir: backend
     region: frankfurt
 
     buildCommand: |
@@ -167,7 +169,8 @@ services:
   - type: cron
     name: lebenis-celery-beat
     runtime: python
-    plan: starter # Gratuit
+    plan: starter # Compte payant
+    rootDir: backend
     region: frankfurt
 
     schedule: "*/15 * * * *" # Toutes les 15 minutes
@@ -212,5 +215,5 @@ databases:
   - name: lebenis-db
     databaseName: lebenis
     user: lebenis
-    plan: starter # Plan gratuit (expire après 90 jours)
+    plan: standard # Plan payant (pas d'expiration)
     region: frankfurt
