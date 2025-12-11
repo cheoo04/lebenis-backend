@@ -129,6 +129,38 @@ class DeliveryRepository {
     }
   }
 
+
+  /// Démarrer une livraison (passer à in_progress)
+  /// Utilise le bon endpoint backend : /api/v1/deliveries/{id}/confirm-pickup/
+  /// Retourne le modèle de livraison mis à jour.
+  Future<DeliveryModel> startDelivery(String id, {String? pickupPhoto, String? notes}) async {
+    final data = <String, dynamic>{};
+    if (notes != null) {
+      data['notes'] = notes;
+    }
+    // Si une photo est fournie, uploader en multipart
+    if (pickupPhoto != null) {
+      final response = await _dioClient.uploadFile(
+        ApiConstants.confirmPickup(id),
+        filePath: pickupPhoto,
+        fieldName: 'pickup_photo',
+        additionalData: data,
+      );
+      final respData = response.data;
+      final payload = (respData is Map && respData.containsKey('delivery')) ? respData['delivery'] : respData;
+      return DeliveryModel.fromJson(payload);
+    }
+    // Sinon, simple POST
+    final response = await _dioClient.post(
+      ApiConstants.confirmPickup(id),
+      data: data,
+    );
+    final respData = response.data;
+    final payload = (respData is Map && respData.containsKey('delivery')) ? respData['delivery'] : respData;
+    return DeliveryModel.fromJson(payload);
+  }
+  
+
   /// Récupérer les détails d'une livraison
   Future<DeliveryModel> getDeliveryDetails(String id) async {
     final response = await _dioClient.get(

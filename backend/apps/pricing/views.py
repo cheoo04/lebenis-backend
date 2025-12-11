@@ -133,7 +133,12 @@ class PricingZoneViewSet(PricingViewSetPermissionMixin, viewsets.ModelViewSet):
             # Ajoute seulement les nouvelles communes non déjà présentes
             to_add = new_communes - current_communes
             for commune in to_add:
-                DriverZone.objects.create(driver=driver, commune=commune)
+                # Normalise la commune avec get_commune_display_name avant sauvegarde
+                try:
+                    normalized_commune = get_commune_display_name(commune)
+                except Exception:
+                    normalized_commune = commune
+                DriverZone.objects.create(driver=driver, commune=normalized_commune)
         logger.info(f"[assign_zones] Zones assignées avec succès pour driver.id={driver.id}, zones={zone_ids}")
         response = {'success': True, 'assigned_zone_ids': zone_ids}
         if unresolved_communes:

@@ -566,7 +566,9 @@ class _SignatureDialog extends StatelessWidget {
               children: [
                 Text(
                   'Signature du destinataire',
-                  style: AppTypography.h3,
+                  style: AppTypography.h4.copyWith(fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -574,21 +576,24 @@ class _SignatureDialog extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: 8),
 
             // Instructions
             Text(
               'Demandez au destinataire de signer ci-dessous',
-              style: AppTypography.bodyMedium.copyWith(
+              style: AppTypography.bodySmall.copyWith(
                 color: AppColors.textSecondary,
+                fontSize: 13,
               ),
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: 12),
 
             // Signature Canvas
             Container(
-              height: 250,
+              height: 180,
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.border, width: 2),
                 borderRadius: BorderRadius.circular(AppRadius.md),
@@ -599,25 +604,29 @@ class _SignatureDialog extends StatelessWidget {
                 backgroundColor: Colors.white,
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: 10),
 
             // Actions
             Row(
               children: [
-                Expanded(
-                  child: OutlineButton(
-                    text: 'Effacer',
+                SizedBox(
+                  width: 100,
+                  height: 36,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.clear, size: 18),
+                    label: const Text('Effacer', style: TextStyle(fontSize: 13)),
+                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0)),
                     onPressed: () {
                       controller.clear();
                     },
-                    icon: Icons.clear,
                   ),
                 ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  flex: 2,
-                  child: CustomButton(
-                    text: 'Valider',
+                const Spacer(),
+                SizedBox(
+                  width: 120,
+                  height: 38,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0)),
                     onPressed: () {
                       if (controller.isEmpty) {
                         Helpers.showErrorSnackBar(
@@ -628,6 +637,7 @@ class _SignatureDialog extends StatelessWidget {
                       }
                       Navigator.of(context).pop(true);
                     },
+                    child: const Text('Valider', style: TextStyle(fontSize: 14)),
                   ),
                 ),
               ],

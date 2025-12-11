@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Delivery
 from apps.merchants.serializers import MerchantSerializer
 from apps.drivers.serializers import DriverSerializer
-from apps.core.quartiers_data import get_quartier_coordinates
+from apps.core.quartiers_data import get_quartier_coordinates, get_commune_display_name
 
 class DeliveryCreateSerializer(serializers.ModelSerializer):
     # Accept aliases from new clients: pickup_precision / delivery_precision
@@ -54,12 +54,26 @@ class DeliveryCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_pickup_commune(self, value):
-        """Normaliser commune au format Title Case"""
-        return value.title() if value else value
+        """Normaliser commune au format Title Case avec accents"""
+        if not value:
+            return value
+        try:
+            # Utilise la fonction de mapping pour les communes avec accents
+            return get_commune_display_name(value)
+        except Exception:
+            # Fallback sur title() si la fonction échoue
+            return value.title()
     
     def validate_delivery_commune(self, value):
-        """Normaliser commune au format Title Case"""
-        return value.title() if value else value
+        """Normaliser commune au format Title Case avec accents"""
+        if not value:
+            return value
+        try:
+            # Utilise la fonction de mapping pour les communes avec accents
+            return get_commune_display_name(value)
+        except Exception:
+            # Fallback sur title() si la fonction échoue
+            return value.title()
 
     def validate(self, attrs):
         # Map friendly alias keys to legacy model fields so both old and new clients work.
