@@ -61,6 +61,8 @@ def auto_geocode_and_calculate_distance(sender, instance, **kwargs):
                 logger.info(f"✅ Coordonnées par défaut utilisées pour delivery: {instance.delivery_commune}")
 
 
+
+
 @receiver(post_save, sender=Delivery)
 def ensure_pin_and_send_email(sender, instance, created, **kwargs):
     # Always ensure a PIN is set
@@ -68,28 +70,12 @@ def ensure_pin_and_send_email(sender, instance, created, **kwargs):
         instance.delivery_confirmation_code = instance.generate_confirmation_code()
         instance.save(update_fields=["delivery_confirmation_code"])
     
-    # Send email ONLY on creation (not on updates)
-    if created:
-        try:
-            # Récupérer l'email du destinataire
-            recipient_email = None
-            
-            # 1. Si c'est un merchant, utiliser l'email du merchant
-            if instance.merchant:
-                recipient_email = instance.merchant.user.email
-            
-            # 2. Si c'est un particulier, utiliser l'email du créateur
-            elif instance.created_by:
-                recipient_email = instance.created_by.email
-            
-            # 3. Fallback (ne devrait pas arriver ici)
-            if not recipient_email:
-                logger.warning(f"⚠️ Aucun email trouvé pour la livraison {instance.tracking_number}")
-                return
-            
-            send_delivery_pin_email(instance.delivery_confirmation_code, recipient_email, instance)
-            logger.info(f"✅ Email de confirmation envoyé à {recipient_email} pour la livraison {instance.tracking_number}")
-        except Exception as e:
-            # Log l'erreur mais ne bloque pas la création de la livraison
-            logger.error(f"❌ Erreur envoi email pour {instance.tracking_number}: {e}")
-            # L'erreur est ignorée, la livraison est créée quand même
+    # Envoyer le PIN par email SEULEMENT lors du confirm_pickup (status passe à 'in_progress')
+    # et non plus à la création. Cela permet au marchand de recevoir le PIN au bon moment
+    # (quand le livreur a récupéré le colis et que la livraison est en cours).
+    # L'envoi lors du confirm_pickup est géré dans views.py -> confirm_pickup()
+    # Ce signal ne fait plus d'envoi d'email à la création.
+    
+    # Note: Le PIN est toujours généré à la création pour être disponible,
+    # mais l'email n'est envoyé qu'au moment du pickup pour une meilleure UX.
+

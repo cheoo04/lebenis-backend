@@ -457,25 +457,25 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     ],
                     
                     if (delivery.signatureUrl != null && delivery.signatureUrl!.isNotEmpty) ...[
-                      const Text('Signature du destinataire', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: AppSpacing.sm),
+                      const Text('Signature du destinataire', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: AppSpacing.xs),
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                         child: Image.network(
                           delivery.signatureUrl!,
-                          height: 150,
+                          height: 80,
                           width: double.infinity,
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              height: 150,
+                              height: 80,
                               color: Colors.grey[200],
-                              child: const Icon(Icons.error, size: 50),
+                              child: const Icon(Icons.error, size: 40),
                             );
                           },
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.md),
                     ],
                     
                     if (delivery.deliveryNotes != null && delivery.deliveryNotes!.isNotEmpty) ...[

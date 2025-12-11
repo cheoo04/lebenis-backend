@@ -22,6 +22,7 @@ from .models_rating import DeliveryRating
 from .serializers import DeliverySerializer, DeliveryCreateSerializer
 from .serializers_rating import DeliveryRatingSerializer
 from .services import DeliveryAssignmentService, RouteOptimizationService
+from .email_service import send_delivery_pin_email
 from apps.merchants.models import Merchant
 from apps.drivers.models import Driver
 from core.permissions import IsMerchant, IsDriver, IsAdmin, IsMerchantOrIndividual
@@ -32,6 +33,7 @@ from apps.core.location_service import LocationService
 import os
 
 logger = logging.getLogger(__name__)
+
 
 
 class DeliveryViewSet(viewsets.ModelViewSet):
@@ -706,13 +708,31 @@ class DeliveryViewSet(viewsets.ModelViewSet):
 
             # 🔔 Notifier le merchant (statut 'in_progress') si présent
             merchant = getattr(delivery, 'merchant', None)
+            created_by = getattr(delivery, 'created_by', None)
+            
             if merchant and getattr(merchant, 'user', None):
                 try:
                     notify_delivery_status_change(merchant.user, delivery, 'in_progress')
                 except Exception:
                     logger.exception(f"Failed to notify merchant about pickup for delivery {delivery.id}")
 
+            # 📧 Envoyer le PIN de confirmation par email au marchand/particulier
+            # C'est le bon moment: le livreur a récupéré le colis, la livraison est en cours
+            try:
+                recipient_email = None
+                if merchant and getattr(merchant, 'user', None):
+                    recipient_email = merchant.user.email
+                elif created_by:
+                    recipient_email = created_by.email
+                
+                if recipient_email and delivery.delivery_confirmation_code:
+                    send_delivery_pin_email(delivery.delivery_confirmation_code, recipient_email, delivery)
+                    logger.info(f"📧 PIN envoyé par email à {recipient_email} pour livraison {delivery.tracking_number}")
+            except Exception as e:
+                logger.exception(f"Failed to send PIN email for delivery {delivery.id}: {e}")
+
             logger.info(f"Livraison {delivery.tracking_number} récupérée par driver {driver.user.email}")
+
 
         # Retour unique (idempotent)
         serializer = DeliverySerializer(delivery)

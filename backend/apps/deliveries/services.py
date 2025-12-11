@@ -22,6 +22,14 @@ from apps.notifications.services import (
 from django.db.models import Sum
 from apps.payments.models import Invoice
 
+# Import pour la création automatique de ChatRoom
+try:
+    from apps.chat.models import ChatRoom
+    from apps.chat.firebase_service import FirebaseChatService
+    CHAT_AVAILABLE = True
+except ImportError:
+    CHAT_AVAILABLE = False
+
 
 def compute_delivery_stats(qs, period_days=30, merchant=None):
     """Compute aggregated delivery stats for a queryset of Delivery objects.
@@ -529,6 +537,40 @@ class DeliveryAssignmentService:
                     notify_delivery_accepted(merchant, delivery)
                 except Exception as e:
                     self.logger.exception(f"Failed to send push notification to merchant for delivery {delivery.id}: {e}")
+
+                # 💬 Créer automatiquement une ChatRoom pour la conversation driver-merchant
+                if CHAT_AVAILABLE:
+                    try:
+                        # Vérifier si une ChatRoom existe déjà pour cette livraison
+                        existing_room = ChatRoom.objects.filter(
+                            driver=driver.user,
+                            other_user=merchant.user,
+                            delivery=delivery
+                        ).first()
+                        
+                        if not existing_room:
+                            # Créer la ChatRoom
+                            chat_room = ChatRoom.objects.create(
+                                room_type='delivery',
+                                driver=driver.user,
+                                other_user=merchant.user,
+                                delivery=delivery
+                            )
+                            
+                            # Synchroniser avec Firebase
+                            FirebaseChatService.create_chat_room(
+                                str(chat_room.id),
+                                {
+                                    'room_type': 'delivery',
+                                    'driver_id': str(driver.user.id),
+                                    'other_user_id': str(merchant.user.id),
+                                    'delivery_id': str(delivery.id),
+                                    'tracking_number': delivery.tracking_number,
+                                }
+                            )
+                            self.logger.info(f"💬 ChatRoom créée automatiquement pour livraison {delivery.tracking_number}")
+                    except Exception as e:
+                        self.logger.exception(f"Failed to create ChatRoom for delivery {delivery.id}: {e}")
             
             self.logger.info(
                 f"✅ Livraison acceptée | {delivery.tracking_number} | "

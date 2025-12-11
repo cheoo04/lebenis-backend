@@ -62,6 +62,32 @@ class DeliveryState {
 
 
 class DeliveryNotifier extends Notifier<DeliveryState> {
+
+    /// Démarrer une livraison (passer à in_progress)
+    /// Permet de passer une photo ou des notes si besoin (future extension UI)
+    Future<bool> startDelivery({required String id, String? pickupPhoto, String? notes}) async {
+      state = state.copyWith(isLoading: true, clearError: true);
+      try {
+        final delivery = await _deliveryRepository.startDelivery(id, pickupPhoto: pickupPhoto, notes: notes);
+        // Mettre à jour la liste et l'activeDelivery
+        final updatedList = state.deliveries.map((d) {
+          return d.id == id ? delivery : d;
+        }).toList();
+        state = state.copyWith(
+          isLoading: false,
+          deliveries: updatedList,
+          activeDelivery: delivery,
+          successMessage: 'Livraison démarrée',
+        );
+        return true;
+      } catch (e) {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+        );
+        return false;
+      }
+    }
   late final DeliveryRepository _deliveryRepository;
 
   @override
