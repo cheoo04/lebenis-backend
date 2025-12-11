@@ -15,6 +15,7 @@ urlpatterns = [
     # so we add explicit paths for accept/reject here to avoid 404s.
     path('<uuid:pk>/accept/', DeliveryViewSet.as_view({'post': 'accept'}), name='delivery-accept'),
     path('<uuid:pk>/reject/', DeliveryViewSet.as_view({'post': 'reject'}), name='delivery-reject'),
+    path('<uuid:pk>/rate-driver/', DeliveryViewSet.as_view({'post': 'rate_driver'}), name='delivery-rate-driver'),
     path('reports/analytics-pdf/', generate_analytics_pdf, name='analytics-pdf'),
     path('reports/test-pdf/', test_pdf_generation, name='test-pdf'),
     path('<uuid:delivery_id>/generate-pdf/', generate_delivery_pdf, name='delivery-pdf'),
