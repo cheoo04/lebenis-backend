@@ -199,6 +199,8 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     ),
+    # Handler d'exceptions personnalisé pour des messages clairs en français
+    'EXCEPTION_HANDLER': 'apps.core.exception_handler.custom_exception_handler',
 }   
 
 
