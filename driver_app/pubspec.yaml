@@ -142,12 +142,12 @@ flutter:
 
   # Assets (images, logos)
   assets:
-    - assets/logo_lebeni_business.svg
+    - assets/logo_lebeni_business2.png
 
 flutter_icons:
   android: true
-  ios: true
-  image_path: "assets/logo_lebeni_business.svg"
+  ios: false
+  image_path: "assets/logo_lebeni_business.jpg"
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
