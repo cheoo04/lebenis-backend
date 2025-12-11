@@ -99,12 +99,29 @@ class DriverModel {
     required this.createdAt,
     this.updatedAt,
   });
+
+  /// Parse user JSON safely, handling null and different Map types
+  static Map<String, dynamic> _parseUserJson(dynamic userJson) {
+    if (userJson == null) {
+      return <String, dynamic>{};
+    }
+    if (userJson is Map<String, dynamic>) {
+      return userJson;
+    }
+    if (userJson is Map) {
+      return Map<String, dynamic>.from(userJson);
+    }
+    return <String, dynamic>{};
+  }
+
   /// Créer depuis JSON
   factory DriverModel.fromJson(Map<String, dynamic> json) {
+    final userJson = _parseUserJson(json['user']);
+    
     return DriverModel(
       id: json['id'].toString(),
-      user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
-      phone: json['phone'] as String? ?? json['user']?['phone'] as String? ?? '',
+      user: UserModel.fromJson(userJson),
+      phone: json['phone'] as String? ?? userJson['phone'] as String? ?? '',
       vehicleType: json['vehicle_type'] as String? ?? 'moto',
       vehicleRegistration: json['vehicle_registration'] as String? ?? '',
       vehicleCapacityKg: json['vehicle_capacity_kg'] != null
