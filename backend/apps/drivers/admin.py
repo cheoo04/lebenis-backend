@@ -61,11 +61,19 @@ class DriverAdmin(admin.ModelAdmin):
 
     def verify_drivers(self, request, queryset):
         updated = queryset.update(verification_status='verified')
+        # ✅ Aussi mettre à jour is_verified sur le User associé
+        for driver in queryset:
+            driver.user.is_verified = True
+            driver.user.save()
         self.message_user(request, f"{updated} livreur(s) vérifié(s).")
     verify_drivers.short_description = "Marquer sélection comme Vérifié"
 
     def reject_drivers(self, request, queryset):
         updated = queryset.update(verification_status='rejected')
+        # ✅ Aussi mettre is_verified à False sur le User associé
+        for driver in queryset:
+            driver.user.is_verified = False
+            driver.user.save()
         self.message_user(request, f"{updated} livreur(s) rejeté(s).")
     reject_drivers.short_description = "Marquer sélection comme Rejeté"
 

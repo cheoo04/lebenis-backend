@@ -116,7 +116,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     // Si le driver existe mais n'est pas vérifié, afficher l'écran d'attente
-    if (driverState.driver != null && !driverState.driver!.isVerified) {
+    // ✅ IMPORTANT: Ne vérifier le statut QUE si les données ne viennent pas du cache
+    // pour éviter d'afficher l'écran de vérification avec des données obsolètes
+    if (driverState.driver != null && 
+        !driverState.driver!.isVerified && 
+        !driverState.isFromCache) {
       return const WaitingVerificationScreen();
     }
     

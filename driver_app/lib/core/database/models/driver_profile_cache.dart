@@ -112,8 +112,9 @@ class DriverProfileCache extends HiveObject {
       ..profilePhoto = user['profile_photo']?.toString() ?? json['photo']?.toString()
       ..vehicleType = json['vehicle_type']?.toString() ?? 'moto'
       ..licensePlate = json['license_plate']?.toString()
-      ..isVerified = json['is_verified'] == true
-      ..isAvailable = json['is_available'] == true
+      // ✅ Le backend retourne 'verification_status' pas 'is_verified'
+      ..isVerified = json['verification_status'] == 'verified' || json['is_verified'] == true
+      ..isAvailable = json['is_available'] == true || json['availability_status'] == 'available'
       ..rating = double.tryParse(json['rating']?.toString() ?? '0') ?? 0.0
       ..totalDeliveries = int.tryParse(json['total_deliveries']?.toString() ?? '0') ?? 0
       ..currentCommune = json['current_commune']?.toString()
@@ -147,7 +148,9 @@ class DriverProfileCache extends HiveObject {
       },
       'vehicle_type': vehicleType,
       'license_plate': licensePlate,
-      'is_verified': isVerified,
+      // ✅ DriverModel.fromJson attend 'verification_status'
+      'verification_status': isVerified ? 'verified' : 'pending',
+      'availability_status': isAvailable ? 'available' : 'offline',
       'is_available': isAvailable,
       'rating': rating,
       'total_deliveries': totalDeliveries,

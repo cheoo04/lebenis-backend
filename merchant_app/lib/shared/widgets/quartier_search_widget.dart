@@ -267,6 +267,7 @@ class _QuartierSearchWidgetState extends ConsumerState<QuartierSearchWidget> {
               ref.watch(quartiersByCommuneProvider(_selectedCommune!)).when(
                 data: (quartiers) => DropdownButtonFormField<String>(
                   value: _selectedQuartier,
+                  isExpanded: true, // ✅ Empêche l'overflow du dropdown
                   decoration: InputDecoration(
                     labelText: 'Quartier',
                     border: OutlineInputBorder(
@@ -278,11 +279,18 @@ class _QuartierSearchWidgetState extends ConsumerState<QuartierSearchWidget> {
                     return DropdownMenuItem(
                       value: q.nom,
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(q.nom),
-                          if (q.hasCoordinates)
+                          // ✅ Flexible pour éviter l'overflow sur les noms longs
+                          Flexible(
+                            child: Text(
+                              q.nom,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (q.hasCoordinates) ...[
+                            const SizedBox(width: 8),
                             const Icon(Icons.gps_fixed, size: 14, color: Colors.green),
+                          ],
                         ],
                       ),
                     );
