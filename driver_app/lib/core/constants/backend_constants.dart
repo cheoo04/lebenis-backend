@@ -9,12 +9,16 @@ class BackendConstants {
   // ========== DELIVERY STATUS ==========
   
   static const String deliveryStatusPending = 'pending';
-  static const String deliveryStatusInProgress = 'in_progress';
+  static const String deliveryStatusAssigned = 'assigned';      // Livreur assigné
+  static const String deliveryStatusPickedUp = 'picked_up';     // Colis récupéré
+  static const String deliveryStatusInProgress = 'in_progress'; // En route vers destination
   static const String deliveryStatusDelivered = 'delivered';
   static const String deliveryStatusCancelled = 'cancelled';
 
   static const List<String> deliveryStatusChoices = [
     deliveryStatusPending,
+    deliveryStatusAssigned,
+    deliveryStatusPickedUp,
     deliveryStatusInProgress,
     deliveryStatusDelivered,
     deliveryStatusCancelled,
@@ -22,7 +26,9 @@ class BackendConstants {
 
   static const Map<String, String> deliveryStatusLabels = {
     deliveryStatusPending: 'En attente',
-    deliveryStatusInProgress: 'En cours',
+    deliveryStatusAssigned: 'Assignée',
+    deliveryStatusPickedUp: 'Récupérée',
+    deliveryStatusInProgress: 'En cours de livraison',
     deliveryStatusDelivered: 'Livré',
     deliveryStatusCancelled: 'Annulé',
   };

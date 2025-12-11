@@ -145,15 +145,15 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
   Future<void> _startDelivery() async {
     setState(() => _isProcessing = true);
     try {
-      // Si le backend propose un endpoint pour démarrer, appeler ici (sinon, local only)
-      // Exemple: await ref.read(deliveryProvider.notifier).startDelivery(widget.delivery.id);
+      // Ne pas changer le statut ici ! Le statut reste 'assigned'
+      // Le changement de statut se fera lors de la confirmation de récupération
       final notifier = ref.read(deliveryProvider.notifier);
-      final updated = widget.delivery.copyWith(status: BackendConstants.deliveryStatusInProgress);
-      notifier.setActiveDelivery(updated);
+      // Garder le statut 'assigned' - ne pas passer à 'in_progress'
+      notifier.setActiveDelivery(widget.delivery);
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(
         '/active-delivery',
-        arguments: updated,
+        arguments: widget.delivery, // Passer la livraison avec son statut actuel
       );
     } catch (e) {
       if (mounted) Helpers.showErrorSnackBar(context, 'Erreur: $e');
