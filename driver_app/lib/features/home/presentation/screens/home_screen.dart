@@ -20,6 +20,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final int _currentIndex = 0;
+  bool _hasAttemptedLoad = false; // Track if we've tried to load the profile
 
   @override
   void initState() {
@@ -34,6 +35,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/login');
         }
+        return; // Don't continue if not logged in
       }
       // Charger le profil du driver dès l'ouverture pour éviter un affichage
       // temporaire du dashboard avant que le provider soit initialisé.
@@ -42,6 +44,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         await ref.read(driverProvider.notifier).loadStats();
       } catch (_) {
         // Ignorer les erreurs ici; l'écran gérera l'état d'erreur via le provider
+      }
+      
+      // Mark that we've attempted to load
+      if (mounted) {
+        setState(() {
+          _hasAttemptedLoad = true;
+        });
       }
     });
     
@@ -84,10 +93,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         body: LoadingWidget(message: 'Chargement du profil...'),
       );
     }
+    
+    // Si on n'a pas encore tenté de charger le profil, attendre
+    if (!_hasAttemptedLoad && driverState.driver == null) {
+      return const Scaffold(
+        body: LoadingWidget(message: 'Chargement du profil...'),
+      );
+    }
 
-    // Si le chargement est terminé mais le driver est null (erreur/token expiré),
-    // rediriger automatiquement vers la page de connexion
-    if (!driverState.isLoading && driverState.driver == null) {
+    // Si le chargement est terminé ET on a tenté de charger ET le driver est null,
+    // c'est une vraie erreur (token expiré, compte supprimé, etc.)
+    if (_hasAttemptedLoad && !driverState.isLoading && driverState.driver == null) {
       // Utiliser addPostFrameCallback pour éviter les erreurs de navigation pendant le build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(authProvider.notifier).logout();
