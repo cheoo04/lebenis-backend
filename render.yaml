@@ -85,25 +85,13 @@ services:
         sync: false
 
       - key: CLOUDINARY_API_SECRET
-        sync:
-          false
-
-          # Sentry
-      - key: SENTRY_DSN
         sync: false
 
-      # Neon Database (externe - gratuit)
-      - key: DATABASE_URL
-        sync: false # À configurer manuellement avec votre URL Neon
-# DATABASE - PostgreSQL (gratuit pendant 90 jours)
+      # Sentry
+      - key: SENTRY_DSN
+        sync: false
 # ============================================================================
-
+# PAS DE DATABASE RENDER
+# Vous utilisez Neon (externe) et Redis Cloud (externe)
+# Ajoutez DATABASE_URL et REDIS_URL dans l'interface Render
 # ============================================================================
-# DATABASE - PostgreSQL
-# ============================================================================
-databases:
-  - name: lebenis-db
-    databaseName: lebenis
-    user: lebenis
-    plan: standard # Plan payant (pas d'expiration)
-    region: frankfurt
