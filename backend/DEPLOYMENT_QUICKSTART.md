@@ -16,6 +16,7 @@
 4. **Important**: Changer `redis://` en `rediss://` pour activer SSL
 
 **Exemple:**
+
 ```
 Avant:  redis://default:abc123@redis-12345.c123.us-east-1-2.ec2.redns.redis-cloud.com:12345
 Après:  rediss://default:abc123@redis-12345.c123.us-east-1-2.ec2.redns.redis-cloud.com:12345
@@ -31,6 +32,7 @@ python test_redis_celery.py
 ```
 
 **Résultat attendu:**
+
 ```
 ✅ PING réussi: True
 ✅ SET/GET réussi: LeBeni Redis Test
@@ -42,6 +44,7 @@ python test_redis_celery.py
 ### Option A: Via render.yaml (Recommandé)
 
 1. **Pusher le fichier render.yaml:**
+
 ```bash
 git add render.yaml
 git commit -m "Add Render configuration"
@@ -49,6 +52,7 @@ git push origin main
 ```
 
 2. **Sur Render Dashboard:**
+
    - Aller sur https://dashboard.render.com/
    - Cliquer sur "New" → "Blueprint"
    - Connecter votre repository
@@ -60,15 +64,15 @@ git push origin main
 
 Pour chaque service (Web, Worker, Cron), ajouter:
 
-| Variable | Valeur |
-|----------|--------|
-| `REDIS_URL` | `rediss://default:PASSWORD@...` (votre URL Redis Cloud) |
-| `SENDGRID_API_KEY` | Votre clé SendGrid |
-| `FCM_SERVER_KEY` | Votre clé Firebase |
-| `GOOGLE_MAPS_API_KEY` | Votre clé Google Maps |
-| `CLOUDINARY_CLOUD_NAME` | Votre nom Cloudinary |
-| `CLOUDINARY_API_KEY` | Votre clé API Cloudinary |
-| `CLOUDINARY_API_SECRET` | Votre secret Cloudinary |
+| Variable                | Valeur                                                  |
+| ----------------------- | ------------------------------------------------------- |
+| `REDIS_URL`             | `rediss://default:PASSWORD@...` (votre URL Redis Cloud) |
+| `SENDGRID_API_KEY`      | Votre clé SendGrid                                      |
+| `FCM_SERVER_KEY`        | Votre clé Firebase                                      |
+| `GOOGLE_MAPS_API_KEY`   | Votre clé Google Maps                                   |
+| `CLOUDINARY_CLOUD_NAME` | Votre nom Cloudinary                                    |
+| `CLOUDINARY_API_KEY`    | Votre clé API Cloudinary                                |
+| `CLOUDINARY_API_SECRET` | Votre secret Cloudinary                                 |
 
 ### Option B: Configuration manuelle
 
@@ -82,6 +86,7 @@ Start Command: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2
 ```
 
 **Variables d'environnement:**
+
 ```
 DJANGO_SETTINGS_MODULE=config.settings.production
 REDIS_URL=rediss://...
@@ -119,6 +124,7 @@ Start Command: celery -A config beat --loglevel=info --max-interval=15
 ### 3.1 Vérifier les logs
 
 **Web Service:**
+
 ```
 ✅ Django system check identified no issues
 ✅ Resolved Celery broker: rediss://***:***@...
@@ -126,12 +132,14 @@ Start Command: celery -A config beat --loglevel=info --max-interval=15
 ```
 
 **Worker:**
+
 ```
 ✅ Connected to rediss://***:***@...
 ✅ celery@worker ready.
 ```
 
 **Cron Job (Beat):**
+
 ```
 ✅ Scheduler: Sending due task daily-driver-payouts
 ```
@@ -181,21 +189,25 @@ SENTRY_DSN=https://...@sentry.io/...
 ## Commandes Utiles 🛠️
 
 ### Vérifier les workers actifs
+
 ```bash
 celery -A config inspect active
 ```
 
 ### Lister les tâches planifiées
+
 ```bash
 celery -A config inspect scheduled
 ```
 
 ### Purger la queue (⚠️ Danger)
+
 ```bash
 celery -A config purge
 ```
 
 ### Forcer l'exécution d'une tâche
+
 ```python
 from apps.payments.tasks import process_daily_payouts
 process_daily_payouts.apply_async()
@@ -221,6 +233,7 @@ process_daily_payouts.apply_async()
 ### Tasks ne s'exécutent pas
 
 **Vérifications:**
+
 1. Worker est-il actif? → Logs du Background Worker
 2. Beat est-il actif? → Logs du Cron Job
 3. Queue Redis accessible? → Tester avec `test_redis_celery.py`
@@ -229,6 +242,7 @@ process_daily_payouts.apply_async()
 
 **Cause:** Redis Cloud limite le nombre de connexions  
 **Solution:** Ajouter dans `base.py`:
+
 ```python
 CELERY_BROKER_POOL_LIMIT = 10
 ```
@@ -244,17 +258,20 @@ CELERY_BROKER_POOL_LIMIT = 10
 ### Améliorer les performances
 
 1. **Utiliser le cache Redis:**
+
 ```python
 from django.core.cache import cache
 cache.set('key', 'value', 300)  # 5 minutes
 ```
 
 2. **Prioriser les tâches:**
+
 ```python
 task.apply_async(priority=10)  # Plus haute priorité
 ```
 
 3. **Limiter la durée des tâches:**
+
 ```python
 @app.task(time_limit=300)  # 5 minutes max
 def long_task():
