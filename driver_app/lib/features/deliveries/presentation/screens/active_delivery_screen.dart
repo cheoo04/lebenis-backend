@@ -98,32 +98,44 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
       // Actualiser la position juste avant la confirmation
       final currentPos = await locNotifier.getCurrentPosition();
 
-      if (!mounted) return;
+      if (!mounted) {
+        setState(() => _isProcessing = false);
+        return;
+      }
 
       if (currentPos == null) {
+        setState(() => _isProcessing = false);
         Helpers.showErrorSnackBar(context, 'Position GPS introuvable. Activez le GPS ou actualisez la position avant de confirmer.');
         return;
       }
 
       final success = await deliveryNotifier.confirmPickup(id: widget.delivery.id);
 
-      if (!mounted) return;
+      if (!mounted) {
+        setState(() => _isProcessing = false);
+        return;
+      }
 
       if (success) {
         Helpers.showSuccessSnackBar(context, 'Colis récupéré avec succès!');
         setState(() {
           _currentStep = DeliveryStep.goingToDelivery;
+          _isProcessing = false;
         });
       } else {
-        final err = ref.read(deliveryProvider).error ?? 'Erreur inconnue lors de la confirmation';
-        Helpers.showErrorSnackBar(context, 'Échec: $err');
+        setState(() => _isProcessing = false);
+        // L'erreur sera affichée via le dialogue pickupError si c'est une erreur de distance/GPS
+        // Sinon afficher un message générique
+        final pickupError = ref.read(deliveryProvider).pickupError;
+        if (pickupError == null) {
+          final err = ref.read(deliveryProvider).error ?? 'Erreur inconnue lors de la confirmation';
+          Helpers.showErrorSnackBar(context, 'Échec: $err');
+        }
       }
     } catch (e) {
-      if (!mounted) return;
-      Helpers.showErrorSnackBar(context, 'Erreur: $e');
-    } finally {
       if (mounted) {
         setState(() => _isProcessing = false);
+        Helpers.showErrorSnackBar(context, 'Erreur: $e');
       }
     }
   }
