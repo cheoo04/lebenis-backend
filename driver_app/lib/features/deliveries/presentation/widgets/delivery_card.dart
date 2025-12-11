@@ -10,11 +10,14 @@ import 'status_badge.dart';
 class DeliveryCard extends StatelessWidget {
   final DeliveryModel delivery;
   final VoidCallback onTap;
+  /// Masquer la distance totale (utile en phase de récupération)
+  final bool hideDistance;
 
   const DeliveryCard({
     super.key,
     required this.delivery,
     required this.onTap,
+    this.hideDistance = false,
   });
 
   @override
@@ -80,7 +83,7 @@ class DeliveryCard extends StatelessWidget {
                     child: Row(
                       children: [
                         Icon(
-                          Icons.attach_money,
+                          Icons.payments_outlined,
                           size: 18,
                           color: AppColors.green,
                         ),
@@ -96,8 +99,8 @@ class DeliveryCard extends StatelessWidget {
                     ),
                   ),
                   
-                  // Distance
-                  if (delivery.distanceKm > 0)
+                  // Distance (masquée si hideDistance = true)
+                  if (delivery.distanceKm > 0 && !hideDistance)
                     Expanded(
                       child: Row(
                         children: [

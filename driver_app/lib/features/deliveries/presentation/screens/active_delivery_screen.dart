@@ -515,32 +515,37 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
                     DeliveryCard(
                       delivery: delivery,
                       onTap: () => _callContact(delivery.recipientPhone),
+                      // Masquer la distance totale pendant la phase de récupération
+                      hideDistance: delivery.status == 'assigned' && _currentStep == DeliveryStep.goingToPickup,
                     ),
 
                     const SizedBox(height: AppSpacing.xl),
 
                     // Delivery Info
-                    InfoCard(
-                      icon: Icons.inventory_2_outlined,
-                      title: 'Informations',
-                      items: [
-                        if (delivery.packageDescription.isNotEmpty)
+                    // Afficher les informations détaillées uniquement en phase de livraison
+                    // (En phase de récupération, le montant est déjà visible dans la DeliveryCard)
+                    if (delivery.status != 'assigned' || _currentStep != DeliveryStep.goingToPickup)
+                      InfoCard(
+                        icon: Icons.inventory_2_outlined,
+                        title: 'Informations',
+                        items: [
+                          if (delivery.packageDescription.isNotEmpty)
+                            InfoItem(
+                              label: 'Description',
+                              value: delivery.packageDescription,
+                            ),
                           InfoItem(
-                            label: 'Description',
-                            value: delivery.packageDescription,
+                            label: 'Montant',
+                            value: Formatters.formatPrice(delivery.price),
                           ),
-                        InfoItem(
-                          label: 'Montant',
-                          value: Formatters.formatPrice(delivery.price),
-                        ),
-                        InfoItem(
-                          label: 'Distance',
-                          value: delivery.distanceKm < 1
-                              ? '${(delivery.distanceKm * 1000).round()} m'
-                              : '${delivery.distanceKm.toStringAsFixed(1)} km',
-                        ),
-                      ],
-                    ),
+                          InfoItem(
+                            label: 'Distance',
+                            value: delivery.distanceKm < 1
+                                ? '${(delivery.distanceKm * 1000).round()} m'
+                                : '${delivery.distanceKm.toStringAsFixed(1)} km',
+                          ),
+                        ],
+                      ),
 
                     const SizedBox(height: AppSpacing.xl),
 
@@ -558,14 +563,22 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
                               const SizedBox(height: AppSpacing.md),
                             ],
                             
-                            // Statut 'assigned' - Afficher "Démarrer la récupération"
+                            // Statut 'assigned' - Afficher "Confirmer la récupération"
+                            // Désactiver le bouton si la distance au point de récupération est > 1 km
                             if (delivery.status == 'assigned' && _currentStep == DeliveryStep.goingToPickup) ...[
-                              ModernButton(
-                                text: 'Confirmer la récupération',
-                                onPressed: _isProcessing ? null : _confirmPickup,
-                                isLoading: _isProcessing,
-                                icon: Icons.inventory_2,
-                                type: ModernButtonType.success,
+                              Builder(
+                                builder: (context) {
+                                  final distanceToPickup = _calculateDistanceToPickup(delivery, locationState);
+                                  final bool canConfirm = distanceToPickup != null && distanceToPickup <= 1.0;
+                                  
+                                  return ModernButton(
+                                    text: 'Confirmer la récupération',
+                                    onPressed: (_isProcessing || !canConfirm) ? null : _confirmPickup,
+                                    isLoading: _isProcessing,
+                                    icon: Icons.inventory_2,
+                                    type: canConfirm ? ModernButtonType.success : ModernButtonType.secondary,
+                                  );
+                                },
                               ),
                             // Statut 'picked_up' ou 'in_progress' - Afficher "Confirmer la livraison"
                             ] else if (delivery.status == 'picked_up' || 
