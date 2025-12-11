@@ -543,7 +543,7 @@ class _RequirementCard extends StatelessWidget {
   }
 }
 
-// Dialog widget pour la capture de signature
+// Dialog widget pour la capture de signature - Design amélioré
 class _SignatureDialog extends StatelessWidget {
   final SignatureController controller;
 
@@ -551,98 +551,134 @@ class _SignatureDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    
     return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Signature du destinataire',
-                  style: AppTypography.h4.copyWith(fontWeight: FontWeight.w600),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: screenWidth - 40,
+          maxHeight: 400,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header avec icône
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    child: Icon(
+                      Icons.draw_outlined,
+                      color: AppColors.primary,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Text(
+                      'Signature',
+                      style: AppTypography.h4.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 22),
+                    onPressed: () => Navigator.of(context).pop(false),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+
+              // Instructions
+              Text(
+                'Demandez au destinataire de signer ci-dessous',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(false),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Instructions
-            Text(
-              'Demandez au destinataire de signer ci-dessous',
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-                fontSize: 13,
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
 
-            // Signature Canvas
-            Container(
-              height: 180,
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.border, width: 2),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                color: Colors.white,
-              ),
-              child: Signature(
-                controller: controller,
-                backgroundColor: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // Actions
-            Row(
-              children: [
-                SizedBox(
-                  width: 100,
-                  height: 36,
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.clear, size: 18),
-                    label: const Text('Effacer', style: TextStyle(fontSize: 13)),
-                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0)),
-                    onPressed: () {
-                      controller.clear();
-                    },
+              // Signature Canvas
+              Flexible(
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 150, maxHeight: 200),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.border, width: 1.5),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    color: Colors.white,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadius.md - 1),
+                    child: Signature(
+                      controller: controller,
+                      backgroundColor: Colors.white,
+                    ),
                   ),
                 ),
-                const Spacer(),
-                SizedBox(
-                  width: 120,
-                  height: 38,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0)),
-                    onPressed: () {
-                      if (controller.isEmpty) {
-                        Helpers.showErrorSnackBar(
-                          context,
-                          'Veuillez d\'abord signer',
-                        );
-                        return;
-                      }
-                      Navigator.of(context).pop(true);
-                    },
-                    child: const Text('Valider', style: TextStyle(fontSize: 14)),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
+              // Actions - Boutons côte à côte
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.clear, size: 18),
+                      label: const Text('Effacer'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        foregroundColor: AppColors.textSecondary,
+                        side: BorderSide(color: AppColors.border),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.button),
+                        ),
+                      ),
+                      onPressed: () => controller.clear(),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.check, size: 18),
+                      label: const Text('Valider'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.button),
+                        ),
+                      ),
+                      onPressed: () {
+                        if (controller.isEmpty) {
+                          Helpers.showErrorSnackBar(
+                            context,
+                            'Veuillez d\'abord signer',
+                          );
+                          return;
+                        }
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
