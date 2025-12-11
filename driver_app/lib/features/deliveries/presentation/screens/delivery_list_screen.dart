@@ -274,12 +274,17 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen>
                                   final delivery = filteredDeliveries[index];
                                   return ModernDeliveryCard(
                                     deliveryId: delivery.id,
-                                    merchantName: delivery.merchant?['name'] ?? 'Client',
+                                    trackingNumber: delivery.trackingNumber,
+                                    merchantName: delivery.merchant?['name'],
+                                    recipientName: delivery.recipientName,
                                     pickupAddress: delivery.pickupAddress,
+                                    pickupCommune: delivery.pickupCommune,
                                     deliveryAddress: delivery.deliveryAddress,
+                                    deliveryCommune: delivery.deliveryCommune,
                                     status: delivery.status,
-                                    amount: delivery.price.toString(),
-                                    distance: delivery.distanceKm.toString(),
+                                    amount: delivery.price?.toString(),
+                                    distance: delivery.distanceKm?.toString(),
+                                    createdAt: delivery.createdAt,
                                     onTap: () => _navigateToDetails(delivery),
                                     showAcceptButton: _selectedStatus == 'available',
                                   );

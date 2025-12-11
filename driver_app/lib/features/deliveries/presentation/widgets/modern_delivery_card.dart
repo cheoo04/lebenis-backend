@@ -11,27 +11,66 @@ import '../../../../shared/widgets/status_chip.dart';
 /// Carte de livraison moderne (style maquette)
 class ModernDeliveryCard extends StatelessWidget {
   final String deliveryId;
+  final String? trackingNumber;
   final String? merchantName;
+  final String? recipientName;
   final String? pickupAddress;
+  final String? pickupCommune;
   final String? deliveryAddress;
+  final String? deliveryCommune;
   final String status;
   final String? amount;
   final String? distance;
+  final DateTime? createdAt;
   final VoidCallback? onTap;
   final bool showAcceptButton;
 
   const ModernDeliveryCard({
     super.key,
     required this.deliveryId,
+    this.trackingNumber,
     this.merchantName,
+    this.recipientName,
     this.pickupAddress,
+    this.pickupCommune,
     this.deliveryAddress,
+    this.deliveryCommune,
     required this.status,
     this.amount,
     this.distance,
+    this.createdAt,
     this.onTap,
     this.showAcceptButton = false,
   });
+
+  String _formatAmount(String? amt) {
+    if (amt == null) return '';
+    try {
+      final value = double.parse(amt);
+      return '${value.toStringAsFixed(0)} FCFA';
+    } catch (_) {
+      return '$amt FCFA';
+    }
+  }
+
+  String _formatDistance(String? dist) {
+    if (dist == null) return '';
+    try {
+      final value = double.parse(dist);
+      return '${value.toStringAsFixed(1)} km';
+    } catch (_) {
+      return '$dist km';
+    }
+  }
+
+  String _formatTrackingNumber(String? tracking, String id) {
+    if (tracking != null && tracking.isNotEmpty) {
+      // Afficher seulement les 8 premiers caractères
+      return '#${tracking.length > 12 ? tracking.substring(0, 12) : tracking}';
+    }
+    // Fallback: utiliser l'ID tronqué
+    return '#${id.length > 8 ? id.substring(0, 8) : id}...';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +84,7 @@ class ModernDeliveryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // En-tête : ID et statut
+          // En-tête : Nom et statut
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -71,15 +110,20 @@ class ModernDeliveryCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            merchantName ?? 'Marchand',
-                            style: AppTypography.label,
+                            recipientName ?? merchantName ?? 'Client',
+                            style: AppTypography.label.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '#$deliveryId',
-                            style: AppTypography.caption,
+                            _formatTrackingNumber(trackingNumber, deliveryId),
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.textSecondary,
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
@@ -94,57 +138,82 @@ class ModernDeliveryCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           const Divider(height: 1),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
 
-          // Adresses
-          if (pickupAddress != null) ...[
-            _buildAddressRow(
-              icon: Icons.store_outlined,
+          // Adresses avec communes
+          if (pickupCommune != null || pickupAddress != null) ...[
+              icon: Icons.inventory_2_outlined,
               label: 'Récupération',
-              address: pickupAddress!,
+              address: pickupCommune ?? pickupAddress ?? '',
+              isPickup: true,
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.sm),
           ],
           
-          if (deliveryAddress != null) ...[
-            _buildAddressRow(
+          if (deliveryCommune != null || deliveryAddress != null) ...[            _buildAddressRow(
               icon: Icons.location_on_outlined,
               label: 'Livraison',
-              address: deliveryAddress!,
+              address: deliveryCommune ?? deliveryAddress ?? '',
+              isPickup: false,
             ),
           ],
 
-          // Informations supplémentaires
-          if (amount != null || distance != null) ...[
-            const SizedBox(height: AppSpacing.lg),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Informations supplémentaires (distance et montant)
+          const SizedBox(height: AppSpacing.md),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: Row(
               children: [
-                if (distance != null)
-                  Row(
+                // Distance
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         Icons.route_outlined,
-                        size: 16,
+                        size: 18,
                         color: AppColors.textSecondary,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 6),
                       Text(
-                        distance!,
-                        style: AppTypography.bodySmall,
+                        _formatDistance(distance),
+                        style: AppTypography.bodySmall.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
-                if (amount != null)
-                  Text(
-                    amount!,
-                    style: AppTypography.price.copyWith(fontSize: 18),
+                ),
+                Container(
+                  width: 1,
+                  height: 24,
+                  color: AppColors.border,
+                ),
+                // Montant
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _formatAmount(amount),
+                        style: AppTypography.price.copyWith(
+                          fontSize: 16,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
+                ),
               ],
             ),
-          ],
+          ),
 
           // Bouton Accepter pour livraisons disponibles
           if (showAcceptButton) ...[
@@ -176,21 +245,23 @@ class ModernDeliveryCard extends StatelessWidget {
     required IconData icon,
     required String label,
     required String address,
+    bool isPickup = false,
   }) {
+    final color = isPickup ? AppColors.blue : AppColors.success;
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          width: 32,
-          height: 32,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
           child: Icon(
             icon,
-            size: 18,
-            color: AppColors.primary,
+            size: 20,
+            color: color,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -200,13 +271,17 @@ class ModernDeliveryCard extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: AppTypography.caption,
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.textHint,
+                  fontSize: 11,
+                ),
               ),
-              const SizedBox(height: 2),
               Text(
                 address,
-                style: AppTypography.bodyMedium,
-                maxLines: 2,
+                style: AppTypography.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
