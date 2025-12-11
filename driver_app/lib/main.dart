@@ -9,6 +9,7 @@ import 'theme/app_theme.dart';
 import 'core/constants/app_strings.dart';
 import 'core/services/notification_service.dart';
 import 'core/routes/app_router.dart';
+import 'core/database/hive_service.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'data/repositories/chat_repository.dart';
 import 'features/chat/providers/chat_provider.dart';
@@ -36,6 +37,12 @@ void main() async {
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
   };
+
+  // Initialisation Hive (base de données locale pour mode offline)
+  await HiveService.initialize();
+  if (kDebugMode) {
+    debugPrint('📦 Hive initialized');
+  }
 
   // Initialisation Firebase (optionnel - nécessaire configuration par plateforme)
   // Firebase n'est pas supporté sur Linux/Desktop en développement

@@ -12,8 +12,7 @@ part of 'timeline_data_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 TimelineDataModel _$TimelineDataModelFromJson(Map<String, dynamic> json) {
   return _TimelineDataModel.fromJson(json);
@@ -25,12 +24,8 @@ mixin _$TimelineDataModel {
   int get deliveriesCount => throw _privateConstructorUsedError;
   double get totalEarnings => throw _privateConstructorUsedError;
 
-  /// Serializes this TimelineDataModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of TimelineDataModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $TimelineDataModelCopyWith<TimelineDataModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -38,9 +33,8 @@ mixin _$TimelineDataModel {
 /// @nodoc
 abstract class $TimelineDataModelCopyWith<$Res> {
   factory $TimelineDataModelCopyWith(
-    TimelineDataModel value,
-    $Res Function(TimelineDataModel) then,
-  ) = _$TimelineDataModelCopyWithImpl<$Res, TimelineDataModel>;
+          TimelineDataModel value, $Res Function(TimelineDataModel) then) =
+      _$TimelineDataModelCopyWithImpl<$Res, TimelineDataModel>;
   @useResult
   $Res call({String date, int deliveriesCount, double totalEarnings});
 }
@@ -55,8 +49,6 @@ class _$TimelineDataModelCopyWithImpl<$Res, $Val extends TimelineDataModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of TimelineDataModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -64,33 +56,29 @@ class _$TimelineDataModelCopyWithImpl<$Res, $Val extends TimelineDataModel>
     Object? deliveriesCount = null,
     Object? totalEarnings = null,
   }) {
-    return _then(
-      _value.copyWith(
-            date: null == date
-                ? _value.date
-                : date // ignore: cast_nullable_to_non_nullable
-                      as String,
-            deliveriesCount: null == deliveriesCount
-                ? _value.deliveriesCount
-                : deliveriesCount // ignore: cast_nullable_to_non_nullable
-                      as int,
-            totalEarnings: null == totalEarnings
-                ? _value.totalEarnings
-                : totalEarnings // ignore: cast_nullable_to_non_nullable
-                      as double,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      date: null == date
+          ? _value.date
+          : date // ignore: cast_nullable_to_non_nullable
+              as String,
+      deliveriesCount: null == deliveriesCount
+          ? _value.deliveriesCount
+          : deliveriesCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalEarnings: null == totalEarnings
+          ? _value.totalEarnings
+          : totalEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$TimelineDataModelImplCopyWith<$Res>
     implements $TimelineDataModelCopyWith<$Res> {
-  factory _$$TimelineDataModelImplCopyWith(
-    _$TimelineDataModelImpl value,
-    $Res Function(_$TimelineDataModelImpl) then,
-  ) = __$$TimelineDataModelImplCopyWithImpl<$Res>;
+  factory _$$TimelineDataModelImplCopyWith(_$TimelineDataModelImpl value,
+          $Res Function(_$TimelineDataModelImpl) then) =
+      __$$TimelineDataModelImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String date, int deliveriesCount, double totalEarnings});
@@ -100,13 +88,10 @@ abstract class _$$TimelineDataModelImplCopyWith<$Res>
 class __$$TimelineDataModelImplCopyWithImpl<$Res>
     extends _$TimelineDataModelCopyWithImpl<$Res, _$TimelineDataModelImpl>
     implements _$$TimelineDataModelImplCopyWith<$Res> {
-  __$$TimelineDataModelImplCopyWithImpl(
-    _$TimelineDataModelImpl _value,
-    $Res Function(_$TimelineDataModelImpl) _then,
-  ) : super(_value, _then);
+  __$$TimelineDataModelImplCopyWithImpl(_$TimelineDataModelImpl _value,
+      $Res Function(_$TimelineDataModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of TimelineDataModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -114,33 +99,30 @@ class __$$TimelineDataModelImplCopyWithImpl<$Res>
     Object? deliveriesCount = null,
     Object? totalEarnings = null,
   }) {
-    return _then(
-      _$TimelineDataModelImpl(
-        date: null == date
-            ? _value.date
-            : date // ignore: cast_nullable_to_non_nullable
-                  as String,
-        deliveriesCount: null == deliveriesCount
-            ? _value.deliveriesCount
-            : deliveriesCount // ignore: cast_nullable_to_non_nullable
-                  as int,
-        totalEarnings: null == totalEarnings
-            ? _value.totalEarnings
-            : totalEarnings // ignore: cast_nullable_to_non_nullable
-                  as double,
-      ),
-    );
+    return _then(_$TimelineDataModelImpl(
+      date: null == date
+          ? _value.date
+          : date // ignore: cast_nullable_to_non_nullable
+              as String,
+      deliveriesCount: null == deliveriesCount
+          ? _value.deliveriesCount
+          : deliveriesCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalEarnings: null == totalEarnings
+          ? _value.totalEarnings
+          : totalEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$TimelineDataModelImpl implements _TimelineDataModel {
-  const _$TimelineDataModelImpl({
-    required this.date,
-    required this.deliveriesCount,
-    required this.totalEarnings,
-  });
+  const _$TimelineDataModelImpl(
+      {required this.date,
+      required this.deliveriesCount,
+      required this.totalEarnings});
 
   factory _$TimelineDataModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$TimelineDataModelImplFromJson(json);
@@ -169,34 +151,31 @@ class _$TimelineDataModelImpl implements _TimelineDataModel {
                 other.totalEarnings == totalEarnings));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, date, deliveriesCount, totalEarnings);
 
-  /// Create a copy of TimelineDataModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$TimelineDataModelImplCopyWith<_$TimelineDataModelImpl> get copyWith =>
       __$$TimelineDataModelImplCopyWithImpl<_$TimelineDataModelImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$TimelineDataModelImplToJson(this);
+    return _$$TimelineDataModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _TimelineDataModel implements TimelineDataModel {
-  const factory _TimelineDataModel({
-    required final String date,
-    required final int deliveriesCount,
-    required final double totalEarnings,
-  }) = _$TimelineDataModelImpl;
+  const factory _TimelineDataModel(
+      {required final String date,
+      required final int deliveriesCount,
+      required final double totalEarnings}) = _$TimelineDataModelImpl;
 
   factory _TimelineDataModel.fromJson(Map<String, dynamic> json) =
       _$TimelineDataModelImpl.fromJson;
@@ -207,18 +186,14 @@ abstract class _TimelineDataModel implements TimelineDataModel {
   int get deliveriesCount;
   @override
   double get totalEarnings;
-
-  /// Create a copy of TimelineDataModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$TimelineDataModelImplCopyWith<_$TimelineDataModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 TimelineResponseModel _$TimelineResponseModelFromJson(
-  Map<String, dynamic> json,
-) {
+    Map<String, dynamic> json) {
   return _TimelineResponseModel.fromJson(json);
 }
 
@@ -226,31 +201,24 @@ TimelineResponseModel _$TimelineResponseModelFromJson(
 mixin _$TimelineResponseModel {
   List<TimelineDataModel> get timeline => throw _privateConstructorUsedError;
 
-  /// Serializes this TimelineResponseModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of TimelineResponseModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $TimelineResponseModelCopyWith<TimelineResponseModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $TimelineResponseModelCopyWith<$Res> {
-  factory $TimelineResponseModelCopyWith(
-    TimelineResponseModel value,
-    $Res Function(TimelineResponseModel) then,
-  ) = _$TimelineResponseModelCopyWithImpl<$Res, TimelineResponseModel>;
+  factory $TimelineResponseModelCopyWith(TimelineResponseModel value,
+          $Res Function(TimelineResponseModel) then) =
+      _$TimelineResponseModelCopyWithImpl<$Res, TimelineResponseModel>;
   @useResult
   $Res call({List<TimelineDataModel> timeline});
 }
 
 /// @nodoc
-class _$TimelineResponseModelCopyWithImpl<
-  $Res,
-  $Val extends TimelineResponseModel
->
+class _$TimelineResponseModelCopyWithImpl<$Res,
+        $Val extends TimelineResponseModel>
     implements $TimelineResponseModelCopyWith<$Res> {
   _$TimelineResponseModelCopyWithImpl(this._value, this._then);
 
@@ -259,20 +227,17 @@ class _$TimelineResponseModelCopyWithImpl<
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of TimelineResponseModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? timeline = null}) {
-    return _then(
-      _value.copyWith(
-            timeline: null == timeline
-                ? _value.timeline
-                : timeline // ignore: cast_nullable_to_non_nullable
-                      as List<TimelineDataModel>,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? timeline = null,
+  }) {
+    return _then(_value.copyWith(
+      timeline: null == timeline
+          ? _value.timeline
+          : timeline // ignore: cast_nullable_to_non_nullable
+              as List<TimelineDataModel>,
+    ) as $Val);
   }
 }
 
@@ -280,9 +245,9 @@ class _$TimelineResponseModelCopyWithImpl<
 abstract class _$$TimelineResponseModelImplCopyWith<$Res>
     implements $TimelineResponseModelCopyWith<$Res> {
   factory _$$TimelineResponseModelImplCopyWith(
-    _$TimelineResponseModelImpl value,
-    $Res Function(_$TimelineResponseModelImpl) then,
-  ) = __$$TimelineResponseModelImplCopyWithImpl<$Res>;
+          _$TimelineResponseModelImpl value,
+          $Res Function(_$TimelineResponseModelImpl) then) =
+      __$$TimelineResponseModelImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({List<TimelineDataModel> timeline});
@@ -290,36 +255,33 @@ abstract class _$$TimelineResponseModelImplCopyWith<$Res>
 
 /// @nodoc
 class __$$TimelineResponseModelImplCopyWithImpl<$Res>
-    extends
-        _$TimelineResponseModelCopyWithImpl<$Res, _$TimelineResponseModelImpl>
+    extends _$TimelineResponseModelCopyWithImpl<$Res,
+        _$TimelineResponseModelImpl>
     implements _$$TimelineResponseModelImplCopyWith<$Res> {
-  __$$TimelineResponseModelImplCopyWithImpl(
-    _$TimelineResponseModelImpl _value,
-    $Res Function(_$TimelineResponseModelImpl) _then,
-  ) : super(_value, _then);
+  __$$TimelineResponseModelImplCopyWithImpl(_$TimelineResponseModelImpl _value,
+      $Res Function(_$TimelineResponseModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of TimelineResponseModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? timeline = null}) {
-    return _then(
-      _$TimelineResponseModelImpl(
-        timeline: null == timeline
-            ? _value._timeline
-            : timeline // ignore: cast_nullable_to_non_nullable
-                  as List<TimelineDataModel>,
-      ),
-    );
+  $Res call({
+    Object? timeline = null,
+  }) {
+    return _then(_$TimelineResponseModelImpl(
+      timeline: null == timeline
+          ? _value._timeline
+          : timeline // ignore: cast_nullable_to_non_nullable
+              as List<TimelineDataModel>,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$TimelineResponseModelImpl implements _TimelineResponseModel {
-  const _$TimelineResponseModelImpl({
-    required final List<TimelineDataModel> timeline,
-  }) : _timeline = timeline;
+  const _$TimelineResponseModelImpl(
+      {required final List<TimelineDataModel> timeline})
+      : _timeline = timeline;
 
   factory _$TimelineResponseModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$TimelineResponseModelImplFromJson(json);
@@ -345,44 +307,38 @@ class _$TimelineResponseModelImpl implements _TimelineResponseModel {
             const DeepCollectionEquality().equals(other._timeline, _timeline));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, const DeepCollectionEquality().hash(_timeline));
 
-  /// Create a copy of TimelineResponseModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$TimelineResponseModelImplCopyWith<_$TimelineResponseModelImpl>
-  get copyWith =>
-      __$$TimelineResponseModelImplCopyWithImpl<_$TimelineResponseModelImpl>(
-        this,
-        _$identity,
-      );
+      get copyWith => __$$TimelineResponseModelImplCopyWithImpl<
+          _$TimelineResponseModelImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$TimelineResponseModelImplToJson(this);
+    return _$$TimelineResponseModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _TimelineResponseModel implements TimelineResponseModel {
-  const factory _TimelineResponseModel({
-    required final List<TimelineDataModel> timeline,
-  }) = _$TimelineResponseModelImpl;
+  const factory _TimelineResponseModel(
+          {required final List<TimelineDataModel> timeline}) =
+      _$TimelineResponseModelImpl;
 
   factory _TimelineResponseModel.fromJson(Map<String, dynamic> json) =
       _$TimelineResponseModelImpl.fromJson;
 
   @override
   List<TimelineDataModel> get timeline;
-
-  /// Create a copy of TimelineResponseModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$TimelineResponseModelImplCopyWith<_$TimelineResponseModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }

@@ -263,20 +263,59 @@ class OrangeMoneyService:
         """
         Valide la signature d'un webhook Orange Money.
         
+        La signature est un HMAC-SHA256 du payload JSON avec le merchant_key.
+        Header: X-Signature ou Authorization
+        
         Args:
-            payload: Données du webhook
+            payload: Données du webhook (dict ou str JSON)
             signature: Signature reçue dans les headers
         
         Returns:
             bool: True si signature valide
         """
-        # TODO: Implémenter validation signature selon doc Orange Money
-        # Pour l'instant, on accepte tous les webhooks en sandbox
+        import hmac
+        import hashlib
+        import json
+        
+        # En sandbox, accepter tous les webhooks pour le dev
         if self.environment == 'sandbox':
+            logger.debug("🔓 Sandbox: webhook signature validation skipped")
             return True
         
-        # En production, valider la signature
-        return True
+        if not signature:
+            logger.warning("⚠️ Webhook Orange Money sans signature")
+            return False
+        
+        try:
+            # Convertir payload en JSON string si nécessaire
+            if isinstance(payload, dict):
+                payload_str = json.dumps(payload, separators=(',', ':'), sort_keys=True)
+            else:
+                payload_str = str(payload)
+            
+            # Calculer le HMAC-SHA256 avec le merchant_key
+            expected_signature = hmac.new(
+                self.merchant_key.encode('utf-8'),
+                payload_str.encode('utf-8'),
+                hashlib.sha256
+            ).hexdigest()
+            
+            # Comparaison sécurisée (timing-safe)
+            is_valid = hmac.compare_digest(signature.lower(), expected_signature.lower())
+            
+            if not is_valid:
+                logger.warning(
+                    f"⚠️ Signature webhook Orange Money invalide. "
+                    f"Reçue: {signature[:20]}..., Attendue: {expected_signature[:20]}..."
+                )
+            else:
+                logger.info("✅ Signature webhook Orange Money validée")
+            
+            return is_valid
+            
+        except Exception as e:
+            logger.error(f"❌ Erreur validation signature Orange Money: {e}")
+            return False
     
     @staticmethod
     def format_phone_number(phone: str) -> str:

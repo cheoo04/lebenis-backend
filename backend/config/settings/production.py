@@ -70,10 +70,20 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
             'style': '{',
         },
         'json': json_formatter,
+        'detailed': {
+            'format': '[{asctime}] {levelname} {name} {module}.{funcName}:{lineno} - {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
     },
     'handlers': {
         'console': {
@@ -86,6 +96,25 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'json',
         },
+        # Fichier optionnel - décommenter si stockage persistant disponible
+        # 'file': {
+        #     'level': 'INFO',
+        #     'class': 'logging.handlers.RotatingFileHandler',
+        #     'filename': '/var/log/lebenis/app.log',
+        #     'maxBytes': 10485760,  # 10MB
+        #     'backupCount': 5,
+        #     'formatter': 'json',
+        #     'filters': ['require_debug_false'],
+        # },
+        # 'error_file': {
+        #     'level': 'ERROR',
+        #     'class': 'logging.handlers.RotatingFileHandler',
+        #     'filename': '/var/log/lebenis/error.log',
+        #     'maxBytes': 10485760,  # 10MB
+        #     'backupCount': 10,
+        #     'formatter': 'detailed',
+        #     'filters': ['require_debug_false'],
+        # },
     },
     'root': {
         # Prefer structured JSON output in production for ingestion by logging systems
@@ -94,6 +123,42 @@ LOGGING = {
     },
     'loggers': {
         'django': {
+            'handlers': ['console_json'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console_json'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['console_json'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        # Loggers spécifiques par application
+        'apps.deliveries': {
+            'handlers': ['console_json'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'apps.payments': {
+            'handlers': ['console_json'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'apps.drivers': {
+            'handlers': ['console_json'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'apps.notifications': {
+            'handlers': ['console_json'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'apps.chat': {
             'handlers': ['console_json'],
             'level': 'INFO',
             'propagate': False,

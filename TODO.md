@@ -1,7 +1,185 @@
 # 📋 TODO - Lebenis Project
 
-**Date**: 3 Décembre 2025  
-**Status**: Phase 4 - Merchant App Complete ✅
+**Date**: 11 Décembre 2025  
+**Status**: Phase 5 - Optimisations & Améliorations 🔧
+
+---
+
+## 🔴 HAUTE PRIORITÉ - À FAIRE IMMÉDIATEMENT
+
+### 1. Index Base de Données (COMPLÉTÉ ✅)
+
+- [x] Ajouter index sur `Delivery.status + created_at`
+- [x] Ajouter index sur `Delivery.driver + status`
+- [x] Ajouter index sur `Delivery.merchant + status`
+- [x] Ajouter index sur `Delivery.pickup_commune`
+- [x] Ajouter index sur `Delivery.delivery_commune`
+- [x] Ajouter index sur `Delivery.created_by + status`
+- [x] Ajouter index sur `Delivery.tracking_number`
+- [x] Créer migration `0015_add_delivery_indexes.py`
+- [ ] **Exécuter migration en production** : `python manage.py migrate deliveries`
+
+### 2. Sécurité Mobile Money (COMPLÉTÉ ✅)
+
+- [x] Implémenter validation signature HMAC-SHA256 Orange Money
+- [x] Implémenter whitelist IP MTN MoMo
+- [x] Ajouter logging sécurité pour webhooks
+- [ ] **Tester webhooks en production** avec vraies transactions
+
+### 3. Tests Unitaires Backend (EN COURS 🔄)
+
+- [ ] Tests modèles critiques
+  - [ ] `test_delivery_model.py` - Création, transitions statut, PIN
+  - [ ] `test_payment_model.py` - Calcul commission, création earning
+  - [ ] `test_driver_model.py` - Disponibilité, vérification, zones
+- [ ] Tests API endpoints critiques
+  - [ ] `test_delivery_flow.py` - Flow complet pending → delivered
+  - [ ] `test_payment_endpoints.py` - /my-earnings/, /transaction-history/
+  - [ ] `test_webhook_security.py` - Validation signatures Orange/MTN
+- [ ] Tests services
+  - [ ] `test_assignment_service.py` - Assignation auto/manuelle
+  - [ ] `test_mobile_money_services.py` - Orange/MTN/Wave
+  - [ ] `test_notification_service.py` - FCM, emails
+
+**Objectif**: Coverage > 70%
+
+```bash
+cd backend
+pytest --cov=apps --cov-report=html
+open htmlcov/index.html
+```
+
+### 4. Gestion Exceptions (À FAIRE ⏳)
+
+- [ ] Remplacer `except Exception` génériques dans `deliveries/views.py`
+  - [ ] Ligne ~225: ValidationError spécifique
+  - [ ] Ligne ~315: ObjectDoesNotExist
+  - [ ] Ligne ~462: PermissionDenied
+- [ ] Ajouter `exc_info=True` à tous les `logger.error()`
+- [ ] Créer exceptions custom pour le domaine
+  - [ ] `DeliveryAssignmentError`
+  - [ ] `PaymentProcessingError`
+  - [ ] `WebhookValidationError`
+
+---
+
+## 🟡 MOYENNE PRIORITÉ - Court Terme (1-2 semaines)
+
+### 5. Structure Flutter - Consolidation (ANALYSÉ ✅)
+
+> **Note**: `features/delivery/` contient GPS providers/widgets, `features/deliveries/` contient les écrans.
+> Ces modules sont distincts par fonction → **Pas de fusion nécessaire**, architecture correcte.
+
+- [x] Analyser la structure `features/delivery/` vs `features/deliveries/`
+- [x] Confirmer que la séparation est intentionnelle (GPS ≠ écrans de livraison)
+- [x] Re-exports dans `core/providers/` sont nécessaires pour l'accès facile
+
+### 6. Optimisation N+1 Queries (COMPLÉTÉ ✅)
+
+- [x] Auditer toutes les vues avec `select_related`/`prefetch_related`
+  - [x] `DeliveryViewSet.get_queryset()` - OK (merchant, driver)
+  - [x] `DriverViewSet.list()` - OK (merchant, driver)
+  - [x] `InvoiceViewSet.queryset` - Ajouté `select_related('merchant__user')`
+  - [x] `DriverEarningViewSet.queryset` - Ajouté `select_related('driver__user', 'delivery')`
+  - [x] `DriverPaymentViewSet.queryset` - Ajouté `select_related` + `prefetch_related`
+  - [x] `ChatRoomViewSet.list()` - OK (driver, other_user, delivery)
+- [ ] Utiliser Django Debug Toolbar en dev pour détecter N+1 (optionnel)
+
+```bash
+pip install django-debug-toolbar
+# Ajouter dans INSTALLED_APPS (dev seulement)
+```
+
+### 7. Logs Structurés Production (COMPLÉTÉ ✅)
+
+- [x] Configurer niveaux par app dans `LOGGING` (deliveries, payments, drivers, etc.)
+- [x] Ajouter format JSON pour parsing (ELK/Datadog)
+- [x] Ajouter filtre `require_debug_false`
+- [x] Préparer configuration `RotatingFileHandler` (commentée, prête à activer)
+
+```python
+# config/settings/production.py - Loggers par application configurés:
+# - apps.deliveries
+# - apps.payments
+# - apps.drivers
+# - apps.notifications
+# - apps.chat
+```
+
+### 8. Mise à jour dépendances Flutter (COMPLÉTÉ ✅)
+
+- [x] Exécuter `flutter pub outdated` - Analysé
+- [x] Mettre à jour packages critiques:
+  - [x] `flutter_secure_storage: ^9.2.4` - Mise à jour mineure
+  - [x] `device_info_plus: ^12.3.0` - Mise à jour
+  - [x] `geolocator: ^14.0.2` - Déjà à jour
+  - [x] `mobile_scanner: ^7.1.3` - Version stable gardée
+  - [x] `firebase_*` - Versions compatibles confirmées
+- [x] `flutter pub get` exécuté avec succès
+- [ ] Tester après mise à jour (à faire manuellement)
+
+> **Note**: Packages majeurs (freezed 3.x, flutter_map 8.x, flutter_secure_storage 10.x) 
+> ont des breaking changes. Garder les versions actuelles pour éviter les régressions.
+
+---
+
+## 🟢 BASSE PRIORITÉ - Moyen Terme (COMPLÉTÉ ✅)
+
+### 9. Deprecations Flutter 3.32+ (COMPLÉTÉ ✅)
+
+- [x] Remplacer `withOpacity()` par `Color.withValues(alpha: ...)`
+  - [x] **Déjà fait** - Le code utilise `.withValues(alpha:)` partout (35+ usages trouvés)
+- [x] Mettre à jour Radio widgets
+  - [x] **Non nécessaire** - Pas de Radio avec `groupValue` deprecated trouvés
+- [x] `flutter analyze` - 71 issues (warnings mineurs, aucun deprecated_member_use critique)
+
+> **Note**: Le code est déjà compatible Flutter 3.32+
+
+### 10. Documentation API Swagger (OK ✅)
+
+- [x] Swagger UI configuré sur `/swagger/`
+- [x] ReDoc configuré sur `/redoc/`
+- [x] Schema JSON sur `/swagger.json`
+- [x] Tous les endpoints sont exposés via `drf-yasg`
+- [ ] Ajouter exemples de requêtes/réponses (amélioration future)
+- [ ] Documenter codes d'erreur (amélioration future)
+
+### 11. Variables d'environnement (COMPLÉTÉ ✅)
+
+- [x] `.env.example` complet créé avec toutes les variables:
+  - [x] Django Settings (SECRET_KEY, DEBUG, ALLOWED_HOSTS)
+  - [x] Database (DATABASE_URL)
+  - [x] Cloudinary (CLOUD_NAME, API_KEY, API_SECRET)
+  - [x] Firebase (CREDENTIALS_PATH, DATABASE_URL, FCM_SERVER_KEY)
+  - [x] SendGrid (API_KEY, DEFAULT_FROM_EMAIL)
+  - [x] Celery/Redis (REDIS_URL)
+  - [x] Orange Money (CLIENT_ID, CLIENT_SECRET, MERCHANT_KEY, ENVIRONMENT)
+  - [x] MTN MoMo (API_USER, API_KEY, SUBSCRIPTION_KEY, ENVIRONMENT)
+  - [x] Sentry (DSN)
+  - [x] CORS (ALLOWED_ORIGINS, FRONTEND_URL, BACKEND_URL)
+
+### 12. Background GPS Service Flutter (COMPLÉTÉ ✅)
+
+- [x] Service créé: `core/services/background_gps_service.dart`
+  - [x] Singleton pattern
+  - [x] Foreground notification config pour Android
+  - [x] Stream de positions
+  - [x] Envoi automatique au serveur
+  - [x] Documentation des permissions requises
+- [ ] Installer `flutter_background_service` (optionnel pour tracking app fermée)
+- [ ] Tester sur différents appareils (Samsung, Xiaomi, etc.)
+
+### 13. Offline Mode Flutter (COMPLÉTÉ ✅)
+
+- [x] Service créé: `core/services/offline_service.dart`
+  - [x] Queue des requêtes en attente
+  - [x] Cache des livraisons actives
+  - [x] Cache du profil driver
+  - [x] Sync automatique à la reconnexion
+  - [x] Helper `offlineAwareCall()` pour les appels API
+- [x] Utilise `flutter_secure_storage` pour le stockage
+- [ ] Évaluer Hive/Isar pour stockage plus performant (amélioration future)
+- [ ] Ajouter `connectivity_plus` pour détection réseau automatique
 
 ---
 

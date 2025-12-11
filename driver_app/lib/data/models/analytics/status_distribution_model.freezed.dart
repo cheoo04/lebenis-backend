@@ -12,12 +12,10 @@ part of 'status_distribution_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 StatusDistributionItemModel _$StatusDistributionItemModelFromJson(
-  Map<String, dynamic> json,
-) {
+    Map<String, dynamic> json) {
   return _StatusDistributionItemModel.fromJson(json);
 }
 
@@ -26,35 +24,26 @@ mixin _$StatusDistributionItemModel {
   String get status => throw _privateConstructorUsedError;
   int get count => throw _privateConstructorUsedError;
 
-  /// Serializes this StatusDistributionItemModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of StatusDistributionItemModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $StatusDistributionItemModelCopyWith<StatusDistributionItemModel>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $StatusDistributionItemModelCopyWith<$Res> {
   factory $StatusDistributionItemModelCopyWith(
-    StatusDistributionItemModel value,
-    $Res Function(StatusDistributionItemModel) then,
-  ) =
-      _$StatusDistributionItemModelCopyWithImpl<
-        $Res,
-        StatusDistributionItemModel
-      >;
+          StatusDistributionItemModel value,
+          $Res Function(StatusDistributionItemModel) then) =
+      _$StatusDistributionItemModelCopyWithImpl<$Res,
+          StatusDistributionItemModel>;
   @useResult
   $Res call({String status, int count});
 }
 
 /// @nodoc
-class _$StatusDistributionItemModelCopyWithImpl<
-  $Res,
-  $Val extends StatusDistributionItemModel
->
+class _$StatusDistributionItemModelCopyWithImpl<$Res,
+        $Val extends StatusDistributionItemModel>
     implements $StatusDistributionItemModelCopyWith<$Res> {
   _$StatusDistributionItemModelCopyWithImpl(this._value, this._then);
 
@@ -63,24 +52,22 @@ class _$StatusDistributionItemModelCopyWithImpl<
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of StatusDistributionItemModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? status = null, Object? count = null}) {
-    return _then(
-      _value.copyWith(
-            status: null == status
-                ? _value.status
-                : status // ignore: cast_nullable_to_non_nullable
-                      as String,
-            count: null == count
-                ? _value.count
-                : count // ignore: cast_nullable_to_non_nullable
-                      as int,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? status = null,
+    Object? count = null,
+  }) {
+    return _then(_value.copyWith(
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String,
+      count: null == count
+          ? _value.count
+          : count // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
   }
 }
 
@@ -88,9 +75,9 @@ class _$StatusDistributionItemModelCopyWithImpl<
 abstract class _$$StatusDistributionItemModelImplCopyWith<$Res>
     implements $StatusDistributionItemModelCopyWith<$Res> {
   factory _$$StatusDistributionItemModelImplCopyWith(
-    _$StatusDistributionItemModelImpl value,
-    $Res Function(_$StatusDistributionItemModelImpl) then,
-  ) = __$$StatusDistributionItemModelImplCopyWithImpl<$Res>;
+          _$StatusDistributionItemModelImpl value,
+          $Res Function(_$StatusDistributionItemModelImpl) then) =
+      __$$StatusDistributionItemModelImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String status, int count});
@@ -98,34 +85,30 @@ abstract class _$$StatusDistributionItemModelImplCopyWith<$Res>
 
 /// @nodoc
 class __$$StatusDistributionItemModelImplCopyWithImpl<$Res>
-    extends
-        _$StatusDistributionItemModelCopyWithImpl<
-          $Res,
-          _$StatusDistributionItemModelImpl
-        >
+    extends _$StatusDistributionItemModelCopyWithImpl<$Res,
+        _$StatusDistributionItemModelImpl>
     implements _$$StatusDistributionItemModelImplCopyWith<$Res> {
   __$$StatusDistributionItemModelImplCopyWithImpl(
-    _$StatusDistributionItemModelImpl _value,
-    $Res Function(_$StatusDistributionItemModelImpl) _then,
-  ) : super(_value, _then);
+      _$StatusDistributionItemModelImpl _value,
+      $Res Function(_$StatusDistributionItemModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of StatusDistributionItemModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? status = null, Object? count = null}) {
-    return _then(
-      _$StatusDistributionItemModelImpl(
-        status: null == status
-            ? _value.status
-            : status // ignore: cast_nullable_to_non_nullable
-                  as String,
-        count: null == count
-            ? _value.count
-            : count // ignore: cast_nullable_to_non_nullable
-                  as int,
-      ),
-    );
+  $Res call({
+    Object? status = null,
+    Object? count = null,
+  }) {
+    return _then(_$StatusDistributionItemModelImpl(
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String,
+      count: null == count
+          ? _value.count
+          : count // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
   }
 }
 
@@ -133,14 +116,12 @@ class __$$StatusDistributionItemModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$StatusDistributionItemModelImpl
     implements _StatusDistributionItemModel {
-  const _$StatusDistributionItemModelImpl({
-    required this.status,
-    required this.count,
-  });
+  const _$StatusDistributionItemModelImpl(
+      {required this.status, required this.count});
 
   factory _$StatusDistributionItemModelImpl.fromJson(
-    Map<String, dynamic> json,
-  ) => _$$StatusDistributionItemModelImplFromJson(json);
+          Map<String, dynamic> json) =>
+      _$$StatusDistributionItemModelImplFromJson(json);
 
   @override
   final String status;
@@ -161,33 +142,30 @@ class _$StatusDistributionItemModelImpl
             (identical(other.count, count) || other.count == count));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, status, count);
 
-  /// Create a copy of StatusDistributionItemModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$StatusDistributionItemModelImplCopyWith<_$StatusDistributionItemModelImpl>
-  get copyWith =>
-      __$$StatusDistributionItemModelImplCopyWithImpl<
-        _$StatusDistributionItemModelImpl
-      >(this, _$identity);
+      get copyWith => __$$StatusDistributionItemModelImplCopyWithImpl<
+          _$StatusDistributionItemModelImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$StatusDistributionItemModelImplToJson(this);
+    return _$$StatusDistributionItemModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _StatusDistributionItemModel
     implements StatusDistributionItemModel {
-  const factory _StatusDistributionItemModel({
-    required final String status,
-    required final int count,
-  }) = _$StatusDistributionItemModelImpl;
+  const factory _StatusDistributionItemModel(
+      {required final String status,
+      required final int count}) = _$StatusDistributionItemModelImpl;
 
   factory _StatusDistributionItemModel.fromJson(Map<String, dynamic> json) =
       _$StatusDistributionItemModelImpl.fromJson;
@@ -196,18 +174,14 @@ abstract class _StatusDistributionItemModel
   String get status;
   @override
   int get count;
-
-  /// Create a copy of StatusDistributionItemModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$StatusDistributionItemModelImplCopyWith<_$StatusDistributionItemModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 StatusDistributionResponseModel _$StatusDistributionResponseModelFromJson(
-  Map<String, dynamic> json,
-) {
+    Map<String, dynamic> json) {
   return _StatusDistributionResponseModel.fromJson(json);
 }
 
@@ -216,35 +190,26 @@ mixin _$StatusDistributionResponseModel {
   List<StatusDistributionItemModel> get distribution =>
       throw _privateConstructorUsedError;
 
-  /// Serializes this StatusDistributionResponseModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of StatusDistributionResponseModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $StatusDistributionResponseModelCopyWith<StatusDistributionResponseModel>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $StatusDistributionResponseModelCopyWith<$Res> {
   factory $StatusDistributionResponseModelCopyWith(
-    StatusDistributionResponseModel value,
-    $Res Function(StatusDistributionResponseModel) then,
-  ) =
-      _$StatusDistributionResponseModelCopyWithImpl<
-        $Res,
-        StatusDistributionResponseModel
-      >;
+          StatusDistributionResponseModel value,
+          $Res Function(StatusDistributionResponseModel) then) =
+      _$StatusDistributionResponseModelCopyWithImpl<$Res,
+          StatusDistributionResponseModel>;
   @useResult
   $Res call({List<StatusDistributionItemModel> distribution});
 }
 
 /// @nodoc
-class _$StatusDistributionResponseModelCopyWithImpl<
-  $Res,
-  $Val extends StatusDistributionResponseModel
->
+class _$StatusDistributionResponseModelCopyWithImpl<$Res,
+        $Val extends StatusDistributionResponseModel>
     implements $StatusDistributionResponseModelCopyWith<$Res> {
   _$StatusDistributionResponseModelCopyWithImpl(this._value, this._then);
 
@@ -253,20 +218,17 @@ class _$StatusDistributionResponseModelCopyWithImpl<
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of StatusDistributionResponseModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? distribution = null}) {
-    return _then(
-      _value.copyWith(
-            distribution: null == distribution
-                ? _value.distribution
-                : distribution // ignore: cast_nullable_to_non_nullable
-                      as List<StatusDistributionItemModel>,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? distribution = null,
+  }) {
+    return _then(_value.copyWith(
+      distribution: null == distribution
+          ? _value.distribution
+          : distribution // ignore: cast_nullable_to_non_nullable
+              as List<StatusDistributionItemModel>,
+    ) as $Val);
   }
 }
 
@@ -274,9 +236,9 @@ class _$StatusDistributionResponseModelCopyWithImpl<
 abstract class _$$StatusDistributionResponseModelImplCopyWith<$Res>
     implements $StatusDistributionResponseModelCopyWith<$Res> {
   factory _$$StatusDistributionResponseModelImplCopyWith(
-    _$StatusDistributionResponseModelImpl value,
-    $Res Function(_$StatusDistributionResponseModelImpl) then,
-  ) = __$$StatusDistributionResponseModelImplCopyWithImpl<$Res>;
+          _$StatusDistributionResponseModelImpl value,
+          $Res Function(_$StatusDistributionResponseModelImpl) then) =
+      __$$StatusDistributionResponseModelImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({List<StatusDistributionItemModel> distribution});
@@ -284,30 +246,25 @@ abstract class _$$StatusDistributionResponseModelImplCopyWith<$Res>
 
 /// @nodoc
 class __$$StatusDistributionResponseModelImplCopyWithImpl<$Res>
-    extends
-        _$StatusDistributionResponseModelCopyWithImpl<
-          $Res,
-          _$StatusDistributionResponseModelImpl
-        >
+    extends _$StatusDistributionResponseModelCopyWithImpl<$Res,
+        _$StatusDistributionResponseModelImpl>
     implements _$$StatusDistributionResponseModelImplCopyWith<$Res> {
   __$$StatusDistributionResponseModelImplCopyWithImpl(
-    _$StatusDistributionResponseModelImpl _value,
-    $Res Function(_$StatusDistributionResponseModelImpl) _then,
-  ) : super(_value, _then);
+      _$StatusDistributionResponseModelImpl _value,
+      $Res Function(_$StatusDistributionResponseModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of StatusDistributionResponseModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? distribution = null}) {
-    return _then(
-      _$StatusDistributionResponseModelImpl(
-        distribution: null == distribution
-            ? _value._distribution
-            : distribution // ignore: cast_nullable_to_non_nullable
-                  as List<StatusDistributionItemModel>,
-      ),
-    );
+  $Res call({
+    Object? distribution = null,
+  }) {
+    return _then(_$StatusDistributionResponseModelImpl(
+      distribution: null == distribution
+          ? _value._distribution
+          : distribution // ignore: cast_nullable_to_non_nullable
+              as List<StatusDistributionItemModel>,
+    ));
   }
 }
 
@@ -315,13 +272,13 @@ class __$$StatusDistributionResponseModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$StatusDistributionResponseModelImpl
     implements _StatusDistributionResponseModel {
-  const _$StatusDistributionResponseModelImpl({
-    required final List<StatusDistributionItemModel> distribution,
-  }) : _distribution = distribution;
+  const _$StatusDistributionResponseModelImpl(
+      {required final List<StatusDistributionItemModel> distribution})
+      : _distribution = distribution;
 
   factory _$StatusDistributionResponseModelImpl.fromJson(
-    Map<String, dynamic> json,
-  ) => _$$StatusDistributionResponseModelImplFromJson(json);
+          Map<String, dynamic> json) =>
+      _$$StatusDistributionResponseModelImplFromJson(json);
 
   final List<StatusDistributionItemModel> _distribution;
   @override
@@ -341,56 +298,45 @@ class _$StatusDistributionResponseModelImpl
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$StatusDistributionResponseModelImpl &&
-            const DeepCollectionEquality().equals(
-              other._distribution,
-              _distribution,
-            ));
+            const DeepCollectionEquality()
+                .equals(other._distribution, _distribution));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(_distribution),
-  );
+      runtimeType, const DeepCollectionEquality().hash(_distribution));
 
-  /// Create a copy of StatusDistributionResponseModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$StatusDistributionResponseModelImplCopyWith<
-    _$StatusDistributionResponseModelImpl
-  >
-  get copyWith =>
-      __$$StatusDistributionResponseModelImplCopyWithImpl<
-        _$StatusDistributionResponseModelImpl
-      >(this, _$identity);
+          _$StatusDistributionResponseModelImpl>
+      get copyWith => __$$StatusDistributionResponseModelImplCopyWithImpl<
+          _$StatusDistributionResponseModelImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$StatusDistributionResponseModelImplToJson(this);
+    return _$$StatusDistributionResponseModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _StatusDistributionResponseModel
     implements StatusDistributionResponseModel {
-  const factory _StatusDistributionResponseModel({
-    required final List<StatusDistributionItemModel> distribution,
-  }) = _$StatusDistributionResponseModelImpl;
+  const factory _StatusDistributionResponseModel(
+          {required final List<StatusDistributionItemModel> distribution}) =
+      _$StatusDistributionResponseModelImpl;
 
   factory _StatusDistributionResponseModel.fromJson(Map<String, dynamic> json) =
       _$StatusDistributionResponseModelImpl.fromJson;
 
   @override
   List<StatusDistributionItemModel> get distribution;
-
-  /// Create a copy of StatusDistributionResponseModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$StatusDistributionResponseModelImplCopyWith<
-    _$StatusDistributionResponseModelImpl
-  >
-  get copyWith => throw _privateConstructorUsedError;
+          _$StatusDistributionResponseModelImpl>
+      get copyWith => throw _privateConstructorUsedError;
 }

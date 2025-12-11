@@ -41,7 +41,7 @@ dependencies:
   http: ^1.6.0
 
   # Storage sécurisé
-  flutter_secure_storage: ^9.0.0
+  flutter_secure_storage: ^9.2.4 # Dernière version 9.x compatible
 
   # State Management
   flutter_riverpod: ^3.0.3 # StateNotifierProvider, etc.
@@ -57,15 +57,15 @@ dependencies:
   flutter_local_notifications: ^19.5.0 # Pour afficher les notifs
 
   # Géolocalisation
-  geolocator: ^14.0.2
+  geolocator: ^14.0.2 # Dernière version stable
   geocoding: ^4.0.0
 
   # Cartes (OpenStreetMap - 100% gratuit, pas de carte bancaire)
-  flutter_map: ^7.0.2
+  flutter_map: ^7.0.2 # Garder 7.x pour éviter breaking changes majeurs
   latlong2: ^0.9.1
 
   # Scanner QR/Barcode
-  mobile_scanner: ^7.1.3
+  mobile_scanner: ^7.1.3 # Version stable
 
   # Charts pour earnings
   fl_chart: ^1.1.1
@@ -84,7 +84,7 @@ dependencies:
   url_launcher: ^6.3.2
 
   # Utilitaires
-  device_info_plus: ^12.2.0 # Info appareil
+  device_info_plus: ^12.3.0 # Mise à jour mineure
   intl: ^0.20.2 # Formatage dates/nombres
   path_provider: ^2.1.1 # Pour sauvegarder fichiers
   path: ^1.9.0 # Manipulation de chemins de fichiers
@@ -103,6 +103,11 @@ dependencies:
   cloudinary_flutter: ^1.0.0
   cloudinary_url_gen: ^1.0.0
 
+  # Local Database (Hive) - Fast NoSQL for offline mode
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  connectivity_plus: ^6.1.3 # Network detection
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -116,10 +121,11 @@ dev_dependencies:
 
   # Code generation
   build_runner: ^2.4.6
-  freezed: ^2.5.7
+  freezed: ^2.5.2
   json_serializable: ^6.7.1
   test: ^1.26.2
   flutter_launcher_icons: ^0.11.0
+  hive_generator: ^2.0.1 # Hive code generator
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

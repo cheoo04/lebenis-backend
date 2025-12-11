@@ -461,25 +461,71 @@ class MTNMoMoService:
             return None
     
     
-    def validate_webhook_signature(self, request_body, signature):
+    # IPs officielles MTN MoMo API (à mettre à jour selon documentation MTN)
+    MTN_ALLOWED_IPS = [
+        # MTN Sandbox IPs
+        '196.46.20.0/24',
+        '196.216.149.0/24',
+        # MTN Production IPs (Côte d'Ivoire)
+        '41.202.0.0/16',
+        '41.207.0.0/16',
+        '154.127.60.0/24',
+        # Localhost pour tests
+        '127.0.0.1',
+        '::1',
+    ]
+    
+    def validate_webhook_signature(self, request_body, signature, client_ip=None):
         """
-        Valide la signature d'un webhook MTN MoMo.
+        Valide un webhook MTN MoMo via IP whitelisting.
         
-        Note: MTN n'utilise pas de signature HMAC comme Orange Money.
+        Note: MTN n'utilise pas de signature HMAC.
         La validation se fait via l'IP whitelisting et SSL mutual auth.
         
         Args:
             request_body (str): Corps de la requête
             signature (str): Signature (non utilisée pour MTN)
+            client_ip (str): IP du client faisant la requête
         
         Returns:
             bool: True si valide
         """
-        # En production, vérifier l'IP source
-        # Liste blanche des IPs MTN
-        if self.environment == 'production':
-            # TODO: Ajouter vérification IP
-            logger.warning("⚠️  Validation webhook MTN: vérifier IP source en production")
+        import ipaddress
         
-        # En sandbox, accepter tout
-        return True
+        # En sandbox, accepter tout pour le dev
+        if self.environment == 'sandbox':
+            logger.debug("🔓 Sandbox: webhook MTN IP validation skipped")
+            return True
+        
+        # En production, vérifier l'IP source
+        if not client_ip:
+            logger.warning("⚠️ Webhook MTN: IP client non fournie")
+            return False
+        
+        try:
+            client_ip_obj = ipaddress.ip_address(client_ip)
+            
+            for allowed in self.MTN_ALLOWED_IPS:
+                try:
+                    # Vérifier si c'est un réseau CIDR ou une IP unique
+                    if '/' in allowed:
+                        network = ipaddress.ip_network(allowed, strict=False)
+                        if client_ip_obj in network:
+                            logger.info(f"✅ IP webhook MTN validée: {client_ip} dans {allowed}")
+                            return True
+                    else:
+                        if client_ip_obj == ipaddress.ip_address(allowed):
+                            logger.info(f"✅ IP webhook MTN validée: {client_ip}")
+                            return True
+                except ValueError:
+                    continue
+            
+            logger.warning(
+                f"⚠️ IP webhook MTN non autorisée: {client_ip}. "
+                f"IPs autorisées: {self.MTN_ALLOWED_IPS}"
+            )
+            return False
+            
+        except ValueError as e:
+            logger.error(f"❌ IP client invalide: {client_ip} - {e}")
+            return False

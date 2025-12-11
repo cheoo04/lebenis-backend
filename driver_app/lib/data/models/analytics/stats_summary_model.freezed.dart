@@ -12,8 +12,7 @@ part of 'stats_summary_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 StatsSummaryModel _$StatsSummaryModelFromJson(Map<String, dynamic> json) {
   return _StatsSummaryModel.fromJson(json);
@@ -38,12 +37,8 @@ mixin _$StatsSummaryModel {
   @JsonKey(name: 'average_delivery_value')
   double get averageDeliveryValue => throw _privateConstructorUsedError;
 
-  /// Serializes this StatsSummaryModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of StatsSummaryModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $StatsSummaryModelCopyWith<StatsSummaryModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -51,20 +46,18 @@ mixin _$StatsSummaryModel {
 /// @nodoc
 abstract class $StatsSummaryModelCopyWith<$Res> {
   factory $StatsSummaryModelCopyWith(
-    StatsSummaryModel value,
-    $Res Function(StatsSummaryModel) then,
-  ) = _$StatsSummaryModelCopyWithImpl<$Res, StatsSummaryModel>;
+          StatsSummaryModel value, $Res Function(StatsSummaryModel) then) =
+      _$StatsSummaryModelCopyWithImpl<$Res, StatsSummaryModel>;
   @useResult
-  $Res call({
-    @JsonKey(name: 'total_deliveries') int totalDeliveries,
-    @JsonKey(name: 'completed_deliveries') int completedDeliveries,
-    @JsonKey(name: 'cancelled_deliveries') int cancelledDeliveries,
-    @JsonKey(name: 'in_progress_deliveries') int inProgressDeliveries,
-    @JsonKey(name: 'total_earnings') double totalEarnings,
-    @JsonKey(name: 'total_distance_km') double totalDistanceKm,
-    @JsonKey(name: 'success_rate') double successRate,
-    @JsonKey(name: 'average_delivery_value') double averageDeliveryValue,
-  });
+  $Res call(
+      {@JsonKey(name: 'total_deliveries') int totalDeliveries,
+      @JsonKey(name: 'completed_deliveries') int completedDeliveries,
+      @JsonKey(name: 'cancelled_deliveries') int cancelledDeliveries,
+      @JsonKey(name: 'in_progress_deliveries') int inProgressDeliveries,
+      @JsonKey(name: 'total_earnings') double totalEarnings,
+      @JsonKey(name: 'total_distance_km') double totalDistanceKm,
+      @JsonKey(name: 'success_rate') double successRate,
+      @JsonKey(name: 'average_delivery_value') double averageDeliveryValue});
 }
 
 /// @nodoc
@@ -77,8 +70,6 @@ class _$StatsSummaryModelCopyWithImpl<$Res, $Val extends StatsSummaryModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of StatsSummaryModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -91,78 +82,70 @@ class _$StatsSummaryModelCopyWithImpl<$Res, $Val extends StatsSummaryModel>
     Object? successRate = null,
     Object? averageDeliveryValue = null,
   }) {
-    return _then(
-      _value.copyWith(
-            totalDeliveries: null == totalDeliveries
-                ? _value.totalDeliveries
-                : totalDeliveries // ignore: cast_nullable_to_non_nullable
-                      as int,
-            completedDeliveries: null == completedDeliveries
-                ? _value.completedDeliveries
-                : completedDeliveries // ignore: cast_nullable_to_non_nullable
-                      as int,
-            cancelledDeliveries: null == cancelledDeliveries
-                ? _value.cancelledDeliveries
-                : cancelledDeliveries // ignore: cast_nullable_to_non_nullable
-                      as int,
-            inProgressDeliveries: null == inProgressDeliveries
-                ? _value.inProgressDeliveries
-                : inProgressDeliveries // ignore: cast_nullable_to_non_nullable
-                      as int,
-            totalEarnings: null == totalEarnings
-                ? _value.totalEarnings
-                : totalEarnings // ignore: cast_nullable_to_non_nullable
-                      as double,
-            totalDistanceKm: null == totalDistanceKm
-                ? _value.totalDistanceKm
-                : totalDistanceKm // ignore: cast_nullable_to_non_nullable
-                      as double,
-            successRate: null == successRate
-                ? _value.successRate
-                : successRate // ignore: cast_nullable_to_non_nullable
-                      as double,
-            averageDeliveryValue: null == averageDeliveryValue
-                ? _value.averageDeliveryValue
-                : averageDeliveryValue // ignore: cast_nullable_to_non_nullable
-                      as double,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      totalDeliveries: null == totalDeliveries
+          ? _value.totalDeliveries
+          : totalDeliveries // ignore: cast_nullable_to_non_nullable
+              as int,
+      completedDeliveries: null == completedDeliveries
+          ? _value.completedDeliveries
+          : completedDeliveries // ignore: cast_nullable_to_non_nullable
+              as int,
+      cancelledDeliveries: null == cancelledDeliveries
+          ? _value.cancelledDeliveries
+          : cancelledDeliveries // ignore: cast_nullable_to_non_nullable
+              as int,
+      inProgressDeliveries: null == inProgressDeliveries
+          ? _value.inProgressDeliveries
+          : inProgressDeliveries // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalEarnings: null == totalEarnings
+          ? _value.totalEarnings
+          : totalEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+      totalDistanceKm: null == totalDistanceKm
+          ? _value.totalDistanceKm
+          : totalDistanceKm // ignore: cast_nullable_to_non_nullable
+              as double,
+      successRate: null == successRate
+          ? _value.successRate
+          : successRate // ignore: cast_nullable_to_non_nullable
+              as double,
+      averageDeliveryValue: null == averageDeliveryValue
+          ? _value.averageDeliveryValue
+          : averageDeliveryValue // ignore: cast_nullable_to_non_nullable
+              as double,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$StatsSummaryModelImplCopyWith<$Res>
     implements $StatsSummaryModelCopyWith<$Res> {
-  factory _$$StatsSummaryModelImplCopyWith(
-    _$StatsSummaryModelImpl value,
-    $Res Function(_$StatsSummaryModelImpl) then,
-  ) = __$$StatsSummaryModelImplCopyWithImpl<$Res>;
+  factory _$$StatsSummaryModelImplCopyWith(_$StatsSummaryModelImpl value,
+          $Res Function(_$StatsSummaryModelImpl) then) =
+      __$$StatsSummaryModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: 'total_deliveries') int totalDeliveries,
-    @JsonKey(name: 'completed_deliveries') int completedDeliveries,
-    @JsonKey(name: 'cancelled_deliveries') int cancelledDeliveries,
-    @JsonKey(name: 'in_progress_deliveries') int inProgressDeliveries,
-    @JsonKey(name: 'total_earnings') double totalEarnings,
-    @JsonKey(name: 'total_distance_km') double totalDistanceKm,
-    @JsonKey(name: 'success_rate') double successRate,
-    @JsonKey(name: 'average_delivery_value') double averageDeliveryValue,
-  });
+  $Res call(
+      {@JsonKey(name: 'total_deliveries') int totalDeliveries,
+      @JsonKey(name: 'completed_deliveries') int completedDeliveries,
+      @JsonKey(name: 'cancelled_deliveries') int cancelledDeliveries,
+      @JsonKey(name: 'in_progress_deliveries') int inProgressDeliveries,
+      @JsonKey(name: 'total_earnings') double totalEarnings,
+      @JsonKey(name: 'total_distance_km') double totalDistanceKm,
+      @JsonKey(name: 'success_rate') double successRate,
+      @JsonKey(name: 'average_delivery_value') double averageDeliveryValue});
 }
 
 /// @nodoc
 class __$$StatsSummaryModelImplCopyWithImpl<$Res>
     extends _$StatsSummaryModelCopyWithImpl<$Res, _$StatsSummaryModelImpl>
     implements _$$StatsSummaryModelImplCopyWith<$Res> {
-  __$$StatsSummaryModelImplCopyWithImpl(
-    _$StatsSummaryModelImpl _value,
-    $Res Function(_$StatsSummaryModelImpl) _then,
-  ) : super(_value, _then);
+  __$$StatsSummaryModelImplCopyWithImpl(_$StatsSummaryModelImpl _value,
+      $Res Function(_$StatsSummaryModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of StatsSummaryModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -175,58 +158,57 @@ class __$$StatsSummaryModelImplCopyWithImpl<$Res>
     Object? successRate = null,
     Object? averageDeliveryValue = null,
   }) {
-    return _then(
-      _$StatsSummaryModelImpl(
-        totalDeliveries: null == totalDeliveries
-            ? _value.totalDeliveries
-            : totalDeliveries // ignore: cast_nullable_to_non_nullable
-                  as int,
-        completedDeliveries: null == completedDeliveries
-            ? _value.completedDeliveries
-            : completedDeliveries // ignore: cast_nullable_to_non_nullable
-                  as int,
-        cancelledDeliveries: null == cancelledDeliveries
-            ? _value.cancelledDeliveries
-            : cancelledDeliveries // ignore: cast_nullable_to_non_nullable
-                  as int,
-        inProgressDeliveries: null == inProgressDeliveries
-            ? _value.inProgressDeliveries
-            : inProgressDeliveries // ignore: cast_nullable_to_non_nullable
-                  as int,
-        totalEarnings: null == totalEarnings
-            ? _value.totalEarnings
-            : totalEarnings // ignore: cast_nullable_to_non_nullable
-                  as double,
-        totalDistanceKm: null == totalDistanceKm
-            ? _value.totalDistanceKm
-            : totalDistanceKm // ignore: cast_nullable_to_non_nullable
-                  as double,
-        successRate: null == successRate
-            ? _value.successRate
-            : successRate // ignore: cast_nullable_to_non_nullable
-                  as double,
-        averageDeliveryValue: null == averageDeliveryValue
-            ? _value.averageDeliveryValue
-            : averageDeliveryValue // ignore: cast_nullable_to_non_nullable
-                  as double,
-      ),
-    );
+    return _then(_$StatsSummaryModelImpl(
+      totalDeliveries: null == totalDeliveries
+          ? _value.totalDeliveries
+          : totalDeliveries // ignore: cast_nullable_to_non_nullable
+              as int,
+      completedDeliveries: null == completedDeliveries
+          ? _value.completedDeliveries
+          : completedDeliveries // ignore: cast_nullable_to_non_nullable
+              as int,
+      cancelledDeliveries: null == cancelledDeliveries
+          ? _value.cancelledDeliveries
+          : cancelledDeliveries // ignore: cast_nullable_to_non_nullable
+              as int,
+      inProgressDeliveries: null == inProgressDeliveries
+          ? _value.inProgressDeliveries
+          : inProgressDeliveries // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalEarnings: null == totalEarnings
+          ? _value.totalEarnings
+          : totalEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+      totalDistanceKm: null == totalDistanceKm
+          ? _value.totalDistanceKm
+          : totalDistanceKm // ignore: cast_nullable_to_non_nullable
+              as double,
+      successRate: null == successRate
+          ? _value.successRate
+          : successRate // ignore: cast_nullable_to_non_nullable
+              as double,
+      averageDeliveryValue: null == averageDeliveryValue
+          ? _value.averageDeliveryValue
+          : averageDeliveryValue // ignore: cast_nullable_to_non_nullable
+              as double,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$StatsSummaryModelImpl implements _StatsSummaryModel {
-  const _$StatsSummaryModelImpl({
-    @JsonKey(name: 'total_deliveries') required this.totalDeliveries,
-    @JsonKey(name: 'completed_deliveries') required this.completedDeliveries,
-    @JsonKey(name: 'cancelled_deliveries') required this.cancelledDeliveries,
-    @JsonKey(name: 'in_progress_deliveries') required this.inProgressDeliveries,
-    @JsonKey(name: 'total_earnings') required this.totalEarnings,
-    @JsonKey(name: 'total_distance_km') required this.totalDistanceKm,
-    @JsonKey(name: 'success_rate') required this.successRate,
-    @JsonKey(name: 'average_delivery_value') required this.averageDeliveryValue,
-  });
+  const _$StatsSummaryModelImpl(
+      {@JsonKey(name: 'total_deliveries') required this.totalDeliveries,
+      @JsonKey(name: 'completed_deliveries') required this.completedDeliveries,
+      @JsonKey(name: 'cancelled_deliveries') required this.cancelledDeliveries,
+      @JsonKey(name: 'in_progress_deliveries')
+      required this.inProgressDeliveries,
+      @JsonKey(name: 'total_earnings') required this.totalEarnings,
+      @JsonKey(name: 'total_distance_km') required this.totalDistanceKm,
+      @JsonKey(name: 'success_rate') required this.successRate,
+      @JsonKey(name: 'average_delivery_value')
+      required this.averageDeliveryValue});
 
   factory _$StatsSummaryModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$StatsSummaryModelImplFromJson(json);
@@ -284,52 +266,48 @@ class _$StatsSummaryModelImpl implements _StatsSummaryModel {
                 other.averageDeliveryValue == averageDeliveryValue));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    totalDeliveries,
-    completedDeliveries,
-    cancelledDeliveries,
-    inProgressDeliveries,
-    totalEarnings,
-    totalDistanceKm,
-    successRate,
-    averageDeliveryValue,
-  );
+      runtimeType,
+      totalDeliveries,
+      completedDeliveries,
+      cancelledDeliveries,
+      inProgressDeliveries,
+      totalEarnings,
+      totalDistanceKm,
+      successRate,
+      averageDeliveryValue);
 
-  /// Create a copy of StatsSummaryModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$StatsSummaryModelImplCopyWith<_$StatsSummaryModelImpl> get copyWith =>
       __$$StatsSummaryModelImplCopyWithImpl<_$StatsSummaryModelImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$StatsSummaryModelImplToJson(this);
+    return _$$StatsSummaryModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _StatsSummaryModel implements StatsSummaryModel {
-  const factory _StatsSummaryModel({
-    @JsonKey(name: 'total_deliveries') required final int totalDeliveries,
-    @JsonKey(name: 'completed_deliveries')
-    required final int completedDeliveries,
-    @JsonKey(name: 'cancelled_deliveries')
-    required final int cancelledDeliveries,
-    @JsonKey(name: 'in_progress_deliveries')
-    required final int inProgressDeliveries,
-    @JsonKey(name: 'total_earnings') required final double totalEarnings,
-    @JsonKey(name: 'total_distance_km') required final double totalDistanceKm,
-    @JsonKey(name: 'success_rate') required final double successRate,
-    @JsonKey(name: 'average_delivery_value')
-    required final double averageDeliveryValue,
-  }) = _$StatsSummaryModelImpl;
+  const factory _StatsSummaryModel(
+      {@JsonKey(name: 'total_deliveries') required final int totalDeliveries,
+      @JsonKey(name: 'completed_deliveries')
+      required final int completedDeliveries,
+      @JsonKey(name: 'cancelled_deliveries')
+      required final int cancelledDeliveries,
+      @JsonKey(name: 'in_progress_deliveries')
+      required final int inProgressDeliveries,
+      @JsonKey(name: 'total_earnings') required final double totalEarnings,
+      @JsonKey(name: 'total_distance_km') required final double totalDistanceKm,
+      @JsonKey(name: 'success_rate') required final double successRate,
+      @JsonKey(name: 'average_delivery_value')
+      required final double averageDeliveryValue}) = _$StatsSummaryModelImpl;
 
   factory _StatsSummaryModel.fromJson(Map<String, dynamic> json) =
       _$StatsSummaryModelImpl.fromJson;
@@ -358,11 +336,8 @@ abstract class _StatsSummaryModel implements StatsSummaryModel {
   @override
   @JsonKey(name: 'average_delivery_value')
   double get averageDeliveryValue;
-
-  /// Create a copy of StatsSummaryModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$StatsSummaryModelImplCopyWith<_$StatsSummaryModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

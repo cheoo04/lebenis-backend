@@ -1,10 +1,14 @@
 // lib/data/providers/delivery_provider.dart
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import '../../core/network/api_exception.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/delivery_repository.dart';
 import '../models/delivery_model.dart';
 import '../models/driver_model.dart';
+import '../../core/database/hive_service.dart';
+import '../../core/database/models/delivery_cache.dart';
+import '../../core/providers/offline_provider.dart';
 import 'auth_provider.dart';
 import '../../core/constants/backend_constants.dart';
 
@@ -25,6 +29,7 @@ class DeliveryState {
   final String? error;
   final String? successMessage;
   final Map<String, dynamic>? pickupError;
+  final bool isFromCache; // Indique si les données viennent du cache
 
   DeliveryState({
     this.isLoading = false,
@@ -33,6 +38,7 @@ class DeliveryState {
     this.error,
     this.successMessage,
     this.pickupError,
+    this.isFromCache = false,
   });
 
   DeliveryState copyWith({
@@ -46,6 +52,7 @@ class DeliveryState {
     bool clearActiveDelivery = false,
     Map<String, dynamic>? pickupError,
     bool clearPickupError = false,
+    bool? isFromCache,
   }) {
     return DeliveryState(
       isLoading: isLoading ?? this.isLoading,
@@ -54,6 +61,7 @@ class DeliveryState {
       error: clearError ? null : error,
       successMessage: clearSuccess ? null : successMessage,
       pickupError: clearPickupError ? null : (pickupError ?? this.pickupError),
+      isFromCache: isFromCache ?? this.isFromCache,
     );
   }
 }
@@ -62,38 +70,81 @@ class DeliveryState {
 
 
 class DeliveryNotifier extends Notifier<DeliveryState> {
-
-    /// Démarrer une livraison (passer à in_progress)
-    /// Permet de passer une photo ou des notes si besoin (future extension UI)
-    Future<bool> startDelivery({required String id, String? pickupPhoto, String? notes}) async {
-      state = state.copyWith(isLoading: true, clearError: true);
-      try {
-        final delivery = await _deliveryRepository.startDelivery(id, pickupPhoto: pickupPhoto, notes: notes);
-        // Mettre à jour la liste et l'activeDelivery
-        final updatedList = state.deliveries.map((d) {
-          return d.id == id ? delivery : d;
-        }).toList();
-        state = state.copyWith(
-          isLoading: false,
-          deliveries: updatedList,
-          activeDelivery: delivery,
-          successMessage: 'Livraison démarrée',
-        );
-        return true;
-      } catch (e) {
-        state = state.copyWith(
-          isLoading: false,
-          error: e.toString(),
-        );
-        return false;
-      }
-    }
   late final DeliveryRepository _deliveryRepository;
+  HiveService get _hiveService => ref.read(hiveServiceProvider);
+
+  /// Démarrer une livraison (passer à in_progress)
+  /// Permet de passer une photo ou des notes si besoin (future extension UI)
+  Future<bool> startDelivery({required String id, String? pickupPhoto, String? notes}) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final delivery = await _deliveryRepository.startDelivery(id, pickupPhoto: pickupPhoto, notes: notes);
+      // Mettre à jour la liste et l'activeDelivery
+      final updatedList = state.deliveries.map((d) {
+        return d.id == id ? delivery : d;
+      }).toList();
+      
+      // Mettre à jour le cache
+      await _cacheDeliveries(updatedList);
+      
+      state = state.copyWith(
+        isLoading: false,
+        deliveries: updatedList,
+        activeDelivery: delivery,
+        successMessage: 'Livraison démarrée',
+        isFromCache: false,
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+      return false;
+    }
+  }
 
   @override
   DeliveryState build() {
     _deliveryRepository = ref.read(deliveryRepositoryProvider);
     return DeliveryState();
+  }
+
+  /// Cache les livraisons pour utilisation offline
+  Future<void> _cacheDeliveries(List<DeliveryModel> deliveries) async {
+    try {
+      final cacheList = deliveries.map((d) => DeliveryCache.fromJson(d.toJson())).toList();
+      await _hiveService.cacheDeliveries(cacheList);
+      if (kDebugMode) {
+        debugPrint('📦 Cached ${deliveries.length} deliveries');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ Failed to cache deliveries: $e');
+      }
+    }
+  }
+
+  /// Charger les livraisons depuis le cache
+  List<DeliveryModel> _getFromCache({String? status}) {
+    try {
+      final cached = _hiveService.getCachedDeliveries();
+      var deliveries = cached.map((c) => DeliveryModel.fromJson(c.toJson())).toList();
+      
+      if (status != null) {
+        deliveries = deliveries.where((d) => d.status == status).toList();
+      }
+      
+      if (kDebugMode) {
+        debugPrint('📴 Loaded ${deliveries.length} deliveries from cache');
+      }
+      return deliveries;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ Failed to load from cache: $e');
+      }
+      return [];
+    }
   }
 
   /// Charger les livraisons DISPONIBLES (pending_assignment)
@@ -102,15 +153,28 @@ class DeliveryNotifier extends Notifier<DeliveryState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final deliveries = await _deliveryRepository.getAvailableDeliveries();
+      await _cacheDeliveries(deliveries);
       state = state.copyWith(
         isLoading: false,
         deliveries: deliveries,
+        isFromCache: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      // Essayer le cache en cas d'erreur
+      final cached = _getFromCache(status: BackendConstants.deliveryStatusPending);
+      if (cached.isNotEmpty) {
+        state = state.copyWith(
+          isLoading: false,
+          deliveries: cached,
+          isFromCache: true,
+          error: 'Mode hors-ligne - Données du cache',
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+        );
+      }
     }
   }
 
@@ -119,15 +183,28 @@ class DeliveryNotifier extends Notifier<DeliveryState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final deliveries = await _deliveryRepository.getMyDeliveries(status: status);
+      await _cacheDeliveries(deliveries);
       state = state.copyWith(
         isLoading: false,
         deliveries: deliveries,
+        isFromCache: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      // Essayer le cache en cas d'erreur
+      final cached = _getFromCache(status: status);
+      if (cached.isNotEmpty) {
+        state = state.copyWith(
+          isLoading: false,
+          deliveries: cached,
+          isFromCache: true,
+          error: 'Mode hors-ligne - Données du cache',
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+        );
+      }
     }
   }
 
@@ -405,11 +482,13 @@ class AvailableDeliveriesState {
   final bool isLoading;
   final List<DeliveryModel> deliveries;
   final String? error;
+  final bool isFromCache;
 
   AvailableDeliveriesState({
     this.isLoading = false,
     this.deliveries = const [],
     this.error,
+    this.isFromCache = false,
   });
 
   AvailableDeliveriesState copyWith({
@@ -417,17 +496,20 @@ class AvailableDeliveriesState {
     List<DeliveryModel>? deliveries,
     String? error,
     bool clearError = false,
+    bool? isFromCache,
   }) {
     return AvailableDeliveriesState(
       isLoading: isLoading ?? this.isLoading,
       deliveries: deliveries ?? this.deliveries,
       error: clearError ? null : error,
+      isFromCache: isFromCache ?? this.isFromCache,
     );
   }
 }
 
 class AvailableDeliveriesNotifier extends Notifier<AvailableDeliveriesState> {
   late final DeliveryRepository _repository;
+  HiveService get _hiveService => ref.read(hiveServiceProvider);
 
   @override
   AvailableDeliveriesState build() {
@@ -439,8 +521,39 @@ class AvailableDeliveriesNotifier extends Notifier<AvailableDeliveriesState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final deliveries = await _repository.getAvailableDeliveries();
-      state = state.copyWith(isLoading: false, deliveries: deliveries);
+      
+      // Cache les livraisons disponibles
+      final cacheList = deliveries.map((d) => DeliveryCache.fromJson(d.toJson())).toList();
+      await _hiveService.cacheDeliveries(cacheList);
+      
+      state = state.copyWith(
+        isLoading: false, 
+        deliveries: deliveries,
+        isFromCache: false,
+      );
     } catch (e) {
+      // Essayer le cache en cas d'erreur
+      try {
+        final cached = _hiveService.getCachedDeliveries();
+        final offlineDeliveries = cached
+            .where((c) => c.status == BackendConstants.deliveryStatusPending)
+            .map((c) => DeliveryModel.fromJson(c.toJson()))
+            .toList();
+        
+        if (offlineDeliveries.isNotEmpty) {
+          if (kDebugMode) {
+            debugPrint('📴 Loaded ${offlineDeliveries.length} available deliveries from cache');
+          }
+          state = state.copyWith(
+            isLoading: false, 
+            deliveries: offlineDeliveries,
+            isFromCache: true,
+            error: 'Mode hors-ligne - Données du cache',
+          );
+          return;
+        }
+      } catch (_) {}
+      
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
