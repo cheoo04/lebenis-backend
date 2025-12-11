@@ -37,6 +37,7 @@ class Merchant(models.Model):
         db_table = 'merchants'
         verbose_name = 'Commerçant'
         verbose_name_plural = 'Commerçants'
+        ordering = ['-created_at']
     
     def __str__(self):
         return self.business_name
