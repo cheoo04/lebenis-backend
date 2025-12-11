@@ -1,15 +1,60 @@
 #!/bin/bash
-# Script pour démarrer Django + Celery sur Render Free Tier (optimisé mémoire)
+# Script pour 1 seul service Render Starter (7$/mois)
+# Web + Worker + Beat combinés
 
-echo "🚀 Démarrage de Django + Celery (mode économie mémoire)"
+set -e
 
-# Démarrer Celery Worker en arrière-plan (1 seul worker pour économiser la RAM)
-celery -A config worker --loglevel=warning --concurrency=1 --max-memory-per-child=100000 --detach
+echo "🚀 Démarrage Django + Celery Worker + Beat"
 
-# Attendre que Celery démarre
-sleep 3
+cleanup() {
+    echo "🛑 Arrêt..."
+    pkill -P $$ || true
+    exit
+}
+trap cleanup SIGTERM SIGINT
 
-echo "✅ Celery démarré en arrière-plan"
+# Worker
+echo "🔧 Celery Worker..."
+celery -A config worker \
+    --loglevel=info \
+    --concurrency=1 \
+    --max-tasks-per-child=50 \
+    --max-memory-per-child=100000 \
+    --logfile=/tmp/celery-worker.log &
+WORKER_PID=$!
 
-# Démarrer Gunicorn avec 1 worker seulement pour économiser la RAM
-exec gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 2 --worker-class gthread --max-requests 1000 --max-requests-jitter 50 --timeout 120 --log-level warning
+# Beat
+echo "⏰ Celery Beat..."
+celery -A config beat \
+    --loglevel=info \
+    --max-interval=15 \
+    --logfile=/tmp/celery-beat.log &
+BEAT_PID=$!
+
+sleep 5
+
+if ! kill -0 $WORKER_PID 2>/dev/null; then
+    echo "❌ Worker failed"
+    cat /tmp/celery-worker.log
+    exit 1
+fi
+echo "✅ Worker (PID: $WORKER_PID)"
+
+if ! kill -0 $BEAT_PID 2>/dev/null; then
+    echo "❌ Beat failed"
+    cat /tmp/celery-beat.log
+    exit 1
+fi
+echo "✅ Beat (PID: $BEAT_PID)"
+
+# Gunicorn
+echo "🌐 Gunicorn..."
+exec gunicorn config.wsgi:application \
+    --bind 0.0.0.0:$PORT \
+    --workers 1 \
+    --threads 2 \
+    --worker-class gthread \
+    --max-requests 1000 \
+    --timeout 120 \
+    --access-logfile - \
+    --error-logfile -
