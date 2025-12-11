@@ -132,9 +132,9 @@ class PricingZoneViewSet(PricingViewSetPermissionMixin, viewsets.ModelViewSet):
             logger.error(f"[assign_zones] Aucun profil Driver pour user.id={request.user.id}, erreur={e}")
             return Response({'detail': "Seuls les livreurs peuvent modifier leurs zones. Aucun profil driver trouvé."}, status=403)
         with transaction.atomic():
-            # Récupère les communes actuelles du driver
+            # Récupère les communes actuelles du driver (déjà normalisées en MAJUSCULES)
             current_communes = set(DriverZone.objects.filter(driver=driver).values_list('commune', flat=True))
-            # Récupère les nouvelles communes à assigner
+            # Récupère les nouvelles communes à assigner (normalisées)
             new_communes = set()
             for zone_id in zone_ids:
                 try:
@@ -142,17 +142,26 @@ class PricingZoneViewSet(PricingViewSetPermissionMixin, viewsets.ModelViewSet):
                 except PricingZone.DoesNotExist:
                     logger.error(f"[assign_zones] Zone introuvable: {zone_id}")
                     return Response({'detail': f"Zone introuvable: {zone_id}"}, status=400)
-                new_communes.add(pricing_zone.commune)
+                # Normalise la commune (supprime accents, majuscules)
+                normalized = normalize_commune(pricing_zone.commune)
+                new_communes.add(normalized)
+                logger.info(f"[assign_zones] Zone {zone_id}: commune='{pricing_zone.commune}' -> normalisée='{normalized}'")
+            
             # Supprime les communes qui ne sont plus sélectionnées
             to_remove = current_communes - new_communes
             if to_remove:
+                logger.info(f"[assign_zones] Communes à supprimer: {to_remove}")
                 DriverZone.objects.filter(driver=driver, commune__in=to_remove).delete()
             # Ajoute seulement les nouvelles communes non déjà présentes
             to_add = new_communes - current_communes
+            logger.info(f"[assign_zones] Communes à ajouter: {to_add}")
             for commune in to_add:
-                # La commune doit être en MAJUSCULES (le modèle DriverZone.save() la valide ainsi)
-                normalized_commune = commune.upper()
-                DriverZone.objects.create(driver=driver, commune=normalized_commune)
+                try:
+                    DriverZone.objects.create(driver=driver, commune=commune)
+                    logger.info(f"[assign_zones] DriverZone créé: {commune}")
+                except Exception as e:
+                    logger.error(f"[assign_zones] Erreur création DriverZone pour '{commune}': {e}")
+                    return Response({'detail': f"Erreur lors de l'ajout de la commune '{commune}': {str(e)}"}, status=400)
         logger.info(f"[assign_zones] Zones assignées avec succès pour driver.id={driver.id}, zones={zone_ids}")
         response = {'success': True, 'assigned_zone_ids': zone_ids}
         if unresolved_communes:
