@@ -1,14 +1,12 @@
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import '../network/dio_client.dart';
-import '../constants/api_constants.dart';
 
 /// Service for downloading and managing delivery PDF reports
 class PDFReportService {
-  final DioClient _dioClient;
+  // Note: DioClient peut être utilisé plus tard pour télécharger des PDFs
 
-  PDFReportService(this._dioClient);
+  PDFReportService();
 
   /// Download a delivery PDF report
   ///

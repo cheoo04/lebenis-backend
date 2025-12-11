@@ -488,8 +488,9 @@ class Helpers {
 
   /// Logger d'erreur
   static void logError(String message, {dynamic error, StackTrace? stackTrace}) {
-    final timestamp = DateFormat('HH:mm:ss').format(DateTime.now());
     if (kDebugMode) {
+      final timestamp = DateFormat('HH:mm:ss').format(DateTime.now());
+      debugPrint('[$timestamp][ERROR] $message');
       if (error != null) debugPrint('Error: $error');
       if (stackTrace != null) debugPrint('StackTrace: $stackTrace');
     }

@@ -76,7 +76,6 @@ class DioClient {
       case DioExceptionType.badCertificate:
         return 'Erreur de certificat de sécurité';
       case DioExceptionType.unknown:
-      default:
         if (e.error?.toString().contains('SocketException') ?? false) {
           return 'Pas de connexion internet';
         }

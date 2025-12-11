@@ -15,7 +15,8 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-  } catch (e) {
+  } catch (_) {
+    // Firebase initialization may fail on some devices - continue anyway
   }
   
   runApp(const ProviderScope(child: MyApp()));
@@ -62,7 +63,8 @@ class _MyAppState extends ConsumerState<MyApp> {
       notificationService.onNotificationTap = (data) {
         _handleNotificationNavigation(data);
       };
-    } catch (e) {
+    } catch (_) {
+      // Notification initialization may fail - continue without notifications
     }
   }
 

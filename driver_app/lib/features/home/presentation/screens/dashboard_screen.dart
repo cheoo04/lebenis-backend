@@ -294,6 +294,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   /// Carte colorée du dashboard (utilisée pour les actions rapides)
+  // ignore: non_constant_identifier_names
   Widget ColoredDashboardCard({
     required IconData icon,
     required String title,

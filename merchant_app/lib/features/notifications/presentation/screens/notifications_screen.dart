@@ -179,10 +179,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: isUnread
-              ? BorderSide(color: AppTheme.primaryColor.withOpacity(0.3), width: 2)
+              ? BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.3), width: 2)
               : BorderSide.none,
         ),
-        color: isUnread ? AppTheme.primaryColor.withOpacity(0.05) : Colors.white,
+        color: isUnread ? AppTheme.primaryColor.withValues(alpha: 0.05) : Colors.white,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: () {
@@ -199,7 +199,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: _getNotificationColor(notification.type).withOpacity(0.1),
+                    color: _getNotificationColor(notification.type).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

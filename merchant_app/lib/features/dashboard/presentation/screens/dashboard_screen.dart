@@ -16,7 +16,6 @@ import '../../../profile/presentation/screens/edit_profile_screen.dart';
 import '../../../profile/presentation/screens/edit_individual_profile_screen.dart';
 import '../widgets/dashboard_app_bar.dart';
 import '../widgets/dashboard_header.dart';
-import '../widgets/action_cards_grid.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -29,10 +28,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // Charger les stats uniquement pour les merchants
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final isMerchant = ref.read(isMerchantProvider);
-      if (isMerchant) {
+    // Load stats on init
+    Future.microtask(() {
+      final userIsMerchant = ref.read(isMerchantProvider);
+      if (userIsMerchant) {
         ref.read(merchantStatsProvider.notifier).loadStats();
       }
       // For particuliers the FutureProvider will auto-load when watched in build
@@ -42,6 +41,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(userProfileProvider);
+    // ignore: unused_local_variable
     final isMerchant = ref.watch(isMerchantProvider);
 
     // Vérifier le statut de vérification
@@ -144,7 +144,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: Colors.orange.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -438,7 +438,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           await ref.read(userProfileProvider.notifier).refresh();
           // Refresh delivery stats (utilisé pour les particuliers)
           try {
-            await ref.refresh(deliveryStatsProvider(30));
+            // ignore: unused_result
+            ref.refresh(deliveryStatsProvider(30));
           } catch (_) {}
         },
         color: AppTheme.primaryColor,
@@ -453,7 +454,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 badge: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.25),
+                    color: Colors.white.withValues(alpha: 0.25),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.white30, width: 1),
                   ),

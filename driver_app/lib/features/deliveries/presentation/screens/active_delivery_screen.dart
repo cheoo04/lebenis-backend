@@ -16,7 +16,6 @@ import '../widgets/delivery_route_map.dart';
 import '../widgets/step_indicator.dart';
 import '../widgets/delivery_card.dart';
 import '../widgets/info_card.dart';
-import '../../../../core/routes/app_router.dart';
 import '../../../../core/utils/navigation_utils.dart';
 
 class ActiveDeliveryScreen extends ConsumerStatefulWidget {
@@ -181,18 +180,6 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
       if (!mounted) return;
       Helpers.showErrorSnackBar(context, 'Impossible de lancer l\'appel');
     }
-  }
-
-  Future<void> _startDelivery() async {
-    // Ne fait plus d'appel backend ni de changement de statut
-    setState(() => _isProcessing = true);
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (!mounted) return;
-    Helpers.showSuccessSnackBar(context, 'Vous pouvez commencer votre trajet vers le point de récupération.');
-    setState(() {
-      _currentStep = DeliveryStep.goingToPickup;
-      _isProcessing = false;
-    });
   }
 
   @override

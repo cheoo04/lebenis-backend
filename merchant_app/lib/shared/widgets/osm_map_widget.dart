@@ -55,7 +55,7 @@ class OsmMarkerHelper {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.18),
+              color: Colors.black.withValues(alpha: 0.18),
               blurRadius: 3,
               offset: const Offset(0, 1),
             ),
@@ -78,7 +78,7 @@ class OsmMarkerHelper {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.18),
+              color: Colors.black.withValues(alpha: 0.18),
               blurRadius: 3,
               offset: const Offset(0, 1),
             ),
@@ -102,7 +102,7 @@ class OsmMarkerHelper {
           border: Border.all(color: Colors.white, width: 2),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.25),
+              color: Colors.black.withValues(alpha: 0.25),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),

@@ -144,6 +144,7 @@ class ModernDeliveryCard extends StatelessWidget {
 
           // Adresses avec communes
           if (pickupCommune != null || pickupAddress != null) ...[
+            _buildAddressRow(
               icon: Icons.inventory_2_outlined,
               label: 'Récupération',
               address: pickupCommune ?? pickupAddress ?? '',
@@ -152,7 +153,8 @@ class ModernDeliveryCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
           ],
           
-          if (deliveryCommune != null || deliveryAddress != null) ...[            _buildAddressRow(
+          if (deliveryCommune != null || deliveryAddress != null) ...[
+            _buildAddressRow(
               icon: Icons.location_on_outlined,
               label: 'Livraison',
               address: deliveryCommune ?? deliveryAddress ?? '',

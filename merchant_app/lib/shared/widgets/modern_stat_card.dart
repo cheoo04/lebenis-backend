@@ -40,7 +40,7 @@ class ModernStatCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
               gradient: LinearGradient(
-                colors: [color.withOpacity(0.08), Colors.transparent],
+                colors: [color.withValues(alpha: 0.08), Colors.transparent],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -54,7 +54,7 @@ class ModernStatCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.15),
+                        color: color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                       ),
                       child: Icon(icon, color: color, size: 24),

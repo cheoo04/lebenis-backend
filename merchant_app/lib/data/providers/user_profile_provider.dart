@@ -1,10 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/merchant_model.dart';
-import '../models/user_model.dart';
 import '../models/individual_model.dart';
-import '../repositories/merchant_repository.dart';
-import '../repositories/individual_repository.dart';
-import '../../core/providers.dart';
 import 'auth_provider.dart';
 import 'merchant_provider.dart';
 import 'individual_provider.dart';
@@ -52,7 +48,7 @@ class UserProfileNotifier extends Notifier<AsyncValue<dynamic>> {
           final individualRepo = ref.read(individualRepositoryProvider);
           final individual = await individualRepo.getProfile();
           state = AsyncValue.data(individual);
-        } catch (e, st) {
+        } catch (e) {
           // Fallback: utiliser les données du user si le profil n'existe pas encore
           state = AsyncValue.data({
             'user_type': 'individual',

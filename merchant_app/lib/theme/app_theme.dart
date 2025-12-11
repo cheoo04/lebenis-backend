@@ -31,7 +31,7 @@ class AppTheme {
   // Shadows
   static List<BoxShadow> cardShadow = [
     BoxShadow(
-      color: Colors.black.withOpacity(0.08),
+      color: Colors.black.withValues(alpha: 0.08),
       blurRadius: 8,
       offset: const Offset(0, 2),
     ),
@@ -39,7 +39,7 @@ class AppTheme {
   
   static List<BoxShadow> elevatedShadow = [
     BoxShadow(
-      color: Colors.black.withOpacity(0.12),
+      color: Colors.black.withValues(alpha: 0.12),
       blurRadius: 16,
       offset: const Offset(0, 4),
     ),
@@ -101,7 +101,7 @@ final ThemeData appTheme = ThemeData(
       borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
     ),
     color: AppColors.cardBackground,
-    shadowColor: Colors.black.withOpacity(0.08),
+    shadowColor: Colors.black.withValues(alpha: 0.08),
   ),
   bottomNavigationBarTheme: const BottomNavigationBarThemeData(
     backgroundColor: Colors.white,

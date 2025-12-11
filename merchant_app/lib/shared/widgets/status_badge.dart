@@ -82,10 +82,10 @@ class StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: badgeColor.withOpacity(0.12),
+        color: badgeColor.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppTheme.radiusPill),
         border: Border.all(
-          color: badgeColor.withOpacity(0.2),
+          color: badgeColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),

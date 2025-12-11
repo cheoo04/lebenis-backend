@@ -1,11 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../../../data/providers/auth_provider.dart';
-import '../../../../data/providers/merchant_provider.dart';
-import '../../../../core/providers.dart';
 
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -27,11 +22,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   late final TextEditingController _businessNameController;
   late final TextEditingController _businessTypeController;
   late final TextEditingController _businessAddressController;
-  String? _rccmDocumentPath;
-  String? _rccmDocumentUrl; // URL après upload
-  String? _idDocumentPath;
-  String? _idDocumentUrl; // URL après upload
   bool _obscurePassword = true;
+  // Note: Variables pour upload de documents désactivé
+  // ignore: unused_field, prefer_final_fields
   bool _isUploadingDocs = false;
 
   @override
@@ -64,7 +57,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
 
   bool get _isMerchant => widget.userType == 'merchant';
-  bool get _isIndividual => widget.userType == 'individual';
 
   Future<void> _register() async {
     // Validation basique commune
