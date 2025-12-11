@@ -140,41 +140,31 @@ class DriverModel {
         : 0.0,
       totalDeliveries: json['total_deliveries'] as int? ?? 0,
       successfulDeliveries: json['successful_deliveries'] as int?,
-      profilePhoto: json['profile_photo'] as String?,
-      driversLicense: json['driver_license'] as String?,
-      licenseExpiry: json['license_expiry'] != null && (json['license_expiry'] as String).isNotEmpty
-        ? DateTime.tryParse(json['license_expiry'])
-        : null,
-      vehicleRegistrationDocument: json['vehicle_registration_document'] as String?,
-      vehicleInsurance: json['vehicle_insurance'] as String?,
-      vehicleInsuranceExpiry: json['vehicle_insurance_expiry'] != null && (json['vehicle_insurance_expiry'] as String).isNotEmpty
-        ? DateTime.tryParse(json['vehicle_insurance_expiry'])
-        : null,
-      vehicleTechnicalInspection: json['vehicle_technical_inspection'] as String?,
-      vehicleInspectionExpiry: json['vehicle_inspection_expiry'] != null && (json['vehicle_inspection_expiry'] as String).isNotEmpty
-        ? DateTime.tryParse(json['vehicle_inspection_expiry'])
-        : null,
-      vehicleGrayCard: json['vehicle_gray_card'] as String?,
-      vehicleVignette: json['vehicle_vignette'] as String?,
-      vehicleVignetteExpiry: json['vehicle_vignette_expiry'] != null && (json['vehicle_vignette_expiry'] as String).isNotEmpty
-        ? DateTime.tryParse(json['vehicle_vignette_expiry'])
-        : null,
-      identityCardNumber: json['identity_card_number'] as String?,
+      profilePhoto: _parseStringField(json['profile_photo']),
+      driversLicense: _parseStringField(json['driver_license']),
+      licenseExpiry: _parseDateField(json['license_expiry']),
+      vehicleRegistrationDocument: _parseStringField(json['vehicle_registration_document']),
+      vehicleInsurance: _parseStringField(json['vehicle_insurance']),
+      vehicleInsuranceExpiry: _parseDateField(json['vehicle_insurance_expiry']),
+      vehicleTechnicalInspection: _parseStringField(json['vehicle_technical_inspection']),
+      vehicleInspectionExpiry: _parseDateField(json['vehicle_inspection_expiry']),
+      vehicleGrayCard: _parseStringField(json['vehicle_gray_card']),
+      vehicleVignette: _parseStringField(json['vehicle_vignette']),
+      vehicleVignetteExpiry: _parseDateField(json['vehicle_vignette_expiry']),
+      identityCardNumber: _parseStringField(json['identity_card_number']),
       identityCardFront: _parseStringField(json['identity_card_front']),
       identityCardBack: _parseStringField(json['identity_card_back']),
-      dateOfBirth: json['date_of_birth'] != null && (json['date_of_birth'] as String).isNotEmpty
-        ? DateTime.tryParse(json['date_of_birth'])
-        : null,
-      bankAccountName: json['bank_account_name'] as String?,
-      bankAccountNumber: json['bank_account_number'] as String?,
-      bankName: json['bank_name'] as String?,
-      mobileMoneyNumber: json['mobile_money_number'] as String?,
-      mobileMoneyProvider: json['mobile_money_provider'] as String?,
-      emergencyContactName: json['emergency_contact_name'] as String?,
-      emergencyContactPhone: json['emergency_contact_phone'] as String?,
-      emergencyContactRelationship: json['emergency_contact_relationship'] as String?,
+      dateOfBirth: _parseDateField(json['date_of_birth']),
+      bankAccountName: _parseStringField(json['bank_account_name']),
+      bankAccountNumber: _parseStringField(json['bank_account_number']),
+      bankName: _parseStringField(json['bank_name']),
+      mobileMoneyNumber: _parseStringField(json['mobile_money_number']),
+      mobileMoneyProvider: _parseStringField(json['mobile_money_provider']),
+      emergencyContactName: _parseStringField(json['emergency_contact_name']),
+      emergencyContactPhone: _parseStringField(json['emergency_contact_phone']),
+      emergencyContactRelationship: _parseStringField(json['emergency_contact_relationship']),
       yearsOfExperience: json['years_of_experience'] as int?,
-      previousEmployer: json['previous_employer'] as String?,
+      previousEmployer: _parseStringField(json['previous_employer']),
       languagesSpoken: json['languages_spoken'] != null
         ? (json['languages_spoken'] is List)
           ? (json['languages_spoken'] as List)
@@ -184,19 +174,13 @@ class DriverModel {
           : null
         : null,
       isOnBreak: json['is_on_break'] as bool?,
-      breakStartedAt: json['break_started_at'] != null && (json['break_started_at'] as String).isNotEmpty
-        ? DateTime.tryParse(json['break_started_at'])
-        : null,
+      breakStartedAt: _parseDateField(json['break_started_at']),
       totalBreakDurationToday: json['total_break_duration_today'] != null
-        ? Duration(seconds: json['total_break_duration_today'] as int)
+        ? Duration(seconds: json['total_break_duration_today'] as int? ?? 0)
         : null,
-      lastBreakReset: json['last_break_reset'] != null && (json['last_break_reset'] as String).isNotEmpty
-        ? DateTime.tryParse(json['last_break_reset'])
-        : null,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] != null && (json['updated_at'] as String).isNotEmpty
-        ? DateTime.tryParse(json['updated_at'])
-        : null,
+      lastBreakReset: _parseDateField(json['last_break_reset']),
+      createdAt: _parseDateField(json['created_at']) ?? DateTime.now(),
+      updatedAt: _parseDateField(json['updated_at']),
     );
   }
 
@@ -207,6 +191,15 @@ class DriverModel {
     if (value is List && value.isNotEmpty && value.first is String) return value.first;
     if (value is Map && value['url'] is String) return value['url'];
     return value.toString();
+  }
+
+  /// Helper to safely parse date string fields
+  static DateTime? _parseDateField(dynamic value) {
+    if (value == null) return null;
+    if (value is String && value.isNotEmpty) {
+      return DateTime.tryParse(value);
+    }
+    return null;
   }
 
   /// Convertir en JSON

@@ -21,16 +21,32 @@ logger = logging.getLogger(__name__)
 def normalize_commune_name(name):
     """
     Normalise un nom de commune pour la recherche case-insensitive et sans accents.
+    Gère aussi les préfixes courants (Le, La, L') et les variantes.
+    
     Exemples:
     - "PORT-BOUET" -> "port-bouet"
     - "Port-Bouët" -> "port-bouet"
     - "COCODY" -> "cocody"
+    - "Le Plateau" -> "plateau"
+    - "LE PLATEAU" -> "plateau"
     """
+    if not name:
+        return ""
+    
     # Supprimer les accents
     nfkd_form = unicodedata.normalize('NFKD', name)
     text_without_accents = ''.join([c for c in nfkd_form if not unicodedata.combining(c)])
     # Convertir en minuscules et supprimer les espaces extras
-    return text_without_accents.lower().strip()
+    normalized = text_without_accents.lower().strip()
+    
+    # Supprimer les préfixes courants (le, la, l', les)
+    prefixes_to_remove = ['le ', 'la ', "l'", 'les ']
+    for prefix in prefixes_to_remove:
+        if normalized.startswith(prefix):
+            normalized = normalized[len(prefix):].strip()
+            break
+    
+    return normalized
 
 
 class PricingCalculator:
