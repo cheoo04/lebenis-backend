@@ -305,6 +305,11 @@ class DeliveryNotifier extends Notifier<DeliveryState> {
     }
   }
 
+  /// Effacer l'erreur de pickup
+  void clearPickupError() {
+    state = state.copyWith(clearPickupError: true);
+  }
+
   /// Confirmer la récupération du colis
   Future<bool> confirmPickup({
     required String id,
@@ -331,6 +336,7 @@ class DeliveryNotifier extends Notifier<DeliveryState> {
       // Si c'est une ApiException (gérée par DioClient -> ApiException)
       try {
         if (e is ApiException) {
+          // Erreur 422: GPS manquant
           if (e.statusCode == 422 && e.data is Map<String, dynamic>) {
             state = state.copyWith(
               isLoading: false,
@@ -338,6 +344,18 @@ class DeliveryNotifier extends Notifier<DeliveryState> {
               pickupError: Map<String, dynamic>.from(e.data as Map),
             );
             return false;
+          }
+          // Erreur 400: Trop loin du point d'enlèvement
+          if (e.statusCode == 400 && e.data is Map<String, dynamic>) {
+            final data = e.data as Map<String, dynamic>;
+            if (data.containsKey('distance_km')) {
+              state = state.copyWith(
+                isLoading: false,
+                error: e.message,
+                pickupError: Map<String, dynamic>.from(data),
+              );
+              return false;
+            }
           }
         }
       } catch (_) {}
