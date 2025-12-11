@@ -32,13 +32,13 @@ services:
       - key: SECRET_KEY
         generateValue: true
 
+      # Neon Database (PostgreSQL gratuit)
       - key: DATABASE_URL
-        fromDatabase:
-          name: lebenis-db
-          property: connectionString
+        sync: false # Format: postgresql://user:password@ep-xxx.region.neon.tech/dbname
 
+      # Redis Cloud (déjà payé)
       - key: REDIS_URL
-        sync: false # À configurer manuellement (Redis Cloud)
+        sync: false # Format: rediss://default:password@redis-xxx.redis-cloud.com:12345
 
       - key: REQUIRE_REDIS_SSL
         value: true
@@ -87,11 +87,13 @@ services:
       - key: CLOUDINARY_API_SECRET
         sync: false
 
-      # Sentry
+            # Sentry
       - key: SENTRY_DSN
         sync: false
 
-# ============================================================================
+      # Neon Database (externe - gratuit)
+      - key: DATABASE_URL
+        sync: false # À configurer manuellement avec votre URL Neon
 # DATABASE - PostgreSQL (gratuit pendant 90 jours)
 # ============================================================================
 
