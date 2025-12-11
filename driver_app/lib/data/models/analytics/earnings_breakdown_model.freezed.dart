@@ -12,12 +12,10 @@ part of 'earnings_breakdown_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 EarningsBreakdownModel _$EarningsBreakdownModelFromJson(
-  Map<String, dynamic> json,
-) {
+    Map<String, dynamic> json) {
   return _EarningsBreakdownModel.fromJson(json);
 }
 
@@ -34,37 +32,29 @@ mixin _$EarningsBreakdownModel {
   @JsonKey(name: 'total_earnings')
   double get totalEarnings => throw _privateConstructorUsedError;
 
-  /// Serializes this EarningsBreakdownModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of EarningsBreakdownModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $EarningsBreakdownModelCopyWith<EarningsBreakdownModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $EarningsBreakdownModelCopyWith<$Res> {
-  factory $EarningsBreakdownModelCopyWith(
-    EarningsBreakdownModel value,
-    $Res Function(EarningsBreakdownModel) then,
-  ) = _$EarningsBreakdownModelCopyWithImpl<$Res, EarningsBreakdownModel>;
+  factory $EarningsBreakdownModelCopyWith(EarningsBreakdownModel value,
+          $Res Function(EarningsBreakdownModel) then) =
+      _$EarningsBreakdownModelCopyWithImpl<$Res, EarningsBreakdownModel>;
   @useResult
-  $Res call({
-    @JsonKey(name: 'delivery_earnings') double deliveryEarnings,
-    @JsonKey(name: 'bonus_earnings') double bonusEarnings,
-    @JsonKey(name: 'tip_earnings') double tipEarnings,
-    @JsonKey(name: 'adjustment_earnings') double adjustmentEarnings,
-    @JsonKey(name: 'total_earnings') double totalEarnings,
-  });
+  $Res call(
+      {@JsonKey(name: 'delivery_earnings') double deliveryEarnings,
+      @JsonKey(name: 'bonus_earnings') double bonusEarnings,
+      @JsonKey(name: 'tip_earnings') double tipEarnings,
+      @JsonKey(name: 'adjustment_earnings') double adjustmentEarnings,
+      @JsonKey(name: 'total_earnings') double totalEarnings});
 }
 
 /// @nodoc
-class _$EarningsBreakdownModelCopyWithImpl<
-  $Res,
-  $Val extends EarningsBreakdownModel
->
+class _$EarningsBreakdownModelCopyWithImpl<$Res,
+        $Val extends EarningsBreakdownModel>
     implements $EarningsBreakdownModelCopyWith<$Res> {
   _$EarningsBreakdownModelCopyWithImpl(this._value, this._then);
 
@@ -73,8 +63,6 @@ class _$EarningsBreakdownModelCopyWithImpl<
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of EarningsBreakdownModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -84,31 +72,28 @@ class _$EarningsBreakdownModelCopyWithImpl<
     Object? adjustmentEarnings = null,
     Object? totalEarnings = null,
   }) {
-    return _then(
-      _value.copyWith(
-            deliveryEarnings: null == deliveryEarnings
-                ? _value.deliveryEarnings
-                : deliveryEarnings // ignore: cast_nullable_to_non_nullable
-                      as double,
-            bonusEarnings: null == bonusEarnings
-                ? _value.bonusEarnings
-                : bonusEarnings // ignore: cast_nullable_to_non_nullable
-                      as double,
-            tipEarnings: null == tipEarnings
-                ? _value.tipEarnings
-                : tipEarnings // ignore: cast_nullable_to_non_nullable
-                      as double,
-            adjustmentEarnings: null == adjustmentEarnings
-                ? _value.adjustmentEarnings
-                : adjustmentEarnings // ignore: cast_nullable_to_non_nullable
-                      as double,
-            totalEarnings: null == totalEarnings
-                ? _value.totalEarnings
-                : totalEarnings // ignore: cast_nullable_to_non_nullable
-                      as double,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      deliveryEarnings: null == deliveryEarnings
+          ? _value.deliveryEarnings
+          : deliveryEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+      bonusEarnings: null == bonusEarnings
+          ? _value.bonusEarnings
+          : bonusEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+      tipEarnings: null == tipEarnings
+          ? _value.tipEarnings
+          : tipEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+      adjustmentEarnings: null == adjustmentEarnings
+          ? _value.adjustmentEarnings
+          : adjustmentEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+      totalEarnings: null == totalEarnings
+          ? _value.totalEarnings
+          : totalEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+    ) as $Val);
   }
 }
 
@@ -116,32 +101,29 @@ class _$EarningsBreakdownModelCopyWithImpl<
 abstract class _$$EarningsBreakdownModelImplCopyWith<$Res>
     implements $EarningsBreakdownModelCopyWith<$Res> {
   factory _$$EarningsBreakdownModelImplCopyWith(
-    _$EarningsBreakdownModelImpl value,
-    $Res Function(_$EarningsBreakdownModelImpl) then,
-  ) = __$$EarningsBreakdownModelImplCopyWithImpl<$Res>;
+          _$EarningsBreakdownModelImpl value,
+          $Res Function(_$EarningsBreakdownModelImpl) then) =
+      __$$EarningsBreakdownModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: 'delivery_earnings') double deliveryEarnings,
-    @JsonKey(name: 'bonus_earnings') double bonusEarnings,
-    @JsonKey(name: 'tip_earnings') double tipEarnings,
-    @JsonKey(name: 'adjustment_earnings') double adjustmentEarnings,
-    @JsonKey(name: 'total_earnings') double totalEarnings,
-  });
+  $Res call(
+      {@JsonKey(name: 'delivery_earnings') double deliveryEarnings,
+      @JsonKey(name: 'bonus_earnings') double bonusEarnings,
+      @JsonKey(name: 'tip_earnings') double tipEarnings,
+      @JsonKey(name: 'adjustment_earnings') double adjustmentEarnings,
+      @JsonKey(name: 'total_earnings') double totalEarnings});
 }
 
 /// @nodoc
 class __$$EarningsBreakdownModelImplCopyWithImpl<$Res>
-    extends
-        _$EarningsBreakdownModelCopyWithImpl<$Res, _$EarningsBreakdownModelImpl>
+    extends _$EarningsBreakdownModelCopyWithImpl<$Res,
+        _$EarningsBreakdownModelImpl>
     implements _$$EarningsBreakdownModelImplCopyWith<$Res> {
   __$$EarningsBreakdownModelImplCopyWithImpl(
-    _$EarningsBreakdownModelImpl _value,
-    $Res Function(_$EarningsBreakdownModelImpl) _then,
-  ) : super(_value, _then);
+      _$EarningsBreakdownModelImpl _value,
+      $Res Function(_$EarningsBreakdownModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of EarningsBreakdownModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -151,43 +133,40 @@ class __$$EarningsBreakdownModelImplCopyWithImpl<$Res>
     Object? adjustmentEarnings = null,
     Object? totalEarnings = null,
   }) {
-    return _then(
-      _$EarningsBreakdownModelImpl(
-        deliveryEarnings: null == deliveryEarnings
-            ? _value.deliveryEarnings
-            : deliveryEarnings // ignore: cast_nullable_to_non_nullable
-                  as double,
-        bonusEarnings: null == bonusEarnings
-            ? _value.bonusEarnings
-            : bonusEarnings // ignore: cast_nullable_to_non_nullable
-                  as double,
-        tipEarnings: null == tipEarnings
-            ? _value.tipEarnings
-            : tipEarnings // ignore: cast_nullable_to_non_nullable
-                  as double,
-        adjustmentEarnings: null == adjustmentEarnings
-            ? _value.adjustmentEarnings
-            : adjustmentEarnings // ignore: cast_nullable_to_non_nullable
-                  as double,
-        totalEarnings: null == totalEarnings
-            ? _value.totalEarnings
-            : totalEarnings // ignore: cast_nullable_to_non_nullable
-                  as double,
-      ),
-    );
+    return _then(_$EarningsBreakdownModelImpl(
+      deliveryEarnings: null == deliveryEarnings
+          ? _value.deliveryEarnings
+          : deliveryEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+      bonusEarnings: null == bonusEarnings
+          ? _value.bonusEarnings
+          : bonusEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+      tipEarnings: null == tipEarnings
+          ? _value.tipEarnings
+          : tipEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+      adjustmentEarnings: null == adjustmentEarnings
+          ? _value.adjustmentEarnings
+          : adjustmentEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+      totalEarnings: null == totalEarnings
+          ? _value.totalEarnings
+          : totalEarnings // ignore: cast_nullable_to_non_nullable
+              as double,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$EarningsBreakdownModelImpl implements _EarningsBreakdownModel {
-  const _$EarningsBreakdownModelImpl({
-    @JsonKey(name: 'delivery_earnings') required this.deliveryEarnings,
-    @JsonKey(name: 'bonus_earnings') required this.bonusEarnings,
-    @JsonKey(name: 'tip_earnings') required this.tipEarnings,
-    @JsonKey(name: 'adjustment_earnings') required this.adjustmentEarnings,
-    @JsonKey(name: 'total_earnings') required this.totalEarnings,
-  });
+  const _$EarningsBreakdownModelImpl(
+      {@JsonKey(name: 'delivery_earnings') required this.deliveryEarnings,
+      @JsonKey(name: 'bonus_earnings') required this.bonusEarnings,
+      @JsonKey(name: 'tip_earnings') required this.tipEarnings,
+      @JsonKey(name: 'adjustment_earnings') required this.adjustmentEarnings,
+      @JsonKey(name: 'total_earnings') required this.totalEarnings});
 
   factory _$EarningsBreakdownModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$EarningsBreakdownModelImplFromJson(json);
@@ -230,44 +209,36 @@ class _$EarningsBreakdownModelImpl implements _EarningsBreakdownModel {
                 other.totalEarnings == totalEarnings));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    deliveryEarnings,
-    bonusEarnings,
-    tipEarnings,
-    adjustmentEarnings,
-    totalEarnings,
-  );
+  int get hashCode => Object.hash(runtimeType, deliveryEarnings, bonusEarnings,
+      tipEarnings, adjustmentEarnings, totalEarnings);
 
-  /// Create a copy of EarningsBreakdownModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$EarningsBreakdownModelImplCopyWith<_$EarningsBreakdownModelImpl>
-  get copyWith =>
-      __$$EarningsBreakdownModelImplCopyWithImpl<_$EarningsBreakdownModelImpl>(
-        this,
-        _$identity,
-      );
+      get copyWith => __$$EarningsBreakdownModelImplCopyWithImpl<
+          _$EarningsBreakdownModelImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$EarningsBreakdownModelImplToJson(this);
+    return _$$EarningsBreakdownModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _EarningsBreakdownModel implements EarningsBreakdownModel {
-  const factory _EarningsBreakdownModel({
-    @JsonKey(name: 'delivery_earnings') required final double deliveryEarnings,
-    @JsonKey(name: 'bonus_earnings') required final double bonusEarnings,
-    @JsonKey(name: 'tip_earnings') required final double tipEarnings,
-    @JsonKey(name: 'adjustment_earnings')
-    required final double adjustmentEarnings,
-    @JsonKey(name: 'total_earnings') required final double totalEarnings,
-  }) = _$EarningsBreakdownModelImpl;
+  const factory _EarningsBreakdownModel(
+      {@JsonKey(name: 'delivery_earnings')
+      required final double deliveryEarnings,
+      @JsonKey(name: 'bonus_earnings') required final double bonusEarnings,
+      @JsonKey(name: 'tip_earnings') required final double tipEarnings,
+      @JsonKey(name: 'adjustment_earnings')
+      required final double adjustmentEarnings,
+      @JsonKey(name: 'total_earnings')
+      required final double totalEarnings}) = _$EarningsBreakdownModelImpl;
 
   factory _EarningsBreakdownModel.fromJson(Map<String, dynamic> json) =
       _$EarningsBreakdownModelImpl.fromJson;
@@ -287,11 +258,8 @@ abstract class _EarningsBreakdownModel implements EarningsBreakdownModel {
   @override
   @JsonKey(name: 'total_earnings')
   double get totalEarnings;
-
-  /// Create a copy of EarningsBreakdownModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$EarningsBreakdownModelImplCopyWith<_$EarningsBreakdownModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }

@@ -3,16 +3,20 @@
 import 'package:flutter/foundation.dart';
 import '../../core/network/dio_client.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/database/hive_service.dart';
+import '../../core/database/models/delivery_cache.dart';
 import '../models/delivery_model.dart';
 import 'package:dio/dio.dart';
 
-/// Repository pour les livraisons
+/// Repository pour les livraisons avec support offline
 /// Responsabilité: 
 /// - getAvailableDeliveries(): Livraisons disponibles à accepter (pending_assignment)
 /// - getMyDeliveries(): Mes livraisons assignées
 /// - Actions: accept, reject, confirm pickup/delivery, cancel
+/// - Cache local via Hive pour fonctionnement offline
 class DeliveryRepository {
   final DioClient _dioClient;
+  final HiveService _hiveService = HiveService.instance;
 
   DeliveryRepository(this._dioClient);
 
@@ -76,14 +80,16 @@ class DeliveryRepository {
   }
 
   /// Récupérer mes livraisons du driver connecté
+  /// Avec mise en cache automatique pour le mode offline
   Future<List<DeliveryModel>> getMyDeliveries({
     String? status,
     int page = 1,
     int pageSize = 20,
+    bool forceRefresh = false,
   }) async {
     try {
       final response = await _dioClient.get(
-        ApiConstants.myDeliveries, // Utilise l'endpoint spécifique driver
+        ApiConstants.myDeliveries,
         queryParameters: {
           if (status != null) 'status': status,
           'page': page,
@@ -93,39 +99,67 @@ class DeliveryRepository {
       
       final data = response.data;
       
-      // Si la réponse est null ou vide, retourner une liste vide
       if (data == null) {
-        return [];
+        return _getCachedDeliveries(status: status);
       }
       
-      // Debug: Afficher la structure complète
-      if (data is Map) {
-      }
+      List<DeliveryModel> deliveries = [];
+      List<Map<String, dynamic>> rawData = [];
       
-      // Si c'est une Map avec 'results' (pagination Django REST)
+      // Parser la réponse
       if (data is Map && data.containsKey('results')) {
         final results = data['results'];
         if (results is List) {
-          return results
-              .map((json) => DeliveryModel.fromJson(json))
-              .toList();
+          rawData = results.cast<Map<String, dynamic>>();
+          deliveries = results.map((json) => DeliveryModel.fromJson(json)).toList();
         }
-        return [];
+      } else if (data is List) {
+        rawData = data.cast<Map<String, dynamic>>();
+        deliveries = data.map((json) => DeliveryModel.fromJson(json)).toList();
       }
       
-      // Si c'est directement une liste
-      if (data is List) {
-        return data
-            .map((json) => DeliveryModel.fromJson(json))
-            .toList();
+      // Mettre en cache les livraisons
+      if (rawData.isNotEmpty) {
+        await _cacheDeliveries(rawData);
       }
       
-      // Sinon, retourner une liste vide avec debug
-      if (data is Map) {
+      return deliveries;
+    } catch (e) {
+      // En cas d'erreur réseau, utiliser le cache
+      if (kDebugMode) {
+        debugPrint('📴 Network error, using cache: $e');
+      }
+      return _getCachedDeliveries(status: status);
+    }
+  }
+
+  /// Récupérer les livraisons depuis le cache local
+  List<DeliveryModel> _getCachedDeliveries({String? status}) {
+    try {
+      List<DeliveryCache> cached;
+      if (status != null) {
+        cached = _hiveService.getDeliveriesByStatus(status);
+      } else {
+        cached = _hiveService.getCachedDeliveries();
+      }
+      return cached.map((c) => DeliveryModel.fromJson(c.toJson())).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ Error reading cache: $e');
       }
       return [];
+    }
+  }
+
+  /// Mettre en cache les livraisons
+  Future<void> _cacheDeliveries(List<Map<String, dynamic>> deliveriesJson) async {
+    try {
+      final caches = deliveriesJson.map((json) => DeliveryCache.fromJson(json)).toList();
+      await _hiveService.cacheDeliveries(caches);
     } catch (e) {
-      rethrow;
+      if (kDebugMode) {
+        debugPrint('❌ Error caching deliveries: $e');
+      }
     }
   }
 

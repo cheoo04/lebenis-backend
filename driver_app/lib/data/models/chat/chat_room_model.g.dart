@@ -11,8 +11,7 @@ _$ChatRoomModelImpl _$$ChatRoomModelImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       roomType: $enumDecode(_$RoomTypeEnumMap, json['roomType']),
       otherParticipant: ChatParticipant.fromJson(
-        json['otherParticipant'] as Map<String, dynamic>,
-      ),
+          json['otherParticipant'] as Map<String, dynamic>),
       deliveryInfo: json['deliveryInfo'] == null
           ? null
           : DeliveryInfo.fromJson(json['deliveryInfo'] as Map<String, dynamic>),

@@ -21,13 +21,15 @@ Map<String, dynamic> _$$PeakHourModelImplToJson(_$PeakHourModelImpl instance) =>
     };
 
 _$PeakHoursResponseModelImpl _$$PeakHoursResponseModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$PeakHoursResponseModelImpl(
-  peakHours: (json['peakHours'] as List<dynamic>)
-      .map((e) => PeakHourModel.fromJson(e as Map<String, dynamic>))
-      .toList(),
-);
+        Map<String, dynamic> json) =>
+    _$PeakHoursResponseModelImpl(
+      peakHours: (json['peakHours'] as List<dynamic>)
+          .map((e) => PeakHourModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
 
 Map<String, dynamic> _$$PeakHoursResponseModelImplToJson(
-  _$PeakHoursResponseModelImpl instance,
-) => <String, dynamic>{'peakHours': instance.peakHours};
+        _$PeakHoursResponseModelImpl instance) =>
+    <String, dynamic>{
+      'peakHours': instance.peakHours,
+    };

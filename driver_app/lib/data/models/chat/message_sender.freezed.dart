@@ -12,8 +12,7 @@ part of 'message_sender.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 MessageSender _$MessageSenderFromJson(Map<String, dynamic> json) {
   return _MessageSender.fromJson(json);
@@ -27,12 +26,8 @@ mixin _$MessageSender {
   @JsonKey(name: 'profile_photo_url')
   String? get profilePhotoUrl => throw _privateConstructorUsedError;
 
-  /// Serializes this MessageSender to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of MessageSender
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $MessageSenderCopyWith<MessageSender> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -40,15 +35,13 @@ mixin _$MessageSender {
 /// @nodoc
 abstract class $MessageSenderCopyWith<$Res> {
   factory $MessageSenderCopyWith(
-    MessageSender value,
-    $Res Function(MessageSender) then,
-  ) = _$MessageSenderCopyWithImpl<$Res, MessageSender>;
+          MessageSender value, $Res Function(MessageSender) then) =
+      _$MessageSenderCopyWithImpl<$Res, MessageSender>;
   @useResult
-  $Res call({
-    String id,
-    @JsonKey(name: 'full_name') String fullName,
-    @JsonKey(name: 'profile_photo_url') String? profilePhotoUrl,
-  });
+  $Res call(
+      {String id,
+      @JsonKey(name: 'full_name') String fullName,
+      @JsonKey(name: 'profile_photo_url') String? profilePhotoUrl});
 }
 
 /// @nodoc
@@ -61,8 +54,6 @@ class _$MessageSenderCopyWithImpl<$Res, $Val extends MessageSender>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of MessageSender
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -70,23 +61,20 @@ class _$MessageSenderCopyWithImpl<$Res, $Val extends MessageSender>
     Object? fullName = null,
     Object? profilePhotoUrl = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            fullName: null == fullName
-                ? _value.fullName
-                : fullName // ignore: cast_nullable_to_non_nullable
-                      as String,
-            profilePhotoUrl: freezed == profilePhotoUrl
-                ? _value.profilePhotoUrl
-                : profilePhotoUrl // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      fullName: null == fullName
+          ? _value.fullName
+          : fullName // ignore: cast_nullable_to_non_nullable
+              as String,
+      profilePhotoUrl: freezed == profilePhotoUrl
+          ? _value.profilePhotoUrl
+          : profilePhotoUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 }
 
@@ -94,16 +82,14 @@ class _$MessageSenderCopyWithImpl<$Res, $Val extends MessageSender>
 abstract class _$$MessageSenderImplCopyWith<$Res>
     implements $MessageSenderCopyWith<$Res> {
   factory _$$MessageSenderImplCopyWith(
-    _$MessageSenderImpl value,
-    $Res Function(_$MessageSenderImpl) then,
-  ) = __$$MessageSenderImplCopyWithImpl<$Res>;
+          _$MessageSenderImpl value, $Res Function(_$MessageSenderImpl) then) =
+      __$$MessageSenderImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String id,
-    @JsonKey(name: 'full_name') String fullName,
-    @JsonKey(name: 'profile_photo_url') String? profilePhotoUrl,
-  });
+  $Res call(
+      {String id,
+      @JsonKey(name: 'full_name') String fullName,
+      @JsonKey(name: 'profile_photo_url') String? profilePhotoUrl});
 }
 
 /// @nodoc
@@ -111,12 +97,9 @@ class __$$MessageSenderImplCopyWithImpl<$Res>
     extends _$MessageSenderCopyWithImpl<$Res, _$MessageSenderImpl>
     implements _$$MessageSenderImplCopyWith<$Res> {
   __$$MessageSenderImplCopyWithImpl(
-    _$MessageSenderImpl _value,
-    $Res Function(_$MessageSenderImpl) _then,
-  ) : super(_value, _then);
+      _$MessageSenderImpl _value, $Res Function(_$MessageSenderImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of MessageSender
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -124,33 +107,30 @@ class __$$MessageSenderImplCopyWithImpl<$Res>
     Object? fullName = null,
     Object? profilePhotoUrl = freezed,
   }) {
-    return _then(
-      _$MessageSenderImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        fullName: null == fullName
-            ? _value.fullName
-            : fullName // ignore: cast_nullable_to_non_nullable
-                  as String,
-        profilePhotoUrl: freezed == profilePhotoUrl
-            ? _value.profilePhotoUrl
-            : profilePhotoUrl // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$MessageSenderImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      fullName: null == fullName
+          ? _value.fullName
+          : fullName // ignore: cast_nullable_to_non_nullable
+              as String,
+      profilePhotoUrl: freezed == profilePhotoUrl
+          ? _value.profilePhotoUrl
+          : profilePhotoUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$MessageSenderImpl implements _MessageSender {
-  const _$MessageSenderImpl({
-    required this.id,
-    @JsonKey(name: 'full_name') required this.fullName,
-    @JsonKey(name: 'profile_photo_url') this.profilePhotoUrl,
-  });
+  const _$MessageSenderImpl(
+      {required this.id,
+      @JsonKey(name: 'full_name') required this.fullName,
+      @JsonKey(name: 'profile_photo_url') this.profilePhotoUrl});
 
   factory _$MessageSenderImpl.fromJson(Map<String, dynamic> json) =>
       _$$MessageSenderImplFromJson(json);
@@ -181,13 +161,11 @@ class _$MessageSenderImpl implements _MessageSender {
                 other.profilePhotoUrl == profilePhotoUrl));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, id, fullName, profilePhotoUrl);
 
-  /// Create a copy of MessageSender
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$MessageSenderImplCopyWith<_$MessageSenderImpl> get copyWith =>
@@ -195,16 +173,18 @@ class _$MessageSenderImpl implements _MessageSender {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$MessageSenderImplToJson(this);
+    return _$$MessageSenderImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _MessageSender implements MessageSender {
-  const factory _MessageSender({
-    required final String id,
-    @JsonKey(name: 'full_name') required final String fullName,
-    @JsonKey(name: 'profile_photo_url') final String? profilePhotoUrl,
-  }) = _$MessageSenderImpl;
+  const factory _MessageSender(
+          {required final String id,
+          @JsonKey(name: 'full_name') required final String fullName,
+          @JsonKey(name: 'profile_photo_url') final String? profilePhotoUrl}) =
+      _$MessageSenderImpl;
 
   factory _MessageSender.fromJson(Map<String, dynamic> json) =
       _$MessageSenderImpl.fromJson;
@@ -217,11 +197,8 @@ abstract class _MessageSender implements MessageSender {
   @override
   @JsonKey(name: 'profile_photo_url')
   String? get profilePhotoUrl;
-
-  /// Create a copy of MessageSender
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$MessageSenderImplCopyWith<_$MessageSenderImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -12,8 +12,7 @@ part of 'chat_room_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 ChatRoomModel _$ChatRoomModelFromJson(Map<String, dynamic> json) {
   return _ChatRoomModel.fromJson(json);
@@ -32,12 +31,8 @@ mixin _$ChatRoomModel {
   DateTime get createdAt => throw _privateConstructorUsedError;
   String? get firebasePath => throw _privateConstructorUsedError;
 
-  /// Serializes this ChatRoomModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ChatRoomModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ChatRoomModelCopyWith<ChatRoomModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -45,22 +40,20 @@ mixin _$ChatRoomModel {
 /// @nodoc
 abstract class $ChatRoomModelCopyWith<$Res> {
   factory $ChatRoomModelCopyWith(
-    ChatRoomModel value,
-    $Res Function(ChatRoomModel) then,
-  ) = _$ChatRoomModelCopyWithImpl<$Res, ChatRoomModel>;
+          ChatRoomModel value, $Res Function(ChatRoomModel) then) =
+      _$ChatRoomModelCopyWithImpl<$Res, ChatRoomModel>;
   @useResult
-  $Res call({
-    String id,
-    RoomType roomType,
-    ChatParticipant otherParticipant,
-    DeliveryInfo? deliveryInfo,
-    String? lastMessageText,
-    DateTime? lastMessageAt,
-    int unreadCount,
-    bool isArchived,
-    DateTime createdAt,
-    String? firebasePath,
-  });
+  $Res call(
+      {String id,
+      RoomType roomType,
+      ChatParticipant otherParticipant,
+      DeliveryInfo? deliveryInfo,
+      String? lastMessageText,
+      DateTime? lastMessageAt,
+      int unreadCount,
+      bool isArchived,
+      DateTime createdAt,
+      String? firebasePath});
 
   $ChatParticipantCopyWith<$Res> get otherParticipant;
   $DeliveryInfoCopyWith<$Res>? get deliveryInfo;
@@ -76,8 +69,6 @@ class _$ChatRoomModelCopyWithImpl<$Res, $Val extends ChatRoomModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ChatRoomModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -92,55 +83,50 @@ class _$ChatRoomModelCopyWithImpl<$Res, $Val extends ChatRoomModel>
     Object? createdAt = null,
     Object? firebasePath = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            roomType: null == roomType
-                ? _value.roomType
-                : roomType // ignore: cast_nullable_to_non_nullable
-                      as RoomType,
-            otherParticipant: null == otherParticipant
-                ? _value.otherParticipant
-                : otherParticipant // ignore: cast_nullable_to_non_nullable
-                      as ChatParticipant,
-            deliveryInfo: freezed == deliveryInfo
-                ? _value.deliveryInfo
-                : deliveryInfo // ignore: cast_nullable_to_non_nullable
-                      as DeliveryInfo?,
-            lastMessageText: freezed == lastMessageText
-                ? _value.lastMessageText
-                : lastMessageText // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            lastMessageAt: freezed == lastMessageAt
-                ? _value.lastMessageAt
-                : lastMessageAt // ignore: cast_nullable_to_non_nullable
-                      as DateTime?,
-            unreadCount: null == unreadCount
-                ? _value.unreadCount
-                : unreadCount // ignore: cast_nullable_to_non_nullable
-                      as int,
-            isArchived: null == isArchived
-                ? _value.isArchived
-                : isArchived // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            createdAt: null == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as DateTime,
-            firebasePath: freezed == firebasePath
-                ? _value.firebasePath
-                : firebasePath // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      roomType: null == roomType
+          ? _value.roomType
+          : roomType // ignore: cast_nullable_to_non_nullable
+              as RoomType,
+      otherParticipant: null == otherParticipant
+          ? _value.otherParticipant
+          : otherParticipant // ignore: cast_nullable_to_non_nullable
+              as ChatParticipant,
+      deliveryInfo: freezed == deliveryInfo
+          ? _value.deliveryInfo
+          : deliveryInfo // ignore: cast_nullable_to_non_nullable
+              as DeliveryInfo?,
+      lastMessageText: freezed == lastMessageText
+          ? _value.lastMessageText
+          : lastMessageText // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastMessageAt: freezed == lastMessageAt
+          ? _value.lastMessageAt
+          : lastMessageAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      unreadCount: null == unreadCount
+          ? _value.unreadCount
+          : unreadCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      isArchived: null == isArchived
+          ? _value.isArchived
+          : isArchived // ignore: cast_nullable_to_non_nullable
+              as bool,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      firebasePath: freezed == firebasePath
+          ? _value.firebasePath
+          : firebasePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 
-  /// Create a copy of ChatRoomModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ChatParticipantCopyWith<$Res> get otherParticipant {
@@ -149,8 +135,6 @@ class _$ChatRoomModelCopyWithImpl<$Res, $Val extends ChatRoomModel>
     });
   }
 
-  /// Create a copy of ChatRoomModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $DeliveryInfoCopyWith<$Res>? get deliveryInfo {
@@ -168,23 +152,21 @@ class _$ChatRoomModelCopyWithImpl<$Res, $Val extends ChatRoomModel>
 abstract class _$$ChatRoomModelImplCopyWith<$Res>
     implements $ChatRoomModelCopyWith<$Res> {
   factory _$$ChatRoomModelImplCopyWith(
-    _$ChatRoomModelImpl value,
-    $Res Function(_$ChatRoomModelImpl) then,
-  ) = __$$ChatRoomModelImplCopyWithImpl<$Res>;
+          _$ChatRoomModelImpl value, $Res Function(_$ChatRoomModelImpl) then) =
+      __$$ChatRoomModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String id,
-    RoomType roomType,
-    ChatParticipant otherParticipant,
-    DeliveryInfo? deliveryInfo,
-    String? lastMessageText,
-    DateTime? lastMessageAt,
-    int unreadCount,
-    bool isArchived,
-    DateTime createdAt,
-    String? firebasePath,
-  });
+  $Res call(
+      {String id,
+      RoomType roomType,
+      ChatParticipant otherParticipant,
+      DeliveryInfo? deliveryInfo,
+      String? lastMessageText,
+      DateTime? lastMessageAt,
+      int unreadCount,
+      bool isArchived,
+      DateTime createdAt,
+      String? firebasePath});
 
   @override
   $ChatParticipantCopyWith<$Res> get otherParticipant;
@@ -197,12 +179,9 @@ class __$$ChatRoomModelImplCopyWithImpl<$Res>
     extends _$ChatRoomModelCopyWithImpl<$Res, _$ChatRoomModelImpl>
     implements _$$ChatRoomModelImplCopyWith<$Res> {
   __$$ChatRoomModelImplCopyWithImpl(
-    _$ChatRoomModelImpl _value,
-    $Res Function(_$ChatRoomModelImpl) _then,
-  ) : super(_value, _then);
+      _$ChatRoomModelImpl _value, $Res Function(_$ChatRoomModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ChatRoomModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -217,68 +196,65 @@ class __$$ChatRoomModelImplCopyWithImpl<$Res>
     Object? createdAt = null,
     Object? firebasePath = freezed,
   }) {
-    return _then(
-      _$ChatRoomModelImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        roomType: null == roomType
-            ? _value.roomType
-            : roomType // ignore: cast_nullable_to_non_nullable
-                  as RoomType,
-        otherParticipant: null == otherParticipant
-            ? _value.otherParticipant
-            : otherParticipant // ignore: cast_nullable_to_non_nullable
-                  as ChatParticipant,
-        deliveryInfo: freezed == deliveryInfo
-            ? _value.deliveryInfo
-            : deliveryInfo // ignore: cast_nullable_to_non_nullable
-                  as DeliveryInfo?,
-        lastMessageText: freezed == lastMessageText
-            ? _value.lastMessageText
-            : lastMessageText // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        lastMessageAt: freezed == lastMessageAt
-            ? _value.lastMessageAt
-            : lastMessageAt // ignore: cast_nullable_to_non_nullable
-                  as DateTime?,
-        unreadCount: null == unreadCount
-            ? _value.unreadCount
-            : unreadCount // ignore: cast_nullable_to_non_nullable
-                  as int,
-        isArchived: null == isArchived
-            ? _value.isArchived
-            : isArchived // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        createdAt: null == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as DateTime,
-        firebasePath: freezed == firebasePath
-            ? _value.firebasePath
-            : firebasePath // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$ChatRoomModelImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      roomType: null == roomType
+          ? _value.roomType
+          : roomType // ignore: cast_nullable_to_non_nullable
+              as RoomType,
+      otherParticipant: null == otherParticipant
+          ? _value.otherParticipant
+          : otherParticipant // ignore: cast_nullable_to_non_nullable
+              as ChatParticipant,
+      deliveryInfo: freezed == deliveryInfo
+          ? _value.deliveryInfo
+          : deliveryInfo // ignore: cast_nullable_to_non_nullable
+              as DeliveryInfo?,
+      lastMessageText: freezed == lastMessageText
+          ? _value.lastMessageText
+          : lastMessageText // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastMessageAt: freezed == lastMessageAt
+          ? _value.lastMessageAt
+          : lastMessageAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      unreadCount: null == unreadCount
+          ? _value.unreadCount
+          : unreadCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      isArchived: null == isArchived
+          ? _value.isArchived
+          : isArchived // ignore: cast_nullable_to_non_nullable
+              as bool,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      firebasePath: freezed == firebasePath
+          ? _value.firebasePath
+          : firebasePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ChatRoomModelImpl implements _ChatRoomModel {
-  const _$ChatRoomModelImpl({
-    required this.id,
-    required this.roomType,
-    required this.otherParticipant,
-    this.deliveryInfo,
-    this.lastMessageText,
-    this.lastMessageAt,
-    required this.unreadCount,
-    required this.isArchived,
-    required this.createdAt,
-    this.firebasePath,
-  });
+  const _$ChatRoomModelImpl(
+      {required this.id,
+      required this.roomType,
+      required this.otherParticipant,
+      this.deliveryInfo,
+      this.lastMessageText,
+      this.lastMessageAt,
+      required this.unreadCount,
+      required this.isArchived,
+      required this.createdAt,
+      this.firebasePath});
 
   factory _$ChatRoomModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ChatRoomModelImplFromJson(json);
@@ -335,25 +311,22 @@ class _$ChatRoomModelImpl implements _ChatRoomModel {
                 other.firebasePath == firebasePath));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    roomType,
-    otherParticipant,
-    deliveryInfo,
-    lastMessageText,
-    lastMessageAt,
-    unreadCount,
-    isArchived,
-    createdAt,
-    firebasePath,
-  );
+      runtimeType,
+      id,
+      roomType,
+      otherParticipant,
+      deliveryInfo,
+      lastMessageText,
+      lastMessageAt,
+      unreadCount,
+      isArchived,
+      createdAt,
+      firebasePath);
 
-  /// Create a copy of ChatRoomModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ChatRoomModelImplCopyWith<_$ChatRoomModelImpl> get copyWith =>
@@ -361,23 +334,24 @@ class _$ChatRoomModelImpl implements _ChatRoomModel {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ChatRoomModelImplToJson(this);
+    return _$$ChatRoomModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ChatRoomModel implements ChatRoomModel {
-  const factory _ChatRoomModel({
-    required final String id,
-    required final RoomType roomType,
-    required final ChatParticipant otherParticipant,
-    final DeliveryInfo? deliveryInfo,
-    final String? lastMessageText,
-    final DateTime? lastMessageAt,
-    required final int unreadCount,
-    required final bool isArchived,
-    required final DateTime createdAt,
-    final String? firebasePath,
-  }) = _$ChatRoomModelImpl;
+  const factory _ChatRoomModel(
+      {required final String id,
+      required final RoomType roomType,
+      required final ChatParticipant otherParticipant,
+      final DeliveryInfo? deliveryInfo,
+      final String? lastMessageText,
+      final DateTime? lastMessageAt,
+      required final int unreadCount,
+      required final bool isArchived,
+      required final DateTime createdAt,
+      final String? firebasePath}) = _$ChatRoomModelImpl;
 
   factory _ChatRoomModel.fromJson(Map<String, dynamic> json) =
       _$ChatRoomModelImpl.fromJson;
@@ -402,11 +376,8 @@ abstract class _ChatRoomModel implements ChatRoomModel {
   DateTime get createdAt;
   @override
   String? get firebasePath;
-
-  /// Create a copy of ChatRoomModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ChatRoomModelImplCopyWith<_$ChatRoomModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

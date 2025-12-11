@@ -34,7 +34,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     """
     ViewSet pour gérer les factures des commerçants.
     """
-    queryset = Invoice.objects.all()
+    queryset = Invoice.objects.select_related('merchant__user').all()
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['invoice_number', 'merchant__business_name']
     ordering_fields = ['created_at', 'due_date', 'total_amount']
@@ -296,7 +296,7 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
     """
     ViewSet pour gérer les gains des livreurs.
     """
-    queryset = DriverEarning.objects.all()
+    queryset = DriverEarning.objects.select_related('driver__user', 'delivery').all()
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['driver__user__first_name', 'driver__user__last_name', 'delivery__tracking_number']
     ordering_fields = ['created_at', 'total_earning']
@@ -316,7 +316,7 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
         return [IsAdmin()]
     
     def get_queryset(self):
-        """Filtre par rôle"""
+        """Filtre par rôle avec optimisation des requêtes"""
         if getattr(self, 'swagger_fake_view', False):
             return DriverEarning.objects.none()
         
@@ -325,14 +325,16 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
         if not user.is_authenticated:
             return DriverEarning.objects.none()
         
+        base_qs = DriverEarning.objects.select_related('driver__user', 'delivery')
+        
         if user.user_type == 'driver':
             try:
                 driver = Driver.objects.get(user=user)
-                return DriverEarning.objects.filter(driver=driver)
+                return base_qs.filter(driver=driver)
             except Driver.DoesNotExist:
                 return DriverEarning.objects.none()
         
-        return DriverEarning.objects.all()
+        return base_qs.all()
     
     def perform_create(self, serializer):
         """Crée un gain et calcule le total"""
@@ -451,7 +453,7 @@ class DriverPaymentViewSet(viewsets.ModelViewSet):
     """
     ViewSet pour gérer les paiements groupés aux livreurs.
     """
-    queryset = DriverPayment.objects.all()
+    queryset = DriverPayment.objects.select_related('driver__user').prefetch_related('items').all()
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy', 'mark_as_paid']:

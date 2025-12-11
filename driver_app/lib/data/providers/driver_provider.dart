@@ -1,9 +1,11 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb, kDebugMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 import '../repositories/driver_repository.dart';
 import '../models/driver_model.dart';
+import '../../core/database/hive_service.dart';
+import '../../core/providers/offline_provider.dart';
 import 'auth_provider.dart';
 
 // ========== REPOSITORY PROVIDER ==========
@@ -22,6 +24,7 @@ class DriverState {
   final Map<String, dynamic>? earnings;
   final String? error;
   final String? successMessage;
+  final bool isFromCache; // Indique si les données viennent du cache
 
   DriverState({
     this.isLoading = false,
@@ -30,6 +33,7 @@ class DriverState {
     this.earnings,
     this.error,
     this.successMessage,
+    this.isFromCache = false,
   });
 
   DriverState copyWith({
@@ -41,6 +45,7 @@ class DriverState {
     String? successMessage,
     bool clearError = false,
     bool clearSuccess = false,
+    bool? isFromCache,
   }) {
     return DriverState(
       isLoading: isLoading ?? this.isLoading,
@@ -49,6 +54,7 @@ class DriverState {
       earnings: earnings ?? this.earnings,
       error: clearError ? null : error,
       successMessage: clearSuccess ? null : successMessage,
+      isFromCache: isFromCache ?? this.isFromCache,
     );
   }
 }
@@ -58,6 +64,7 @@ class DriverState {
 
 class DriverNotifier extends Notifier<DriverState> {
   DriverRepository get _repository => ref.read(driverRepositoryProvider);
+  HiveService get _hiveService => ref.read(hiveServiceProvider);
 
   @override
   DriverState build() {
@@ -85,20 +92,35 @@ class DriverNotifier extends Notifier<DriverState> {
     }
   }
 
-  /// Charger le profil du driver
-  Future<void> loadProfile() async {
+  /// Charger le profil du driver (avec support offline)
+  Future<void> loadProfile({bool forceRefresh = false}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final driver = await _repository.getMyProfile();
+      final driver = await _repository.getMyProfile(forceRefresh: forceRefresh);
       state = state.copyWith(
         isLoading: false,
         driver: driver,
+        isFromCache: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      // Essayer de charger depuis le cache
+      final cached = _hiveService.getCachedDriverProfile();
+      if (cached != null) {
+        if (kDebugMode) {
+          debugPrint('📴 Using cached driver profile');
+        }
+        state = state.copyWith(
+          isLoading: false,
+          driver: DriverModel.fromJson(cached.toJson()),
+          isFromCache: true,
+          error: 'Mode hors-ligne - Données du cache',
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+        );
+      }
     }
   }
 
@@ -111,12 +133,15 @@ class DriverNotifier extends Notifier<DriverState> {
         isLoading: false,
         driver: updatedDriver,
         successMessage: 'Disponibilité mise à jour',
+        isFromCache: false,
       );
       return true;
     } catch (e) {
+      // En mode offline, mettre à jour le cache local uniquement
+      await _hiveService.updateDriverAvailability(status == 'available');
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: 'Mise à jour enregistrée localement (sync automatique)',
       );
       return false;
     }

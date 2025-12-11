@@ -284,4 +284,45 @@ class DeliveryModel {
   String toString() {
     return 'DeliveryModel(id: $id, tracking: $trackingNumber, status: $status)';
   }
+
+  /// Convertir en JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'tracking_number': trackingNumber,
+      'status': status,
+      'pickup_address': pickupAddress,
+      'pickup_commune': pickupCommune,
+      'pickup_quartier': pickupQuartier,
+      'pickup_precision': pickupPrecision,
+      'pickup_latitude': pickupLatitude,
+      'pickup_longitude': pickupLongitude,
+      'delivery_address': deliveryAddress,
+      'delivery_commune': deliveryCommune,
+      'delivery_quartier': deliveryQuartier,
+      'delivery_precision': deliveryPrecision,
+      'delivery_latitude': deliveryLatitude,
+      'delivery_longitude': deliveryLongitude,
+      'recipient_name': recipientName,
+      'recipient_phone': recipientPhone,
+      'package_description': packageDescription,
+      'package_weight_kg': weight,
+      'calculated_price': price,
+      'distance_km': distanceKm,
+      'delivery_notes': notes,
+      'merchant': merchant,
+      'driver': driver,
+      'created_at': createdAt.toIso8601String(),
+      'assigned_at': assignedAt?.toIso8601String(),
+      'picked_up_at': pickupTime?.toIso8601String(),
+      'delivered_at': deliveryTime?.toIso8601String(),
+      'cancelled_at': cancelledAt?.toIso8601String(),
+      'pickup_photo': pickupPhoto,
+      'photo_url': deliveryPhoto,
+      'signature_url': recipientSignature,
+      'cancellation_reason': cancellationReason,
+      'payment_method': paymentMethod,
+      'cod_amount': codAmount,
+    };
+  }
 }

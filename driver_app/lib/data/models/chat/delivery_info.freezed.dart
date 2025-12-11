@@ -12,8 +12,7 @@ part of 'delivery_info.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 DeliveryInfo _$DeliveryInfoFromJson(Map<String, dynamic> json) {
   return _DeliveryInfo.fromJson(json);
@@ -26,12 +25,8 @@ mixin _$DeliveryInfo {
   String? get pickupAddress => throw _privateConstructorUsedError;
   String? get deliveryAddress => throw _privateConstructorUsedError;
 
-  /// Serializes this DeliveryInfo to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of DeliveryInfo
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $DeliveryInfoCopyWith<DeliveryInfo> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -39,16 +34,14 @@ mixin _$DeliveryInfo {
 /// @nodoc
 abstract class $DeliveryInfoCopyWith<$Res> {
   factory $DeliveryInfoCopyWith(
-    DeliveryInfo value,
-    $Res Function(DeliveryInfo) then,
-  ) = _$DeliveryInfoCopyWithImpl<$Res, DeliveryInfo>;
+          DeliveryInfo value, $Res Function(DeliveryInfo) then) =
+      _$DeliveryInfoCopyWithImpl<$Res, DeliveryInfo>;
   @useResult
-  $Res call({
-    String id,
-    String trackingNumber,
-    String? pickupAddress,
-    String? deliveryAddress,
-  });
+  $Res call(
+      {String id,
+      String trackingNumber,
+      String? pickupAddress,
+      String? deliveryAddress});
 }
 
 /// @nodoc
@@ -61,8 +54,6 @@ class _$DeliveryInfoCopyWithImpl<$Res, $Val extends DeliveryInfo>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of DeliveryInfo
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -71,27 +62,24 @@ class _$DeliveryInfoCopyWithImpl<$Res, $Val extends DeliveryInfo>
     Object? pickupAddress = freezed,
     Object? deliveryAddress = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            trackingNumber: null == trackingNumber
-                ? _value.trackingNumber
-                : trackingNumber // ignore: cast_nullable_to_non_nullable
-                      as String,
-            pickupAddress: freezed == pickupAddress
-                ? _value.pickupAddress
-                : pickupAddress // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            deliveryAddress: freezed == deliveryAddress
-                ? _value.deliveryAddress
-                : deliveryAddress // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      trackingNumber: null == trackingNumber
+          ? _value.trackingNumber
+          : trackingNumber // ignore: cast_nullable_to_non_nullable
+              as String,
+      pickupAddress: freezed == pickupAddress
+          ? _value.pickupAddress
+          : pickupAddress // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deliveryAddress: freezed == deliveryAddress
+          ? _value.deliveryAddress
+          : deliveryAddress // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 }
 
@@ -99,17 +87,15 @@ class _$DeliveryInfoCopyWithImpl<$Res, $Val extends DeliveryInfo>
 abstract class _$$DeliveryInfoImplCopyWith<$Res>
     implements $DeliveryInfoCopyWith<$Res> {
   factory _$$DeliveryInfoImplCopyWith(
-    _$DeliveryInfoImpl value,
-    $Res Function(_$DeliveryInfoImpl) then,
-  ) = __$$DeliveryInfoImplCopyWithImpl<$Res>;
+          _$DeliveryInfoImpl value, $Res Function(_$DeliveryInfoImpl) then) =
+      __$$DeliveryInfoImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String id,
-    String trackingNumber,
-    String? pickupAddress,
-    String? deliveryAddress,
-  });
+  $Res call(
+      {String id,
+      String trackingNumber,
+      String? pickupAddress,
+      String? deliveryAddress});
 }
 
 /// @nodoc
@@ -117,12 +103,9 @@ class __$$DeliveryInfoImplCopyWithImpl<$Res>
     extends _$DeliveryInfoCopyWithImpl<$Res, _$DeliveryInfoImpl>
     implements _$$DeliveryInfoImplCopyWith<$Res> {
   __$$DeliveryInfoImplCopyWithImpl(
-    _$DeliveryInfoImpl _value,
-    $Res Function(_$DeliveryInfoImpl) _then,
-  ) : super(_value, _then);
+      _$DeliveryInfoImpl _value, $Res Function(_$DeliveryInfoImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of DeliveryInfo
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -131,38 +114,35 @@ class __$$DeliveryInfoImplCopyWithImpl<$Res>
     Object? pickupAddress = freezed,
     Object? deliveryAddress = freezed,
   }) {
-    return _then(
-      _$DeliveryInfoImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        trackingNumber: null == trackingNumber
-            ? _value.trackingNumber
-            : trackingNumber // ignore: cast_nullable_to_non_nullable
-                  as String,
-        pickupAddress: freezed == pickupAddress
-            ? _value.pickupAddress
-            : pickupAddress // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        deliveryAddress: freezed == deliveryAddress
-            ? _value.deliveryAddress
-            : deliveryAddress // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$DeliveryInfoImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      trackingNumber: null == trackingNumber
+          ? _value.trackingNumber
+          : trackingNumber // ignore: cast_nullable_to_non_nullable
+              as String,
+      pickupAddress: freezed == pickupAddress
+          ? _value.pickupAddress
+          : pickupAddress // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deliveryAddress: freezed == deliveryAddress
+          ? _value.deliveryAddress
+          : deliveryAddress // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$DeliveryInfoImpl implements _DeliveryInfo {
-  const _$DeliveryInfoImpl({
-    required this.id,
-    required this.trackingNumber,
-    this.pickupAddress,
-    this.deliveryAddress,
-  });
+  const _$DeliveryInfoImpl(
+      {required this.id,
+      required this.trackingNumber,
+      this.pickupAddress,
+      this.deliveryAddress});
 
   factory _$DeliveryInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$DeliveryInfoImplFromJson(json);
@@ -195,19 +175,12 @@ class _$DeliveryInfoImpl implements _DeliveryInfo {
                 other.deliveryAddress == deliveryAddress));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    trackingNumber,
-    pickupAddress,
-    deliveryAddress,
-  );
+      runtimeType, id, trackingNumber, pickupAddress, deliveryAddress);
 
-  /// Create a copy of DeliveryInfo
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$DeliveryInfoImplCopyWith<_$DeliveryInfoImpl> get copyWith =>
@@ -215,17 +188,18 @@ class _$DeliveryInfoImpl implements _DeliveryInfo {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$DeliveryInfoImplToJson(this);
+    return _$$DeliveryInfoImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _DeliveryInfo implements DeliveryInfo {
-  const factory _DeliveryInfo({
-    required final String id,
-    required final String trackingNumber,
-    final String? pickupAddress,
-    final String? deliveryAddress,
-  }) = _$DeliveryInfoImpl;
+  const factory _DeliveryInfo(
+      {required final String id,
+      required final String trackingNumber,
+      final String? pickupAddress,
+      final String? deliveryAddress}) = _$DeliveryInfoImpl;
 
   factory _DeliveryInfo.fromJson(Map<String, dynamic> json) =
       _$DeliveryInfoImpl.fromJson;
@@ -238,11 +212,8 @@ abstract class _DeliveryInfo implements DeliveryInfo {
   String? get pickupAddress;
   @override
   String? get deliveryAddress;
-
-  /// Create a copy of DeliveryInfo
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$DeliveryInfoImplCopyWith<_$DeliveryInfoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

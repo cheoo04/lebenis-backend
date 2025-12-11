@@ -128,6 +128,15 @@ class Delivery(models.Model):
         verbose_name = 'Livraison'
         verbose_name_plural = 'Livraisons'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'created_at'], name='delivery_status_created_idx'),
+            models.Index(fields=['driver', 'status'], name='delivery_driver_status_idx'),
+            models.Index(fields=['merchant', 'status'], name='delivery_merchant_status_idx'),
+            models.Index(fields=['pickup_commune'], name='delivery_pickup_commune_idx'),
+            models.Index(fields=['delivery_commune'], name='delivery_delivery_commune_idx'),
+            models.Index(fields=['created_by', 'status'], name='delivery_createdby_status_idx'),
+            models.Index(fields=['tracking_number'], name='delivery_tracking_idx'),
+        ]
     
     def __str__(self):
         return f"{self.tracking_number} - {self.status}"
