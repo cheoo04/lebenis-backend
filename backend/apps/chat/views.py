@@ -123,11 +123,14 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         room_type = serializer.validated_data.get('room_type', 'delivery')
         initial_message = serializer.validated_data.get('initial_message')
         
-        # Vérifier que l'utilisateur connecté est un driver
+        # Vérifier que l'utilisateur connecté est un driver OU un marchand
         user = request.user
-        if not hasattr(user, 'driver_profile'):
+        is_driver = hasattr(user, 'driver_profile')
+        is_merchant = hasattr(user, 'merchant_profile')
+        
+        if not is_driver and not is_merchant:
             return Response(
-                {'error': 'Seuls les drivers peuvent créer des conversations'},
+                {'error': 'Seuls les drivers et marchands peuvent créer des conversations'},
                 status=status.HTTP_403_FORBIDDEN
             )
         
@@ -151,10 +154,26 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_404_NOT_FOUND
                 )
         
+        # Déterminer qui est le driver et qui est l'autre utilisateur
+        # Si l'utilisateur actuel est un driver, il est le driver de la conversation
+        # Sinon (marchand), l'autre utilisateur doit être un driver
+        if is_driver:
+            driver_user = user
+            other_user_in_room = other_user
+        else:
+            # L'utilisateur actuel est un marchand, l'autre doit être un driver
+            if not hasattr(other_user, 'driver_profile'):
+                return Response(
+                    {'error': 'Le destinataire doit être un livreur'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            driver_user = other_user
+            other_user_in_room = user
+        
         # Chercher une conversation existante
         existing_room = ChatRoom.objects.filter(
-            driver=user,
-            other_user=other_user,
+            driver=driver_user,
+            other_user=other_user_in_room,
             delivery=delivery
         ).first()
         
@@ -169,8 +188,8 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         # Créer une nouvelle conversation
         chat_room = ChatRoom.objects.create(
             room_type=room_type,
-            driver=user,
-            other_user=other_user,
+            driver=driver_user,
+            other_user=other_user_in_room,
             delivery=delivery
         )
         
@@ -179,8 +198,8 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             str(chat_room.id),
             {
                 'room_type': room_type,
-                'driver_id': str(user.id),
-                'other_user_id': str(other_user.id),
+                'driver_id': str(driver_user.id),
+                'other_user_id': str(other_user_in_room.id),
                 'delivery_id': str(delivery.id) if delivery else None,
             }
         )

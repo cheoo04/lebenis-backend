@@ -98,10 +98,7 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
       // Actualiser la position juste avant la confirmation
       final currentPos = await locNotifier.getCurrentPosition();
 
-      if (!mounted) {
-        setState(() => _isProcessing = false);
-        return;
-      }
+      if (!mounted) return;
 
       if (currentPos == null) {
         setState(() => _isProcessing = false);
@@ -111,10 +108,7 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
 
       final success = await deliveryNotifier.confirmPickup(id: widget.delivery.id);
 
-      if (!mounted) {
-        setState(() => _isProcessing = false);
-        return;
-      }
+      if (!mounted) return;
 
       if (success) {
         Helpers.showSuccessSnackBar(context, 'Colis récupéré avec succès!');
