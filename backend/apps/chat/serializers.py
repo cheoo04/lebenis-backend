@@ -109,9 +109,17 @@ class CreateChatRoomSerializer(serializers.Serializer):
         """Normalize delivery_id: accept None/empty string, or a valid UUID string.
 
         Returns None when the client sends null/empty, otherwise the canonical
-        UUID string. Raises a ValidationError on invalid UUID format.
+        UUID string. Returns None (instead of raising error) for invalid UUID format
+        to be more lenient with mobile clients.
         """
+        import logging
+        logger = logging.getLogger('apps.chat.serializers')
+        
         if value is None or (isinstance(value, str) and value.strip() == ''):
+            return None
+        
+        # Si la valeur est "null" ou "undefined" (string), traiter comme None
+        if isinstance(value, str) and value.strip().lower() in ('null', 'undefined', 'none'):
             return None
 
         # If it's already a UUID instance (unlikely), cast to str
@@ -120,7 +128,10 @@ class CreateChatRoomSerializer(serializers.Serializer):
             # uuid.UUID will raise ValueError for invalid formats
             return str(uuid.UUID(str(value)))
         except Exception:
-            raise serializers.ValidationError('delivery_id must be a valid UUID or empty')
+            # Log the invalid value for debugging
+            logger.warning(f'Invalid delivery_id received, treating as None: {value!r}')
+            # Return None instead of raising error - be lenient
+            return None
 
 
 class ChatMessageSerializer(serializers.ModelSerializer):
