@@ -99,7 +99,10 @@ class DeliveryRating(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.merchant.business_name} → {self.driver.user.full_name}: {self.rating}⭐"
+        rater_name = self.merchant.business_name if self.merchant else (
+            self.rated_by.full_name if self.rated_by else "Inconnu"
+        )
+        return f"{rater_name} → {self.driver.user.full_name}: {self.rating}⭐"
     
     def save(self, *args, **kwargs):
         """Recalcule le rating moyen du driver après enregistrement"""

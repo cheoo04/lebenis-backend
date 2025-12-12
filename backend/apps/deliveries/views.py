@@ -1098,7 +1098,8 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             serializer.save(
                 delivery=delivery,
                 merchant=merchant,
-                driver=delivery.driver
+                driver=delivery.driver,
+                rated_by=request.user
             )
             
             logger.info(

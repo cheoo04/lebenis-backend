@@ -154,12 +154,12 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         
         # Déterminer qui est le driver et qui est l'autre utilisateur
         # Si l'utilisateur actuel est un driver, il est le driver de la conversation
-        # Sinon (marchand), l'autre utilisateur doit être un driver
+        # Sinon (marchand ou particulier), l'autre utilisateur doit être un driver
         if is_driver:
             driver_user = user
             other_user_in_room = other_user
         else:
-            # L'utilisateur actuel est un marchand, l'autre doit être un driver
+            # L'utilisateur actuel est un marchand ou particulier, l'autre doit être un driver
             if not hasattr(other_user, 'driver_profile'):
                 return Response(
                     {'error': 'Le destinataire doit être un livreur'},
