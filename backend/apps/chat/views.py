@@ -235,12 +235,12 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         serializer = ChatRoomDetailSerializer(chat_room, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    @action(detail=True, methods=['POST'])
+    @action(detail=True, methods=['POST'], url_path='mark-as-read')
     def mark_as_read(self, request, pk=None):
         """
         Marque tous les messages d'une conversation comme lus.
         
-        POST /chat/rooms/{id}/mark_as_read/
+        POST /chat/rooms/{id}/mark-as-read/
         """
         chat_room = self.get_object()
         user = request.user
@@ -430,12 +430,12 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         serializer = ChatMessageSerializer(message, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    @action(detail=False, methods=['POST'])
+    @action(detail=False, methods=['POST'], url_path='mark-as-read')
     def mark_as_read(self, request):
         """
         Marque des messages comme lus.
         
-        POST /chat/messages/mark_as_read/
+        POST /chat/messages/mark-as-read/
         Body: {
             "message_ids": ["uuid1", "uuid2", ...] (optionnel),
             "chat_room_id": "uuid" (optionnel - marque tous les messages de la room)
