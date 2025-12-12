@@ -58,7 +58,18 @@ class Delivery(models.Model):
     
     # Détails du colis
     package_description = models.TextField(blank=True)
-    package_weight_kg = models.DecimalField(max_digits=5, decimal_places=2)
+    package_weight_kg = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        default=5.0,
+        help_text="Poids en kg. Défaut: 5kg. Obligatoire si > 10kg"
+    )
+    weight_confirmed = models.BooleanField(
+        default=False,
+        help_text="True si le poids a été explicitement confirmé par l'utilisateur"
+    )
     package_length_cm = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     # Type de véhicule requis pour la livraison (optionnel)
     required_vehicle_type = models.CharField(
@@ -84,11 +95,37 @@ class Delivery(models.Model):
     recipient_alternative_phone = models.CharField(max_length=20, blank=True)
     
     # Tarification
-    calculated_price = models.DecimalField(max_digits=10, decimal_places=2)
+    calculated_price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        help_text="Prix total payé par le client"
+    )
     actual_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     distance_km = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     # Source de la distance calculée: 'osrm', 'openrouteservice', 'fallback_straight_line', 'app_osrm', etc.
     distance_source = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Commission LeBeni's et gain du driver
+    platform_fee_percentage = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=25.00,
+        help_text="Pourcentage de commission LeBeni's (défaut: 25%)"
+    )
+    platform_fee = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Montant de la commission LeBeni's en CFA"
+    )
+    driver_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Montant que le driver va gagner (75% par défaut)"
+    )
     
     # Paiement
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
@@ -120,6 +157,43 @@ class Delivery(models.Model):
         import random
         return f"{random.randint(1000, 9999)}"
     
+    def calculate_platform_fee_and_driver_amount(self):
+        """
+        Calcule la commission LeBeni's et le montant pour le driver.
+        Appelé automatiquement avant la sauvegarde si calculated_price existe.
+        
+        Returns:
+            tuple: (platform_fee, driver_amount)
+        """
+        from decimal import Decimal, ROUND_HALF_UP
+        
+        if self.calculated_price is None:
+            return (None, None)
+        
+        price = Decimal(str(self.calculated_price))
+        fee_percentage = Decimal(str(self.platform_fee_percentage or 25))
+        
+        # Commission = prix * pourcentage / 100
+        platform_fee = (price * fee_percentage / Decimal('100')).quantize(
+            Decimal('1'), rounding=ROUND_HALF_UP
+        )
+        
+        # Driver amount = prix - commission
+        driver_amount = price - platform_fee
+        
+        return (platform_fee, driver_amount)
+    
+    def get_effective_weight(self):
+        """
+        Retourne le poids effectif pour le calcul.
+        Si le poids n'est pas renseigné, retourne 5kg par défaut.
+        """
+        from decimal import Decimal
+        
+        if self.package_weight_kg is None:
+            return Decimal('5.0')
+        return Decimal(str(self.package_weight_kg))
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -145,9 +219,15 @@ class Delivery(models.Model):
         """
         Synchronise les champs `pickup_commune`, `pickup_quartier`, `pickup_latitude` et `pickup_longitude`
         depuis la `pickup_address` si cette dernière est fournie et que les champs individuels sont absents.
-        Cette logique garantit que le reste du système (prix/zones) dispose toujours des valeurs
-        `pickup_commune`/`pickup_quartier` attendues.
+        Calcule également la commission LeBeni's et le montant pour le driver.
         """
+        try:
+            # Calculer la commission et le montant driver si le prix est défini
+            if self.calculated_price and (self.platform_fee is None or self.driver_amount is None):
+                self.platform_fee, self.driver_amount = self.calculate_platform_fee_and_driver_amount()
+        except Exception:
+            pass
+        
         try:
             # Si une adresse merchant est liée, copier les valeurs manquantes
             if self.pickup_address:

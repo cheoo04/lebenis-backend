@@ -195,6 +195,9 @@ class DeliverySerializer(serializers.ModelSerializer):
             'calculated_price',
             'actual_price',
             'distance_km',
+            'driver_amount',
+            'platform_fee',
+            'platform_fee_percentage',
             # Payment
             'payment_method',
             'cod_amount',

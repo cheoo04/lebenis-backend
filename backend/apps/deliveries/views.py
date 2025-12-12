@@ -185,11 +185,19 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             # Calcule le prix (réutilise l'instance existante)
             price_result = calculator.calculate_price(pricing_data)
             calculated_price = price_result['total_price']
+            driver_amount = price_result.get('driver_amount')
+            platform_fee = price_result.get('platform_fee')
+            platform_fee_percentage = price_result.get('platform_fee_percentage', 25.0)
+            
             # Extract distance_km from the price result details when available
             try:
                 distance_km = price_result.get('details', {}).get('distance_km')
             except Exception:
                 distance_km = None
+            
+            # Extract weight info
+            weight_is_default = price_result.get('details', {}).get('weight_is_default', False)
+            weight_warning = price_result.get('details', {}).get('weight_warning')
 
             # Valide le prix
             if calculated_price <= 0:
@@ -203,6 +211,9 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 'merchant': merchant,
                 'created_by': self.request.user,
                 'calculated_price': calculated_price,
+                'driver_amount': driver_amount,
+                'platform_fee': platform_fee,
+                'platform_fee_percentage': platform_fee_percentage,
                 'delivery_confirmation_code': delivery_confirmation_code,
             }
             if distance_km is not None:
@@ -860,43 +871,49 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         # --- Création automatique du gain du livreur (DriverEarning) ---
         # Vérifie qu'aucun gain n'existe déjà pour cette livraison
         if not hasattr(delivery, 'driver_earning'):
-            # Utilise le PricingCalculator pour recalculer le montant exact
-            calculator = PricingCalculator()
-            # Prepare numeric fields safely: attributes may exist but be None.
-            _pw = getattr(delivery, 'package_weight_kg', None)
-            package_weight_kg = float(_pw) if _pw is not None else 0.0
+            # Utilise driver_amount si déjà calculé, sinon recalcule
+            if delivery.driver_amount:
+                base_earning = Decimal(str(delivery.driver_amount))
+            else:
+                # Fallback: recalculer avec le PricingCalculator
+                calculator = PricingCalculator()
+                # Prepare numeric fields safely: attributes may exist but be None.
+                _pw = getattr(delivery, 'package_weight_kg', None)
+                package_weight_kg = float(_pw) if _pw is not None else 5.0  # défaut 5kg
 
-            _pl = getattr(delivery, 'package_length_cm', None)
-            package_length_cm = float(_pl) if _pl is not None else None
+                _pl = getattr(delivery, 'package_length_cm', None)
+                package_length_cm = float(_pl) if _pl is not None else None
 
-            _pwid = getattr(delivery, 'package_width_cm', None)
-            package_width_cm = float(_pwid) if _pwid is not None else None
+                _pwid = getattr(delivery, 'package_width_cm', None)
+                package_width_cm = float(_pwid) if _pwid is not None else None
 
-            _ph = getattr(delivery, 'package_height_cm', None)
-            package_height_cm = float(_ph) if _ph is not None else None
+                _ph = getattr(delivery, 'package_height_cm', None)
+                package_height_cm = float(_ph) if _ph is not None else None
 
-            pricing_data = {
-                'pickup_commune': getattr(delivery, 'pickup_commune', ''),
-                'delivery_commune': delivery.delivery_commune,
-                'package_weight_kg': package_weight_kg,
-                'package_length_cm': package_length_cm,
-                'package_width_cm': package_width_cm,
-                'package_height_cm': package_height_cm,
-                'is_fragile': getattr(delivery, 'is_fragile', False),
-                'scheduling_type': getattr(delivery, 'scheduling_type', 'immediate'),
-                'scheduled_pickup_time': getattr(delivery, 'scheduled_pickup_time', None),
-                'pickup_coords': delivery.get_coords('pickup'),
-                'delivery_coords': delivery.get_coords('delivery'),
-            }
-            price_result = calculator.calculate_price(pricing_data)
-            base_earning = Decimal(str(price_result['total_price']))
+                pricing_data = {
+                    'pickup_commune': getattr(delivery, 'pickup_commune', ''),
+                    'delivery_commune': delivery.delivery_commune,
+                    'package_weight_kg': package_weight_kg,
+                    'package_length_cm': package_length_cm,
+                    'package_width_cm': package_width_cm,
+                    'package_height_cm': package_height_cm,
+                    'is_fragile': getattr(delivery, 'is_fragile', False),
+                    'scheduling_type': getattr(delivery, 'scheduling_type', 'immediate'),
+                    'scheduled_pickup_time': getattr(delivery, 'scheduled_pickup_time', None),
+                    'pickup_coords': delivery.get_coords('pickup'),
+                    'delivery_coords': delivery.get_coords('delivery'),
+                }
+                price_result = calculator.calculate_price(pricing_data)
+                # Utilise driver_amount (75%) au lieu de total_price
+                base_earning = Decimal(str(price_result['driver_amount']))
+                
             earning = DriverEarning.objects.create(
                 driver=delivery.driver,
                 delivery=delivery,
                 base_earning=base_earning,
                 total_earning=base_earning,  # à ajuster si bonus/penalités
                 status='pending',
-                notes='Gain généré automatiquement à la validation de la livraison.'
+                notes='Gain généré automatiquement à la validation de la livraison (75% du prix total).'
             )
             earning.save()
             logger.info(f"[AUTO] Gain créé: {earning.driver.user.full_name} | Livraison: {delivery.tracking_number} | {earning.total_earning} CFA (statut: pending)")

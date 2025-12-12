@@ -367,10 +367,27 @@ class PricingCalculator:
         base_rate = Decimal(str(pricing.base_rate))
         
         # ═══════════════════════════════════════════════════════════════════
-        # ÉTAPE 4 : Surcharge de poids
+        # ÉTAPE 4 : Surcharge de poids (avec défaut 5kg si non renseigné)
         # ═══════════════════════════════════════════════════════════════════
         
-        weight_kg = Decimal(str(delivery_data['package_weight_kg']))
+        # Poids par défaut : 5kg si non renseigné
+        DEFAULT_WEIGHT_KG = Decimal('5.0')
+        WEIGHT_CONFIRMATION_THRESHOLD = Decimal('10.0')
+        
+        raw_weight = delivery_data.get('package_weight_kg')
+        weight_confirmed = delivery_data.get('weight_confirmed', False)
+        
+        if raw_weight is None or raw_weight == '' or raw_weight == 0:
+            weight_kg = DEFAULT_WEIGHT_KG
+            weight_is_default = True
+        else:
+            weight_kg = Decimal(str(raw_weight))
+            weight_is_default = False
+        
+        # Vérifier si le poids dépasse le seuil et n'est pas confirmé
+        weight_warning = None
+        if weight_kg > WEIGHT_CONFIRMATION_THRESHOLD and not weight_confirmed:
+            weight_warning = f"Pour les colis de plus de {WEIGHT_CONFIRMATION_THRESHOLD}kg, veuillez confirmer le poids exact."
         
         weight_surcharge = self.calculate_weight_surcharge(
             weight_kg,
@@ -520,11 +537,28 @@ class PricingCalculator:
         total_price = (total_price / 50).quantize(Decimal('1')) * 50
         
         # ═══════════════════════════════════════════════════════════════════
-        # ÉTAPE 12 : Retourner le détail complet
+        # ÉTAPE 12 : Calcul de la commission LeBeni's et du gain driver
         # ═══════════════════════════════════════════════════════════════════
         
-        return {
+        PLATFORM_FEE_PERCENTAGE = Decimal('25.0')  # 25% pour LeBeni's
+        
+        platform_fee = (total_price * PLATFORM_FEE_PERCENTAGE / Decimal('100')).quantize(Decimal('1'))
+        driver_amount = total_price - platform_fee
+        
+        # Arrondir le driver_amount au multiple de 50 CFA inférieur
+        driver_amount = (driver_amount / 50).quantize(Decimal('1'), rounding='ROUND_DOWN') * 50
+        # Recalculer platform_fee pour que total = platform_fee + driver_amount
+        platform_fee = total_price - driver_amount
+        
+        # ═══════════════════════════════════════════════════════════════════
+        # ÉTAPE 13 : Retourner le détail complet
+        # ═══════════════════════════════════════════════════════════════════
+        
+        result = {
             'total_price': float(total_price),
+            'driver_amount': float(driver_amount),
+            'platform_fee': float(platform_fee),
+            'platform_fee_percentage': float(PLATFORM_FEE_PERCENTAGE),
             'breakdown': {
                 'base_rate': float(base_rate),
                 'weight_surcharge': float(weight_surcharge),
@@ -540,6 +574,8 @@ class PricingCalculator:
                 'destination_zone': destination_zone.zone_name,
                 'distance_km': float(distance_km),
                 'billable_weight_kg': float(billable_weight),
+                'weight_is_default': weight_is_default,
+                'weight_warning': weight_warning,
                 'used_coords_source': {
                     'pickup': pickup_source,
                     'delivery': delivery_source
@@ -550,3 +586,5 @@ class PricingCalculator:
                 }
             }
         }
+        
+        return result
