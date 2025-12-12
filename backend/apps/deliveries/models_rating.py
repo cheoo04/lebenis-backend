@@ -30,7 +30,17 @@ class DeliveryRating(models.Model):
         Merchant, 
         on_delete=models.CASCADE, 
         related_name='ratings_given',
-        help_text="Marchand qui donne la note"
+        null=True,
+        blank=True,
+        help_text="Marchand qui donne la note (null si particulier)"
+    )
+    rated_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='delivery_ratings_given',
+        null=True,
+        blank=True,
+        help_text="Utilisateur qui a donné la note (merchant ou particulier)"
     )
     driver = models.ForeignKey(
         Driver, 
@@ -51,7 +61,7 @@ class DeliveryRating(models.Model):
     )
     comment = models.TextField(
         blank=True,
-        help_text="Commentaire optionnel du marchand"
+        help_text="Commentaire optionnel"
     )
     
     # Critères détaillés (optionnels)

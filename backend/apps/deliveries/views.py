@@ -1342,10 +1342,28 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Créer la notation
-        serializer = DeliveryRatingSerializer(data=request.data)
+        # Vérifier qu'il y a un driver assigné
+        if not delivery.driver:
+            return Response(
+                {'detail': 'Aucun livreur assigné à cette livraison'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Créer la notation avec DeliveryRatingCreateSerializer (plus simple)
+        from .serializers_rating import DeliveryRatingCreateSerializer
+        serializer = DeliveryRatingCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(delivery=delivery)
+        
+        # Déterminer le merchant (peut être None pour un particulier)
+        merchant = delivery.merchant
+        
+        # Sauvegarder avec rated_by pour savoir qui a noté
+        serializer.save(
+            delivery=delivery,
+            merchant=merchant,
+            driver=delivery.driver,
+            rated_by=request.user  # Qui a donné la note (merchant user ou particulier)
+        )
         
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     

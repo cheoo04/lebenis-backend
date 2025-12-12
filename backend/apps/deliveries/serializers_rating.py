@@ -10,9 +10,10 @@ class DeliveryRatingSerializer(serializers.ModelSerializer):
     """
     Serializer pour les évaluations de livraison.
     """
-    merchant_name = serializers.CharField(source='merchant.business_name', read_only=True)
+    merchant_name = serializers.SerializerMethodField()
     driver_name = serializers.CharField(source='driver.user.full_name', read_only=True)
     delivery_tracking_number = serializers.CharField(source='delivery.tracking_number', read_only=True)
+    rated_by_name = serializers.CharField(source='rated_by.full_name', read_only=True)
     
     class Meta:
         model = DeliveryRating
@@ -22,6 +23,8 @@ class DeliveryRatingSerializer(serializers.ModelSerializer):
             'delivery_tracking_number',
             'merchant',
             'merchant_name',
+            'rated_by',
+            'rated_by_name',
             'driver',
             'driver_name',
             'rating',
@@ -32,7 +35,15 @@ class DeliveryRatingSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'merchant', 'driver', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'merchant', 'rated_by', 'driver', 'created_at', 'updated_at']
+    
+    def get_merchant_name(self, obj):
+        """Retourne le nom du merchant ou 'Particulier' si c'est un particulier"""
+        if obj.merchant:
+            return obj.merchant.business_name
+        elif obj.rated_by:
+            return f"{obj.rated_by.full_name} (Particulier)"
+        return "Inconnu"
 
 
 class DeliveryRatingCreateSerializer(serializers.ModelSerializer):
