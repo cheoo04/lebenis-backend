@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_radius.dart';
@@ -57,6 +58,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (authState.isLoggedIn) {
         // Enregistrer le token FCM après connexion réussie
         ref.read(chatNotificationServiceProvider).registerTokenAfterLogin();
+        
+        // Log l'événement de connexion pour Analytics
+        final analytics = AnalyticsService();
+        analytics.logLogin(method: 'email');
+        analytics.setUserId(authState.user?.id);
         
         Helpers.showSuccessSnackBar(context, 'Connexion réussie!');
         Navigator.of(context).pushReplacementNamed('/home');

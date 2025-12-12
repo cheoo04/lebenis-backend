@@ -5,6 +5,7 @@ import 'firebase_options.dart';
 import 'theme/app_theme.dart';
 import 'core/routes/app_router.dart';
 import 'core/providers.dart';
+import 'core/services/analytics_service.dart';
 import 'data/providers/auth_provider.dart';
 
 void main() async {
@@ -129,6 +130,10 @@ class _MyAppState extends ConsumerState<MyApp> {
       navigatorKey: _navigatorKey,
       initialRoute: '/',
       onGenerateRoute: AppRouter.generateRoute,
+      // Firebase Analytics navigation observer
+      navigatorObservers: [
+        AnalyticsService().observer,
+      ],
     );
   }
 }

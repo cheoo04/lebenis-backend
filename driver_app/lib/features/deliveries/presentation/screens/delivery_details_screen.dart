@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/backend_constants.dart';
 import '../../../../core/providers/delivery_provider.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../data/models/delivery_model.dart';
 import '../../../../data/providers/driver_provider.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -92,6 +93,13 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       await ref.read(deliveryProvider.notifier).acceptDelivery(
         widget.delivery.id,
         driver: driver,
+      );
+      
+      // Log l'événement pour Analytics
+      AnalyticsService().logDeliveryAccepted(
+        deliveryId: widget.delivery.id,
+        commune: widget.delivery.pickupCommune,
+        distance: widget.delivery.distanceKm,
       );
       
       if (!mounted) return;
