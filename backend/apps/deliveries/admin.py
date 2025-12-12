@@ -35,14 +35,14 @@ class DeliveryAdmin(admin.ModelAdmin):
 
 @admin.register(DeliveryRating)
 class DeliveryRatingAdmin(admin.ModelAdmin):
-    list_display = ('delivery', 'driver', 'merchant', 'rating', 'created_at')
+    list_display = ('delivery', 'driver', 'merchant', 'rated_by', 'rating', 'created_at')
     list_filter = ('rating', 'created_at')
-    search_fields = ('delivery__tracking_number', 'driver__user__first_name', 'driver__user__last_name', 'merchant__business_name')
+    search_fields = ('delivery__tracking_number', 'driver__user__first_name', 'driver__user__last_name', 'merchant__business_name', 'rated_by__email')
     readonly_fields = ('created_at', 'updated_at')
 
     fieldsets = (
         ('Évaluation', {
-            'fields': ('delivery', 'merchant', 'driver', 'rating', 'comment')
+            'fields': ('delivery', 'merchant', 'rated_by', 'driver', 'rating', 'comment')
         }),
         ('Critères détaillés', {
             'fields': ('punctuality_rating', 'professionalism_rating', 'care_rating'),
