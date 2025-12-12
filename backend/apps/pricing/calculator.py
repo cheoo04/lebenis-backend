@@ -26,12 +26,23 @@ def normalize_commune_name(name):
     Exemples:
     - "PORT-BOUET" -> "port-bouet"
     - "Port-Bouët" -> "port-bouet"
+    - "Port‑Bouët" (tiret Unicode) -> "port-bouet"
     - "COCODY" -> "cocody"
     - "Le Plateau" -> "plateau"
     - "LE PLATEAU" -> "plateau"
     """
     if not name:
         return ""
+    
+    # Remplacer les tirets Unicode spéciaux par un tiret normal ASCII
+    # \u2011 = tiret insécable, \u2010 = tiret, \u2012-\u2015 = autres tirets
+    name = name.replace('\u2011', '-')  # Tiret insécable
+    name = name.replace('\u2010', '-')  # Tiret
+    name = name.replace('\u2012', '-')  # Figure dash
+    name = name.replace('\u2013', '-')  # En dash
+    name = name.replace('\u2014', '-')  # Em dash
+    name = name.replace('\u2015', '-')  # Horizontal bar
+    name = name.replace('\u00AD', '')   # Soft hyphen (supprimer)
     
     # Supprimer les accents
     nfkd_form = unicodedata.normalize('NFKD', name)
