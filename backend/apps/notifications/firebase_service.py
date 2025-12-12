@@ -1,6 +1,8 @@
 # apps/notifications/firebase_service.py
 
 import os
+import json
+import base64
 import logging
 import firebase_admin
 from firebase_admin import credentials, messaging
@@ -25,22 +27,47 @@ class FirebaseService:
             return
         
         try:
-            credentials_path = getattr(settings, 'FIREBASE_CREDENTIALS_PATH', None)
+            cred = None
             
-            if not credentials_path:
-                logger.warning("⚠️ FIREBASE_CREDENTIALS_PATH non configuré dans settings")
-                return
+            # Méthode 1: JSON direct depuis variable d'environnement
+            credentials_json = getattr(settings, 'FIREBASE_CREDENTIALS_JSON', None) or os.environ.get('FIREBASE_CREDENTIALS_JSON')
+            if credentials_json:
+                try:
+                    cred_dict = json.loads(credentials_json)
+                    cred = credentials.Certificate(cred_dict)
+                    logger.info("🔐 Firebase credentials chargés depuis FIREBASE_CREDENTIALS_JSON")
+                except json.JSONDecodeError as e:
+                    logger.error(f"❌ FIREBASE_CREDENTIALS_JSON invalide: {e}")
             
-            # Chemin absolu
-            full_path = os.path.join(settings.BASE_DIR, credentials_path)
+            # Méthode 2: Base64 depuis variable d'environnement (recommandé pour Render)
+            if not cred:
+                credentials_base64 = getattr(settings, 'FIREBASE_CREDENTIALS_BASE64', None) or os.environ.get('FIREBASE_CREDENTIALS_BASE64')
+                if credentials_base64:
+                    try:
+                        decoded = base64.b64decode(credentials_base64)
+                        cred_dict = json.loads(decoded)
+                        cred = credentials.Certificate(cred_dict)
+                        logger.info("🔐 Firebase credentials chargés depuis FIREBASE_CREDENTIALS_BASE64")
+                    except Exception as e:
+                        logger.error(f"❌ FIREBASE_CREDENTIALS_BASE64 invalide: {e}")
             
-            if not os.path.exists(full_path):
-                logger.warning(f"⚠️ Fichier Firebase credentials introuvable: {full_path}")
-                logger.info("📝 Place ton fichier JSON dans: config/firebase/service-account.json")
+            # Méthode 3: Chemin vers fichier (local/dev)
+            if not cred:
+                credentials_path = getattr(settings, 'FIREBASE_CREDENTIALS_PATH', None)
+                if credentials_path:
+                    full_path = os.path.join(settings.BASE_DIR, credentials_path)
+                    if os.path.exists(full_path):
+                        cred = credentials.Certificate(full_path)
+                        logger.info(f"🔐 Firebase credentials chargés depuis fichier: {credentials_path}")
+                    else:
+                        logger.warning(f"⚠️ Fichier Firebase credentials introuvable: {full_path}")
+            
+            if not cred:
+                logger.warning("⚠️ Aucune credentials Firebase configurées")
+                logger.info("📝 Configurez FIREBASE_CREDENTIALS_JSON, FIREBASE_CREDENTIALS_BASE64, ou FIREBASE_CREDENTIALS_PATH")
                 return
             
             # Initialiser Firebase Admin
-            cred = credentials.Certificate(full_path)
             cls._app = firebase_admin.initialize_app(cred)
             cls._initialized = True
             

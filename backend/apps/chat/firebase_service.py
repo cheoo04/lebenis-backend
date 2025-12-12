@@ -3,7 +3,9 @@ Service pour synchroniser les messages avec Firebase Realtime Database.
 Permet le chat temps réel côté Flutter.
 """
 
+import os
 import json
+import base64
 import logging
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -50,15 +52,50 @@ class FirebaseChatService:
         try:
             # Vérifier si déjà initialisé
             if not firebase_admin._apps:
-                # Charger les credentials depuis le fichier
-                cred_path = getattr(settings, 'FIREBASE_CREDENTIALS_PATH', None)
-                database_url = getattr(settings, 'FIREBASE_DATABASE_URL', None)
+                cred = None
+                database_url = getattr(settings, 'FIREBASE_DATABASE_URL', None) or os.environ.get('FIREBASE_DATABASE_URL')
                 
-                if not cred_path or not database_url:
-                    logger.error("❌ FIREBASE_CREDENTIALS_PATH ou FIREBASE_DATABASE_URL non configuré")
+                if not database_url:
+                    logger.error("❌ FIREBASE_DATABASE_URL non configuré")
                     return False
                 
-                cred = credentials.Certificate(cred_path)
+                # Méthode 1: JSON direct depuis variable d'environnement
+                credentials_json = getattr(settings, 'FIREBASE_CREDENTIALS_JSON', None) or os.environ.get('FIREBASE_CREDENTIALS_JSON')
+                if credentials_json:
+                    try:
+                        cred_dict = json.loads(credentials_json)
+                        cred = credentials.Certificate(cred_dict)
+                        logger.info("🔐 Firebase credentials chargés depuis FIREBASE_CREDENTIALS_JSON")
+                    except json.JSONDecodeError as e:
+                        logger.error(f"❌ FIREBASE_CREDENTIALS_JSON invalide: {e}")
+                
+                # Méthode 2: Base64 depuis variable d'environnement (recommandé pour Render)
+                if not cred:
+                    credentials_base64 = getattr(settings, 'FIREBASE_CREDENTIALS_BASE64', None) or os.environ.get('FIREBASE_CREDENTIALS_BASE64')
+                    if credentials_base64:
+                        try:
+                            decoded = base64.b64decode(credentials_base64)
+                            cred_dict = json.loads(decoded)
+                            cred = credentials.Certificate(cred_dict)
+                            logger.info("🔐 Firebase credentials chargés depuis FIREBASE_CREDENTIALS_BASE64")
+                        except Exception as e:
+                            logger.error(f"❌ FIREBASE_CREDENTIALS_BASE64 invalide: {e}")
+                
+                # Méthode 3: Chemin vers fichier (local/dev)
+                if not cred:
+                    cred_path = getattr(settings, 'FIREBASE_CREDENTIALS_PATH', None)
+                    if cred_path:
+                        full_path = os.path.join(settings.BASE_DIR, cred_path) if not os.path.isabs(cred_path) else cred_path
+                        if os.path.exists(full_path):
+                            cred = credentials.Certificate(full_path)
+                            logger.info(f"🔐 Firebase credentials chargés depuis fichier: {cred_path}")
+                        else:
+                            logger.warning(f"⚠️ Fichier Firebase credentials introuvable: {full_path}")
+                
+                if not cred:
+                    logger.error("❌ Aucune credentials Firebase configurées")
+                    return False
+                
                 firebase_admin.initialize_app(cred, {
                     'databaseURL': database_url
                 })
