@@ -16,6 +16,9 @@ app = Celery('lebenis')
 #   should have a `CELERY_` prefix.
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
+# Celery 6.0 compatibility: explicitly set retry behavior on startup
+app.conf.broker_connection_retry_on_startup = True
+
 # Load task modules from all registered Django apps.
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 

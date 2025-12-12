@@ -301,3 +301,15 @@ def long_task():
 Planification ultérieure - Ajouter sélecteur date/heure dans merchant_app
 Module Réclamations - Créer apps/support/ avec modèle Complaint
 Alertes SLA - Monitoring temps de prise en charge avec notifications
+
+Le système existant fonctionne ainsi :
+
+Livraison terminée → DriverEarning créé avec driver_amount (75%)
+Fin de journée → Celery regroupe les gains en DriverPayment
+Transfert automatique → Via MTN MoMo ou Orange Money
+Notification → Push au driver
+Note importante : Pour activer les paiements automatiques, tu dois :
+
+Configurer CELERY_BROKER_URL et CELERY_RESULT_BACKEND sur Render
+Activer les tâches Celery périodiques (celery beat)
+Configurer les clés API MTN MoMo ou Orange Money
