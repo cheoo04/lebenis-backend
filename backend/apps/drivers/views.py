@@ -15,6 +15,7 @@ from .serializers_mobile_money import MobileMoneySerializer, DriverMobileMoneyRe
 from apps.deliveries.models import Delivery
 from apps.deliveries.serializers import DeliverySerializer
 from apps.payments.models import DriverEarning
+from apps.pricing.calculator import normalize_commune_name  # Pour normaliser les noms de communes
 from core.permissions import IsDriver, IsAdmin
 
 logger = logging.getLogger(__name__)
@@ -138,34 +139,46 @@ class DriverViewSet(viewsets.ModelViewSet):
         driver_zones = DriverZone.objects.filter(driver=driver).values_list('commune', flat=True)
         show_all = request.query_params.get('show_all', 'false').lower() == 'true'
         
+        # Normaliser les zones du driver pour la comparaison
+        normalized_driver_zones = [normalize_commune_name(z) for z in driver_zones]
+        
         # Base query: livraisons non assignées (statut 'pending')
         deliveries = Delivery.objects.filter(status='pending')
         
-        # Filtre zone (sauf si show_all) - CASE INSENSITIVE
+        # Filtre zone (sauf si show_all) - Utilise la normalisation pour gérer accents et préfixes
         # Ensure commune_counts is always defined (avoid UnboundLocalError below)
         commune_counts = {}
 
         if driver_zones and not show_all:
-            # Utiliser Q objects pour faire une recherche insensible à la casse pour chaque zone
-            zone_queries = Q()
-            for zone in driver_zones:
-                # Filtrer sur la commune d'enlèvement (pickup_commune)
-                zone_queries |= Q(pickup_commune__iexact=zone)
+            # Récupérer toutes les livraisons pending puis filtrer en Python
+            # car Django ORM ne peut pas appliquer la normalisation directement
+            all_pending = list(deliveries.select_related('merchant', 'created_by'))
+            
+            # Filtrer les livraisons dont la commune normalisée correspond
+            matched_delivery_ids = []
+            for delivery in all_pending:
+                if delivery.pickup_commune:
+                    normalized_pickup = normalize_commune_name(delivery.pickup_commune)
+                    if normalized_pickup in normalized_driver_zones:
+                        matched_delivery_ids.append(delivery.id)
+            
+            # Recréer le queryset avec les IDs correspondants
+            deliveries = Delivery.objects.filter(id__in=matched_delivery_ids)
+            
             # Debug: log des zones appliquées
-            logger.debug(f"[available_deliveries] driver_zones={list(driver_zones)}")
-            # Count pending deliveries per commune BEFORE applying weight/dimension filters
+            logger.debug(f"[available_deliveries] driver_zones={list(driver_zones)}, normalized={normalized_driver_zones}")
+            
+            # Count pending deliveries per commune (avec normalisation)
             try:
                 commune_counts = {}
                 from apps.deliveries.models import Delivery as _Delivery
+                all_pending_for_count = _Delivery.objects.filter(status='pending')
                 for zone in driver_zones:
-                    try:
-                        cnt = _Delivery.objects.filter(status='pending', pickup_commune__iexact=zone).count()
-                    except Exception:
-                        cnt = 0
+                    normalized_zone = normalize_commune_name(zone)
+                    cnt = sum(1 for d in all_pending_for_count if d.pickup_commune and normalize_commune_name(d.pickup_commune) == normalized_zone)
                     commune_counts[str(zone)] = cnt
             except Exception:
                 commune_counts = {}
-            deliveries = deliveries.filter(zone_queries)
         
         # Filtre poids (toujours appliqué)
         deliveries = deliveries.filter(package_weight_kg__lte=driver.vehicle_capacity_kg)
