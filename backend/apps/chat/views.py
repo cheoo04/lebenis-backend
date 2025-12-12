@@ -123,16 +123,14 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         room_type = serializer.validated_data.get('room_type', 'delivery')
         initial_message = serializer.validated_data.get('initial_message')
         
-        # Vérifier que l'utilisateur connecté est un driver OU un marchand
+        # Vérifier que l'utilisateur connecté est un driver, un marchand, ou un particulier (créateur de livraison)
         user = request.user
         is_driver = hasattr(user, 'driver_profile')
         is_merchant = hasattr(user, 'merchant_profile')
+        is_particulier = not is_driver and not is_merchant  # Simple user without merchant/driver profile
         
-        if not is_driver and not is_merchant:
-            return Response(
-                {'error': 'Seuls les drivers et marchands peuvent créer des conversations'},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        # Les particuliers peuvent aussi créer des conversations (pour discuter avec drivers)
+        # Pas de restriction ici car tous les utilisateurs authentifiés peuvent discuter
         
         # Vérifier que l'autre utilisateur existe
         try:

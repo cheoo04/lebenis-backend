@@ -296,3 +296,8 @@ def long_task():
 - Render: https://render.com/docs
 - Celery: https://docs.celeryq.dev/
 - Issues: Créer un ticket sur le repo GitHub
+
+❌ Fonctionnalités Manquantes (pour versions futures)
+Planification ultérieure - Ajouter sélecteur date/heure dans merchant_app
+Module Réclamations - Créer apps/support/ avec modèle Complaint
+Alertes SLA - Monitoring temps de prise en charge avec notifications

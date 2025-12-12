@@ -1296,7 +1296,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def rate_driver(self, request, pk=None):
         """
-        Permet à un merchant de noter un livreur après une livraison.
+        Permet à un merchant ou particulier de noter un livreur après une livraison.
         
         POST /deliveries/{id}/rate-driver/
         Body: {
@@ -1316,9 +1316,20 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Vérifier que l'utilisateur est le merchant de cette livraison
-        if not hasattr(request.user, 'merchant_profile') or \
-           delivery.merchant.id != request.user.merchant_profile.id:
+        # Vérifier que l'utilisateur est le propriétaire de cette livraison
+        # Peut être un merchant OU un particulier (created_by)
+        is_owner = False
+        
+        # Vérifier si c'est le merchant
+        if delivery.merchant and hasattr(request.user, 'merchant_profile'):
+            if delivery.merchant.id == request.user.merchant_profile.id:
+                is_owner = True
+        
+        # Vérifier si c'est le particulier créateur
+        if delivery.created_by and delivery.created_by.id == request.user.id:
+            is_owner = True
+        
+        if not is_owner:
             return Response(
                 {'detail': 'Vous ne pouvez noter que vos propres livraisons'},
                 status=status.HTTP_403_FORBIDDEN
