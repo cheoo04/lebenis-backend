@@ -523,17 +523,26 @@ class DeliveryAssignmentService:
             # Passer au statut suivant (déjà défini ci-dessus)
             delivery.save()
             
-            # Notifier le merchant (DB) if present; guard against missing merchant
+            # Déterminer le destinataire des notifications (merchant ou particulier)
             merchant = getattr(delivery, 'merchant', None)
-            if merchant is None:
-                # Data inconsistency: delivery without merchant — log and skip merchant notifications
+            created_by = getattr(delivery, 'created_by', None)
+            
+            # L'utilisateur à notifier : merchant.user si merchant, sinon created_by
+            notify_user = None
+            if merchant:
+                notify_user = merchant.user
+            elif created_by:
+                notify_user = created_by
+            
+            if notify_user is None:
                 self.logger.error(
-                    f"Delivery {delivery.id} has no merchant attached; skipping merchant notifications"
+                    f"Delivery {delivery.id} has no merchant or created_by attached; skipping notifications"
                 )
             else:
+                # 📱 Notification DB
                 try:
                     Notification.objects.create(
-                        user=merchant.user,
+                        user=notify_user,
                         notification_type='delivery_update',
                         title='Livreur en route',
                         message=f"Le livreur {driver.user.full_name} est en route pour récupérer votre colis {delivery.tracking_number}",
@@ -541,21 +550,25 @@ class DeliveryAssignmentService:
                         related_entity_id=delivery.id
                     )
                 except Exception as e:
-                    self.logger.exception(f"Failed to create DB notification for merchant on delivery {delivery.id}: {e}")
+                    self.logger.exception(f"Failed to create DB notification for delivery {delivery.id}: {e}")
 
-                # 🔔 Notification push FCM au merchant
-                try:
-                    notify_delivery_accepted(merchant, delivery)
-                except Exception as e:
-                    self.logger.exception(f"Failed to send push notification to merchant for delivery {delivery.id}: {e}")
+                # 🔔 Notification push FCM (seulement si merchant pour l'instant)
+                if merchant:
+                    try:
+                        notify_delivery_accepted(merchant, delivery)
+                    except Exception as e:
+                        self.logger.exception(f"Failed to send push notification for delivery {delivery.id}: {e}")
+                else:
+                    # TODO: Implémenter notify_delivery_accepted pour particuliers si besoin
+                    self.logger.info(f"📱 Notification DB créée pour particulier {notify_user.email}")
 
-                # 💬 Créer automatiquement une ChatRoom pour la conversation driver-merchant
+                # 💬 Créer automatiquement une ChatRoom pour la conversation driver-client
                 if CHAT_AVAILABLE:
                     try:
                         # Vérifier si une ChatRoom existe déjà pour cette livraison
                         existing_room = ChatRoom.objects.filter(
                             driver=driver.user,
-                            other_user=merchant.user,
+                            other_user=notify_user,
                             delivery=delivery
                         ).first()
                         
@@ -564,7 +577,7 @@ class DeliveryAssignmentService:
                             chat_room = ChatRoom.objects.create(
                                 room_type='delivery',
                                 driver=driver.user,
-                                other_user=merchant.user,
+                                other_user=notify_user,
                                 delivery=delivery
                             )
                             
@@ -574,7 +587,7 @@ class DeliveryAssignmentService:
                                 {
                                     'room_type': 'delivery',
                                     'driver_id': str(driver.user.id),
-                                    'other_user_id': str(merchant.user.id),
+                                    'other_user_id': str(notify_user.id),
                                     'delivery_id': str(delivery.id),
                                     'tracking_number': delivery.tracking_number,
                                 }
