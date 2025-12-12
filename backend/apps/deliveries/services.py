@@ -18,6 +18,7 @@ from apps.notifications.services import (
     notify_delivery_rejected,
     notify_delivery_status_change
 )
+from apps.pricing.calculator import normalize_commune_name  # Pour normaliser les noms de communes
 
 from django.db.models import Sum
 from apps.payments.models import Invoice
@@ -484,9 +485,11 @@ class DeliveryAssignmentService:
                     driver_zones = []
 
                 if driver_zones:
-                    # compare insensible à la casse
+                    # compare avec normalisation (gère accents, préfixes Le/La/L'/Les)
                     # Use pickup_commune here to match the logic used in drivers.available_deliveries
-                    if not any((delivery.pickup_commune or '').lower() == z.lower() for z in driver_zones):
+                    normalized_pickup = normalize_commune_name(delivery.pickup_commune or '')
+                    normalized_driver_zones = [normalize_commune_name(z) for z in driver_zones]
+                    if normalized_pickup not in normalized_driver_zones:
                         raise ValidationError("Cette livraison n'est pas dans votre zone de travail")
 
                 # Vérifier la capacité du véhicule
