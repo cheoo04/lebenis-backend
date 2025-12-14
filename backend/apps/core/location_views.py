@@ -16,6 +16,7 @@ from .quartiers_data import (
     get_quartier_coordinates,
     search_quartiers,
     get_communes_list,
+    find_nearest_quartier,
 )
 import logging
 import sentry_sdk
@@ -814,3 +815,69 @@ def get_delivery_route(request):
             'success': False,
             'error': 'Impossible de calculer l\'itinéraire'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def find_nearest_quartier_view(request):
+    """
+    POST /api/v1/locations/nearest-quartier/
+    
+    Trouve le quartier le plus proche des coordonnées GPS données.
+    Utilisé pour le reverse geocoding après sélection sur carte ou GPS.
+    
+    Body:
+    {
+        "latitude": 5.3679,
+        "longitude": -3.985
+    }
+    
+    Response:
+    {
+        "success": true,
+        "quartier": {
+            "nom": "Riviera 2",
+            "commune": "COCODY",
+            "latitude": 5.3679,
+            "longitude": -3.985,
+            "distance_km": 0.25
+        }
+    }
+    """
+    latitude = request.data.get('latitude')
+    longitude = request.data.get('longitude')
+    
+    if latitude is None or longitude is None:
+        return Response({
+            'success': False,
+            'error': 'Les champs "latitude" et "longitude" sont requis'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        lat = float(latitude)
+        lon = float(longitude)
+    except (ValueError, TypeError):
+        return Response({
+            'success': False,
+            'error': 'Les coordonnées doivent être des nombres valides'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Vérifier que les coordonnées sont dans une plage raisonnable pour Abidjan
+    if not (4.5 <= lat <= 6.5 and -5.5 <= lon <= -2.5):
+        return Response({
+            'success': False,
+            'error': 'Les coordonnées semblent hors de la zone Abidjan/Côte d\'Ivoire'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    result = find_nearest_quartier(lat, lon)
+    
+    if result:
+        return Response({
+            'success': True,
+            'quartier': result
+        })
+    else:
+        return Response({
+            'success': False,
+            'error': 'Aucun quartier trouvé à proximité de ces coordonnées'
+        }, status=status.HTTP_404_NOT_FOUND)

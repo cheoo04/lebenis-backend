@@ -1,20 +1,45 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 /// Service pour tracker les événements Firebase Analytics
+/// Compatible avec les plateformes qui ne supportent pas Firebase
 class AnalyticsService {
   static final AnalyticsService _instance = AnalyticsService._internal();
   factory AnalyticsService() => _instance;
   AnalyticsService._internal();
 
-  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+  // Vérifier si la plateforme supporte Firebase
+  static bool get isSupported {
+    return !kIsWeb && 
+        (defaultTargetPlatform == TargetPlatform.android || 
+         defaultTargetPlatform == TargetPlatform.iOS);
+  }
+
+  // Analytics instance - null si non supporté
+  FirebaseAnalytics? get _analytics {
+    if (!isSupported) return null;
+    try {
+      return FirebaseAnalytics.instance;
+    } catch (e) {
+      debugPrint('⚠️ Firebase Analytics not available: $e');
+      return null;
+    }
+  }
   
-  FirebaseAnalyticsObserver get observer => FirebaseAnalyticsObserver(analytics: _analytics);
+  /// Observer pour la navigation - retourne un mock si Firebase non disponible
+  NavigatorObserver get observer {
+    if (!isSupported || _analytics == null) {
+      return _NoOpNavigatorObserver();
+    }
+    return FirebaseAnalyticsObserver(analytics: _analytics!);
+  }
 
   /// Définir l'ID utilisateur pour le tracking
   Future<void> setUserId(String? userId) async {
+    if (_analytics == null) return;
     try {
-      await _analytics.setUserId(id: userId);
+      await _analytics!.setUserId(id: userId);
       debugPrint('📊 Analytics: User ID set to $userId');
     } catch (e) {
       debugPrint('❌ Analytics error setting user ID: $e');
@@ -27,15 +52,16 @@ class AnalyticsService {
     String? vehicleType,
     String? city,
   }) async {
+    if (_analytics == null) return;
     try {
       if (userType != null) {
-        await _analytics.setUserProperty(name: 'user_type', value: userType);
+        await _analytics!.setUserProperty(name: 'user_type', value: userType);
       }
       if (vehicleType != null) {
-        await _analytics.setUserProperty(name: 'vehicle_type', value: vehicleType);
+        await _analytics!.setUserProperty(name: 'vehicle_type', value: vehicleType);
       }
       if (city != null) {
-        await _analytics.setUserProperty(name: 'city', value: city);
+        await _analytics!.setUserProperty(name: 'city', value: city);
       }
       debugPrint('📊 Analytics: User properties set');
     } catch (e) {
@@ -45,8 +71,9 @@ class AnalyticsService {
 
   /// Logger un événement de connexion
   Future<void> logLogin({String? method}) async {
+    if (_analytics == null) return;
     try {
-      await _analytics.logLogin(loginMethod: method ?? 'email');
+      await _analytics!.logLogin(loginMethod: method ?? 'email');
       debugPrint('📊 Analytics: Login logged');
     } catch (e) {
       debugPrint('❌ Analytics error logging login: $e');
@@ -55,8 +82,9 @@ class AnalyticsService {
 
   /// Logger un événement d'inscription
   Future<void> logSignUp({String? method}) async {
+    if (_analytics == null) return;
     try {
-      await _analytics.logSignUp(signUpMethod: method ?? 'email');
+      await _analytics!.logSignUp(signUpMethod: method ?? 'email');
       debugPrint('📊 Analytics: Sign up logged');
     } catch (e) {
       debugPrint('❌ Analytics error logging sign up: $e');
@@ -69,8 +97,9 @@ class AnalyticsService {
     String? commune,
     double? distance,
   }) async {
+    if (_analytics == null) return;
     try {
-      await _analytics.logEvent(
+      await _analytics!.logEvent(
         name: 'delivery_accepted',
         parameters: {
           'delivery_id': deliveryId,
@@ -90,8 +119,9 @@ class AnalyticsService {
     double? earnings,
     int? durationMinutes,
   }) async {
+    if (_analytics == null) return;
     try {
-      await _analytics.logEvent(
+      await _analytics!.logEvent(
         name: 'delivery_completed',
         parameters: {
           'delivery_id': deliveryId,
@@ -110,8 +140,9 @@ class AnalyticsService {
     required String deliveryId,
     String? reason,
   }) async {
+    if (_analytics == null) return;
     try {
-      await _analytics.logEvent(
+      await _analytics!.logEvent(
         name: 'delivery_rejected',
         parameters: {
           'delivery_id': deliveryId,
@@ -126,8 +157,9 @@ class AnalyticsService {
 
   /// Logger le changement de disponibilité
   Future<void> logAvailabilityChanged({required bool isAvailable}) async {
+    if (_analytics == null) return;
     try {
-      await _analytics.logEvent(
+      await _analytics!.logEvent(
         name: 'availability_changed',
         parameters: {
           'is_available': isAvailable,
@@ -145,7 +177,6 @@ class AnalyticsService {
     required double longitude,
   }) async {
     // Ne pas logger chaque mise à jour pour éviter trop d'événements
-    // Peut être utilisé pour des mises à jour importantes uniquement
   }
 
   /// Logger un événement personnalisé
@@ -153,8 +184,9 @@ class AnalyticsService {
     required String name,
     Map<String, Object>? parameters,
   }) async {
+    if (_analytics == null) return;
     try {
-      await _analytics.logEvent(
+      await _analytics!.logEvent(
         name: name,
         parameters: parameters,
       );
@@ -169,8 +201,9 @@ class AnalyticsService {
     required String screenName,
     String? screenClass,
   }) async {
+    if (_analytics == null) return;
     try {
-      await _analytics.logScreenView(
+      await _analytics!.logScreenView(
         screenName: screenName,
         screenClass: screenClass ?? screenName,
       );
@@ -185,8 +218,9 @@ class AnalyticsService {
     required double amount,
     required int deliveryCount,
   }) async {
+    if (_analytics == null) return;
     try {
-      await _analytics.logEvent(
+      await _analytics!.logEvent(
         name: 'daily_earnings',
         parameters: {
           'amount_cfa': amount,
@@ -198,4 +232,19 @@ class AnalyticsService {
       debugPrint('❌ Analytics error: $e');
     }
   }
+}
+
+/// Observer vide pour les plateformes non supportées
+class _NoOpNavigatorObserver extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {}
+  
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {}
+  
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {}
+  
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {}
 }

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/providers/delivery_provider.dart';
 import '../../../../data/providers/pricing_provider.dart';
-import '../../../../shared/widgets/quartier_search_widget.dart';
+import '../../../../shared/widgets/hybrid_address_selector.dart';
 import '../../../../shared/widgets/modern_text_field.dart';
 import '../../../../shared/widgets/modern_button.dart';
 import '../../../../theme/app_theme.dart';
@@ -17,6 +17,13 @@ class CreateDeliveryScreen extends ConsumerStatefulWidget {
 
 class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   final _formKey = GlobalKey<FormState>();
+  
+  /// Arrondit une coordonnée GPS à 6 décimales (précision ~10cm)
+  /// Nécessaire car le backend limite à 10/11 chiffres au total
+  double? _roundCoordinate(double? value) {
+    if (value == null) return null;
+    return double.parse(value.toStringAsFixed(6));
+  }
   
   // Recipient info
   final _recipientNameController = TextEditingController();
@@ -75,20 +82,17 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   }
 
   Future<void> _estimatePrice() async {
-    if (_pickupCommune == null || _deliveryCommune == null || _packageWeightController.text.isEmpty) {
+    if (_pickupCommune == null || _deliveryCommune == null) {
       setState(() => _estimatedPrice = null);
       return;
     }
 
     setState(() => _isLoadingEstimate = true);
     try {
-      final weightParsed = double.tryParse(_packageWeightController.text);
-      if (weightParsed == null || weightParsed < 1.0) {
-        // Don't estimate for invalid or too small weights
-        setState(() => _estimatedPrice = null);
-        return;
-      }
-      final weight = weightParsed;
+      // Poids par défaut: 5kg si non renseigné
+      final weightText = _packageWeightController.text.trim();
+      final weight = weightText.isEmpty ? 5.0 : (double.tryParse(weightText) ?? 5.0);
+      
       final data = {
         'pickup_commune': _pickupCommune!,
         if (_pickupQuartier != null && _pickupQuartier!.isNotEmpty)
@@ -98,14 +102,14 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
           'delivery_quartier': _deliveryQuartier,
         'package_weight_kg': weight,
       };
-      // Inclure les coordonnées GPS si elles sont disponibles pour une estimation
+      // Inclure les coordonnées GPS arrondies si elles sont disponibles pour une estimation
       if (_pickupLat != null && _pickupLng != null) {
-        data['pickup_latitude'] = _pickupLat;
-        data['pickup_longitude'] = _pickupLng;
+        data['pickup_latitude'] = _roundCoordinate(_pickupLat);
+        data['pickup_longitude'] = _roundCoordinate(_pickupLng);
       }
       if (_deliveryLat != null && _deliveryLng != null) {
-        data['delivery_latitude'] = _deliveryLat;
-        data['delivery_longitude'] = _deliveryLng;
+        data['delivery_latitude'] = _roundCoordinate(_deliveryLat);
+        data['delivery_longitude'] = _roundCoordinate(_deliveryLng);
       }
       final estimate = await ref.read(pricingRepositoryProvider).estimatePrice(data);
       setState(() => _estimatedPrice = estimate.total);
@@ -158,6 +162,44 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
       return;
     }
 
+    // Poids par défaut: 5kg si non renseigné
+    final weightText = _packageWeightController.text.trim();
+    final weight = weightText.isEmpty ? 5.0 : (double.tryParse(weightText) ?? 5.0);
+    
+    // Confirmation si poids > 10kg
+    if (weight > 10.0) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber, color: Colors.orange, size: 28),
+              SizedBox(width: 8),
+              Text('Colis lourd'),
+            ],
+          ),
+          content: Text(
+            'Vous avez indiqué un poids de ${weight.toStringAsFixed(1)} kg.\n\n'
+            'Les colis de plus de 10 kg nécessitent une manipulation spéciale et peuvent engendrer des frais supplémentaires.\n\n'
+            'Voulez-vous continuer ?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              child: const Text('Confirmer'),
+            ),
+          ],
+        ),
+      );
+      
+      if (confirmed != true) return;
+    }
+
     setState(() => _isSubmitting = true);
 
     try {
@@ -167,24 +209,24 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
         'recipient_phone': _recipientPhoneController.text.trim(),
         if (_recipientAltPhoneController.text.isNotEmpty)
           'recipient_alternative_phone': _recipientAltPhoneController.text.trim(),
-        // Pickup - SIMPLIFIÉ: commune + quartier obligatoires, GPS optionnel
+        // Pickup - SIMPLIFIÉ: commune + quartier obligatoires, GPS optionnel (coordonnées arrondies)
         'pickup_commune': _pickupCommune!,
         'pickup_quartier': _pickupQuartier!,
         if (_pickupStreetController.text.isNotEmpty)
           'pickup_street': _pickupStreetController.text.trim(),
-        if (_pickupLat != null) 'pickup_latitude': _pickupLat,
-        if (_pickupLng != null) 'pickup_longitude': _pickupLng,
-        // Delivery
+        if (_pickupLat != null) 'pickup_latitude': _roundCoordinate(_pickupLat),
+        if (_pickupLng != null) 'pickup_longitude': _roundCoordinate(_pickupLng),
+        // Delivery (coordonnées arrondies)
         'delivery_commune': _deliveryCommune!,
         if (_deliveryQuartier != null && _deliveryQuartier!.isNotEmpty)
           'delivery_quartier': _deliveryQuartier,
         if (_deliveryStreetController.text.isNotEmpty)
           'delivery_street': _deliveryStreetController.text.trim(),
-        if (_deliveryLat != null) 'delivery_latitude': _deliveryLat,
-        if (_deliveryLng != null) 'delivery_longitude': _deliveryLng,
+        if (_deliveryLat != null) 'delivery_latitude': _roundCoordinate(_deliveryLat),
+        if (_deliveryLng != null) 'delivery_longitude': _roundCoordinate(_deliveryLng),
         // Package
         'package_description': _packageDescController.text.trim(),
-        'package_weight_kg': double.tryParse(_packageWeightController.text) ?? 1.0,
+        'package_weight_kg': weight, // Par défaut 5kg
         'is_fragile': _isFragile,
         if (_packageLengthController.text.isNotEmpty)
           'package_length_cm': double.tryParse(_packageLengthController.text),
@@ -277,19 +319,21 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             _buildSectionTitle('Point de récupération'),
             const SizedBox(height: 12),
             
-            // Widget intégré Commune + Quartier pour le pickup (OBLIGATOIRE)
-            QuartierSearchWidget(
-              label: 'Localisation de récupération *',
+            // Widget hybride Option C: Dropdown + Carte + GPS pour le pickup
+            HybridAddressSelector(
+              label: 'Localisation de récupération',
+              required: true,
+              showStreetField: false, // On a un champ séparé ci-dessous
               initialCommune: _pickupCommune,
               initialQuartier: _pickupQuartier,
-              showCoordinates: false,
-              onLocationSelected: (commune, quartier, lat, lon) {
+              initialLatitude: _pickupLat,
+              initialLongitude: _pickupLng,
+              onAddressSelected: (result) {
                 setState(() {
-                  // Stocker la valeur canonique (UPPERCASE) pour cohérence avec le backend
-                  _pickupCommune = commune.trim().toUpperCase();
-                  _pickupQuartier = quartier;
-                  _pickupLat = lat;
-                  _pickupLng = lon;
+                  _pickupCommune = result.commune?.trim().toUpperCase();
+                  _pickupQuartier = result.quartier;
+                  _pickupLat = result.latitude;
+                  _pickupLng = result.longitude;
                 });
                 _estimatePrice();
               },
@@ -327,19 +371,21 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             _buildSectionTitle('Adresse de livraison'),
             const SizedBox(height: 12),
             
-            // Widget intégré Commune + Quartier (coordonnées masquées pour simplification)
-            QuartierSearchWidget(
-              label: 'Localisation de livraison *',
+            // Widget hybride Option C: Dropdown + Carte + GPS pour la livraison
+            HybridAddressSelector(
+              label: 'Localisation de livraison',
+              required: true,
+              showStreetField: false, // On a un champ séparé ci-dessous
               initialCommune: _deliveryCommune,
               initialQuartier: _deliveryQuartier,
-              showCoordinates: false,
-              onLocationSelected: (commune, quartier, lat, lon) {
+              initialLatitude: _deliveryLat,
+              initialLongitude: _deliveryLng,
+              onAddressSelected: (result) {
                 setState(() {
-                  // Stocker la valeur canonique (UPPERCASE) pour cohérence avec le backend
-                  _deliveryCommune = commune.trim().toUpperCase();
-                  _deliveryQuartier = quartier;
-                  _deliveryLat = lat;
-                  _deliveryLng = lon;
+                  _deliveryCommune = result.commune?.trim().toUpperCase();
+                  _deliveryQuartier = result.quartier;
+                  _deliveryLat = result.latitude;
+                  _deliveryLng = result.longitude;
                 });
                 _estimatePrice();
               },
@@ -391,20 +437,33 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             ModernTextField(
               controller: _packageWeightController,
               label: 'Poids estimé (kg)',
-              hint: '1.5',
+              hint: '5',
               prefixIcon: Icons.scale,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
               validator: (v) {
-                if (v == null || v.isEmpty) return 'Poids requis';
-                final weight = double.tryParse(v);
-                if (weight == null) return 'Poids invalide';
-                if (weight < 1.0) return 'Le poids minimal est de 1 kg';
+                // Optionnel - pas de validation stricte
+                if (v != null && v.isNotEmpty) {
+                  final weight = double.tryParse(v);
+                  if (weight == null) return 'Poids invalide';
+                }
                 return null;
               },
               onChanged: (_) => _estimatePrice(),
+            ),
+            // Note sur le poids
+            Padding(
+              padding: const EdgeInsets.only(top: 4, left: 4),
+              child: Text(
+                '💡 Précisez si le colis dépasse 10 kg (frais supplémentaires possibles)',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
             ),
             
             const SizedBox(height: 16),

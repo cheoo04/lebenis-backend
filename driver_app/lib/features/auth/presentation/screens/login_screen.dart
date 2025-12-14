@@ -162,7 +162,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ModernTextField(
                         controller: _emailController,
                         label: 'Adresse Email',
-                        hint: 'exemple@email.com',
+                        hint: 'exemple@gmail.com',
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: Icons.email_outlined,
                         validator: (value) => Validators.validateEmail(value ?? ''),
@@ -237,7 +237,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         text: 'Se connecter',
                         onPressed: _handleLogin,
                         isLoading: isLoading,
-                        icon: Icons.login,
                         type: ModernButtonType.primary,
                         size: ModernButtonSize.large,
                       ),

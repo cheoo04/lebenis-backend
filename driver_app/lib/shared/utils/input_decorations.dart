@@ -9,6 +9,8 @@ import '../../theme/app_spacing.dart';
 /// If [isCompact] is null the function will try to infer compact mode from
 /// the provided [label] — it becomes compact when the label contains
 /// "commune" or "quartier" (case-insensitive).
+/// 
+/// Set [showLabelInField] to false if the label is displayed separately above the field.
 InputDecoration compactInputDecoration({
   String? label,
   String? hint,
@@ -18,12 +20,13 @@ InputDecoration compactInputDecoration({
   Widget? suffixIconWidget,
   InputBorder? border,
   String? counterText,
+  bool showLabelInField = false,
 }) {
   final inferred = (label ?? '').toLowerCase().contains('commune') || (label ?? '').toLowerCase().contains('quartier');
   final effectiveCompact = isCompact ?? inferred;
 
   return InputDecoration(
-    labelText: label,
+    labelText: showLabelInField ? label : null,
     hintText: hint,
     filled: true,
     fillColor: Colors.white,

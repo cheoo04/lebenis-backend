@@ -447,6 +447,13 @@ MTN_MOMO_API_KEY = config('MTN_MOMO_API_KEY', default='')
 MTN_MOMO_SUBSCRIPTION_KEY = config('MTN_MOMO_SUBSCRIPTION_KEY', default='')
 MTN_MOMO_ENVIRONMENT = config('MTN_MOMO_ENVIRONMENT', default='sandbox')
 
+# Wave Money API (Côte d'Ivoire / Sénégal)
+WAVE_API_KEY = config('WAVE_API_KEY', default='')
+WAVE_API_SECRET = config('WAVE_API_SECRET', default='')
+WAVE_WEBHOOK_SECRET = config('WAVE_WEBHOOK_SECRET', default='')
+WAVE_MERCHANT_ID = config('WAVE_MERCHANT_ID', default='')
+WAVE_SANDBOX = config('WAVE_SANDBOX', default=True, cast=bool)
+
 
 # ==============================================================================
 # CELERY CONFIGURATION (Phase 2 - Automated Daily Payouts)

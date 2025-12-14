@@ -293,3 +293,206 @@ def reset_daily_break_durations():
         'success': True,
         'reset_count': updated_count
     }
+
+
+# =============================================================================
+# WAVE MONEY PAYOUT TASKS
+# =============================================================================
+
+@shared_task(bind=True, max_retries=3)
+def process_wave_daily_payouts(self):
+    """
+    Tâche Celery pour payer les drivers via Wave Money.
+    
+    Alternative à Orange Money, utilise l'API Wave pour :
+    1. Regrouper les gains (DriverEarning) du jour par driver
+    2. Créer un DriverPayment pour chaque driver
+    3. Effectuer le paiement via Wave (bulk payout)
+    4. Notifier les drivers
+    """
+    from .models import DriverPayment, DriverEarning
+    from .wave_service import wave_service, WavePaymentError
+    
+    logger.info("🌊 Démarrage des paiements Wave quotidiens")
+    
+    today = timezone.now().date()
+    
+    # Récupérer les DriverEarning approuvés non encore payés
+    pending_earnings = DriverEarning.objects.filter(
+        status='approved',
+    ).select_related('driver', 'driver__user')
+    
+    # Grouper par driver
+    drivers_earnings = {}
+    for earning in pending_earnings:
+        driver_id = earning.driver.id
+        if driver_id not in drivers_earnings:
+            drivers_earnings[driver_id] = {
+                'driver': earning.driver,
+                'earnings': [],
+                'total': Decimal('0')
+            }
+        drivers_earnings[driver_id]['earnings'].append(earning)
+        drivers_earnings[driver_id]['total'] += earning.total_earning
+    
+    if not drivers_earnings:
+        logger.info("⏭️ Aucun paiement Wave à effectuer")
+        return {'success': True, 'payouts': 0}
+    
+    # Préparer les payouts Wave
+    wave_payouts = []
+    driver_payments = []
+    
+    for driver_id, data in drivers_earnings.items():
+        driver = data['driver']
+        total = data['total']
+        
+        # Vérifier que le driver a un numéro Wave
+        phone = getattr(driver, 'wave_phone', None) or driver.phone_number
+        
+        if not phone:
+            logger.warning(f"⚠️ {driver.user.full_name} n'a pas de numéro Wave")
+            continue
+        
+        # Formater le numéro (+225...)
+        if not phone.startswith('+'):
+            phone = f'+225{phone.lstrip("0")}'
+        
+        # Créer le DriverPayment
+        payment = DriverPayment.objects.create(
+            driver=driver,
+            total_amount=total,
+            payment_method='wave',
+            status='processing',
+            notes=f"Paiement Wave du {today.strftime('%d/%m/%Y')}"
+        )
+        
+        # Associer les earnings au payment
+        for earning in data['earnings']:
+            earning.status = 'paid'
+            earning.paid_at = timezone.now()
+            earning.save()
+        
+        driver_payments.append(payment)
+        
+        wave_payouts.append({
+            'recipient_phone': phone,
+            'amount': total,
+            'client_reference': str(payment.id),
+            'name': driver.user.full_name,
+        })
+    
+    if not wave_payouts:
+        logger.info("⏭️ Aucun payout Wave valide à envoyer")
+        return {'success': True, 'payouts': 0}
+    
+    # Effectuer le paiement de masse Wave
+    try:
+        result = wave_service.create_bulk_payout(
+            payouts=wave_payouts,
+            batch_name=f"Paiements drivers LeBeni's {today.strftime('%d/%m/%Y')}"
+        )
+        
+        batch_id = result.get('id')
+        
+        logger.info(f"✅ Batch Wave créé: {batch_id} - {len(wave_payouts)} paiements")
+        
+        # Mettre à jour les DriverPayments avec le batch_id
+        for payment in driver_payments:
+            payment.payment_reference = batch_id
+            payment.save()
+        
+        # Notifier les drivers
+        for payment in driver_payments:
+            try:
+                NotificationHistory.create_and_send(
+                    user=payment.driver.user,
+                    notification_type='payment_received',
+                    title='💰 Paiement Wave en cours',
+                    body=f'Votre paiement de {payment.total_amount} CFA est en cours de transfert vers votre compte Wave.',
+                    data={
+                        'payment_id': str(payment.id),
+                        'amount': str(payment.total_amount),
+                    }
+                )
+            except Exception:
+                pass
+        
+        return {
+            'success': True,
+            'batch_id': batch_id,
+            'payouts': len(wave_payouts),
+            'total_amount': str(sum(p['amount'] for p in wave_payouts))
+        }
+        
+    except WavePaymentError as e:
+        logger.error(f"❌ Erreur Wave bulk payout: {e.message}")
+        
+        # Marquer les paiements comme échoués
+        for payment in driver_payments:
+            payment.status = 'failed'
+            payment.notes = f"Erreur Wave: {e.message}"
+            payment.save()
+        
+        # Remettre les earnings en approved
+        for driver_id, data in drivers_earnings.items():
+            for earning in data['earnings']:
+                earning.status = 'approved'
+                earning.paid_at = None
+                earning.save()
+        
+        raise self.retry(exc=e, countdown=300)  # Réessayer dans 5 min
+
+
+@shared_task
+def process_single_wave_payout(driver_payment_id: str):
+    """
+    Payer un driver individuel via Wave.
+    Utile pour les paiements manuels ou les réessais.
+    """
+    from .models import DriverPayment
+    from .wave_service import wave_service, WavePaymentError
+    
+    try:
+        payment = DriverPayment.objects.get(id=driver_payment_id)
+    except DriverPayment.DoesNotExist:
+        logger.error(f"DriverPayment introuvable: {driver_payment_id}")
+        return {'success': False, 'error': 'Payment not found'}
+    
+    driver = payment.driver
+    phone = getattr(driver, 'wave_phone', None) or driver.phone_number
+    
+    if not phone:
+        return {'success': False, 'error': 'No phone number'}
+    
+    if not phone.startswith('+'):
+        phone = f'+225{phone.lstrip("0")}'
+    
+    try:
+        result = wave_service.create_payout(
+            recipient_phone=phone,
+            amount=payment.total_amount,
+            client_reference=str(payment.id),
+            name=driver.user.full_name,
+        )
+        
+        payment.status = 'processing'
+        payment.payment_reference = result.get('id')
+        payment.save()
+        
+        logger.info(f"✅ Payout Wave individuel: {payment.id} - {payment.total_amount} CFA")
+        
+        return {
+            'success': True,
+            'payout_id': result.get('id'),
+            'amount': str(payment.total_amount)
+        }
+        
+    except WavePaymentError as e:
+        payment.status = 'failed'
+        payment.notes = f"Erreur Wave: {e.message}"
+        payment.save()
+        
+        logger.error(f"❌ Erreur payout Wave: {e.message}")
+        
+        return {'success': False, 'error': e.message}

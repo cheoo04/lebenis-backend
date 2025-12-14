@@ -14,6 +14,7 @@ from .location_views import (
     validate_quartier_exists,
     get_route,
     get_delivery_route,
+    find_nearest_quartier_view,
 )
 
 app_name = 'locations'
@@ -67,4 +68,11 @@ urlpatterns = [
     # POST /api/v1/locations/delivery-route/
     # Body: {"pickup": {...}, "delivery": {...}, "driver": {...}}
     path('delivery-route/', get_delivery_route, name='get-delivery-route'),
+    
+    # ============= REVERSE GEOCODING QUARTIER =============
+    
+    # Trouver le quartier le plus proche des coordonnées
+    # POST /api/v1/locations/nearest-quartier/
+    # Body: {"latitude": 5.3679, "longitude": -3.985}
+    path('nearest-quartier/', find_nearest_quartier_view, name='find-nearest-quartier'),
 ]

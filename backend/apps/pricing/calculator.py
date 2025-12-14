@@ -66,12 +66,11 @@ class PricingCalculator:
     Gère les surcharges, les zones tarifaires et les calculs complexes.
     """
     
-    # Surcharges configurables (peuvent être modifiées selon vos besoins)
+    # Surcharges configurables
     SURCHARGES = {
-        'immediate_delivery': Decimal('1.5'),    # +50% pour livraison immédiate
-        'night_delivery': Decimal('2.0'),        # +100% pour livraison de nuit
-        'weekend_delivery': Decimal('1.3'),      # +30% pour livraison weekend
-        'fragile_items': Decimal('500'),         # +500 CFA fixe pour colis fragile
+        'night_delivery': Decimal('1.35'),       # +35% pour livraison de nuit (20h-6h)
+        'fragile_items': Decimal('200'),         # +200 CFA fixe pour colis fragile
+        'per_kg_rate': Decimal('75'),           # +75 CFA par kg au-delà de 5kg
     }
     
     def __init__(self):
@@ -194,15 +193,16 @@ class PricingCalculator:
     def get_default_pricing(self):
         """
         Retourne une tarification par défaut quand aucune matrice tarifaire existe.
+        Tarif fixe de 2000 FCFA (zone 2 par défaut).
         
         Returns:
             DefaultPricing: Objet avec les tarifs par défaut
         """
         class DefaultPricing:
             """Classe simple pour retourner les tarifs par défaut"""
-            base_rate = Decimal('2000')           # Tarif de base : 2000 CFA
-            per_kg_rate = Decimal('200')          # 200 CFA par kg supplémentaire
-            per_km_rate = Decimal('100')          # 100 CFA par km
+            base_rate = Decimal('2000')           # Tarif de base : 2000 FCFA (Zone 2)
+            per_kg_rate = Decimal('75')           # +75 CFA par kg supplémentaire (après 5kg)
+            per_km_rate = Decimal('0')            # Pas de surcharge au km
             max_weight_included = Decimal('5.0')  # 5 kg inclus dans le tarif de base
         
         return DefaultPricing()
@@ -367,7 +367,7 @@ class PricingCalculator:
         base_rate = Decimal(str(pricing.base_rate))
         
         # ═══════════════════════════════════════════════════════════════════
-        # ÉTAPE 4 : Surcharge de poids (avec défaut 5kg si non renseigné)
+        # ÉTAPE 4 : Poids (conservé pour info mais pas de surcharge)
         # ═══════════════════════════════════════════════════════════════════
         
         # Poids par défaut : 5kg si non renseigné
@@ -389,6 +389,7 @@ class PricingCalculator:
         if weight_kg > WEIGHT_CONFIRMATION_THRESHOLD and not weight_confirmed:
             weight_warning = f"Pour les colis de plus de {WEIGHT_CONFIRMATION_THRESHOLD}kg, veuillez confirmer le poids exact."
         
+        # Surcharge de poids : +200 CFA par kg au-delà de 5kg
         weight_surcharge = self.calculate_weight_surcharge(
             weight_kg,
             Decimal(str(pricing.max_weight_included)),
@@ -396,7 +397,7 @@ class PricingCalculator:
         )
         
         # ═══════════════════════════════════════════════════════════════════
-        # ÉTAPE 5 : Surcharge volumétrique
+        # ÉTAPE 5 : Volume (conservé pour info mais pas de surcharge)
         # ═══════════════════════════════════════════════════════════════════
         
         volumetric_weight = self.calculate_volumetric_weight(
@@ -405,16 +406,14 @@ class PricingCalculator:
             delivery_data.get('package_height_cm')
         )
         
-        # Utiliser le poids le plus élevé (réel ou volumétrique)
+        # Utiliser le poids le plus élevé (réel ou volumétrique) pour info
         billable_weight = max(weight_kg, volumetric_weight)
         
+        # Surcharge volumétrique désactivée (tarif fixe)
         volume_surcharge = Decimal('0')
-        if billable_weight > weight_kg:
-            extra = billable_weight - weight_kg
-            volume_surcharge = extra * Decimal(str(pricing.per_kg_rate))
         
         # ═══════════════════════════════════════════════════════════════════
-        # ÉTAPE 6 : Surcharge de distance
+        # ÉTAPE 6 : Distance (conservée pour info mais pas de surcharge)
         # ═══════════════════════════════════════════════════════════════════
         
         # Prefer explicit coords passed by client; otherwise try zone centroids (quartier -> commune)
@@ -483,36 +482,28 @@ class PricingCalculator:
 
         logger.info("calculate_price: distance result", extra={'distance_km': float(distance_km)})
 
-        distance_surcharge = distance_km * Decimal(str(pricing.per_km_rate))
+        # Surcharge de distance désactivée (tarif fixe)
+        distance_surcharge = Decimal('0')
         
         # ═══════════════════════════════════════════════════════════════════
         # ÉTAPE 7 : Calcul du sous-total
-        # ═══════════════════════════════════════════════════════════════════
+        # ═══════════════════════════════════════════════════════════════════════
         
-        subtotal = base_rate + weight_surcharge + volume_surcharge + distance_surcharge
+        # Tarif de base + surcharge de poids (si > 5kg)
+        subtotal = base_rate + weight_surcharge
         
-        # ═══════════════════════════════════════════════════════════════════
-        # ÉTAPE 8 : Surcharges contextuelles (multiplicateurs)
-        # ═══════════════════════════════════════════════════════════════════
+        # ═══════════════════════════════════════════════════════════════════════
+        # ÉTAPE 8 : Surcharge de nuit (+35% entre 20h-6h)
+        # ═══════════════════════════════════════════════════════════════════════
         
         multiplier = Decimal('1.0')
         surcharge_details = []
         
-        # Livraison immédiate : +50%
-        if delivery_data.get('scheduling_type') == 'immediate':
-            multiplier *= self.SURCHARGES['immediate_delivery']
-            surcharge_details.append('Livraison immédiate +50%')
-        
-        # Livraison de nuit (20h - 6h) : +100%
+        # Livraison de nuit (20h - 6h) : +35%
         scheduled_time = delivery_data.get('scheduled_pickup_time')
         if scheduled_time and (scheduled_time.hour >= 20 or scheduled_time.hour < 6):
             multiplier *= self.SURCHARGES['night_delivery']
-            surcharge_details.append('Livraison de nuit +100%')
-        
-        # Weekend (samedi/dimanche) : +30%
-        if scheduled_time and scheduled_time.weekday() >= 5:  # 5=Samedi, 6=Dimanche
-            multiplier *= self.SURCHARGES['weekend_delivery']
-            surcharge_details.append('Livraison weekend +30%')
+            surcharge_details.append('Livraison de nuit +35%')
         
         # ═══════════════════════════════════════════════════════════════════
         # ÉTAPE 9 : Surcharge pour colis fragile

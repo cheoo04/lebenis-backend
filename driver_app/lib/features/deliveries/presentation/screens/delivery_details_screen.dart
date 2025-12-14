@@ -253,9 +253,6 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     latitude: delivery.pickupLatitude,
                     longitude: delivery.pickupLongitude,
                     color: AppColors.success,
-                    onNavigate: () {
-                      Navigator.of(context).pushNamed('/delivery-map', arguments: widget.delivery);
-                    },
                   ),
                   
                   const SizedBox(height: AppSpacing.md),
@@ -268,9 +265,6 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     longitude: delivery.deliveryLongitude,
                     distanceKm: delivery.distanceKm,
                     color: AppColors.error,
-                    onNavigate: () {
-                      Navigator.of(context).pushNamed('/delivery-map', arguments: widget.delivery);
-                    },
                   ),
                   
                   const SizedBox(height: AppSpacing.xl),

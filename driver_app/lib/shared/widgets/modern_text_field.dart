@@ -57,12 +57,28 @@ class ModernTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build suffixIcon widget if provided
+    Widget? suffixIconWidget;
+    if (suffixIcon != null) {
+      suffixIconWidget = GestureDetector(
+        onTap: onSuffixIconTap,
+        child: Icon(
+          suffixIcon,
+          color: AppColors.textSecondary,
+          size: 22,
+        ),
+      );
+    }
+    
     // Use helper to build decoration (it infers compact from label when needed)
+    // Don't show label in field since we display it above
     final decoration = compactInputDecoration(
       label: label,
       hint: hint,
       isCompact: isCompact,
       prefixIcon: prefixIcon,
+      suffixIconWidget: suffixIconWidget,
+      showLabelInField: false,
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../core/utils/navigation_utils.dart';
 
 /// Widget d'affichage des informations GPS d'une livraison
+/// Permet au livreur de naviguer directement vers le point GPS précis
 class GpsInfoCard extends StatelessWidget {
   final String title;
   final String address;
@@ -12,7 +15,6 @@ class GpsInfoCard extends StatelessWidget {
   // When null, `hasCoordinates` will be false.
   // Keep `distanceKm` nullable.
   final double? distanceKm;
-  final VoidCallback? onNavigate;
   final Color? color;
 
   const GpsInfoCard({
@@ -22,7 +24,6 @@ class GpsInfoCard extends StatelessWidget {
     required this.latitude,
     required this.longitude,
     this.distanceKm,
-    this.onNavigate,
     this.color,
   });
 
@@ -149,6 +150,86 @@ class GpsInfoCard extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+            ],
+            
+            // Boutons d'action GPS si les coordonnées sont disponibles
+            if (hasCoordinates) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              
+              Row(
+                children: [
+                  // Bouton Navigation directe
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        try {
+                          await openNavigationApp(
+                            latitude: latitude!,
+                            longitude: longitude!,
+                            label: title,
+                          );
+                        } catch (e) {
+                          // Ignore - the app will handle errors
+                        }
+                      },
+                      icon: const Icon(Icons.navigation, size: 18),
+                      label: const Text('Naviguer'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color ?? Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Bouton Copier les coordonnées
+                  IconButton(
+                    onPressed: () {
+                      final coords = '$latitude, $longitude';
+                      Clipboard.setData(ClipboardData(text: coords));
+                      // Note: Snackbar should be shown by parent if needed
+                    },
+                    icon: const Icon(Icons.copy, size: 20),
+                    tooltip: 'Copier les coordonnées',
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.grey.shade100,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              
+              // Indicateur de position précise
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.location_on, size: 14, color: Colors.blue.shade700),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Position exacte sur carte',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.blue.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ],

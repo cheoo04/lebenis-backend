@@ -5,6 +5,7 @@
 Le backend LeBeni's utilise **OpenRouteService** (gratuit, sans carte bancaire) pour calculer les distances réelles entre les points de livraison.
 
 **Fonctionnalités :**
+
 - ✅ Calcul de distance par route (ou à vol d'oiseau si pas d'API)
 - ✅ Fallback automatique sur formule haversine
 - ✅ Geocoding : adresse → coordonnées GPS (optionnel)
@@ -17,6 +18,7 @@ Le backend LeBeni's utilise **OpenRouteService** (gratuit, sans carte bancaire) 
 ### **Option A : Sans clé API (Mode haversine)**
 
 Le système fonctionne **déjà** sans configuration :
+
 - Utilise la formule haversine (distance à vol d'oiseau)
 - Ajoute 20% pour approximer la distance par route
 - **Suffisant pour démarrer le projet**
@@ -41,25 +43,27 @@ Pour des distances plus précises (par route) :
 ### **1. Obtenir la position GPS de l'utilisateur**
 
 Installer les packages :
+
 ```yaml
 # pubspec.yaml
 dependencies:
-  geolocator: ^11.0.0  # Géolocalisation
-  geocoding: ^3.0.0    # Optionnel : adresse ↔ GPS
+  geolocator: ^11.0.0 # Géolocalisation
+  geocoding: ^3.0.0 # Optionnel : adresse ↔ GPS
 ```
 
 Code Flutter :
+
 ```dart
 import 'package:geolocator/geolocator.dart';
 
 // Demander la permission
 Future<void> requestLocationPermission() async {
   LocationPermission permission = await Geolocator.checkPermission();
-  
+
   if (permission == LocationPermission.denied) {
     permission = await Geolocator.requestPermission();
   }
-  
+
   if (permission == LocationPermission.deniedForever) {
     // Rediriger vers les paramètres
     await Geolocator.openLocationSettings();
@@ -87,28 +91,28 @@ Lors de la création d'une livraison, inclure les coordonnées GPS :
 Future<void> createDelivery() async {
   // Obtenir la position du marchand (pickup)
   Position? pickupPosition = await getCurrentLocation();
-  
+
   // Obtenir la position de livraison (depuis l'adresse ou manuellement)
   // Ici, exemple avec géocodage d'adresse
   final deliveryCoords = await geocodeAddress("Yopougon, Abidjan");
-  
+
   final deliveryData = {
     'pickup_commune': 'Cocody',
     'pickup_latitude': pickupPosition?.latitude,      // ← Ajouté
     'pickup_longitude': pickupPosition?.longitude,    // ← Ajouté
-    
+
     'delivery_commune': 'Yopougon',
     'delivery_address': 'Yopougon, Marché Selmer',
     'delivery_latitude': deliveryCoords?.latitude,    // ← Ajouté
     'delivery_longitude': deliveryCoords?.longitude,  // ← Ajouté
-    
+
     'package_weight_kg': 3.5,
     'is_fragile': false,
     'scheduling_type': 'immediate',
-    
+
     // ... autres champs
   };
-  
+
   // Envoyer au backend
   final response = await http.post(
     Uri.parse('$baseUrl/api/v1/deliveries/'),
@@ -126,7 +130,7 @@ import 'package:geocoding/geocoding.dart';
 Future<Map<String, double>?> geocodeAddress(String address) async {
   try {
     List<Location> locations = await locationFromAddress(address);
-    
+
     if (locations.isNotEmpty) {
       return {
         'latitude': locations.first.latitude,
@@ -136,7 +140,7 @@ Future<Map<String, double>?> geocodeAddress(String address) async {
   } catch (e) {
     print('Erreur geocoding: $e');
   }
-  
+
   return null;
 }
 
@@ -152,12 +156,13 @@ Installer `google_maps_flutter` ou `flutter_map` :
 
 ```yaml
 dependencies:
-  google_maps_flutter: ^2.5.0  # Google Maps
+  google_maps_flutter: ^2.5.0 # Google Maps
   # OU
-  flutter_map: ^6.0.0          # OpenStreetMap (gratuit)
+  flutter_map: ^6.0.0 # OpenStreetMap (gratuit)
 ```
 
 Exemple avec Google Maps :
+
 ```dart
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -191,7 +196,7 @@ sequenceDiagram
     participant App as Flutter App
     participant Backend as Django Backend
     participant ORS as OpenRouteService
-    
+
     User->>App: Créer livraison
     App->>App: Demander permission GPS
     App->>App: Obtenir position actuelle
@@ -242,11 +247,11 @@ final testData = {
   'pickup_commune': 'Cocody',
   'pickup_latitude': 5.3600,
   'pickup_longitude': -4.0083,
-  
+
   'delivery_commune': 'Yopougon',
   'delivery_latitude': 5.2893,
   'delivery_longitude': -3.9828,
-  
+
   'package_weight_kg': 3.5,
   'scheduling_type': 'immediate',
 };
@@ -259,12 +264,14 @@ final testData = {
 ## 🚀 Prochaines étapes
 
 ### **Backend (Déjà fait ✅)**
+
 - ✅ Service `LocationService` créé
 - ✅ Intégration dans `PricingCalculator`
 - ✅ Champs GPS dans modèle `Delivery`
 - ✅ Tests passés
 
 ### **Flutter (À faire)**
+
 1. **Ajouter les packages** : `geolocator`, `geocoding`
 2. **Demander permission GPS** au démarrage
 3. **Modifier le formulaire de livraison** pour inclure les coordonnées
@@ -275,11 +282,11 @@ final testData = {
 
 ## 💰 Coûts
 
-| Service | Gratuit | Limite | Carte bancaire |
-|---------|---------|--------|----------------|
-| **Haversine (formule)** | ✅ Oui | Illimité | ❌ Non |
-| **OpenRouteService** | ✅ Oui | 40 req/min | ❌ Non |
-| **Google Maps API** | ⚠️ 200$/mois | 40k req/mois | ✅ Oui (requis) |
+| Service                 | Gratuit      | Limite       | Carte bancaire  |
+| ----------------------- | ------------ | ------------ | --------------- |
+| **Haversine (formule)** | ✅ Oui       | Illimité     | ❌ Non          |
+| **OpenRouteService**    | ✅ Oui       | 40 req/min   | ❌ Non          |
+| **Google Maps API**     | ⚠️ 200$/mois | 40k req/mois | ✅ Oui (requis) |
 
 **Recommandation** : Démarrer avec **haversine** (déjà fonctionnel), puis ajouter OpenRouteService si besoin de précision.
 
@@ -304,10 +311,9 @@ A: Le backend utilise une distance par défaut de 10 km. Encourage l'utilisateur
 ## 📞 Support
 
 Besoin d'aide ? Consulte :
+
 - Documentation OpenRouteService : https://openrouteservice.org/dev/#/api-docs
 - Package Flutter Geolocator : https://pub.dev/packages/geolocator
 - Code source : `backend/apps/core/location_service.py`
 
 ---
-
-✅ **Système opérationnel** - Prêt pour l'intégration Flutter ! 🚀

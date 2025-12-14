@@ -24,16 +24,23 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 # Celery Beat Schedule
 app.conf.beat_schedule = {
+    # Orange Money payouts (legacy)
     'process-daily-payouts': {
-        'task': 'payments.tasks.process_daily_payouts',
+        'task': 'apps.payments.tasks.process_daily_payouts',
         'schedule': crontab(hour=23, minute=59),  # 23h59 chaque jour
     },
+    # Wave Money payouts
+    'process-wave-daily-payouts': {
+        'task': 'apps.payments.tasks.process_wave_daily_payouts',
+        'schedule': crontab(hour=23, minute=55),  # 23h55 chaque jour (avant Orange)
+    },
+    # Maintenance tasks
     'cleanup-old-gps-data': {
-        'task': 'drivers.cleanup_old_gps_data',
+        'task': 'apps.drivers.tasks.cleanup_old_gps_data',
         'schedule': crontab(hour=2, minute=0),  # 2h du matin chaque jour
     },
     'send-tracking-statistics': {
-        'task': 'drivers.send_tracking_statistics',
+        'task': 'apps.drivers.tasks.send_tracking_statistics',
         'schedule': crontab(hour=6, minute=0),  # 6h du matin chaque jour
     },
 }

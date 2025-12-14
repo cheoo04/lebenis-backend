@@ -205,6 +205,31 @@ QUARTIERS_GPS = {
         "Songon M'Bratté": (5.3180, -4.2480),
         'Songon Village': (5.3120, -4.2420),
     },
+    
+    # Communes hors Abidjan (banlieue/périphérie)
+    'GRAND-BASSAM': {
+        'Ancien Bassam': (5.1940, -3.7380),
+        'Quartier France': (5.1960, -3.7350),
+        'Grand-Bassam Centre': (5.1980, -3.7400),
+        'Moossou': (5.2020, -3.7450),
+        'Azuretti': (5.1900, -3.7320),
+    },
+    
+    'BONOUA': {
+        'Bonoua Centre': (5.2700, -3.5950),
+        'Bonoua Village': (5.2720, -3.5980),
+    },
+    
+    'JACQUEVILLE': {
+        'Jacqueville Centre': (5.2050, -4.4150),
+        'Jacqueville Plage': (5.2030, -4.4180),
+    },
+    
+    'DABOU': {
+        'Dabou Centre': (5.3250, -4.3750),
+        'Dabou Plage': (5.3230, -4.3780),
+        'Lopou': (5.3280, -4.3720),
+    },
 }
 
 
@@ -368,6 +393,32 @@ QUARTIERS_ABIDJAN_COMPLET = {
     'SONGON': [
         'Songon Agban', 'Songon Kassemblé', "Songon M'Bratté", 'Songon Village',
     ],
+    
+    # ========================================================================
+    # COMMUNES HORS ABIDJAN (Banlieue / Périphérie)
+    # ========================================================================
+    
+    # GRAND-BASSAM (Ville historique - Est d'Abidjan, ~40km)
+    'GRAND-BASSAM': [
+        'Ancien Bassam', 'Quartier France', 'Petit Paris', 'Moossou',
+        'Azuretti', 'Modeste', 'Phare', 'Village Artisanal',
+        'Grand-Bassam Centre', 'Impérial', 'Jean Folly',
+    ],
+    
+    # BONOUA (Ville - Est d'Abidjan, ~60km)
+    'BONOUA': [
+        'Bonoua Centre', 'Bonoua Village', 'Quartier Résidentiel',
+    ],
+    
+    # JACQUEVILLE (Ville côtière - Ouest d'Abidjan, ~50km)
+    'JACQUEVILLE': [
+        'Jacqueville Centre', 'Jacqueville Plage', 'Addah',
+    ],
+    
+    # DABOU (Ville - Ouest d'Abidjan, ~45km)
+    'DABOU': [
+        'Dabou Centre', 'Dabou Plage', 'Lopou', 'Orbaff',
+    ],
 }
 
 
@@ -423,6 +474,11 @@ def get_commune_display_name(commune: str) -> str:
         'BINGERVILLE': 'Bingerville',
         'SONGON': 'Songon',
         'ANYAMA': 'Anyama',
+        # Communes hors Abidjan
+        'GRAND-BASSAM': 'Grand-Bassam',
+        'BONOUA': 'Bonoua',
+        'JACQUEVILLE': 'Jacqueville',
+        'DABOU': 'Dabou',
     }
 
     if key in DISPLAY_MAP:
@@ -686,6 +742,60 @@ def validate_address(commune: str, quartier: str) -> tuple:
         return False, f"Quartier '{quartier}' introuvable dans {commune}"
     
     return True, "Adresse valide"
+
+
+def find_nearest_quartier(latitude: float, longitude: float) -> dict:
+    """
+    Trouve le quartier le plus proche des coordonnées GPS données
+    Utilise la formule de Haversine pour calculer la distance
+    
+    Args:
+        latitude: Latitude en degrés décimaux
+        longitude: Longitude en degrés décimaux
+    
+    Returns:
+        dict avec 'quartier', 'commune', 'latitude', 'longitude', 'distance_km'
+        ou None si aucun quartier trouvé
+    """
+    import math
+    
+    def haversine(lat1, lon1, lat2, lon2):
+        """Calcule la distance en km entre deux points GPS"""
+        R = 6371  # Rayon de la Terre en km
+        
+        lat1_rad = math.radians(lat1)
+        lat2_rad = math.radians(lat2)
+        delta_lat = math.radians(lat2 - lat1)
+        delta_lon = math.radians(lon2 - lon1)
+        
+        a = math.sin(delta_lat/2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon/2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        
+        return R * c
+    
+    nearest = None
+    min_distance = float('inf')
+    
+    for commune, quartiers in QUARTIERS_GPS.items():
+        for quartier_nom, coords in quartiers.items():
+            q_lat, q_lon = coords
+            distance = haversine(latitude, longitude, q_lat, q_lon)
+            
+            if distance < min_distance:
+                min_distance = distance
+                nearest = {
+                    'nom': quartier_nom,
+                    'commune': commune,
+                    'latitude': q_lat,
+                    'longitude': q_lon,
+                    'distance_km': round(distance, 2)
+                }
+    
+    # Retourner seulement si le quartier est dans un rayon raisonnable (< 15 km)
+    if nearest and min_distance < 15:
+        return nearest
+    
+    return None
 
 
 # ============================================================================

@@ -172,4 +172,49 @@ class QuartierRepository {
       ];
     }
   }
+
+  /// Trouve le quartier le plus proche des coordonnées données
+  /// Utile pour le reverse geocoding après sélection sur carte ou GPS
+  Future<QuartierModel?> findNearestQuartier(double latitude, double longitude) async {
+    try {
+      final response = await _dioClient.post(
+        '/api/v1/locations/nearest-quartier/',
+        data: {
+          'latitude': latitude,
+          'longitude': longitude,
+        },
+      );
+
+      if (response.data['success'] == true && response.data['quartier'] != null) {
+        return QuartierModel(
+          nom: response.data['quartier']['nom'] ?? '',
+          commune: response.data['quartier']['commune'] ?? '',
+          latitude: _parseToDouble(response.data['quartier']['latitude']),
+          longitude: _parseToDouble(response.data['quartier']['longitude']),
+          source: 'nearest',
+        );
+      }
+
+      return null;
+    } catch (e) {
+      // En cas d'erreur, essayer le reverse geocode classique
+      final address = await reverseGeocode(latitude, longitude);
+      if (address != null) {
+        // Essayer de parser l'adresse pour trouver la commune
+        final communes = await fetchCommunes();
+        for (final commune in communes) {
+          if (address.toUpperCase().contains(commune.toUpperCase())) {
+            return QuartierModel(
+              nom: address,
+              commune: commune,
+              latitude: latitude,
+              longitude: longitude,
+              source: 'reverse_geocode',
+            );
+          }
+        }
+      }
+      return null;
+    }
+  }
 }

@@ -90,4 +90,5 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/logo_lebeni_business2.png
     - .env

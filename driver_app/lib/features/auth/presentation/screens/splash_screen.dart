@@ -5,7 +5,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../theme/app_typography.dart';
 import '../../../../theme/app_spacing.dart';
 import '../../../../theme/app_radius.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -107,19 +106,26 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       alignment: Alignment.topCenter,
                       child: Container(
                         margin: const EdgeInsets.only(top: AppSpacing.xl),
-                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                                child: SizedBox(
-                                  width: 56,
-                                  height: 56,
-                                  child: SvgPicture.asset(
-                                    'assets/logo_lebeni_business.svg',
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/logo_lebeni_business2.png',
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.store,
+                                size: 40,
+                                color: AppColors.primary,
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ),
                   ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -11,13 +12,23 @@ import 'data/providers/auth_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialiser Firebase
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (_) {
-    // Firebase initialization may fail on some devices - continue anyway
+  // Vérifier si la plateforme supporte Firebase
+  final isFirebaseSupported = !kIsWeb && 
+      (defaultTargetPlatform == TargetPlatform.android || 
+       defaultTargetPlatform == TargetPlatform.iOS);
+  
+  // Initialiser Firebase seulement sur les plateformes supportées
+  if (isFirebaseSupported) {
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      debugPrint('🔥 Firebase initialized successfully');
+    } catch (e) {
+      debugPrint('⚠️ Firebase initialization failed: $e');
+    }
+  } else {
+    debugPrint('⚠️ Firebase not supported on this platform (Linux/Desktop)');
   }
   
   runApp(const ProviderScope(child: MyApp()));
