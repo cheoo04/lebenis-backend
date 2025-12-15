@@ -150,6 +150,7 @@ class DeliveryCreateSerializer(serializers.ModelSerializer):
 class DeliverySerializer(serializers.ModelSerializer):
     merchant = MerchantSerializer(read_only=True)
     driver = DriverSerializer(read_only=True)
+    created_by_id = serializers.UUIDField(source='created_by.id', read_only=True)  # ID du créateur (marchand ou particulier) pour le chat
     pickup_precision = serializers.SerializerMethodField(read_only=True)
     delivery_precision = serializers.SerializerMethodField(read_only=True)
     # Expose pickup proof fields for client (backwards compatible keys)
@@ -163,6 +164,7 @@ class DeliverySerializer(serializers.ModelSerializer):
             'tracking_number',
             'merchant',
             'driver',
+            'created_by_id',  # UUID du créateur pour le chat
             'status',
             # Pickup
             'pickup_address',

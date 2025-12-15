@@ -12,6 +12,8 @@ import '../../../../shared/widgets/modern_button.dart';
 import '../../../../shared/widgets/gps_info_card.dart';
 import '../../../../shared/utils/formatters.dart';
 import '../../../../shared/utils/helpers.dart';
+import '../../../chat/providers/chat_provider.dart';
+import '../../../chat/screens/chat_screen.dart';
 
 
 class DeliveryDetailsScreen extends ConsumerStatefulWidget {
@@ -51,6 +53,29 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       } finally {
         if (mounted) setState(() => _isConfirmingDelivery = false);
       }
+  }
+
+  Future<void> _openChat(String creatorUserId, String deliveryId) async {
+    try {
+      final chatRoom = await ref.read(chatRepositoryProvider).createChatRoom(
+        otherUserId: creatorUserId,
+        deliveryId: deliveryId,
+        roomType: 'delivery',
+      );
+
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(chatRoom: chatRoom),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Helpers.showErrorSnackBar(context, 'Erreur: ${e.toString()}');
+      }
+    }
   }
 
   
@@ -410,8 +435,24 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                       type: ModernButtonType.success,
                     ),
                     const SizedBox(height: AppSpacing.md),
+                    if (delivery.creatorUserId != null)
+                      ModernButton(
+                        text: 'Contacter le client',
+                        onPressed: () => _openChat(delivery.creatorUserId!, delivery.id),
+                        icon: Icons.chat,
+                        type: ModernButtonType.outlined,
+                      ),
+                    if (delivery.creatorUserId != null) const SizedBox(height: AppSpacing.md),
                   ] else if (delivery.status == BackendConstants.deliveryStatusInProgress) ...[
                     const SizedBox(height: AppSpacing.md),
+                    if (delivery.creatorUserId != null)
+                      ModernButton(
+                        text: 'Contacter le client',
+                        onPressed: () => _openChat(delivery.creatorUserId!, delivery.id),
+                        icon: Icons.chat,
+                        type: ModernButtonType.outlined,
+                      ),
+                    if (delivery.creatorUserId != null) const SizedBox(height: AppSpacing.md),
                     TextField(
                       controller: _pinController,
                       keyboardType: TextInputType.number,

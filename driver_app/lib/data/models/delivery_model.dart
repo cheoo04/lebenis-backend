@@ -38,6 +38,7 @@ class DeliveryModel {
   // Relations
   final Map<String, dynamic>? merchant;
   final Map<String, dynamic>? driver;
+  final String? createdById;  // UUID du créateur (marchand ou particulier) pour le chat
   
   // Timestamps
   final DateTime createdAt;
@@ -86,6 +87,7 @@ class DeliveryModel {
     this.notes,
     this.merchant,
     this.driver,
+    this.createdById,
     required this.createdAt,
     this.assignedAt,
     this.pickupTime,
@@ -147,6 +149,7 @@ class DeliveryModel {
       // Relations
       merchant: json['merchant'] as Map<String, dynamic>?,
       driver: json['driver'] as Map<String, dynamic>?,
+      createdById: json['created_by_id']?.toString(),
       // Timestamps
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at']) 
@@ -217,6 +220,19 @@ class DeliveryModel {
 
   /// Obtenir le nom du commerçant
   String? get merchantName => merchant?['business_name'] as String?;
+
+  /// Obtenir l'ID User du marchand (pour le chat)
+  String? get merchantUserId => merchant?['user_id']?.toString() ?? merchant?['user']?['id']?.toString();
+
+  /// Obtenir l'ID du créateur de la livraison (marchand OU particulier)
+  /// Priorité: createdById > merchantUserId
+  String? get creatorUserId {
+    // Nouveau champ direct depuis le backend
+    if (createdById != null && createdById!.isNotEmpty) return createdById;
+    
+    // Fallback sur merchantUserId
+    return merchantUserId;
+  }
 
   /// Obtenir le nom du driver
   String? get driverName => driver?['full_name'] as String?;
