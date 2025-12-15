@@ -1,11 +1,13 @@
 from rest_framework import viewsets, status, filters
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes as perm_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from django.db.models import Q, Sum
 from django.utils import timezone
 import logging
 import sentry_sdk
+from django.db import models  # Import manquant
 
 from .models import ChatRoom, ChatMessage
 from .serializers import (
@@ -18,6 +20,69 @@ from apps.authentication.models import User
 from apps.deliveries.models import Delivery
 
 logger = logging.getLogger(__name__)
+
+
+class FirebaseTokenView(APIView):
+    """
+    Génère un Firebase Custom Token pour l'utilisateur authentifié.
+    Ce token permet à l'app Flutter de s'authentifier auprès de Firebase.
+    
+    Endpoint: GET /api/v1/chat/firebase-token/
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        try:
+            import firebase_admin
+            from firebase_admin import auth as firebase_auth
+            
+            # S'assurer que Firebase est initialisé
+            if not FirebaseChatService.initialize():
+                return Response(
+                    {'error': 'Firebase non configuré sur le serveur'},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+            
+            # Générer le custom token avec l'ID utilisateur Django comme UID
+            user_id = str(request.user.id)
+            
+            # Claims additionnels (optionnel)
+            additional_claims = {
+                'email': request.user.email,
+                'user_type': 'merchant' if hasattr(request.user, 'merchant_profile') else 
+                             'driver' if hasattr(request.user, 'driver_profile') else 
+                             'individual',
+            }
+            
+            custom_token = firebase_auth.create_custom_token(
+                user_id,
+                additional_claims
+            )
+            
+            # Le token est en bytes, le convertir en string
+            token_str = custom_token.decode('utf-8') if isinstance(custom_token, bytes) else custom_token
+            
+            logger.info(f"✅ Firebase custom token généré pour user {user_id}")
+            
+            return Response({
+                'firebase_token': token_str,
+                'user_id': user_id,
+                'expires_in': 3600,  # 1 heure
+            })
+            
+        except ImportError:
+            logger.error("❌ firebase-admin non installé")
+            return Response(
+                {'error': 'Firebase Admin SDK non disponible'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+        except Exception as e:
+            logger.error(f"❌ Erreur génération Firebase token: {e}")
+            sentry_sdk.capture_exception(e)
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class ChatRoomViewSet(viewsets.ModelViewSet):
@@ -480,4 +545,3 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         })
 
 
-from django.db import models  # Import manquant

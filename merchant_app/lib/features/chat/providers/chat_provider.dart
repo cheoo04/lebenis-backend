@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../../../data/models/chat/chat_room_model.dart';
@@ -124,6 +125,8 @@ class ChatRoomsNotifier extends Notifier<ChatRoomsState> {
       final authState = ref.read(authStateProvider);
       final currentUserId = authState.value?.id.toString() ?? '';
       
+      debugPrint('[ChatProvider] createOrGetChatRoom - otherUserId: $otherUserId, currentUserId: $currentUserId, deliveryId: $deliveryId');
+      
       if (currentUserId.isEmpty) {
         throw Exception('Utilisateur non connecté');
       }
@@ -134,14 +137,18 @@ class ChatRoomsNotifier extends Notifier<ChatRoomsState> {
         deliveryId: deliveryId,
         initialMessage: initialMessage,
       );
+      
+      debugPrint('[ChatProvider] Chat room created/retrieved: ${room.id}');
 
       // Recharger la liste
       await loadChatRooms();
 
       return room;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[ChatProvider] Error creating chat room: $e');
+      debugPrint('[ChatProvider] StackTrace: $stackTrace');
       state = state.copyWith(error: e.toString());
-      return null;
+      rethrow; // Propager l'erreur pour qu'elle soit affichée
     }
   }
 

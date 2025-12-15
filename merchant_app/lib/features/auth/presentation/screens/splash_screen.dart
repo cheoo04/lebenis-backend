@@ -81,6 +81,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 				return;
 			}
 			
+			// Authentifier sur Firebase pour le chat temps réel (non bloquant)
+			_authenticateFirebaseInBackground();
+			
 		// Charger le profil utilisateur (merchant ou individual)
 		await ref.read(userProfileProvider.notifier).loadProfile();
 		
@@ -132,6 +135,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 			if (mounted) Navigator.pushReplacementNamed(context, '/login');
 		}
 	}
+	
+	/// Authentifie l'utilisateur sur Firebase en arrière-plan (non bloquant)
+	void _authenticateFirebaseInBackground() {
+		Future.microtask(() async {
+			try {
+				final firebaseAuthService = ref.read(firebaseAuthServiceProvider);
+				await firebaseAuthService.signInWithCustomToken();
+			} catch (e) {
+				debugPrint('[SplashScreen] Firebase auth error (non-blocking): $e');
+			}
+		});
+	}
 
 	@override
 	Widget build(BuildContext context) {
@@ -141,150 +156,171 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 				child: AnimatedBuilder(
           animation: _animationController,
           builder: (context, child) {
-            return Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                children: [
-                  // Logo en haut
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: Container(
-                        margin: const EdgeInsets.only(top: 24),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: ClipOval(
-                          child: Image.asset(
-                            'assets/logo_lebeni_business2.png',
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(
-                                Icons.store,
-                                size: 40,
-                                color: AppColors.primary,
-                              );
-                            },
-                          ),
-                        ),
-                      ),
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                // Adapter les tailles selon la hauteur disponible
+                final isSmallScreen = constraints.maxHeight < 600;
+                final logoSize = isSmallScreen ? 60.0 : 80.0;
+                final illustrationSize = isSmallScreen ? 180.0 : 280.0;
+                final iconContainerSize = isSmallScreen ? 80.0 : 120.0;
+                final iconSize = isSmallScreen ? 44.0 : 64.0;
+                final titleSize = isSmallScreen ? 24.0 : 28.0;
+                final subtitleSize = isSmallScreen ? 14.0 : 16.0;
+                
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                  ),
-
-                  const Spacer(),
-
-                  // Illustration centrale
-                  ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: Container(
-                        width: 280,
-                        height: 280,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(32),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.1),
-                              blurRadius: 30,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // Icône boutique moderne
-                                Container(
-                                  width: 120,
-                                  height: 120,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(alpha: 0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.storefront_outlined,
-                                    size: 64,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-                                // Décorations stylisées
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    _buildDecoIcon(Icons.inventory_2_outlined, AppColors.success),
-                                    const SizedBox(width: 32),
-                                    _buildDecoIcon(Icons.local_shipping_outlined, AppColors.accent),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  // Texte et loader
-                  SlideTransition(
-                    position: _slideAnimation,
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
+                    child: Padding(
+                      padding: EdgeInsets.all(isSmallScreen ? 16 : 32),
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Titre
-                          Text(
-                            'LeBenis Business',
-                            style: TextStyles.title.copyWith(
-                              color: AppColors.primary,
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Sous-titre
-                          Text(
-                            'Gérez vos livraisons en toute simplicité',
-                            style: TextStyles.body.copyWith(
-                              color: AppColors.textSecondary,
-                              fontSize: 16,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 48),
-
-                          // Loading indicator
-                          const SizedBox(
-                            width: 40,
-                            height: 40,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 3,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                AppColors.primary,
+                          // Logo en haut
+                          FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: Align(
+                              alignment: Alignment.topCenter,
+                              child: Container(
+                                margin: EdgeInsets.only(top: isSmallScreen ? 12 : 24),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    'assets/logo_lebeni_business2.png',
+                                    width: logoSize,
+                                    height: logoSize,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Icon(
+                                        Icons.store,
+                                        size: logoSize / 2,
+                                        color: AppColors.primary,
+                                      );
+                                    },
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                          const SizedBox(height: 32),
+
+                          SizedBox(height: isSmallScreen ? 24 : 40),
+
+                          // Illustration centrale
+                          ScaleTransition(
+                            scale: _scaleAnimation,
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: Container(
+                                width: illustrationSize,
+                                height: illustrationSize,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(32),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(alpha: 0.1),
+                                      blurRadius: 30,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        // Icône boutique moderne
+                                        Container(
+                                          width: iconContainerSize,
+                                          height: iconContainerSize,
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary.withValues(alpha: 0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.storefront_outlined,
+                                            size: iconSize,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                        SizedBox(height: isSmallScreen ? 16 : 24),
+                                        // Décorations stylisées
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            _buildDecoIcon(Icons.inventory_2_outlined, AppColors.success, isSmallScreen),
+                                            SizedBox(width: isSmallScreen ? 24 : 32),
+                                            _buildDecoIcon(Icons.local_shipping_outlined, AppColors.accent, isSmallScreen),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(height: isSmallScreen ? 24 : 40),
+
+                          // Texte et loader
+                          SlideTransition(
+                            position: _slideAnimation,
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: Column(
+                                children: [
+                                  // Titre
+                                  Text(
+                                    'LeBenis Business',
+                                    style: TextStyles.title.copyWith(
+                                      color: AppColors.primary,
+                                      fontSize: titleSize,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 8 : 12),
+
+                                  // Sous-titre
+                                  Text(
+                                    'Gérez vos livraisons en toute simplicité',
+                                    style: TextStyles.body.copyWith(
+                                      color: AppColors.textSecondary,
+                                      fontSize: subtitleSize,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 32 : 48),
+
+                                  // Loading indicator
+                                  const SizedBox(
+                                    width: 40,
+                                    height: 40,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 3,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 16 : 32),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
-                ],
-              ),
+                );
+              },
             );
           },
         ),
@@ -293,16 +329,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 	}
 
   /// Icône décorative
-  Widget _buildDecoIcon(IconData icon, Color color) {
+  Widget _buildDecoIcon(IconData icon, Color color, [bool isSmall = false]) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(isSmall ? 8 : 12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(
         icon,
-        size: 24,
+        size: isSmall ? 20 : 24,
         color: color,
       ),
     );

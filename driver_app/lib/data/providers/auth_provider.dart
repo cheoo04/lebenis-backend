@@ -1,8 +1,10 @@
 // lib/data/providers/auth_provider.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/dio_client.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/firebase_auth_service.dart';
 import '../repositories/auth_repository.dart';
 import '../models/user_model.dart';
 
@@ -35,6 +37,12 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final dioClient = ref.read(dioClientProvider);
   final authService = ref.read(authServiceProvider);
   return AuthRepository(dioClient, authService);
+});
+
+/// FirebaseAuthService Provider
+final firebaseAuthServiceProvider = Provider<FirebaseAuthService>((ref) {
+  final dioClient = ref.read(dioClientProvider);
+  return FirebaseAuthService(dioClient: dioClient);
 });
 
 // ========== AUTH STATE ==========
@@ -92,6 +100,9 @@ class AuthNotifier extends Notifier<AuthState> {
         user: user,
         isLoggedIn: true,
       );
+      
+      // Authentifier sur Firebase pour le chat temps réel (non bloquant)
+      _authenticateFirebase();
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
       state = state.copyWith(
@@ -99,6 +110,17 @@ class AuthNotifier extends Notifier<AuthState> {
         error: errorMessage,
       );
       rethrow;
+    }
+  }
+  
+  /// Authentifie l'utilisateur sur Firebase (non bloquant)
+  Future<void> _authenticateFirebase() async {
+    try {
+      final firebaseAuthService = ref.read(firebaseAuthServiceProvider);
+      await firebaseAuthService.signInWithCustomToken();
+    } catch (e) {
+      // Ne pas bloquer le login si Firebase échoue
+      debugPrint('[AuthProvider] Firebase auth failed (non-blocking): $e');
     }
   }
 
@@ -127,6 +149,9 @@ class AuthNotifier extends Notifier<AuthState> {
         user: user,
         isLoggedIn: true,
       );
+      
+      // Authentifier sur Firebase pour le chat temps réel (non bloquant)
+      _authenticateFirebase();
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
       state = state.copyWith(
@@ -141,6 +166,14 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> logout() async {
     state = state.copyWith(isLoading: true);
     try {
+      // Déconnecter de Firebase aussi
+      try {
+        final firebaseAuthService = ref.read(firebaseAuthServiceProvider);
+        await firebaseAuthService.signOut();
+      } catch (e) {
+        debugPrint('[AuthProvider] Firebase logout error: $e');
+      }
+      
       await _repository.logout();
       // ✅ Réinitialiser l'état avec isLoggedIn = false pour déclencher la redirection
       state = AuthState(isLoggedIn: false);
@@ -172,6 +205,9 @@ class AuthNotifier extends Notifier<AuthState> {
         isLoggedIn: true,
         user: user,
       );
+      
+      // Authentifier sur Firebase pour le chat temps réel (non bloquant)
+      _authenticateFirebase();
     } catch (e) {
       // Token invalide ou expiré - déconnecter
       await _authService.logout();
