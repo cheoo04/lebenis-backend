@@ -442,13 +442,13 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
 
                 if (delivery.driver != null) const SizedBox(height: 12),
 
-                if (delivery.driver != null)
+                if (delivery.driver != null && delivery.driver!.userId != null)
                   ModernButton(
                     text: 'Contacter le livreur',
                     icon: Icons.chat,
                     onPressed: () => _openChat(
-                      delivery.driver!.id,
-                      delivery.id,  // UUID de la livraison, pas le tracking number
+                      delivery.driver!.userId!,  // UUID du User, pas du profil Driver
+                      delivery.id,  // UUID de la livraison
                     ),
                     backgroundColor: Colors.blue,
                   ),
