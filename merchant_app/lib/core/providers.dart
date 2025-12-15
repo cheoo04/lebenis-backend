@@ -8,6 +8,16 @@ import 'services/pdf_report_service.dart';
 import 'services/notification_service.dart';
 import 'constants/api_constants.dart';
 
+/// Force la déconnexion de l'utilisateur
+Future<void> _forceLogout(Ref ref, AuthService authService) async {
+  try {
+    await ref.read(authStateProvider.notifier).logout();
+  } catch (_) {
+    // Fallback: effacer les tokens directement
+    await authService.logout();
+  }
+}
+
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
   return dio;
@@ -44,15 +54,15 @@ final dioClientProvider = Provider<DioClient>((ref) {
               error.requestOptions.headers['Authorization'] = 'Bearer $newToken';
               final response = await dio.fetch(error.requestOptions);
               return handler.resolve(response);
+            } else {
+              // Token refresh retourné null, forcer la déconnexion
+              await _forceLogout(ref, authService);
+              return handler.reject(error);
             }
           } catch (e) {
-            // Si le refresh échoue, déconnecter l'utilisateur via le provider
-            try {
-              await ref.read(authStateProvider.notifier).logout();
-            } catch (_) {
-              // Fallback: clear tokens directly
-              await authService.logout();
-            }
+            // Si le refresh échoue, déconnecter l'utilisateur
+            await _forceLogout(ref, authService);
+            return handler.reject(error);
           }
         }
         return handler.next(error);

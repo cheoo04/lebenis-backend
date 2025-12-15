@@ -216,7 +216,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       statsAsync.when(
                         data: (stats) => _buildStatsGrid(context, stats),
                         loading: () => _buildLoadingGrid(),
-                        error: (err, st) => _buildErrorCard(err.toString()),
+                        error: (err, st) {
+                          // Ne pas afficher l'erreur si c'est une erreur d'auth (401)
+                          // L'utilisateur sera redirigé vers le login
+                          final errorStr = err.toString().toLowerCase();
+                          if (errorStr.contains('401') || errorStr.contains('jeton') || errorStr.contains('token')) {
+                            return const SizedBox.shrink();
+                          }
+                          return _buildErrorCard(err.toString());
+                        },
                       ),
 
                       const SizedBox(height: 16),
