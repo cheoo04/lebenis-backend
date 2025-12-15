@@ -19,6 +19,7 @@ class DriverZoneSerializer(serializers.ModelSerializer):
 class DriverSerializer(serializers.ModelSerializer):
     zones = DriverZoneSerializer(many=True, read_only=True)
     user = UserSerializer(read_only=True)
+    user_id = serializers.UUIDField(source='user.id', read_only=True)  # ID du User pour le chat
     phone = serializers.CharField(source='user.phone', read_only=True)
     profile_photo = serializers.CharField(
         source='user.profile_photo',
@@ -66,6 +67,7 @@ class DriverSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'user',
+            'user_id',  # UUID du User pour le chat
             'phone',
             'driver_license',
             'license_expiry',

@@ -1,5 +1,6 @@
 class DriverModel {
-  final String id; // UUID
+  final String id; // UUID du profil Driver
+  final String? userId; // UUID du User (pour le chat)
   final String name;
   final String phone;
   final String? photo;
@@ -8,6 +9,7 @@ class DriverModel {
 
   DriverModel({
     required this.id,
+    this.userId,
     required this.name,
     required this.phone,
     this.photo,
@@ -29,6 +31,7 @@ class DriverModel {
 
     return DriverModel(
       id: json['id']?.toString() ?? '',
+      userId: json['user_id']?.toString() ?? json['user']?['id']?.toString(),
       name: json['name'] ?? json['user']?['first_name'] ?? 'Chauffeur',
       phone: json['phone'] ?? json['user']?['phone_number'] ?? '',
       photo: json['photo'],
@@ -40,6 +43,7 @@ class DriverModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      if (userId != null) 'user_id': userId,
       'name': name,
       'phone': phone,
       'photo': photo,
