@@ -78,14 +78,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       next.when(
         data: (user) {
           if (user != null && previous?.value == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('✅ Connexion réussie !'),
-                backgroundColor: AppColors.success,
-                duration: Duration(seconds: 1),
-              ),
-            );
-            
             ref.read(notificationServiceProvider).registerTokenAfterLogin();
             Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
           }

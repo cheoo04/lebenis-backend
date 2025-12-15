@@ -6,10 +6,10 @@ part 'chat_participant.g.dart';
 class ChatParticipant with _$ChatParticipant {
   const factory ChatParticipant({
     required String id,
-    required String fullName,
-    required String phoneNumber,
-    required String userType,
-    String? profilePhotoUrl,
+    @JsonKey(name: 'full_name') required String fullName,
+    @JsonKey(name: 'phone') required String phoneNumber,
+    @JsonKey(name: 'user_type') required String userType,
+    @JsonKey(name: 'profile_photo') String? profilePhotoUrl,
   }) = _ChatParticipant;
   factory ChatParticipant.fromJson(Map<String, dynamic> json) =>
       _$ChatParticipantFromJson(json);

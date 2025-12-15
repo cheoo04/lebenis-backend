@@ -64,7 +64,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         analytics.logLogin(method: 'email');
         analytics.setUserId(authState.user?.id);
         
-        Helpers.showSuccessSnackBar(context, 'Connexion réussie!');
         Navigator.of(context).pushReplacementNamed('/home');
       } else if (authState.error != null) {
         Helpers.showErrorSnackBar(context, authState.error!);

@@ -21,14 +21,23 @@ ChatRoomModel _$ChatRoomModelFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$ChatRoomModel {
   String get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'room_type')
   RoomType get roomType => throw _privateConstructorUsedError;
+  @JsonKey(name: 'other_user_info')
   ChatParticipant get otherParticipant => throw _privateConstructorUsedError;
+  @JsonKey(name: 'delivery_info')
   DeliveryInfo? get deliveryInfo => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_message_text')
   String? get lastMessageText => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_message_at')
   DateTime? get lastMessageAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'unread_count', defaultValue: 0)
   int get unreadCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_archived', defaultValue: false)
   bool get isArchived => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
   DateTime get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'firebase_path')
   String? get firebasePath => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -45,15 +54,15 @@ abstract class $ChatRoomModelCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      RoomType roomType,
-      ChatParticipant otherParticipant,
-      DeliveryInfo? deliveryInfo,
-      String? lastMessageText,
-      DateTime? lastMessageAt,
-      int unreadCount,
-      bool isArchived,
-      DateTime createdAt,
-      String? firebasePath});
+      @JsonKey(name: 'room_type') RoomType roomType,
+      @JsonKey(name: 'other_user_info') ChatParticipant otherParticipant,
+      @JsonKey(name: 'delivery_info') DeliveryInfo? deliveryInfo,
+      @JsonKey(name: 'last_message_text') String? lastMessageText,
+      @JsonKey(name: 'last_message_at') DateTime? lastMessageAt,
+      @JsonKey(name: 'unread_count', defaultValue: 0) int unreadCount,
+      @JsonKey(name: 'is_archived', defaultValue: false) bool isArchived,
+      @JsonKey(name: 'created_at') DateTime createdAt,
+      @JsonKey(name: 'firebase_path') String? firebasePath});
 
   $ChatParticipantCopyWith<$Res> get otherParticipant;
   $DeliveryInfoCopyWith<$Res>? get deliveryInfo;
@@ -158,15 +167,15 @@ abstract class _$$ChatRoomModelImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      RoomType roomType,
-      ChatParticipant otherParticipant,
-      DeliveryInfo? deliveryInfo,
-      String? lastMessageText,
-      DateTime? lastMessageAt,
-      int unreadCount,
-      bool isArchived,
-      DateTime createdAt,
-      String? firebasePath});
+      @JsonKey(name: 'room_type') RoomType roomType,
+      @JsonKey(name: 'other_user_info') ChatParticipant otherParticipant,
+      @JsonKey(name: 'delivery_info') DeliveryInfo? deliveryInfo,
+      @JsonKey(name: 'last_message_text') String? lastMessageText,
+      @JsonKey(name: 'last_message_at') DateTime? lastMessageAt,
+      @JsonKey(name: 'unread_count', defaultValue: 0) int unreadCount,
+      @JsonKey(name: 'is_archived', defaultValue: false) bool isArchived,
+      @JsonKey(name: 'created_at') DateTime createdAt,
+      @JsonKey(name: 'firebase_path') String? firebasePath});
 
   @override
   $ChatParticipantCopyWith<$Res> get otherParticipant;
@@ -246,15 +255,16 @@ class __$$ChatRoomModelImplCopyWithImpl<$Res>
 class _$ChatRoomModelImpl implements _ChatRoomModel {
   const _$ChatRoomModelImpl(
       {required this.id,
-      required this.roomType,
-      required this.otherParticipant,
-      this.deliveryInfo,
-      this.lastMessageText,
-      this.lastMessageAt,
-      required this.unreadCount,
+      @JsonKey(name: 'room_type') required this.roomType,
+      @JsonKey(name: 'other_user_info') required this.otherParticipant,
+      @JsonKey(name: 'delivery_info') this.deliveryInfo,
+      @JsonKey(name: 'last_message_text') this.lastMessageText,
+      @JsonKey(name: 'last_message_at') this.lastMessageAt,
+      @JsonKey(name: 'unread_count', defaultValue: 0) required this.unreadCount,
+      @JsonKey(name: 'is_archived', defaultValue: false)
       required this.isArchived,
-      required this.createdAt,
-      this.firebasePath});
+      @JsonKey(name: 'created_at') required this.createdAt,
+      @JsonKey(name: 'firebase_path') this.firebasePath});
 
   factory _$ChatRoomModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ChatRoomModelImplFromJson(json);
@@ -262,22 +272,31 @@ class _$ChatRoomModelImpl implements _ChatRoomModel {
   @override
   final String id;
   @override
+  @JsonKey(name: 'room_type')
   final RoomType roomType;
   @override
+  @JsonKey(name: 'other_user_info')
   final ChatParticipant otherParticipant;
   @override
+  @JsonKey(name: 'delivery_info')
   final DeliveryInfo? deliveryInfo;
   @override
+  @JsonKey(name: 'last_message_text')
   final String? lastMessageText;
   @override
+  @JsonKey(name: 'last_message_at')
   final DateTime? lastMessageAt;
   @override
+  @JsonKey(name: 'unread_count', defaultValue: 0)
   final int unreadCount;
   @override
+  @JsonKey(name: 'is_archived', defaultValue: false)
   final bool isArchived;
   @override
+  @JsonKey(name: 'created_at')
   final DateTime createdAt;
   @override
+  @JsonKey(name: 'firebase_path')
   final String? firebasePath;
 
   @override
@@ -342,16 +361,20 @@ class _$ChatRoomModelImpl implements _ChatRoomModel {
 
 abstract class _ChatRoomModel implements ChatRoomModel {
   const factory _ChatRoomModel(
-      {required final String id,
-      required final RoomType roomType,
-      required final ChatParticipant otherParticipant,
-      final DeliveryInfo? deliveryInfo,
-      final String? lastMessageText,
-      final DateTime? lastMessageAt,
-      required final int unreadCount,
-      required final bool isArchived,
-      required final DateTime createdAt,
-      final String? firebasePath}) = _$ChatRoomModelImpl;
+          {required final String id,
+          @JsonKey(name: 'room_type') required final RoomType roomType,
+          @JsonKey(name: 'other_user_info')
+          required final ChatParticipant otherParticipant,
+          @JsonKey(name: 'delivery_info') final DeliveryInfo? deliveryInfo,
+          @JsonKey(name: 'last_message_text') final String? lastMessageText,
+          @JsonKey(name: 'last_message_at') final DateTime? lastMessageAt,
+          @JsonKey(name: 'unread_count', defaultValue: 0)
+          required final int unreadCount,
+          @JsonKey(name: 'is_archived', defaultValue: false)
+          required final bool isArchived,
+          @JsonKey(name: 'created_at') required final DateTime createdAt,
+          @JsonKey(name: 'firebase_path') final String? firebasePath}) =
+      _$ChatRoomModelImpl;
 
   factory _ChatRoomModel.fromJson(Map<String, dynamic> json) =
       _$ChatRoomModelImpl.fromJson;
@@ -359,22 +382,31 @@ abstract class _ChatRoomModel implements ChatRoomModel {
   @override
   String get id;
   @override
+  @JsonKey(name: 'room_type')
   RoomType get roomType;
   @override
+  @JsonKey(name: 'other_user_info')
   ChatParticipant get otherParticipant;
   @override
+  @JsonKey(name: 'delivery_info')
   DeliveryInfo? get deliveryInfo;
   @override
+  @JsonKey(name: 'last_message_text')
   String? get lastMessageText;
   @override
+  @JsonKey(name: 'last_message_at')
   DateTime? get lastMessageAt;
   @override
+  @JsonKey(name: 'unread_count', defaultValue: 0)
   int get unreadCount;
   @override
+  @JsonKey(name: 'is_archived', defaultValue: false)
   bool get isArchived;
   @override
+  @JsonKey(name: 'created_at')
   DateTime get createdAt;
   @override
+  @JsonKey(name: 'firebase_path')
   String? get firebasePath;
   @override
   @JsonKey(ignore: true)

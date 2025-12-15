@@ -21,9 +21,13 @@ ChatParticipant _$ChatParticipantFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$ChatParticipant {
   String get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'full_name')
   String get fullName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'phone')
   String get phoneNumber => throw _privateConstructorUsedError;
+  @JsonKey(name: 'user_type')
   String get userType => throw _privateConstructorUsedError;
+  @JsonKey(name: 'profile_photo')
   String? get profilePhotoUrl => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -40,10 +44,10 @@ abstract class $ChatParticipantCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String fullName,
-      String phoneNumber,
-      String userType,
-      String? profilePhotoUrl});
+      @JsonKey(name: 'full_name') String fullName,
+      @JsonKey(name: 'phone') String phoneNumber,
+      @JsonKey(name: 'user_type') String userType,
+      @JsonKey(name: 'profile_photo') String? profilePhotoUrl});
 }
 
 /// @nodoc
@@ -100,10 +104,10 @@ abstract class _$$ChatParticipantImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      String fullName,
-      String phoneNumber,
-      String userType,
-      String? profilePhotoUrl});
+      @JsonKey(name: 'full_name') String fullName,
+      @JsonKey(name: 'phone') String phoneNumber,
+      @JsonKey(name: 'user_type') String userType,
+      @JsonKey(name: 'profile_photo') String? profilePhotoUrl});
 }
 
 /// @nodoc
@@ -153,10 +157,10 @@ class __$$ChatParticipantImplCopyWithImpl<$Res>
 class _$ChatParticipantImpl implements _ChatParticipant {
   const _$ChatParticipantImpl(
       {required this.id,
-      required this.fullName,
-      required this.phoneNumber,
-      required this.userType,
-      this.profilePhotoUrl});
+      @JsonKey(name: 'full_name') required this.fullName,
+      @JsonKey(name: 'phone') required this.phoneNumber,
+      @JsonKey(name: 'user_type') required this.userType,
+      @JsonKey(name: 'profile_photo') this.profilePhotoUrl});
 
   factory _$ChatParticipantImpl.fromJson(Map<String, dynamic> json) =>
       _$$ChatParticipantImplFromJson(json);
@@ -164,12 +168,16 @@ class _$ChatParticipantImpl implements _ChatParticipant {
   @override
   final String id;
   @override
+  @JsonKey(name: 'full_name')
   final String fullName;
   @override
+  @JsonKey(name: 'phone')
   final String phoneNumber;
   @override
+  @JsonKey(name: 'user_type')
   final String userType;
   @override
+  @JsonKey(name: 'profile_photo')
   final String? profilePhotoUrl;
 
   @override
@@ -215,11 +223,12 @@ class _$ChatParticipantImpl implements _ChatParticipant {
 
 abstract class _ChatParticipant implements ChatParticipant {
   const factory _ChatParticipant(
-      {required final String id,
-      required final String fullName,
-      required final String phoneNumber,
-      required final String userType,
-      final String? profilePhotoUrl}) = _$ChatParticipantImpl;
+          {required final String id,
+          @JsonKey(name: 'full_name') required final String fullName,
+          @JsonKey(name: 'phone') required final String phoneNumber,
+          @JsonKey(name: 'user_type') required final String userType,
+          @JsonKey(name: 'profile_photo') final String? profilePhotoUrl}) =
+      _$ChatParticipantImpl;
 
   factory _ChatParticipant.fromJson(Map<String, dynamic> json) =
       _$ChatParticipantImpl.fromJson;
@@ -227,12 +236,16 @@ abstract class _ChatParticipant implements ChatParticipant {
   @override
   String get id;
   @override
+  @JsonKey(name: 'full_name')
   String get fullName;
   @override
+  @JsonKey(name: 'phone')
   String get phoneNumber;
   @override
+  @JsonKey(name: 'user_type')
   String get userType;
   @override
+  @JsonKey(name: 'profile_photo')
   String? get profilePhotoUrl;
   @override
   @JsonKey(ignore: true)

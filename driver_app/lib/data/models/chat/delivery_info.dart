@@ -6,9 +6,9 @@ part 'delivery_info.g.dart';
 class DeliveryInfo with _$DeliveryInfo {
   const factory DeliveryInfo({
     required String id,
-    required String trackingNumber,
-    String? pickupAddress,
-    String? deliveryAddress,
+    @JsonKey(name: 'tracking_number') required String trackingNumber,
+    @JsonKey(name: 'pickup_address') String? pickupAddress,
+    @JsonKey(name: 'delivery_address') String? deliveryAddress,
   }) = _DeliveryInfo;
 
   factory DeliveryInfo.fromJson(Map<String, dynamic> json) =>

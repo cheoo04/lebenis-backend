@@ -9,34 +9,35 @@ part of 'chat_room_model.dart';
 _$ChatRoomModelImpl _$$ChatRoomModelImplFromJson(Map<String, dynamic> json) =>
     _$ChatRoomModelImpl(
       id: json['id'] as String,
-      roomType: $enumDecode(_$RoomTypeEnumMap, json['roomType']),
+      roomType: $enumDecode(_$RoomTypeEnumMap, json['room_type']),
       otherParticipant: ChatParticipant.fromJson(
-          json['otherParticipant'] as Map<String, dynamic>),
-      deliveryInfo: json['deliveryInfo'] == null
+          json['other_user_info'] as Map<String, dynamic>),
+      deliveryInfo: json['delivery_info'] == null
           ? null
-          : DeliveryInfo.fromJson(json['deliveryInfo'] as Map<String, dynamic>),
-      lastMessageText: json['lastMessageText'] as String?,
-      lastMessageAt: json['lastMessageAt'] == null
+          : DeliveryInfo.fromJson(
+              json['delivery_info'] as Map<String, dynamic>),
+      lastMessageText: json['last_message_text'] as String?,
+      lastMessageAt: json['last_message_at'] == null
           ? null
-          : DateTime.parse(json['lastMessageAt'] as String),
-      unreadCount: (json['unreadCount'] as num).toInt(),
-      isArchived: json['isArchived'] as bool,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      firebasePath: json['firebasePath'] as String?,
+          : DateTime.parse(json['last_message_at'] as String),
+      unreadCount: (json['unread_count'] as num?)?.toInt() ?? 0,
+      isArchived: json['is_archived'] as bool? ?? false,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      firebasePath: json['firebase_path'] as String?,
     );
 
 Map<String, dynamic> _$$ChatRoomModelImplToJson(_$ChatRoomModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'roomType': _$RoomTypeEnumMap[instance.roomType]!,
-      'otherParticipant': instance.otherParticipant,
-      'deliveryInfo': instance.deliveryInfo,
-      'lastMessageText': instance.lastMessageText,
-      'lastMessageAt': instance.lastMessageAt?.toIso8601String(),
-      'unreadCount': instance.unreadCount,
-      'isArchived': instance.isArchived,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'firebasePath': instance.firebasePath,
+      'room_type': _$RoomTypeEnumMap[instance.roomType]!,
+      'other_user_info': instance.otherParticipant,
+      'delivery_info': instance.deliveryInfo,
+      'last_message_text': instance.lastMessageText,
+      'last_message_at': instance.lastMessageAt?.toIso8601String(),
+      'unread_count': instance.unreadCount,
+      'is_archived': instance.isArchived,
+      'created_at': instance.createdAt.toIso8601String(),
+      'firebase_path': instance.firebasePath,
     };
 
 const _$RoomTypeEnumMap = {

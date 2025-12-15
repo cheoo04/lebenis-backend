@@ -21,8 +21,11 @@ DeliveryInfo _$DeliveryInfoFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$DeliveryInfo {
   String get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'tracking_number')
   String get trackingNumber => throw _privateConstructorUsedError;
+  @JsonKey(name: 'pickup_address')
   String? get pickupAddress => throw _privateConstructorUsedError;
+  @JsonKey(name: 'delivery_address')
   String? get deliveryAddress => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -39,9 +42,9 @@ abstract class $DeliveryInfoCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String trackingNumber,
-      String? pickupAddress,
-      String? deliveryAddress});
+      @JsonKey(name: 'tracking_number') String trackingNumber,
+      @JsonKey(name: 'pickup_address') String? pickupAddress,
+      @JsonKey(name: 'delivery_address') String? deliveryAddress});
 }
 
 /// @nodoc
@@ -93,9 +96,9 @@ abstract class _$$DeliveryInfoImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      String trackingNumber,
-      String? pickupAddress,
-      String? deliveryAddress});
+      @JsonKey(name: 'tracking_number') String trackingNumber,
+      @JsonKey(name: 'pickup_address') String? pickupAddress,
+      @JsonKey(name: 'delivery_address') String? deliveryAddress});
 }
 
 /// @nodoc
@@ -140,9 +143,9 @@ class __$$DeliveryInfoImplCopyWithImpl<$Res>
 class _$DeliveryInfoImpl implements _DeliveryInfo {
   const _$DeliveryInfoImpl(
       {required this.id,
-      required this.trackingNumber,
-      this.pickupAddress,
-      this.deliveryAddress});
+      @JsonKey(name: 'tracking_number') required this.trackingNumber,
+      @JsonKey(name: 'pickup_address') this.pickupAddress,
+      @JsonKey(name: 'delivery_address') this.deliveryAddress});
 
   factory _$DeliveryInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$DeliveryInfoImplFromJson(json);
@@ -150,10 +153,13 @@ class _$DeliveryInfoImpl implements _DeliveryInfo {
   @override
   final String id;
   @override
+  @JsonKey(name: 'tracking_number')
   final String trackingNumber;
   @override
+  @JsonKey(name: 'pickup_address')
   final String? pickupAddress;
   @override
+  @JsonKey(name: 'delivery_address')
   final String? deliveryAddress;
 
   @override
@@ -197,8 +203,9 @@ class _$DeliveryInfoImpl implements _DeliveryInfo {
 abstract class _DeliveryInfo implements DeliveryInfo {
   const factory _DeliveryInfo(
       {required final String id,
-      required final String trackingNumber,
-      final String? pickupAddress,
+      @JsonKey(name: 'tracking_number') required final String trackingNumber,
+      @JsonKey(name: 'pickup_address') final String? pickupAddress,
+      @JsonKey(name: 'delivery_address')
       final String? deliveryAddress}) = _$DeliveryInfoImpl;
 
   factory _DeliveryInfo.fromJson(Map<String, dynamic> json) =
@@ -207,10 +214,13 @@ abstract class _DeliveryInfo implements DeliveryInfo {
   @override
   String get id;
   @override
+  @JsonKey(name: 'tracking_number')
   String get trackingNumber;
   @override
+  @JsonKey(name: 'pickup_address')
   String? get pickupAddress;
   @override
+  @JsonKey(name: 'delivery_address')
   String? get deliveryAddress;
   @override
   @JsonKey(ignore: true)

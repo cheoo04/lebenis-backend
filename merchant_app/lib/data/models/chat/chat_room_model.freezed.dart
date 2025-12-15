@@ -21,13 +21,21 @@ ChatRoomModel _$ChatRoomModelFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$ChatRoomModel {
   String get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'room_type')
   String get roomType => throw _privateConstructorUsedError;
+  @JsonKey(name: 'delivery')
   String? get deliveryId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'driver_info')
   OtherUserModel get driver => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_message_text')
   String? get lastMessage => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_message_at')
   DateTime? get lastMessageAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'unread_count', defaultValue: 0)
   int get unreadCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_archived', defaultValue: false)
   bool get isArchived => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
   DateTime get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this ChatRoomModel to a JSON map.
@@ -48,14 +56,14 @@ abstract class $ChatRoomModelCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String roomType,
-      String? deliveryId,
-      OtherUserModel driver,
-      String? lastMessage,
-      DateTime? lastMessageAt,
-      int unreadCount,
-      bool isArchived,
-      DateTime createdAt});
+      @JsonKey(name: 'room_type') String roomType,
+      @JsonKey(name: 'delivery') String? deliveryId,
+      @JsonKey(name: 'driver_info') OtherUserModel driver,
+      @JsonKey(name: 'last_message_text') String? lastMessage,
+      @JsonKey(name: 'last_message_at') DateTime? lastMessageAt,
+      @JsonKey(name: 'unread_count', defaultValue: 0) int unreadCount,
+      @JsonKey(name: 'is_archived', defaultValue: false) bool isArchived,
+      @JsonKey(name: 'created_at') DateTime createdAt});
 
   $OtherUserModelCopyWith<$Res> get driver;
 }
@@ -146,14 +154,14 @@ abstract class _$$ChatRoomModelImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      String roomType,
-      String? deliveryId,
-      OtherUserModel driver,
-      String? lastMessage,
-      DateTime? lastMessageAt,
-      int unreadCount,
-      bool isArchived,
-      DateTime createdAt});
+      @JsonKey(name: 'room_type') String roomType,
+      @JsonKey(name: 'delivery') String? deliveryId,
+      @JsonKey(name: 'driver_info') OtherUserModel driver,
+      @JsonKey(name: 'last_message_text') String? lastMessage,
+      @JsonKey(name: 'last_message_at') DateTime? lastMessageAt,
+      @JsonKey(name: 'unread_count', defaultValue: 0) int unreadCount,
+      @JsonKey(name: 'is_archived', defaultValue: false) bool isArchived,
+      @JsonKey(name: 'created_at') DateTime createdAt});
 
   @override
   $OtherUserModelCopyWith<$Res> get driver;
@@ -228,14 +236,15 @@ class __$$ChatRoomModelImplCopyWithImpl<$Res>
 class _$ChatRoomModelImpl implements _ChatRoomModel {
   const _$ChatRoomModelImpl(
       {required this.id,
-      required this.roomType,
-      this.deliveryId,
-      required this.driver,
-      this.lastMessage,
-      this.lastMessageAt,
-      required this.unreadCount,
+      @JsonKey(name: 'room_type') required this.roomType,
+      @JsonKey(name: 'delivery') this.deliveryId,
+      @JsonKey(name: 'driver_info') required this.driver,
+      @JsonKey(name: 'last_message_text') this.lastMessage,
+      @JsonKey(name: 'last_message_at') this.lastMessageAt,
+      @JsonKey(name: 'unread_count', defaultValue: 0) required this.unreadCount,
+      @JsonKey(name: 'is_archived', defaultValue: false)
       required this.isArchived,
-      required this.createdAt});
+      @JsonKey(name: 'created_at') required this.createdAt});
 
   factory _$ChatRoomModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ChatRoomModelImplFromJson(json);
@@ -243,20 +252,28 @@ class _$ChatRoomModelImpl implements _ChatRoomModel {
   @override
   final String id;
   @override
+  @JsonKey(name: 'room_type')
   final String roomType;
   @override
+  @JsonKey(name: 'delivery')
   final String? deliveryId;
   @override
+  @JsonKey(name: 'driver_info')
   final OtherUserModel driver;
   @override
+  @JsonKey(name: 'last_message_text')
   final String? lastMessage;
   @override
+  @JsonKey(name: 'last_message_at')
   final DateTime? lastMessageAt;
   @override
+  @JsonKey(name: 'unread_count', defaultValue: 0)
   final int unreadCount;
   @override
+  @JsonKey(name: 'is_archived', defaultValue: false)
   final bool isArchived;
   @override
+  @JsonKey(name: 'created_at')
   final DateTime createdAt;
 
   @override
@@ -310,15 +327,18 @@ class _$ChatRoomModelImpl implements _ChatRoomModel {
 
 abstract class _ChatRoomModel implements ChatRoomModel {
   const factory _ChatRoomModel(
-      {required final String id,
-      required final String roomType,
-      final String? deliveryId,
-      required final OtherUserModel driver,
-      final String? lastMessage,
-      final DateTime? lastMessageAt,
-      required final int unreadCount,
-      required final bool isArchived,
-      required final DateTime createdAt}) = _$ChatRoomModelImpl;
+          {required final String id,
+          @JsonKey(name: 'room_type') required final String roomType,
+          @JsonKey(name: 'delivery') final String? deliveryId,
+          @JsonKey(name: 'driver_info') required final OtherUserModel driver,
+          @JsonKey(name: 'last_message_text') final String? lastMessage,
+          @JsonKey(name: 'last_message_at') final DateTime? lastMessageAt,
+          @JsonKey(name: 'unread_count', defaultValue: 0)
+          required final int unreadCount,
+          @JsonKey(name: 'is_archived', defaultValue: false)
+          required final bool isArchived,
+          @JsonKey(name: 'created_at') required final DateTime createdAt}) =
+      _$ChatRoomModelImpl;
 
   factory _ChatRoomModel.fromJson(Map<String, dynamic> json) =
       _$ChatRoomModelImpl.fromJson;
@@ -326,20 +346,28 @@ abstract class _ChatRoomModel implements ChatRoomModel {
   @override
   String get id;
   @override
+  @JsonKey(name: 'room_type')
   String get roomType;
   @override
+  @JsonKey(name: 'delivery')
   String? get deliveryId;
   @override
+  @JsonKey(name: 'driver_info')
   OtherUserModel get driver;
   @override
+  @JsonKey(name: 'last_message_text')
   String? get lastMessage;
   @override
+  @JsonKey(name: 'last_message_at')
   DateTime? get lastMessageAt;
   @override
+  @JsonKey(name: 'unread_count', defaultValue: 0)
   int get unreadCount;
   @override
+  @JsonKey(name: 'is_archived', defaultValue: false)
   bool get isArchived;
   @override
+  @JsonKey(name: 'created_at')
   DateTime get createdAt;
 
   /// Create a copy of ChatRoomModel
@@ -357,8 +385,11 @@ OtherUserModel _$OtherUserModelFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$OtherUserModel {
   String get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'full_name')
   String get fullName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'phone')
   String? get phoneNumber => throw _privateConstructorUsedError;
+  @JsonKey(name: 'profile_photo')
   String? get profilePhotoUrl => throw _privateConstructorUsedError;
 
   /// Serializes this OtherUserModel to a JSON map.
@@ -379,9 +410,9 @@ abstract class $OtherUserModelCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String fullName,
-      String? phoneNumber,
-      String? profilePhotoUrl});
+      @JsonKey(name: 'full_name') String fullName,
+      @JsonKey(name: 'phone') String? phoneNumber,
+      @JsonKey(name: 'profile_photo') String? profilePhotoUrl});
 }
 
 /// @nodoc
@@ -435,9 +466,9 @@ abstract class _$$OtherUserModelImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      String fullName,
-      String? phoneNumber,
-      String? profilePhotoUrl});
+      @JsonKey(name: 'full_name') String fullName,
+      @JsonKey(name: 'phone') String? phoneNumber,
+      @JsonKey(name: 'profile_photo') String? profilePhotoUrl});
 }
 
 /// @nodoc
@@ -484,9 +515,9 @@ class __$$OtherUserModelImplCopyWithImpl<$Res>
 class _$OtherUserModelImpl implements _OtherUserModel {
   const _$OtherUserModelImpl(
       {required this.id,
-      required this.fullName,
-      this.phoneNumber,
-      this.profilePhotoUrl});
+      @JsonKey(name: 'full_name') required this.fullName,
+      @JsonKey(name: 'phone') this.phoneNumber,
+      @JsonKey(name: 'profile_photo') this.profilePhotoUrl});
 
   factory _$OtherUserModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$OtherUserModelImplFromJson(json);
@@ -494,10 +525,13 @@ class _$OtherUserModelImpl implements _OtherUserModel {
   @override
   final String id;
   @override
+  @JsonKey(name: 'full_name')
   final String fullName;
   @override
+  @JsonKey(name: 'phone')
   final String? phoneNumber;
   @override
+  @JsonKey(name: 'profile_photo')
   final String? profilePhotoUrl;
 
   @override
@@ -543,10 +577,11 @@ class _$OtherUserModelImpl implements _OtherUserModel {
 
 abstract class _OtherUserModel implements OtherUserModel {
   const factory _OtherUserModel(
-      {required final String id,
-      required final String fullName,
-      final String? phoneNumber,
-      final String? profilePhotoUrl}) = _$OtherUserModelImpl;
+          {required final String id,
+          @JsonKey(name: 'full_name') required final String fullName,
+          @JsonKey(name: 'phone') final String? phoneNumber,
+          @JsonKey(name: 'profile_photo') final String? profilePhotoUrl}) =
+      _$OtherUserModelImpl;
 
   factory _OtherUserModel.fromJson(Map<String, dynamic> json) =
       _$OtherUserModelImpl.fromJson;
@@ -554,10 +589,13 @@ abstract class _OtherUserModel implements OtherUserModel {
   @override
   String get id;
   @override
+  @JsonKey(name: 'full_name')
   String get fullName;
   @override
+  @JsonKey(name: 'phone')
   String? get phoneNumber;
   @override
+  @JsonKey(name: 'profile_photo')
   String? get profilePhotoUrl;
 
   /// Create a copy of OtherUserModel
@@ -575,13 +613,21 @@ MessageModel _$MessageModelFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$MessageModel {
   String get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'chat_room')
   String get roomId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'sender')
   String get senderId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'sender_name')
   String get senderName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'text')
   String get messageText => throw _privateConstructorUsedError;
+  @JsonKey(name: 'image_url')
   String? get imageUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
   DateTime get timestamp => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_read', defaultValue: false)
   bool get isRead => throw _privateConstructorUsedError;
+  @JsonKey(name: 'message_type')
   String? get messageType => throw _privateConstructorUsedError;
 
   /// Serializes this MessageModel to a JSON map.
@@ -602,14 +648,14 @@ abstract class $MessageModelCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String roomId,
-      String senderId,
-      String senderName,
-      String messageText,
-      String? imageUrl,
-      DateTime timestamp,
-      bool isRead,
-      String? messageType});
+      @JsonKey(name: 'chat_room') String roomId,
+      @JsonKey(name: 'sender') String senderId,
+      @JsonKey(name: 'sender_name') String senderName,
+      @JsonKey(name: 'text') String messageText,
+      @JsonKey(name: 'image_url') String? imageUrl,
+      @JsonKey(name: 'created_at') DateTime timestamp,
+      @JsonKey(name: 'is_read', defaultValue: false) bool isRead,
+      @JsonKey(name: 'message_type') String? messageType});
 }
 
 /// @nodoc
@@ -688,14 +734,14 @@ abstract class _$$MessageModelImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      String roomId,
-      String senderId,
-      String senderName,
-      String messageText,
-      String? imageUrl,
-      DateTime timestamp,
-      bool isRead,
-      String? messageType});
+      @JsonKey(name: 'chat_room') String roomId,
+      @JsonKey(name: 'sender') String senderId,
+      @JsonKey(name: 'sender_name') String senderName,
+      @JsonKey(name: 'text') String messageText,
+      @JsonKey(name: 'image_url') String? imageUrl,
+      @JsonKey(name: 'created_at') DateTime timestamp,
+      @JsonKey(name: 'is_read', defaultValue: false) bool isRead,
+      @JsonKey(name: 'message_type') String? messageType});
 }
 
 /// @nodoc
@@ -767,14 +813,14 @@ class __$$MessageModelImplCopyWithImpl<$Res>
 class _$MessageModelImpl implements _MessageModel {
   const _$MessageModelImpl(
       {required this.id,
-      required this.roomId,
-      required this.senderId,
-      required this.senderName,
-      required this.messageText,
-      this.imageUrl,
-      required this.timestamp,
-      required this.isRead,
-      this.messageType});
+      @JsonKey(name: 'chat_room') required this.roomId,
+      @JsonKey(name: 'sender') required this.senderId,
+      @JsonKey(name: 'sender_name') required this.senderName,
+      @JsonKey(name: 'text') required this.messageText,
+      @JsonKey(name: 'image_url') this.imageUrl,
+      @JsonKey(name: 'created_at') required this.timestamp,
+      @JsonKey(name: 'is_read', defaultValue: false) required this.isRead,
+      @JsonKey(name: 'message_type') this.messageType});
 
   factory _$MessageModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$MessageModelImplFromJson(json);
@@ -782,20 +828,28 @@ class _$MessageModelImpl implements _MessageModel {
   @override
   final String id;
   @override
+  @JsonKey(name: 'chat_room')
   final String roomId;
   @override
+  @JsonKey(name: 'sender')
   final String senderId;
   @override
+  @JsonKey(name: 'sender_name')
   final String senderName;
   @override
+  @JsonKey(name: 'text')
   final String messageText;
   @override
+  @JsonKey(name: 'image_url')
   final String? imageUrl;
   @override
+  @JsonKey(name: 'created_at')
   final DateTime timestamp;
   @override
+  @JsonKey(name: 'is_read', defaultValue: false)
   final bool isRead;
   @override
+  @JsonKey(name: 'message_type')
   final String? messageType;
 
   @override
@@ -849,13 +903,14 @@ class _$MessageModelImpl implements _MessageModel {
 abstract class _MessageModel implements MessageModel {
   const factory _MessageModel(
       {required final String id,
-      required final String roomId,
-      required final String senderId,
-      required final String senderName,
-      required final String messageText,
-      final String? imageUrl,
-      required final DateTime timestamp,
-      required final bool isRead,
+      @JsonKey(name: 'chat_room') required final String roomId,
+      @JsonKey(name: 'sender') required final String senderId,
+      @JsonKey(name: 'sender_name') required final String senderName,
+      @JsonKey(name: 'text') required final String messageText,
+      @JsonKey(name: 'image_url') final String? imageUrl,
+      @JsonKey(name: 'created_at') required final DateTime timestamp,
+      @JsonKey(name: 'is_read', defaultValue: false) required final bool isRead,
+      @JsonKey(name: 'message_type')
       final String? messageType}) = _$MessageModelImpl;
 
   factory _MessageModel.fromJson(Map<String, dynamic> json) =
@@ -864,20 +919,28 @@ abstract class _MessageModel implements MessageModel {
   @override
   String get id;
   @override
+  @JsonKey(name: 'chat_room')
   String get roomId;
   @override
+  @JsonKey(name: 'sender')
   String get senderId;
   @override
+  @JsonKey(name: 'sender_name')
   String get senderName;
   @override
+  @JsonKey(name: 'text')
   String get messageText;
   @override
+  @JsonKey(name: 'image_url')
   String? get imageUrl;
   @override
+  @JsonKey(name: 'created_at')
   DateTime get timestamp;
   @override
+  @JsonKey(name: 'is_read', defaultValue: false)
   bool get isRead;
   @override
+  @JsonKey(name: 'message_type')
   String? get messageType;
 
   /// Create a copy of MessageModel
