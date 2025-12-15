@@ -43,21 +43,52 @@ class ChatRepository {
 
   /// Créer ou récupérer une conversation existante
   Future<ChatRoomModel> createOrGetChatRoom({
-    required String driverId,
+    required String otherUserId,
+    required String currentUserId,
     String? deliveryId,
     String? initialMessage,
   }) async {
     final response = await _dioClient.post(
       '${ApiConstants.baseUrl}/api/v1/chat/rooms/',
       data: {
-        'other_user_id': driverId,
+        'other_user_id': otherUserId,
         if (deliveryId != null) 'delivery_id': deliveryId,
         'room_type': 'delivery',
         if (initialMessage != null) 'initial_message': initialMessage,
       },
     );
 
-    return ChatRoomModel.fromJson(response.data);
+    final chatRoom = ChatRoomModel.fromJson(response.data);
+    
+    // Stocker les participants dans Firebase pour les règles de sécurité
+    await _ensureParticipantsInFirebase(
+      roomId: chatRoom.id,
+      currentUserId: currentUserId,
+      otherUserId: otherUserId,
+    );
+
+    return chatRoom;
+  }
+  
+  /// S'assurer que les participants sont enregistrés dans Firebase
+  Future<void> _ensureParticipantsInFirebase({
+    required String roomId,
+    required String currentUserId,
+    required String otherUserId,
+  }) async {
+    if (_firebaseDatabase == null) return;
+    
+    final participantsRef = _firebaseDatabase!
+        .ref()
+        .child('chat_rooms')
+        .child(roomId)
+        .child('participants');
+    
+    // Ajouter les deux participants
+    await participantsRef.update({
+      currentUserId: true,
+      otherUserId: true,
+    });
   }
 
   /// Marquer les messages comme lus

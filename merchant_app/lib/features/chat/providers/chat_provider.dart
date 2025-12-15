@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../../../data/models/chat/chat_room_model.dart';
 import '../../../data/repositories/chat_repository.dart';
+import '../../../data/providers/auth_provider.dart';
 import '../../../core/providers.dart';
 
 // Provider Firebase Database
@@ -114,14 +115,22 @@ class ChatRoomsNotifier extends Notifier<ChatRoomsState> {
   }
 
   Future<ChatRoomModel?> createOrGetChatRoom({
-    required String driverId,
+    required String otherUserId,
     String? deliveryId,
     String? initialMessage,
   }) async {
     try {
       final repository = ref.read(chatRepositoryProvider);
+      final authState = ref.read(authStateProvider);
+      final currentUserId = authState.value?.id.toString() ?? '';
+      
+      if (currentUserId.isEmpty) {
+        throw Exception('Utilisateur non connecté');
+      }
+      
       final room = await repository.createOrGetChatRoom(
-        driverId: driverId,
+        otherUserId: otherUserId,
+        currentUserId: currentUserId,
         deliveryId: deliveryId,
         initialMessage: initialMessage,
       );

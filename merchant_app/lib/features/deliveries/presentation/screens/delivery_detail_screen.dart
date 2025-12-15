@@ -19,12 +19,16 @@ class DeliveryDetailScreen extends ConsumerStatefulWidget {
 
 class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
   bool _isCancelling = false;
-  
+  bool _isOpeningChat = false;
 
   Future<void> _openChat(String driverId, String deliveryRef) async {
+    if (_isOpeningChat) return; // Éviter les doubles clics
+    
+    setState(() => _isOpeningChat = true);
+    
     try {
       final chatRoom = await ref.read(chatRoomsProvider.notifier).createOrGetChatRoom(
-        driverId: driverId,
+        otherUserId: driverId,
         deliveryId: deliveryRef,
       );
 
@@ -42,6 +46,8 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
           SnackBar(content: Text('Erreur: ${e.toString()}')),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isOpeningChat = false);
     }
   }
 
@@ -444,9 +450,9 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
 
                 if (delivery.driver != null && delivery.driver!.userId != null)
                   ModernButton(
-                    text: 'Contacter le livreur',
-                    icon: Icons.chat,
-                    onPressed: () => _openChat(
+                    text: _isOpeningChat ? 'Chargement...' : 'Contacter le livreur',
+                    icon: _isOpeningChat ? Icons.hourglass_empty : Icons.chat,
+                    onPressed: _isOpeningChat ? null : () => _openChat(
                       delivery.driver!.userId!,  // UUID du User, pas du profil Driver
                       delivery.id,  // UUID de la livraison
                     ),

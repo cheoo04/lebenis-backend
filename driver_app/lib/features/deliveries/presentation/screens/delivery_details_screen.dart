@@ -55,7 +55,13 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       }
   }
 
+  bool _isOpeningChat = false;
+
   Future<void> _openChat(String creatorUserId, String deliveryId) async {
+    if (_isOpeningChat) return; // Éviter les doubles clics
+    
+    setState(() => _isOpeningChat = true);
+    
     try {
       final chatRoom = await ref.read(chatRepositoryProvider).createChatRoom(
         otherUserId: creatorUserId,
@@ -75,6 +81,8 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       if (mounted) {
         Helpers.showErrorSnackBar(context, 'Erreur: ${e.toString()}');
       }
+    } finally {
+      if (mounted) setState(() => _isOpeningChat = false);
     }
   }
 
@@ -437,8 +445,9 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     const SizedBox(height: AppSpacing.md),
                     if (delivery.creatorUserId != null)
                       ModernButton(
-                        text: 'Contacter le client',
-                        onPressed: () => _openChat(delivery.creatorUserId!, delivery.id),
+                        text: _isOpeningChat ? 'Chargement...' : 'Contacter le client',
+                        onPressed: _isOpeningChat ? null : () => _openChat(delivery.creatorUserId!, delivery.id),
+                        isLoading: _isOpeningChat,
                         icon: Icons.chat,
                         type: ModernButtonType.outlined,
                       ),
@@ -447,8 +456,9 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     const SizedBox(height: AppSpacing.md),
                     if (delivery.creatorUserId != null)
                       ModernButton(
-                        text: 'Contacter le client',
-                        onPressed: () => _openChat(delivery.creatorUserId!, delivery.id),
+                        text: _isOpeningChat ? 'Chargement...' : 'Contacter le client',
+                        onPressed: _isOpeningChat ? null : () => _openChat(delivery.creatorUserId!, delivery.id),
+                        isLoading: _isOpeningChat,
                         icon: Icons.chat,
                         type: ModernButtonType.outlined,
                       ),

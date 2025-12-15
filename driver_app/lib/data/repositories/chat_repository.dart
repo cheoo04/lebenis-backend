@@ -72,6 +72,8 @@ class ChatRepository {
     String? initialMessage,
   }) async {
     try {
+      final currentUserId = await _getCurrentUserId();
+      
       final response = await _dioClient.post(
         '/api/v1/chat/rooms/',
         data: {
@@ -82,9 +84,44 @@ class ChatRepository {
         },
       );
 
-      return ChatRoomModel.fromJson(response.data);
+      final chatRoom = ChatRoomModel.fromJson(response.data);
+      
+      // Stocker les participants dans Firebase pour les règles de sécurité
+      if (currentUserId.isNotEmpty) {
+        await _ensureParticipantsInFirebase(
+          roomId: chatRoom.id,
+          currentUserId: currentUserId,
+          otherUserId: otherUserId,
+        );
+      }
+
+      return chatRoom;
     } catch (e) {
       throw _handleError(e);
+    }
+  }
+  
+  /// S'assurer que les participants sont enregistrés dans Firebase
+  Future<void> _ensureParticipantsInFirebase({
+    required String roomId,
+    required String currentUserId,
+    required String otherUserId,
+  }) async {
+    try {
+      final participantsRef = _firebaseDatabase
+          .ref()
+          .child('chat_rooms')
+          .child(roomId)
+          .child('participants');
+      
+      // Ajouter les deux participants
+      await participantsRef.update({
+        currentUserId: true,
+        otherUserId: true,
+      });
+    } catch (e) {
+      // Log mais ne pas bloquer si Firebase échoue
+      developer.log('Erreur ajout participants Firebase: $e', name: 'ChatRepository');
     }
   }
 
