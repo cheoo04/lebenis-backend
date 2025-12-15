@@ -106,21 +106,29 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       alignment: Alignment.topCenter,
                       child: Container(
                         margin: const EdgeInsets.only(top: AppSpacing.xl),
-                        padding: const EdgeInsets.all(12),
+                        width: 100,
+                        height: 100,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
+                          color: Colors.white,
                           shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.2),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: ClipOval(
                           child: Image.asset(
                             'assets/logo_lebeni_business2.png',
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.contain,
                             errorBuilder: (context, error, stackTrace) {
                               return const Icon(
-                                Icons.store,
-                                size: 40,
+                                Icons.local_shipping,
+                                size: 50,
                                 color: AppColors.primary,
                               );
                             },

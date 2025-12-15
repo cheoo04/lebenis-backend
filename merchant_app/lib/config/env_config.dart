@@ -4,7 +4,7 @@
 /// Utilise cette classe pour gérer les différentes URLs selon l'environnement
 class EnvConfig {
   /// Environnement actuel
-  static const Environment current = Environment.development;
+  static const Environment current = Environment.production;
   
   /// URL de base selon l'environnement
   static String get baseUrl {
