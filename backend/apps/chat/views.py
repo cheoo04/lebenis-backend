@@ -287,6 +287,7 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
                 {
                     'id': str(message.id),
                     'sender_id': str(user.id),
+                    'sender_name': f"{user.first_name} {user.last_name}".strip() or user.email,
                     'message_type': 'text',
                     'text': initial_message,
                     'timestamp': message.created_at.isoformat(),
@@ -455,6 +456,7 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
             {
                 'id': str(message.id),
                 'sender_id': str(user.id),
+                'sender_name': f"{user.first_name} {user.last_name}".strip() or user.email,
                 'message_type': message.message_type,
                 'text': message.text,
                 'image_url': message.image_url,

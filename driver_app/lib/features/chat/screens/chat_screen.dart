@@ -496,7 +496,9 @@ class _MessageBubble extends StatelessWidget {
             : null,
         child: photoUrl == null || photoUrl.isEmpty
             ? Text(
-                message.sender.fullName[0].toUpperCase(),
+                message.sender.fullName.isNotEmpty 
+                    ? message.sender.fullName[0].toUpperCase() 
+                    : '?',
                 style: const TextStyle(fontSize: 12),
               )
             : null,

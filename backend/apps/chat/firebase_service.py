@@ -138,7 +138,7 @@ class FirebaseChatService:
         
         Args:
             chat_room_id: ID de la chat room
-            message_data: Données du message (id, sender_id, text, type, etc.)
+            message_data: Données du message (id, sender_id, sender_name, text, type, etc.)
         
         Returns:
             True si succès, False sinon
@@ -154,6 +154,7 @@ class FirebaseChatService:
             firebase_message = {
                 'id': str(message_id),
                 'senderId': str(message_data.get('sender_id')),
+                'senderName': message_data.get('sender_name', ''),
                 'type': message_data.get('message_type', 'text'),
                 'text': message_data.get('text', ''),
                 'imageUrl': message_data.get('image_url', ''),

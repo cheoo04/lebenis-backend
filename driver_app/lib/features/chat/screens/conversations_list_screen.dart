@@ -412,7 +412,9 @@ class _ConversationTile extends StatelessWidget {
           : null,
       child: photoUrl == null || photoUrl.isEmpty
           ? Text(
-              room.otherParticipant.fullName[0].toUpperCase(),
+              room.otherParticipant.fullName.isNotEmpty 
+                  ? room.otherParticipant.fullName[0].toUpperCase() 
+                  : '?',
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

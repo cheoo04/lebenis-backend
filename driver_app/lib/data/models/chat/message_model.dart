@@ -85,7 +85,7 @@ class MessageModel with _$MessageModel {
       chatRoomId: '', // Sera rempli par le contexte
       sender: MessageSender(
         id: senderId,
-        fullName: (firebaseData['sender_name'] ?? '').toString(),
+        fullName: (firebaseData['senderName'] ?? firebaseData['sender_name'] ?? '').toString(),
       ),
       messageType: _parseMessageType(messageType),
       text: text.isNotEmpty ? text : null,

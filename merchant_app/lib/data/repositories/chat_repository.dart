@@ -156,13 +156,13 @@ class ChatRepository {
           final messageData = <String, dynamic>{
             'id': key.toString(),
             'chat_room': roomId,
-            'sender': rawData['sender_id']?.toString() ?? rawData['sender']?.toString() ?? '',
-            'sender_name': rawData['sender_name']?.toString() ?? 'Utilisateur',
-            'text': rawData['message_text']?.toString() ?? rawData['text']?.toString() ?? '',
-            'image_url': rawData['image_url'],
+            'sender': rawData['senderId']?.toString() ?? rawData['sender_id']?.toString() ?? rawData['sender']?.toString() ?? '',
+            'sender_name': rawData['senderName']?.toString() ?? rawData['sender_name']?.toString() ?? 'Utilisateur',
+            'text': rawData['text']?.toString() ?? rawData['message_text']?.toString() ?? '',
+            'image_url': rawData['imageUrl'] ?? rawData['image_url'],
             'created_at': timestamp.toIso8601String(),
-            'is_read': rawData['is_read'] ?? false,
-            'message_type': rawData['message_type']?.toString(),
+            'is_read': rawData['isRead'] ?? rawData['is_read'] ?? false,
+            'message_type': rawData['type']?.toString() ?? rawData['message_type']?.toString(),
           };
 
           messages.add(MessageModel.fromJson(messageData));
