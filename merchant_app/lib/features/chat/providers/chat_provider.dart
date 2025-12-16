@@ -189,6 +189,20 @@ class ChatRoomsNotifier extends Notifier<ChatRoomsState> {
       rethrow;
     }
   }
+
+  /// Archiver une conversation
+  Future<void> archiveChatRoom(String roomId) async {
+    try {
+      final repository = ref.read(chatRepositoryProvider);
+      await repository.archiveChatRoom(roomId);
+      // Retirer la conversation de la liste
+      final updatedRooms = state.rooms.where((r) => r.id != roomId).toList();
+      state = state.copyWith(rooms: updatedRooms);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
 }
 
 /// Provider pour la liste des conversations

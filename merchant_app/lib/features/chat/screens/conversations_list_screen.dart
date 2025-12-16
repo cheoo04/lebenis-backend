@@ -55,7 +55,62 @@ class ConversationsListScreen extends ConsumerWidget {
                         separatorBuilder: (context, index) => const Divider(height: 1),
                         itemBuilder: (context, index) {
                           final room = chatRoomsState.rooms[index];
-                          return ListTile(
+                          return Dismissible(
+                            key: Key(room.id),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 20),
+                              color: Colors.orange,
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Icon(Icons.archive, color: Colors.white),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Archiver',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            confirmDismiss: (direction) async {
+                              return await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Archiver la conversation'),
+                                  content: const Text(
+                                    'Voulez-vous vraiment archiver cette conversation ?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text('Annuler'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.orange,
+                                      ),
+                                      child: const Text('Archiver'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            onDismissed: (direction) {
+                              ref.read(chatRoomsProvider.notifier).archiveChatRoom(room.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Conversation archivée'),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                            },
+                            child: ListTile(
                             leading: CircleAvatar(
                               backgroundColor: Colors.deepPurple,
                               child: Text(
@@ -126,6 +181,7 @@ class ConversationsListScreen extends ConsumerWidget {
                                 ),
                               );
                             },
+                          ),
                           );
                         },
                       ),

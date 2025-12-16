@@ -233,14 +233,19 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             driver_user = other_user
             other_user_in_room = user
         
-        # Chercher une conversation existante
+        # Chercher une conversation existante entre ces deux utilisateurs
+        # On cherche d'abord sans delivery pour réutiliser une conversation existante
         existing_room = ChatRoom.objects.filter(
             driver=driver_user,
-            other_user=other_user_in_room,
-            delivery=delivery
+            other_user=other_user_in_room
         ).first()
         
         if existing_room:
+            # Mettre à jour la livraison si une nouvelle est fournie
+            if delivery and existing_room.delivery != delivery:
+                existing_room.delivery = delivery
+                existing_room.save(update_fields=['delivery'])
+            
             # Retourner la conversation existante
             serializer = ChatRoomDetailSerializer(
                 existing_room,

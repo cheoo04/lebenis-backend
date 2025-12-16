@@ -78,18 +78,19 @@ class ChatNotificationService {
   Future<void> _sendTokenToBackend(String token) async {
     try {
       await _dioClient.post(
-        '/notifications/register_token/',
+        '/api/v1/auth/register-fcm-token/',
         data: {
-          'token': token,
+          'fcm_token': token,
           'platform': defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
-          'device_name': '', // Peut être récupéré via device_info_plus si nécessaire
         },
       );
       
       if (kDebugMode) {
+        debugPrint('✅ Token FCM enregistré sur le backend');
       }
     } catch (e) {
       if (kDebugMode) {
+        debugPrint('❌ Erreur enregistrement token FCM: $e');
       }
     }
   }

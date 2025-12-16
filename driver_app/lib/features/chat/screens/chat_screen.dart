@@ -342,6 +342,51 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Future<void> _sendLocation() async {
     try {
+      // Vérifier et demander les permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Permission de localisation refusée')),
+            );
+          }
+          return;
+        }
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Activez la localisation dans les paramètres'),
+              action: SnackBarAction(
+                label: 'Ouvrir',
+                onPressed: Geolocator.openAppSettings,
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Vérifier si le service de localisation est activé
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Activez le GPS'),
+              action: SnackBarAction(
+                label: 'Ouvrir',
+                onPressed: Geolocator.openLocationSettings,
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
       final position = await Geolocator.getCurrentPosition();
       
       final success = await ref
