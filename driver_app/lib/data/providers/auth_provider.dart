@@ -201,6 +201,14 @@ class AuthNotifier extends Notifier<AuthState> {
       final userProfile = await _repository.getCurrentUser();
       final user = UserModel.fromJson(userProfile);
       
+      // ✅ Sauvegarder les infos utilisateur pour le chat (isMine)
+      await _authService.saveUserInfo(
+        userId: user.id,
+        email: user.email,
+        userType: user.userType,
+        userName: user.fullName,
+      );
+      
       state = state.copyWith(
         isLoggedIn: true,
         user: user,

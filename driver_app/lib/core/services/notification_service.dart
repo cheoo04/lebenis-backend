@@ -11,6 +11,13 @@ import 'dart:io' show Platform;
 /// - Affichage des notifications locales
 /// - Navigation lors du tap sur notification
 class NotificationService {
+  // Singleton instance
+  static final NotificationService _instance = NotificationService._internal();
+  
+  factory NotificationService() => _instance;
+  
+  NotificationService._internal();
+  
   FirebaseMessaging? _fcm; // Nullable et initialisé plus tard
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();

@@ -23,8 +23,12 @@ class ChatRepository {
         _authService = authService;
   
   /// Récupère l'ID utilisateur (avec cache)
+  /// Note: Le cache est vidé si vide pour permettre les mises à jour
   Future<String> _getCurrentUserId() async {
-    _cachedUserId ??= await _authService.getUserId();
+    // Si le cache est vide ou null, le recharger
+    if (_cachedUserId == null || _cachedUserId!.isEmpty) {
+      _cachedUserId = await _authService.getUserId();
+    }
     return _cachedUserId ?? '';
   }
 

@@ -137,12 +137,12 @@ class CreateChatRoomSerializer(serializers.Serializer):
 class ChatMessageSerializer(serializers.ModelSerializer):
     """Serializer pour les messages (backup DB)"""
     
-    sender_info = ChatParticipantSerializer(source='sender', read_only=True)
+    sender = ChatParticipantSerializer(read_only=True)
     
     class Meta:
         model = ChatMessage
         fields = [
-            'id', 'chat_room', 'sender', 'sender_info',
+            'id', 'chat_room', 'sender',
             'message_type', 'text', 'image_url',
             'latitude', 'longitude',
             'is_read', 'read_at', 'is_synced_to_firebase',

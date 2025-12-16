@@ -223,6 +223,32 @@ class ChatRoomsNotifier extends Notifier<ChatRoomsState> {
       state = state.copyWith(error: e.toString());
     }
   }
+
+  /// Met à jour le dernier message d'une conversation (après envoi)
+  void updateLastMessage({
+    required String roomId,
+    required String lastMessageText,
+    required DateTime lastMessageAt,
+  }) {
+    final updatedRooms = state.rooms.map((room) {
+      if (room.id == roomId) {
+        return room.copyWith(
+          lastMessageText: lastMessageText,
+          lastMessageAt: lastMessageAt,
+        );
+      }
+      return room;
+    }).toList();
+
+    // Trier par dernière activité (plus récent en premier)
+    updatedRooms.sort((a, b) {
+      final aTime = a.lastMessageAt ?? a.createdAt;
+      final bTime = b.lastMessageAt ?? b.createdAt;
+      return bTime.compareTo(aTime);
+    });
+
+    state = state.copyWith(rooms: updatedRooms);
+  }
 }
 
 /// Notifier pour gérer les messages d'une conversation
@@ -253,6 +279,14 @@ class ChatMessagesNotifier extends Notifier<ChatMessagesState> {
         messages: updatedMessages,
         isSending: false,
       );
+      
+      // Mettre à jour le dernier message dans la liste des conversations
+      ref.read(chatRoomsProvider.notifier).updateLastMessage(
+        roomId: chatRoomId,
+        lastMessageText: text.trim(),
+        lastMessageAt: message.createdAt,
+      );
+      
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -278,6 +312,14 @@ class ChatMessagesNotifier extends Notifier<ChatMessagesState> {
         messages: updatedMessages,
         isSending: false,
       );
+      
+      // Mettre à jour le dernier message dans la liste des conversations
+      ref.read(chatRoomsProvider.notifier).updateLastMessage(
+        roomId: chatRoomId,
+        lastMessageText: caption ?? '📷 Image',
+        lastMessageAt: message.createdAt,
+      );
+      
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -308,6 +350,14 @@ class ChatMessagesNotifier extends Notifier<ChatMessagesState> {
         messages: updatedMessages,
         isSending: false,
       );
+      
+      // Mettre à jour le dernier message dans la liste des conversations
+      ref.read(chatRoomsProvider.notifier).updateLastMessage(
+        roomId: chatRoomId,
+        lastMessageText: text ?? '📍 Position',
+        lastMessageAt: message.createdAt,
+      );
+      
       return true;
     } catch (e) {
       state = state.copyWith(

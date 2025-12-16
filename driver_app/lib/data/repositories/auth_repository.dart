@@ -41,6 +41,18 @@ class AuthRepository {
         refreshToken: refreshToken.toString(),
         userType: data['user']?['user_type']?.toString() ?? 'driver',
       );
+      
+      // Sauvegarder les informations utilisateur (important pour le chat!)
+      final user = data['user'] as Map<String, dynamic>?;
+      if (user != null) {
+        await _authService.saveUserInfo(
+          userId: user['id']?.toString() ?? '',
+          email: user['email']?.toString() ?? '',
+          userType: user['user_type']?.toString() ?? 'driver',
+          userName: '${user['first_name'] ?? ''} ${user['last_name'] ?? ''}'.trim(),
+        );
+      }
+      
       return data;
     } catch (e) {
       rethrow;
@@ -116,6 +128,17 @@ class AuthRepository {
         refreshToken: refreshToken.toString(),
         userType: 'driver',
       );
+      
+      // Sauvegarder les informations utilisateur (important pour le chat!)
+      final user = data['user'] as Map<String, dynamic>?;
+      if (user != null) {
+        await _authService.saveUserInfo(
+          userId: user['id']?.toString() ?? '',
+          email: user['email']?.toString() ?? '',
+          userType: user['user_type']?.toString() ?? 'driver',
+          userName: '${user['first_name'] ?? ''} ${user['last_name'] ?? ''}'.trim(),
+        );
+      }
       
       return data;
     } catch (e) {
