@@ -11,6 +11,18 @@ class ChatRepository {
   ChatRepository(this._dioClient, {FirebaseDatabase? firebaseDatabase})
       : _firebaseDatabase = firebaseDatabase;
 
+  /// Helper pour parser un double depuis Firebase (peut être String ou num)
+  double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      final parsed = double.tryParse(value);
+      return parsed;
+    }
+    return null;
+  }
+
   // ==================== REST API (PostgreSQL) ====================
 
   /// Récupérer la liste des conversations
@@ -160,6 +172,8 @@ class ChatRepository {
             'sender_name': rawData['senderName']?.toString() ?? rawData['sender_name']?.toString() ?? 'Utilisateur',
             'text': rawData['text']?.toString() ?? rawData['message_text']?.toString() ?? '',
             'image_url': rawData['imageUrl'] ?? rawData['image_url'],
+            'latitude': _parseDouble(rawData['latitude']),
+            'longitude': _parseDouble(rawData['longitude']),
             'created_at': timestamp.toIso8601String(),
             'is_read': rawData['isRead'] ?? rawData['is_read'] ?? false,
             'message_type': rawData['type']?.toString() ?? rawData['message_type']?.toString(),

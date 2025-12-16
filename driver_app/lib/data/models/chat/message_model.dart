@@ -106,8 +106,8 @@ class MessageModel with _$MessageModel {
       messageType: _parseMessageType(messageType),
       text: text.isNotEmpty ? text : null,
       imageUrl: imageUrl,
-      latitude: (firebaseData['latitude'] as num?)?.toDouble(),
-      longitude: (firebaseData['longitude'] as num?)?.toDouble(),
+      latitude: _parseDouble(firebaseData['latitude']),
+      longitude: _parseDouble(firebaseData['longitude']),
       isRead: isRead,
       readAt: firebaseData['read_at'] != null
           ? DateTime.parse(firebaseData['read_at'] as String)

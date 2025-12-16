@@ -158,8 +158,8 @@ class FirebaseChatService:
                 'type': message_data.get('message_type', 'text'),
                 'text': message_data.get('text', ''),
                 'imageUrl': message_data.get('image_url', ''),
-                'latitude': str(message_data.get('latitude', '')) if message_data.get('latitude') else None,
-                'longitude': str(message_data.get('longitude', '')) if message_data.get('longitude') else None,
+                'latitude': float(message_data.get('latitude')) if message_data.get('latitude') is not None else None,
+                'longitude': float(message_data.get('longitude')) if message_data.get('longitude') is not None else None,
                 'timestamp': message_data.get('timestamp', datetime.now().isoformat()),
                 'isRead': False,
             }
