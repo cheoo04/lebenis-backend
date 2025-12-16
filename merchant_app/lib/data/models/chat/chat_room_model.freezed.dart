@@ -623,6 +623,10 @@ mixin _$MessageModel {
   String get messageText => throw _privateConstructorUsedError;
   @JsonKey(name: 'image_url')
   String? get imageUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'latitude')
+  double? get latitude => throw _privateConstructorUsedError;
+  @JsonKey(name: 'longitude')
+  double? get longitude => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   DateTime get timestamp => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_read', defaultValue: false)
@@ -653,6 +657,8 @@ abstract class $MessageModelCopyWith<$Res> {
       @JsonKey(name: 'sender_name') String senderName,
       @JsonKey(name: 'text') String messageText,
       @JsonKey(name: 'image_url') String? imageUrl,
+      @JsonKey(name: 'latitude') double? latitude,
+      @JsonKey(name: 'longitude') double? longitude,
       @JsonKey(name: 'created_at') DateTime timestamp,
       @JsonKey(name: 'is_read', defaultValue: false) bool isRead,
       @JsonKey(name: 'message_type') String? messageType});
@@ -679,6 +685,8 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
     Object? senderName = null,
     Object? messageText = null,
     Object? imageUrl = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
     Object? timestamp = null,
     Object? isRead = null,
     Object? messageType = freezed,
@@ -708,6 +716,14 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
           ? _value.imageUrl
           : imageUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      latitude: freezed == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double?,
+      longitude: freezed == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double?,
       timestamp: null == timestamp
           ? _value.timestamp
           : timestamp // ignore: cast_nullable_to_non_nullable
@@ -739,6 +755,8 @@ abstract class _$$MessageModelImplCopyWith<$Res>
       @JsonKey(name: 'sender_name') String senderName,
       @JsonKey(name: 'text') String messageText,
       @JsonKey(name: 'image_url') String? imageUrl,
+      @JsonKey(name: 'latitude') double? latitude,
+      @JsonKey(name: 'longitude') double? longitude,
       @JsonKey(name: 'created_at') DateTime timestamp,
       @JsonKey(name: 'is_read', defaultValue: false) bool isRead,
       @JsonKey(name: 'message_type') String? messageType});
@@ -763,6 +781,8 @@ class __$$MessageModelImplCopyWithImpl<$Res>
     Object? senderName = null,
     Object? messageText = null,
     Object? imageUrl = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
     Object? timestamp = null,
     Object? isRead = null,
     Object? messageType = freezed,
@@ -792,6 +812,14 @@ class __$$MessageModelImplCopyWithImpl<$Res>
           ? _value.imageUrl
           : imageUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      latitude: freezed == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double?,
+      longitude: freezed == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double?,
       timestamp: null == timestamp
           ? _value.timestamp
           : timestamp // ignore: cast_nullable_to_non_nullable
@@ -818,6 +846,8 @@ class _$MessageModelImpl implements _MessageModel {
       @JsonKey(name: 'sender_name') required this.senderName,
       @JsonKey(name: 'text') required this.messageText,
       @JsonKey(name: 'image_url') this.imageUrl,
+      @JsonKey(name: 'latitude') this.latitude,
+      @JsonKey(name: 'longitude') this.longitude,
       @JsonKey(name: 'created_at') required this.timestamp,
       @JsonKey(name: 'is_read', defaultValue: false) required this.isRead,
       @JsonKey(name: 'message_type') this.messageType});
@@ -843,6 +873,12 @@ class _$MessageModelImpl implements _MessageModel {
   @JsonKey(name: 'image_url')
   final String? imageUrl;
   @override
+  @JsonKey(name: 'latitude')
+  final double? latitude;
+  @override
+  @JsonKey(name: 'longitude')
+  final double? longitude;
+  @override
   @JsonKey(name: 'created_at')
   final DateTime timestamp;
   @override
@@ -854,7 +890,7 @@ class _$MessageModelImpl implements _MessageModel {
 
   @override
   String toString() {
-    return 'MessageModel(id: $id, roomId: $roomId, senderId: $senderId, senderName: $senderName, messageText: $messageText, imageUrl: $imageUrl, timestamp: $timestamp, isRead: $isRead, messageType: $messageType)';
+    return 'MessageModel(id: $id, roomId: $roomId, senderId: $senderId, senderName: $senderName, messageText: $messageText, imageUrl: $imageUrl, latitude: $latitude, longitude: $longitude, timestamp: $timestamp, isRead: $isRead, messageType: $messageType)';
   }
 
   @override
@@ -872,6 +908,10 @@ class _$MessageModelImpl implements _MessageModel {
                 other.messageText == messageText) &&
             (identical(other.imageUrl, imageUrl) ||
                 other.imageUrl == imageUrl) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp) &&
             (identical(other.isRead, isRead) || other.isRead == isRead) &&
@@ -881,8 +921,19 @@ class _$MessageModelImpl implements _MessageModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, roomId, senderId, senderName,
-      messageText, imageUrl, timestamp, isRead, messageType);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      roomId,
+      senderId,
+      senderName,
+      messageText,
+      imageUrl,
+      latitude,
+      longitude,
+      timestamp,
+      isRead,
+      messageType);
 
   /// Create a copy of MessageModel
   /// with the given fields replaced by the non-null parameter values.
@@ -908,6 +959,8 @@ abstract class _MessageModel implements MessageModel {
       @JsonKey(name: 'sender_name') required final String senderName,
       @JsonKey(name: 'text') required final String messageText,
       @JsonKey(name: 'image_url') final String? imageUrl,
+      @JsonKey(name: 'latitude') final double? latitude,
+      @JsonKey(name: 'longitude') final double? longitude,
       @JsonKey(name: 'created_at') required final DateTime timestamp,
       @JsonKey(name: 'is_read', defaultValue: false) required final bool isRead,
       @JsonKey(name: 'message_type')
@@ -933,6 +986,12 @@ abstract class _MessageModel implements MessageModel {
   @override
   @JsonKey(name: 'image_url')
   String? get imageUrl;
+  @override
+  @JsonKey(name: 'latitude')
+  double? get latitude;
+  @override
+  @JsonKey(name: 'longitude')
+  double? get longitude;
   @override
   @JsonKey(name: 'created_at')
   DateTime get timestamp;

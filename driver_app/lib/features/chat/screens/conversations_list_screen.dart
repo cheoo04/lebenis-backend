@@ -309,95 +309,142 @@ class _ConversationTile extends StatelessWidget {
       key: Key(room.id),
       direction: DismissDirection.endToStart,
       background: Container(
-        color: Colors.red,
+        color: Colors.orange,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16),
-        child: const Icon(Icons.archive, color: Colors.white),
-      ),
-      confirmDismiss: (_) async => false,
-      onDismissed: (_) => onArchive(),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
-        leading: _buildAvatar(),
-        title: Row(
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Expanded(
-              child: Text(
-                room.otherParticipant.fullName,
-                style: TextStyle(
-                  fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (room.lastMessageAt != null)
-              Text(
-                _formatTime(room.lastMessageAt!),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: hasUnread ? Colors.blue : Colors.grey[600],
-                  fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
+            Icon(Icons.archive, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Archiver', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ],
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (room.deliveryInfo != null) ...[
-              const SizedBox(height: 4),
-              Row(
+      ),
+      confirmDismiss: (_) async {
+        return await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Archiver'),
+            content: const Text('Voulez-vous archiver cette conversation ?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Annuler'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Archiver'),
+              ),
+            ],
+          ),
+        ) ?? false;
+      },
+      onDismissed: (_) => onArchive(),
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: () {
+          showModalBottomSheet(
+            context: context,
+            builder: (ctx) => SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.local_shipping,
-                    size: 14,
-                    color: Colors.grey[600],
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    room.deliveryInfo!.trackingNumber,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
+                  ListTile(
+                    leading: const Icon(Icons.archive),
+                    title: const Text('Archiver la conversation'),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      onArchive();
+                    },
                   ),
                 ],
               ),
-            ],
-            const SizedBox(height: 4),
-            Text(
-              room.lastMessageText ?? 'Nouvelle conversation',
-              style: TextStyle(
-                color: hasUnread ? Colors.black87 : Colors.grey[600],
-                fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
-          ],
-        ),
-        trailing: hasUnread
-            ? Container(
-                padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              _buildAvatar(),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            room.otherParticipant.fullName,
+                            style: TextStyle(
+                              fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
+                              fontSize: 16,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (room.lastMessageAt != null)
+                          Text(
+                            _formatTime(room.lastMessageAt!),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: hasUnread ? Colors.blue : Colors.grey[600],
+                              fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                      ],
+                    ),
+                    if (room.deliveryInfo != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.local_shipping, size: 14, color: Colors.grey[600]),
+                          const SizedBox(width: 4),
+                          Text(
+                            room.deliveryInfo!.trackingNumber,
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 4),
+                    Text(
+                      room.lastMessageText ?? 'Nouvelle conversation',
+                      style: TextStyle(
+                        color: hasUnread ? Colors.black87 : Colors.grey[600],
+                        fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-                child: Text(
-                  room.unreadCount > 9 ? '9+' : '${room.unreadCount}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+              ),
+              const SizedBox(width: 8),
+              if (hasUnread)
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: const BoxDecoration(
+                    color: Colors.blue,
+                    shape: BoxShape.circle,
                   ),
-                ),
-              )
-            : const Icon(Icons.chevron_right, color: Colors.grey),
+                  child: Text(
+                    room.unreadCount > 9 ? '9+' : '${room.unreadCount}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              else
+                const Icon(Icons.chevron_right, color: Colors.grey),
+            ],
+          ),
+        ),
       ),
     );
   }

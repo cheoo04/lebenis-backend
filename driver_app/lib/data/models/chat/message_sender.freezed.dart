@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-MessageSender _$MessageSenderFromJson(Map<String, dynamic> json) {
-  return _MessageSender.fromJson(json);
-}
-
 /// @nodoc
 mixin _$MessageSender {
   String get id => throw _privateConstructorUsedError;
@@ -26,7 +22,6 @@ mixin _$MessageSender {
   @JsonKey(name: 'profile_photo_url')
   String? get profilePhotoUrl => throw _privateConstructorUsedError;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
   $MessageSenderCopyWith<MessageSender> get copyWith =>
       throw _privateConstructorUsedError;
@@ -125,15 +120,13 @@ class __$$MessageSenderImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
-class _$MessageSenderImpl implements _MessageSender {
+
+class _$MessageSenderImpl extends _MessageSender {
   const _$MessageSenderImpl(
       {required this.id,
       @JsonKey(name: 'full_name') required this.fullName,
-      @JsonKey(name: 'profile_photo_url') this.profilePhotoUrl});
-
-  factory _$MessageSenderImpl.fromJson(Map<String, dynamic> json) =>
-      _$$MessageSenderImplFromJson(json);
+      @JsonKey(name: 'profile_photo_url') this.profilePhotoUrl})
+      : super._();
 
   @override
   final String id;
@@ -161,7 +154,6 @@ class _$MessageSenderImpl implements _MessageSender {
                 other.profilePhotoUrl == profilePhotoUrl));
   }
 
-  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, id, fullName, profilePhotoUrl);
 
@@ -170,24 +162,15 @@ class _$MessageSenderImpl implements _MessageSender {
   @pragma('vm:prefer-inline')
   _$$MessageSenderImplCopyWith<_$MessageSenderImpl> get copyWith =>
       __$$MessageSenderImplCopyWithImpl<_$MessageSenderImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$MessageSenderImplToJson(
-      this,
-    );
-  }
 }
 
-abstract class _MessageSender implements MessageSender {
+abstract class _MessageSender extends MessageSender {
   const factory _MessageSender(
           {required final String id,
           @JsonKey(name: 'full_name') required final String fullName,
           @JsonKey(name: 'profile_photo_url') final String? profilePhotoUrl}) =
       _$MessageSenderImpl;
-
-  factory _MessageSender.fromJson(Map<String, dynamic> json) =
-      _$MessageSenderImpl.fromJson;
+  const _MessageSender._() : super._();
 
   @override
   String get id;

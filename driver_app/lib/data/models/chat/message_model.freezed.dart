@@ -29,10 +29,15 @@ mixin _$MessageModel {
   String? get text => throw _privateConstructorUsedError;
   @JsonKey(name: 'image_url')
   String? get imageUrl => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _parseDouble)
   double? get latitude => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _parseDouble)
   double? get longitude => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_read', fromJson: _parseBool)
   bool get isRead => throw _privateConstructorUsedError;
+  @JsonKey(name: 'read_at')
   DateTime? get readAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
   DateTime get createdAt => throw _privateConstructorUsedError;
   @JsonKey(includeFromJson: false, includeToJson: false)
   MessageStatus get status => throw _privateConstructorUsedError;
@@ -58,11 +63,11 @@ abstract class $MessageModelCopyWith<$Res> {
       @JsonKey(name: 'message_type') MessageType messageType,
       String? text,
       @JsonKey(name: 'image_url') String? imageUrl,
-      double? latitude,
-      double? longitude,
-      bool isRead,
-      DateTime? readAt,
-      DateTime createdAt,
+      @JsonKey(fromJson: _parseDouble) double? latitude,
+      @JsonKey(fromJson: _parseDouble) double? longitude,
+      @JsonKey(name: 'is_read', fromJson: _parseBool) bool isRead,
+      @JsonKey(name: 'read_at') DateTime? readAt,
+      @JsonKey(name: 'created_at') DateTime createdAt,
       @JsonKey(includeFromJson: false, includeToJson: false)
       MessageStatus status,
       @JsonKey(includeFromJson: false, includeToJson: false) bool isMine});
@@ -177,11 +182,11 @@ abstract class _$$MessageModelImplCopyWith<$Res>
       @JsonKey(name: 'message_type') MessageType messageType,
       String? text,
       @JsonKey(name: 'image_url') String? imageUrl,
-      double? latitude,
-      double? longitude,
-      bool isRead,
-      DateTime? readAt,
-      DateTime createdAt,
+      @JsonKey(fromJson: _parseDouble) double? latitude,
+      @JsonKey(fromJson: _parseDouble) double? longitude,
+      @JsonKey(name: 'is_read', fromJson: _parseBool) bool isRead,
+      @JsonKey(name: 'read_at') DateTime? readAt,
+      @JsonKey(name: 'created_at') DateTime createdAt,
       @JsonKey(includeFromJson: false, includeToJson: false)
       MessageStatus status,
       @JsonKey(includeFromJson: false, includeToJson: false) bool isMine});
@@ -282,11 +287,11 @@ class _$MessageModelImpl extends _MessageModel {
       @JsonKey(name: 'message_type') required this.messageType,
       this.text,
       @JsonKey(name: 'image_url') this.imageUrl,
-      this.latitude,
-      this.longitude,
-      required this.isRead,
-      this.readAt,
-      required this.createdAt,
+      @JsonKey(fromJson: _parseDouble) this.latitude,
+      @JsonKey(fromJson: _parseDouble) this.longitude,
+      @JsonKey(name: 'is_read', fromJson: _parseBool) required this.isRead,
+      @JsonKey(name: 'read_at') this.readAt,
+      @JsonKey(name: 'created_at') required this.createdAt,
       @JsonKey(includeFromJson: false, includeToJson: false)
       this.status = MessageStatus.sent,
       @JsonKey(includeFromJson: false, includeToJson: false)
@@ -312,14 +317,19 @@ class _$MessageModelImpl extends _MessageModel {
   @JsonKey(name: 'image_url')
   final String? imageUrl;
   @override
+  @JsonKey(fromJson: _parseDouble)
   final double? latitude;
   @override
+  @JsonKey(fromJson: _parseDouble)
   final double? longitude;
   @override
+  @JsonKey(name: 'is_read', fromJson: _parseBool)
   final bool isRead;
   @override
+  @JsonKey(name: 'read_at')
   final DateTime? readAt;
   @override
+  @JsonKey(name: 'created_at')
   final DateTime createdAt;
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -399,11 +409,12 @@ abstract class _MessageModel extends MessageModel {
       @JsonKey(name: 'message_type') required final MessageType messageType,
       final String? text,
       @JsonKey(name: 'image_url') final String? imageUrl,
-      final double? latitude,
-      final double? longitude,
+      @JsonKey(fromJson: _parseDouble) final double? latitude,
+      @JsonKey(fromJson: _parseDouble) final double? longitude,
+      @JsonKey(name: 'is_read', fromJson: _parseBool)
       required final bool isRead,
-      final DateTime? readAt,
-      required final DateTime createdAt,
+      @JsonKey(name: 'read_at') final DateTime? readAt,
+      @JsonKey(name: 'created_at') required final DateTime createdAt,
       @JsonKey(includeFromJson: false, includeToJson: false)
       final MessageStatus status,
       @JsonKey(includeFromJson: false, includeToJson: false)
@@ -429,14 +440,19 @@ abstract class _MessageModel extends MessageModel {
   @JsonKey(name: 'image_url')
   String? get imageUrl;
   @override
+  @JsonKey(fromJson: _parseDouble)
   double? get latitude;
   @override
+  @JsonKey(fromJson: _parseDouble)
   double? get longitude;
   @override
+  @JsonKey(name: 'is_read', fromJson: _parseBool)
   bool get isRead;
   @override
+  @JsonKey(name: 'read_at')
   DateTime? get readAt;
   @override
+  @JsonKey(name: 'created_at')
   DateTime get createdAt;
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)

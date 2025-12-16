@@ -275,6 +275,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       const SizedBox(height: 8),
 
                       ModernInfoCard(
+                        icon: Icons.chat_bubble,
+                        title: 'Mes conversations',
+                        subtitle: 'Discuter avec les livreurs',
+                        iconColor: Colors.green,
+                        onTap: () {
+                          Navigator.pushNamed(context, '/conversations');
+                        },
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      ModernInfoCard(
                         icon: Icons.edit,
                         title: 'Modifier mon profil',
                         subtitle: 'Informations du commerce',

@@ -43,6 +43,8 @@ class MessageModel with _$MessageModel {
     @JsonKey(name: 'sender_name') required String senderName,
     @JsonKey(name: 'text') required String messageText,
     @JsonKey(name: 'image_url') String? imageUrl,
+    @JsonKey(name: 'latitude') double? latitude,
+    @JsonKey(name: 'longitude') double? longitude,
     @JsonKey(name: 'created_at') required DateTime timestamp,
     @JsonKey(name: 'is_read', defaultValue: false) required bool isRead,
     @JsonKey(name: 'message_type') String? messageType,

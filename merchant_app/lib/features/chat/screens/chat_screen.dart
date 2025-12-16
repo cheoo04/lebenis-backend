@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../data/models/chat/chat_room_model.dart';
 import '../providers/chat_provider.dart';
 import '../../../data/providers/auth_provider.dart';
@@ -284,8 +285,69 @@ class _MessageBubble extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
+                      // Afficher la position GPS si c'est un message location
+                      if (message.messageType == 'location' && 
+                          message.latitude != null && 
+                          message.longitude != null)
+                        GestureDetector(
+                          onTap: () async {
+                            final url = Uri.parse(
+                              'https://www.google.com/maps/search/?api=1&query=${message.latitude},${message.longitude}'
+                            );
+                            if (await canLaunchUrl(url)) {
+                              await launchUrl(url, mode: LaunchMode.externalApplication);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: isMine ? Colors.deepPurple.shade700 : Colors.grey[300],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.location_on,
+                                      color: isMine ? Colors.white : Colors.deepPurple,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Position GPS',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: isMine ? Colors.white : Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${message.latitude!.toStringAsFixed(6)}, ${message.longitude!.toStringAsFixed(6)}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isMine ? Colors.white70 : Colors.grey[700],
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Appuyez pour ouvrir dans Maps',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isMine ? Colors.white60 : Colors.blue,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
                       // Afficher l'image si c'est un message image
-                      if (message.imageUrl != null && message.imageUrl!.isNotEmpty)
+                      else if (message.imageUrl != null && message.imageUrl!.isNotEmpty)
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(

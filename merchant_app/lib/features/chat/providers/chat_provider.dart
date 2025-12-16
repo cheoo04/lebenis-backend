@@ -212,6 +212,21 @@ final chatRoomsProvider =
   return ChatRoomsNotifier();
 });
 
+/// Provider pour le nombre total de messages non lus
+final totalUnreadCountProvider = Provider<AsyncValue<int>>((ref) {
+  final chatRoomsState = ref.watch(chatRoomsProvider);
+  
+  if (chatRoomsState.isLoading) {
+    return const AsyncValue.loading();
+  }
+  
+  if (chatRoomsState.error != null) {
+    return AsyncValue.error(chatRoomsState.error!, StackTrace.current);
+  }
+  
+  return AsyncValue.data(chatRoomsState.totalUnread);
+});
+
 /// Provider pour les messages d'une conversation (Stream)
 final chatMessagesProvider = StreamProvider.family<List<MessageModel>, String>((ref, roomId) {
   final repository = ref.watch(chatRepositoryProvider);

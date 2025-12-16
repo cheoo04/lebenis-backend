@@ -14,13 +14,13 @@ _$MessageModelImpl _$$MessageModelImplFromJson(Map<String, dynamic> json) =>
       messageType: $enumDecode(_$MessageTypeEnumMap, json['message_type']),
       text: json['text'] as String?,
       imageUrl: json['image_url'] as String?,
-      latitude: (json['latitude'] as num?)?.toDouble(),
-      longitude: (json['longitude'] as num?)?.toDouble(),
-      isRead: json['isRead'] as bool,
-      readAt: json['readAt'] == null
+      latitude: _parseDouble(json['latitude']),
+      longitude: _parseDouble(json['longitude']),
+      isRead: _parseBool(json['is_read']),
+      readAt: json['read_at'] == null
           ? null
-          : DateTime.parse(json['readAt'] as String),
-      createdAt: DateTime.parse(json['createdAt'] as String),
+          : DateTime.parse(json['read_at'] as String),
+      createdAt: DateTime.parse(json['created_at'] as String),
     );
 
 Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
@@ -33,9 +33,9 @@ Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
       'image_url': instance.imageUrl,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
-      'isRead': instance.isRead,
-      'readAt': instance.readAt?.toIso8601String(),
-      'createdAt': instance.createdAt.toIso8601String(),
+      'is_read': instance.isRead,
+      'read_at': instance.readAt?.toIso8601String(),
+      'created_at': instance.createdAt.toIso8601String(),
     };
 
 const _$MessageTypeEnumMap = {

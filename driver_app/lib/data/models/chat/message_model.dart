@@ -23,6 +23,22 @@ enum MessageStatus {
   failed,
 }
 
+// Helper functions for JSON parsing
+double? _parseDouble(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
+bool _parseBool(dynamic value) {
+  if (value == null) return false;
+  if (value is bool) return value;
+  if (value is String) return value.toLowerCase() == 'true';
+  if (value is int) return value != 0;
+  return false;
+}
+
 @freezed
 class MessageModel with _$MessageModel {
   const MessageModel._();
@@ -33,11 +49,11 @@ class MessageModel with _$MessageModel {
     @JsonKey(name: 'message_type') required MessageType messageType,
     String? text,
     @JsonKey(name: 'image_url') String? imageUrl,
-    double? latitude,
-    double? longitude,
-    required bool isRead,
-    DateTime? readAt,
-    required DateTime createdAt,
+    @JsonKey(fromJson: _parseDouble) double? latitude,
+    @JsonKey(fromJson: _parseDouble) double? longitude,
+    @JsonKey(name: 'is_read', fromJson: _parseBool) required bool isRead,
+    @JsonKey(name: 'read_at') DateTime? readAt,
+    @JsonKey(name: 'created_at') required DateTime createdAt,
     @Default(MessageStatus.sent)
     @JsonKey(includeFromJson: false, includeToJson: false)
     MessageStatus status,

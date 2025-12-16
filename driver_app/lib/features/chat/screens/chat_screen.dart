@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../data/models/chat/chat_room_model.dart';
 import '../../../data/models/chat/message_model.dart';
 import '../providers/chat_provider.dart';
@@ -252,13 +253,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     setState(() => _isTyping = false);
 
     final messenger = ScaffoldMessenger.of(context);
-    final success = await ref
-        .read(chatMessagesProvider(widget.chatRoom.id).notifier)
-        .sendTextMessage(text);
+    final notifier = ref.read(chatMessagesProvider(widget.chatRoom.id).notifier);
+    final success = await notifier.sendTextMessage(text);
 
     if (!success && mounted) {
+      final error = ref.read(chatMessagesProvider(widget.chatRoom.id)).error;
       messenger.showSnackBar(
-        const SnackBar(content: Text('Erreur lors de l\'envoi du message')),
+        SnackBar(content: Text('Erreur message: ${error ?? "Inconnue"}')),
       );
     }
   }
@@ -322,8 +323,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           .sendImageMessage(imageUrl);
 
       if (!success && mounted) {
+        final error = ref.read(chatMessagesProvider(widget.chatRoom.id)).error;
         messenger.showSnackBar(
-          const SnackBar(content: Text('Erreur lors de l\'envoi de l\'image')),
+          SnackBar(content: Text('Erreur image: ${error ?? "Inconnue"}')),
         );
       }
     } catch (e) {
@@ -398,9 +400,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           );
 
       if (!success && mounted) {
+        final error = ref.read(chatMessagesProvider(widget.chatRoom.id)).error;
         final messenger = ScaffoldMessenger.of(context);
         messenger.showSnackBar(
-          const SnackBar(content: Text('Erreur lors de l\'envoi de la position')),
+          SnackBar(content: Text('Erreur position: ${error ?? "Inconnue"}')),
         );
       }
     } catch (e) {
@@ -551,36 +554,66 @@ class _MessageBubble extends StatelessWidget {
         );
 
       case MessageType.location:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
+        return GestureDetector(
+          onTap: () async {
+            if (message.latitude != null && message.longitude != null) {
+              final url = Uri.parse(
+                'https://www.google.com/maps/search/?api=1&query=${message.latitude},${message.longitude}'
+              );
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              }
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isMine ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.location_on,
-                  color: isMine ? Colors.white : Colors.red,
-                  size: 20,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      color: isMine ? Colors.white : Colors.red,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '📍 Position partagée',
+                      style: TextStyle(
+                        color: isMine ? Colors.white : Colors.black87,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  'Position partagée',
-                  style: TextStyle(
-                    color: isMine ? Colors.white : Colors.black87,
-                    fontWeight: FontWeight.w500,
+                if (message.latitude != null && message.longitude != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '${message.latitude!.toStringAsFixed(6)}, ${message.longitude!.toStringAsFixed(6)}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isMine ? Colors.white70 : Colors.grey[600],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Appuyez pour ouvrir dans Google Maps',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isMine ? Colors.white70 : Colors.blue,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
               ],
             ),
-            if (message.latitude != null && message.longitude != null)
-              Text(
-                '${message.latitude}, ${message.longitude}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isMine ? Colors.white70 : Colors.grey[600],
-                ),
-              ),
-          ],
+          ),
         );
 
       case MessageType.system:
