@@ -164,3 +164,67 @@ def notify_delivery_rejected(merchant, delivery):
         logger.exception('Failed to persist notification history for delivery rejected')
 
     return success
+
+
+def notify_delivery_pin(user, delivery, pin_code):
+    """
+    Envoie le code PIN de confirmation par notification push.
+    Appelé quand le livreur confirme le pickup (récupération du colis).
+    
+    Args:
+        user: L'utilisateur destinataire (marchand ou particulier)
+        delivery: L'objet Delivery
+        pin_code: Le code PIN à 4 chiffres
+    
+    Returns:
+        bool: True si la notification a été envoyée avec succès
+    """
+    if not user:
+        logger.warning("notify_delivery_pin: no user provided")
+        return False
+    
+    if not getattr(user, 'fcm_token', None):
+        logger.warning(f"notify_delivery_pin: no FCM token for user {user.email}")
+        return False
+    
+    if not pin_code:
+        logger.warning(f"notify_delivery_pin: no PIN code for delivery {delivery.id}")
+        return False
+    
+    success = FirebaseService.send_notification(
+        fcm_token=user.fcm_token,
+        title="📦 Livraison en cours !",
+        body=f"Votre code PIN : {pin_code}\nDonnez ce code au livreur à la réception.",
+        data={
+            'type': 'delivery_pin',
+            'delivery_id': str(delivery.id),
+            'tracking_number': delivery.tracking_number,
+            'pin_code': str(pin_code),
+            'action': 'show_pin',
+        }
+    )
+    
+    # Enregistrer dans l'historique
+    try:
+        NotificationHistory.objects.create(
+            user=user,
+            notification_type='delivery_pin',
+            title='📦 Livraison en cours !',
+            body=f"Votre code PIN : {pin_code}",
+            data={
+                'delivery_id': str(delivery.id),
+                'tracking_number': delivery.tracking_number,
+                'action': 'show_pin',
+            },
+            action='show_pin',
+            sent_via_fcm=bool(success)
+        )
+    except Exception:
+        logger.exception('Failed to persist notification history for delivery PIN')
+    
+    if success:
+        logger.info(f"📲 PIN {pin_code} envoyé par notification push à {user.email} pour livraison {delivery.tracking_number}")
+    else:
+        logger.warning(f"❌ Échec envoi PIN par notification push à {user.email}")
+    
+    return success

@@ -27,7 +27,7 @@ from .email_service import send_delivery_pin_email
 from apps.merchants.models import Merchant
 from apps.drivers.models import Driver
 from core.permissions import IsMerchant, IsDriver, IsAdmin, IsMerchantOrIndividual
-from apps.notifications.services import notify_delivery_status_change
+from apps.notifications.services import notify_delivery_status_change, notify_delivery_pin
 from core.cloudinary_service import CloudinaryService
 import sentry_sdk
 from geopy.distance import geodesic
@@ -734,16 +734,24 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             # C'est le bon moment: le livreur a récupéré le colis, la livraison est en cours
             try:
                 recipient_email = None
+                recipient_user = None
                 if merchant and getattr(merchant, 'user', None):
                     recipient_email = merchant.user.email
+                    recipient_user = merchant.user
                 elif created_by:
                     recipient_email = created_by.email
+                    recipient_user = created_by
                 
                 if recipient_email and delivery.delivery_confirmation_code:
+                    # Envoyer par email
                     send_delivery_pin_email(delivery.delivery_confirmation_code, recipient_email, delivery)
                     logger.info(f"📧 PIN envoyé par email à {recipient_email} pour livraison {delivery.tracking_number}")
+                    
+                    # 📲 Envoyer aussi par notification push
+                    if recipient_user:
+                        notify_delivery_pin(recipient_user, delivery, delivery.delivery_confirmation_code)
             except Exception as e:
-                logger.exception(f"Failed to send PIN email for delivery {delivery.id}: {e}")
+                logger.exception(f"Failed to send PIN for delivery {delivery.id}: {e}")
 
             logger.info(f"Livraison {delivery.tracking_number} récupérée par driver {driver.user.email}")
 
