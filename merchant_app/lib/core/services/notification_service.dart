@@ -25,21 +25,21 @@ class NotificationService {
   /// Initialiser le service de notifications (sans enregistrer le token)
   Future<void> initialize({bool firebaseEnabled = true}) async {
     if (!firebaseEnabled) {
-      if (kDebugMode) {
-      }
+      debugPrint('⚠️ [FCM] Firebase désactivé');
       return;
     }
 
     try {
       _fcm = FirebaseMessaging.instance;
+      debugPrint('🔥 [FCM] Firebase Messaging initialisé');
       await _requestPermissions();
       await _initializeLocalNotifications();
       _configureFirebaseHandlers();
+      debugPrint('✅ [FCM] Service de notifications initialisé');
       // Ne pas enregistrer le token ici car l'utilisateur n'est pas authentifié
       // Le token sera enregistré après login via registerTokenAfterLogin()
     } catch (e) {
-      if (kDebugMode) {
-      }
+      debugPrint('❌ [FCM] Erreur initialisation: $e');
     }
   }
 
@@ -47,6 +47,7 @@ class NotificationService {
   Future<void> registerTokenAfterLogin() async {
     if (_fcm == null) {
       if (kDebugMode) {
+        debugPrint('⚠️ [FCM] Firebase Messaging non initialisé');
       }
       return;
     }
@@ -54,9 +55,11 @@ class NotificationService {
     try {
       await _registerToken();
       if (kDebugMode) {
+        debugPrint('✅ [FCM] Token enregistré avec succès après login');
       }
     } catch (e) {
       if (kDebugMode) {
+        debugPrint('❌ [FCM] Erreur enregistrement token après login: $e');
       }
     }
   }
@@ -170,9 +173,13 @@ class NotificationService {
 
     try {
       final token = await _fcm!.getToken();
-      if (token == null) return;
+      if (token == null) {
+        debugPrint('⚠️ [FCM] Impossible d\'obtenir le token FCM');
+        return;
+      }
 
       _fcmToken = token;
+      debugPrint('📱 [FCM] Token obtenu: ${token.substring(0, 20)}...');
 
       await _dioClient.post(
         ApiConstants.registerFcmToken,
@@ -182,11 +189,9 @@ class NotificationService {
         },
       );
 
-      if (kDebugMode) {
-      }
+      debugPrint('✅ [FCM] Token enregistré sur le backend');
     } catch (e) {
-      if (kDebugMode) {
-      }
+      debugPrint('❌ [FCM] Erreur lors de l\'enregistrement du token: $e');
     }
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'firebase_options.dart';
 import 'theme/app_theme.dart';
 import 'core/routes/app_router.dart';
@@ -11,6 +12,9 @@ import 'data/providers/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialiser les données de locale pour le formatage des dates en français
+  await initializeDateFormatting('fr_FR', null);
   
   // Vérifier si la plateforme supporte Firebase
   final isFirebaseSupported = !kIsWeb && 
@@ -75,8 +79,8 @@ class _MyAppState extends ConsumerState<MyApp> {
       notificationService.onNotificationTap = (data) {
         _handleNotificationNavigation(data);
       };
-    } catch (_) {
-      // Notification initialization may fail - continue without notifications
+    } catch (e) {
+      debugPrint('❌ [Notifications] Erreur initialisation: $e');
     }
   }
 

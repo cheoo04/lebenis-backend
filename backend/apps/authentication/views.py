@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from .serializers import UserRegisterSerializer, UserSerializer, CustomTokenObtainPairSerializer
 from .models import User
+from apps.notifications.models import DeviceToken
 
 
 # ============================================================================
@@ -177,6 +178,7 @@ class RegisterFCMTokenView(APIView):
     
     def post(self, request):
         fcm_token = request.data.get('fcm_token')
+        platform = request.data.get('platform', 'android')
         
         if not fcm_token:
             return Response(
@@ -184,10 +186,24 @@ class RegisterFCMTokenView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Mettre à jour le token FCM
         user = request.user
+        
+        # 1. Mettre à jour le token FCM sur le modèle User (rétrocompatibilité)
         user.fcm_token = fcm_token
         user.save(update_fields=['fcm_token'])
+        
+        # 2. Créer ou mettre à jour le DeviceToken (utilisé par le chat)
+        DeviceToken.objects.update_or_create(
+            user=user,
+            token=fcm_token,
+            defaults={
+                'platform': platform,
+                'is_active': True,
+            }
+        )
+        
+        # 3. Désactiver les anciens tokens de cet utilisateur (sauf le nouveau)
+        DeviceToken.objects.filter(user=user).exclude(token=fcm_token).update(is_active=False)
         
         return Response({
             'success': True,

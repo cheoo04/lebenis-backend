@@ -138,7 +138,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    final isMine = message.senderId != widget.chatRoom.driver.id;
+                    // Comparer avec l'ID de l'utilisateur actuel (marchand)
+                    final authState = ref.read(authStateProvider);
+                    final currentUserId = authState.value?.id.toString() ?? '';
+                    final isMine = message.senderId == currentUserId;
                     final showTime = index == 0 ||
                         message.timestamp.difference(messages[index - 1].timestamp).inMinutes > 5;
 
