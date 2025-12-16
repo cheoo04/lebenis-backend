@@ -67,8 +67,16 @@ class FirebaseService:
                 logger.info("📝 Configurez FIREBASE_CREDENTIALS_JSON, FIREBASE_CREDENTIALS_BASE64, ou FIREBASE_CREDENTIALS_PATH")
                 return
             
-            # Initialiser Firebase Admin
-            cls._app = firebase_admin.initialize_app(cred)
+            # Récupérer l'URL de la base de données Firebase (pour le chat)
+            database_url = getattr(settings, 'FIREBASE_DATABASE_URL', None) or os.environ.get('FIREBASE_DATABASE_URL')
+            
+            # Initialiser Firebase Admin avec databaseURL si disponible
+            options = {}
+            if database_url:
+                options['databaseURL'] = database_url
+                logger.info(f"🔗 Firebase databaseURL configuré: {database_url[:50]}...")
+            
+            cls._app = firebase_admin.initialize_app(cred, options) if options else firebase_admin.initialize_app(cred)
             cls._initialized = True
             
             logger.info("✅ Firebase Admin SDK initialisé avec succès")

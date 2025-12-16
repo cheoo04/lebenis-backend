@@ -50,61 +50,78 @@ class FirebaseChatService:
             return True
         
         try:
-            # Vérifier si déjà initialisé
-            if not firebase_admin._apps:
-                cred = None
-                database_url = getattr(settings, 'FIREBASE_DATABASE_URL', None) or os.environ.get('FIREBASE_DATABASE_URL')
-                
-                logger.info(f"🔍 FIREBASE_DATABASE_URL from settings: {getattr(settings, 'FIREBASE_DATABASE_URL', 'NOT SET')}")
-                logger.info(f"🔍 FIREBASE_DATABASE_URL from env: {os.environ.get('FIREBASE_DATABASE_URL', 'NOT SET')}")
-                logger.info(f"🔍 Final database_url: {database_url}")
-                
-                if not database_url:
-                    logger.error("❌ FIREBASE_DATABASE_URL non configuré")
-                    return False
-                
-                # Méthode 1: JSON direct depuis variable d'environnement
-                credentials_json = getattr(settings, 'FIREBASE_CREDENTIALS_JSON', None) or os.environ.get('FIREBASE_CREDENTIALS_JSON')
-                if credentials_json:
+            database_url = getattr(settings, 'FIREBASE_DATABASE_URL', None) or os.environ.get('FIREBASE_DATABASE_URL')
+            
+            logger.info(f"🔍 FIREBASE_DATABASE_URL from settings: {getattr(settings, 'FIREBASE_DATABASE_URL', 'NOT SET')}")
+            logger.info(f"🔍 FIREBASE_DATABASE_URL from env: {os.environ.get('FIREBASE_DATABASE_URL', 'NOT SET')}")
+            logger.info(f"🔍 Final database_url: {database_url}")
+            
+            if not database_url:
+                logger.error("❌ FIREBASE_DATABASE_URL non configuré")
+                return False
+            
+            # Vérifier si Firebase est déjà initialisé (par le service notifications)
+            if firebase_admin._apps:
+                # Firebase déjà initialisé, vérifier si databaseURL est configuré
+                app = firebase_admin.get_app()
+                # L'app existe déjà, on peut l'utiliser si elle a databaseURL
+                # Sinon on la supprime et réinitialise
+                try:
+                    # Tester l'accès à la database
+                    test_ref = db.reference('/')
+                    cls._app = app
+                    cls._initialized = True
+                    logger.info("✅ Firebase Realtime Database déjà initialisé, réutilisation")
+                    return True
+                except Exception as e:
+                    logger.warning(f"⚠️ Firebase app existe mais sans databaseURL, réinitialisation: {e}")
+                    firebase_admin.delete_app(app)
+            
+            # Initialiser Firebase avec databaseURL
+            cred = None
+            
+            # Méthode 1: JSON direct depuis variable d'environnement
+            credentials_json = getattr(settings, 'FIREBASE_CREDENTIALS_JSON', None) or os.environ.get('FIREBASE_CREDENTIALS_JSON')
+            if credentials_json:
+                try:
+                    cred_dict = json.loads(credentials_json)
+                    cred = credentials.Certificate(cred_dict)
+                    logger.info("🔐 Firebase credentials chargés depuis FIREBASE_CREDENTIALS_JSON")
+                except json.JSONDecodeError as e:
+                    logger.error(f"❌ FIREBASE_CREDENTIALS_JSON invalide: {e}")
+            
+            # Méthode 2: Base64 depuis variable d'environnement (recommandé pour Render)
+            if not cred:
+                credentials_base64 = getattr(settings, 'FIREBASE_CREDENTIALS_BASE64', None) or os.environ.get('FIREBASE_CREDENTIALS_BASE64')
+                if credentials_base64:
                     try:
-                        cred_dict = json.loads(credentials_json)
+                        decoded = base64.b64decode(credentials_base64)
+                        cred_dict = json.loads(decoded)
                         cred = credentials.Certificate(cred_dict)
-                        logger.info("🔐 Firebase credentials chargés depuis FIREBASE_CREDENTIALS_JSON")
-                    except json.JSONDecodeError as e:
-                        logger.error(f"❌ FIREBASE_CREDENTIALS_JSON invalide: {e}")
-                
-                # Méthode 2: Base64 depuis variable d'environnement (recommandé pour Render)
-                if not cred:
-                    credentials_base64 = getattr(settings, 'FIREBASE_CREDENTIALS_BASE64', None) or os.environ.get('FIREBASE_CREDENTIALS_BASE64')
-                    if credentials_base64:
-                        try:
-                            decoded = base64.b64decode(credentials_base64)
-                            cred_dict = json.loads(decoded)
-                            cred = credentials.Certificate(cred_dict)
-                            logger.info("🔐 Firebase credentials chargés depuis FIREBASE_CREDENTIALS_BASE64")
-                        except Exception as e:
-                            logger.error(f"❌ FIREBASE_CREDENTIALS_BASE64 invalide: {e}")
-                
-                # Méthode 3: Chemin vers fichier (local/dev)
-                if not cred:
-                    cred_path = getattr(settings, 'FIREBASE_CREDENTIALS_PATH', None)
-                    if cred_path:
-                        full_path = os.path.join(settings.BASE_DIR, cred_path) if not os.path.isabs(cred_path) else cred_path
-                        if os.path.exists(full_path):
-                            cred = credentials.Certificate(full_path)
-                            logger.info(f"🔐 Firebase credentials chargés depuis fichier: {cred_path}")
-                        else:
-                            logger.warning(f"⚠️ Fichier Firebase credentials introuvable: {full_path}")
-                
-                if not cred:
-                    logger.error("❌ Aucune credentials Firebase configurées")
-                    return False
-                
-                firebase_admin.initialize_app(cred, {
-                    'databaseURL': database_url
-                })
-                
-                logger.info("✅ Firebase Realtime Database initialisé")
+                        logger.info("🔐 Firebase credentials chargés depuis FIREBASE_CREDENTIALS_BASE64")
+                    except Exception as e:
+                        logger.error(f"❌ FIREBASE_CREDENTIALS_BASE64 invalide: {e}")
+            
+            # Méthode 3: Chemin vers fichier (local/dev)
+            if not cred:
+                cred_path = getattr(settings, 'FIREBASE_CREDENTIALS_PATH', None)
+                if cred_path:
+                    full_path = os.path.join(settings.BASE_DIR, cred_path) if not os.path.isabs(cred_path) else cred_path
+                    if os.path.exists(full_path):
+                        cred = credentials.Certificate(full_path)
+                        logger.info(f"🔐 Firebase credentials chargés depuis fichier: {cred_path}")
+                    else:
+                        logger.warning(f"⚠️ Fichier Firebase credentials introuvable: {full_path}")
+            
+            if not cred:
+                logger.error("❌ Aucune credentials Firebase configurées")
+                return False
+            
+            firebase_admin.initialize_app(cred, {
+                'databaseURL': database_url
+            })
+            
+            logger.info("✅ Firebase Realtime Database initialisé")
             
             cls._app = firebase_admin.get_app()
             cls._initialized = True
