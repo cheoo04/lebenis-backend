@@ -54,25 +54,51 @@ class MessageModel with _$MessageModel {
     Map<dynamic, dynamic> firebaseData,
     String currentUserId,
   ) {
+    // Gérer les différents formats de sender (backend: senderId, merchant: sender, driver: sender_id)
+    final senderId = (firebaseData['sender_id'] ?? firebaseData['senderId'] ?? firebaseData['sender'] ?? '').toString();
+    
+    // Gérer les différents formats de text (backend: text, merchant: message_text)
+    final text = (firebaseData['text'] ?? firebaseData['message_text'] ?? '').toString();
+    
+    // Gérer les différents formats de message_type (backend: type, apps: message_type)
+    final messageType = (firebaseData['message_type'] ?? firebaseData['type'] ?? 'text').toString();
+    
+    // Gérer les différents formats de image_url (backend: imageUrl, apps: image_url)
+    final imageUrl = (firebaseData['image_url'] ?? firebaseData['imageUrl'])?.toString();
+    
+    // Gérer les différents formats de timestamp (int milliseconds ou ISO string)
+    DateTime createdAt;
+    final timestamp = firebaseData['timestamp'];
+    if (timestamp is int) {
+      createdAt = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    } else if (timestamp is String) {
+      createdAt = DateTime.tryParse(timestamp) ?? DateTime.now();
+    } else {
+      createdAt = DateTime.now();
+    }
+    
+    // Gérer is_read / isRead
+    final isRead = (firebaseData['is_read'] ?? firebaseData['isRead'] ?? false) as bool;
+    
     return MessageModel(
       id: messageId,
       chatRoomId: '', // Sera rempli par le contexte
       sender: MessageSender(
-        id: firebaseData['sender_id'] as String,
-        fullName: '', // Sera enrichi depuis le cache
+        id: senderId,
+        fullName: (firebaseData['sender_name'] ?? '').toString(),
       ),
-      messageType: _parseMessageType(firebaseData['message_type'] as String?),
-      text: firebaseData['text'] as String?,
-      imageUrl: firebaseData['image_url'] as String?,
+      messageType: _parseMessageType(messageType),
+      text: text.isNotEmpty ? text : null,
+      imageUrl: imageUrl,
       latitude: (firebaseData['latitude'] as num?)?.toDouble(),
       longitude: (firebaseData['longitude'] as num?)?.toDouble(),
-      isRead: firebaseData['is_read'] as bool? ?? false,
+      isRead: isRead,
       readAt: firebaseData['read_at'] != null
           ? DateTime.parse(firebaseData['read_at'] as String)
           : null,
-      createdAt: DateTime.parse(firebaseData['timestamp'] as String),
+      createdAt: createdAt,
       status: MessageStatus.delivered,
-      isMine: firebaseData['sender_id'] == currentUserId,
+      isMine: senderId == currentUserId,
     );
   }
 

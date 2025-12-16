@@ -20,6 +20,15 @@ class _ConversationsListScreenState
   String _searchQuery = '';
 
   @override
+  void initState() {
+    super.initState();
+    // Charger les conversations au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(chatRoomsProvider.notifier).loadChatRooms();
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();

@@ -199,14 +199,21 @@ class ChatRepository {
     final newMessageRef = messagesRef.push();
     final timestamp = DateTime.now();
 
+    // Format unifié compatible avec backend et driver_app
     await newMessageRef.set({
-      'message_text': message,
+      'text': message,
+      'message_text': message, // Rétro-compatibilité
       'sender': senderId,
+      'senderId': senderId, // Compatibilité backend
+      'sender_id': senderId, // Compatibilité driver
       'sender_name': senderName,
       if (imageUrl != null) 'image_url': imageUrl,
+      if (imageUrl != null) 'imageUrl': imageUrl, // Compatibilité backend
       'timestamp': timestamp.millisecondsSinceEpoch,
       'is_read': false,
+      'isRead': false, // Compatibilité backend
       'message_type': imageUrl != null ? 'image' : 'text',
+      'type': imageUrl != null ? 'image' : 'text', // Compatibilité backend
     });
 
     // Mettre à jour le backend via API (backup DB)
