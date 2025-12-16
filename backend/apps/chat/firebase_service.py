@@ -28,7 +28,7 @@ class FirebaseChatService:
     Service pour gérer le chat temps réel via Firebase Realtime Database.
     
     Structure Firebase:
-    /chats/{chat_room_id}/
+    /chat_rooms/{chat_room_id}/
         - metadata: {...}
         - messages/
             - {message_id}: {...}
@@ -148,7 +148,7 @@ class FirebaseChatService:
         
         try:
             message_id = message_data.get('id')
-            path = f'/chats/{chat_room_id}/messages/{message_id}'
+            path = f'/chat_rooms/{chat_room_id}/messages/{message_id}'
             
             # Préparer les données
             firebase_message = {
@@ -185,7 +185,7 @@ class FirebaseChatService:
     def _update_chat_metadata(cls, chat_room_id: str, metadata: Dict[str, Any]):
         """Met à jour les métadonnées d'un chat"""
         try:
-            path = f'/chats/{chat_room_id}/metadata'
+            path = f'/chat_rooms/{chat_room_id}/metadata'
             ref = db.reference(path)
             ref.update(metadata)
         except Exception as e:
@@ -198,7 +198,7 @@ class FirebaseChatService:
             return False
         
         try:
-            path = f'/chats/{chat_room_id}/messages/{message_id}'
+            path = f'/chat_rooms/{chat_room_id}/messages/{message_id}'
             ref = db.reference(path)
             ref.update({
                 'isRead': True,
@@ -226,7 +226,7 @@ class FirebaseChatService:
             return False
         
         try:
-            path = f'/chats/{chat_room_id}/typing/{user_id}'
+            path = f'/chat_rooms/{chat_room_id}/typing/{user_id}'
             ref = db.reference(path)
             
             if is_typing:
@@ -253,7 +253,7 @@ class FirebaseChatService:
             return False
         
         try:
-            path = f'/chats/{chat_room_id}'
+            path = f'/chat_rooms/{chat_room_id}'
             ref = db.reference(path)
             
             firebase_data = {
@@ -285,7 +285,7 @@ class FirebaseChatService:
             return False
         
         try:
-            path = f'/chats/{chat_room_id}'
+            path = f'/chat_rooms/{chat_room_id}'
             ref = db.reference(path)
             ref.delete()
             

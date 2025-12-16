@@ -221,7 +221,7 @@ class ChatRepository {
   Stream<List<MessageModel>> watchMessages(String chatRoomId) async* {
     final currentUserId = await _getCurrentUserId();
     final messagesRef = _firebaseDatabase
-        .ref('chats/$chatRoomId/messages')
+        .ref('chat_rooms/$chatRoomId/messages')
         .orderByChild('timestamp');
 
     await for (final event in messagesRef.onValue) {
@@ -256,7 +256,7 @@ class ChatRepository {
   Stream<MessageModel?> watchMessage(String chatRoomId, String messageId) async* {
     final currentUserId = await _getCurrentUserId();
     final messageRef =
-        _firebaseDatabase.ref('chats/$chatRoomId/messages/$messageId');
+        _firebaseDatabase.ref('chat_rooms/$chatRoomId/messages/$messageId');
 
     await for (final event in messageRef.onValue) {
       if (event.snapshot.value == null) {
@@ -274,7 +274,7 @@ class ChatRepository {
   /// Stream du typing indicator
   Stream<Map<String, bool>> watchTypingIndicators(String chatRoomId) async* {
     final currentUserId = await _getCurrentUserId();
-    final typingRef = _firebaseDatabase.ref('chats/$chatRoomId/typing');
+    final typingRef = _firebaseDatabase.ref('chat_rooms/$chatRoomId/typing');
 
     await for (final event in typingRef.onValue) {
       final typingMap = <String, bool>{};
@@ -302,7 +302,7 @@ class ChatRepository {
     try {
       final currentUserId = await _getCurrentUserId();
       final typingRef =
-          _firebaseDatabase.ref('chats/$chatRoomId/typing/$currentUserId');
+          _firebaseDatabase.ref('chat_rooms/$chatRoomId/typing/$currentUserId');
 
       if (isTyping) {
         await typingRef.set(DateTime.now().toIso8601String());
@@ -319,7 +319,7 @@ class ChatRepository {
       String chatRoomId, String messageId) async {
     try {
       final messageRef =
-          _firebaseDatabase.ref('chats/$chatRoomId/messages/$messageId');
+          _firebaseDatabase.ref('chat_rooms/$chatRoomId/messages/$messageId');
 
       await messageRef.update({
         'is_read': true,
