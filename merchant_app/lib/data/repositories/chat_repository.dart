@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../../core/network/dio_client.dart';
 import '../models/chat/chat_room_model.dart';
@@ -138,19 +139,36 @@ class ChatRepository {
       final messages = <MessageModel>[];
 
       messagesMap.forEach((key, value) {
-        final messageData = Map<String, dynamic>.from(value as Map);
-        messageData['id'] = key;
-        messageData['room_id'] = roomId;
+        try {
+          final rawData = Map<String, dynamic>.from(value as Map);
+          
+          // Convertir timestamp en DateTime
+          DateTime timestamp;
+          if (rawData['timestamp'] is int) {
+            timestamp = DateTime.fromMillisecondsSinceEpoch(rawData['timestamp']);
+          } else if (rawData['timestamp'] is String) {
+            timestamp = DateTime.parse(rawData['timestamp']);
+          } else {
+            timestamp = DateTime.now();
+          }
+          
+          // Construire les données compatibles avec MessageModel
+          final messageData = <String, dynamic>{
+            'id': key.toString(),
+            'chat_room': roomId,
+            'sender': rawData['sender_id']?.toString() ?? rawData['sender']?.toString() ?? '',
+            'sender_name': rawData['sender_name']?.toString() ?? 'Utilisateur',
+            'text': rawData['message_text']?.toString() ?? rawData['text']?.toString() ?? '',
+            'image_url': rawData['image_url'],
+            'created_at': timestamp.toIso8601String(),
+            'is_read': rawData['is_read'] ?? false,
+            'message_type': rawData['message_type']?.toString(),
+          };
 
-        // Convertir timestamp si nécessaire
-        if (messageData['timestamp'] is int) {
-          messageData['timestamp'] =
-              DateTime.fromMillisecondsSinceEpoch(messageData['timestamp']);
-        } else if (messageData['timestamp'] is String) {
-          messageData['timestamp'] = DateTime.parse(messageData['timestamp']);
+          messages.add(MessageModel.fromJson(messageData));
+        } catch (e) {
+          debugPrint('[ChatRepository] Erreur parsing message $key: $e');
         }
-
-        messages.add(MessageModel.fromJson(messageData));
       });
 
       // Trier par timestamp (plus récent en dernier)
@@ -164,6 +182,8 @@ class ChatRepository {
   Future<void> sendMessage({
     required String roomId,
     required String message,
+    required String senderId,
+    required String senderName,
     String? imageUrl,
   }) async {
     if (_firebaseDatabase == null) {
@@ -181,20 +201,29 @@ class ChatRepository {
 
     await newMessageRef.set({
       'message_text': message,
+      'sender': senderId,
+      'sender_name': senderName,
       if (imageUrl != null) 'image_url': imageUrl,
       'timestamp': timestamp.millisecondsSinceEpoch,
       'is_read': false,
       'message_type': imageUrl != null ? 'image' : 'text',
     });
 
-    // Mettre à jour le backend via API
-    await _dioClient.post(
-      '${ApiConstants.baseUrl}/api/v1/chat/rooms/$roomId/messages/',
-      data: {
-        'message_text': message,
-        if (imageUrl != null) 'image_url': imageUrl,
-      },
-    );
+    // Mettre à jour le backend via API (backup DB)
+    try {
+      await _dioClient.post(
+        '${ApiConstants.baseUrl}/api/v1/chat/messages/',
+        data: {
+          'chat_room_id': roomId,
+          'message_type': imageUrl != null ? 'image' : 'text',
+          'text': message,
+          if (imageUrl != null) 'image_url': imageUrl,
+        },
+      );
+    } catch (e) {
+      // Ignorer l'erreur backend - le message est déjà dans Firebase
+      debugPrint('[ChatRepository] Erreur sync backend: $e');
+    }
   }
 
   /// Indicateur de saisie (typing)

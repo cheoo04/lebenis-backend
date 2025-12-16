@@ -282,7 +282,8 @@ FCM_DJANGO_SETTINGS = {
 FIREBASE_CREDENTIALS_PATH = config('FIREBASE_CREDENTIALS_PATH', default='config/firebase/service-account.json')
 
 # Firebase Realtime Database (Phase 3 - Chat)
-FIREBASE_DATABASE_URL = config('FIREBASE_DATABASE_URL', default='')
+_firebase_db_url = config('FIREBASE_DATABASE_URL', default='')
+FIREBASE_DATABASE_URL = _firebase_db_url if _firebase_db_url else None
 
 # Google Maps
 GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')

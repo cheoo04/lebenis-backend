@@ -55,6 +55,10 @@ class FirebaseChatService:
                 cred = None
                 database_url = getattr(settings, 'FIREBASE_DATABASE_URL', None) or os.environ.get('FIREBASE_DATABASE_URL')
                 
+                logger.info(f"🔍 FIREBASE_DATABASE_URL from settings: {getattr(settings, 'FIREBASE_DATABASE_URL', 'NOT SET')}")
+                logger.info(f"🔍 FIREBASE_DATABASE_URL from env: {os.environ.get('FIREBASE_DATABASE_URL', 'NOT SET')}")
+                logger.info(f"🔍 Final database_url: {database_url}")
+                
                 if not database_url:
                     logger.error("❌ FIREBASE_DATABASE_URL non configuré")
                     return False
