@@ -19,7 +19,7 @@ if 'django' not in sys.modules or not hasattr(django, 'apps'):
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.production')
     django.setup()
 
-from django.db.models import Count, Min
+from django.db.models import Count
 from apps.chat.models import ChatRoom, ChatMessage
 
 def merge_duplicate_conversations():
@@ -29,8 +29,7 @@ def merge_duplicate_conversations():
     
     # Trouver les paires (driver, other_user) avec plusieurs conversations
     duplicates = ChatRoom.objects.values('driver', 'other_user').annotate(
-        count=Count('id'),
-        oldest_id=Min('id')
+        count=Count('id')
     ).filter(count__gt=1)
     
     total_merged = 0
@@ -39,9 +38,8 @@ def merge_duplicate_conversations():
     for dup in duplicates:
         driver_id = dup['driver']
         other_user_id = dup['other_user']
-        oldest_room_id = dup['oldest_id']
         
-        # Récupérer toutes les conversations de cette paire
+        # Récupérer toutes les conversations de cette paire, triées par date
         rooms = ChatRoom.objects.filter(
             driver_id=driver_id,
             other_user_id=other_user_id
