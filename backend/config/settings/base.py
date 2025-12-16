@@ -206,8 +206,8 @@ REST_FRAMEWORK = {
 
 # JWT Settings avancés
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),  # 24h pour apps mobiles
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),  # 30 jours pour apps mobiles
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,

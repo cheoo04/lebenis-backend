@@ -1,7 +1,12 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:dio/dio.dart';
+import '../constants/api_constants.dart';
 
 class AuthService {
   final FlutterSecureStorage storage = const FlutterSecureStorage();
+  
+  // Dio instance séparée pour le refresh (évite les boucles infinies)
+  final Dio _refreshDio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
 
   static const String _accessTokenKey = 'access_token';
   static const String _refreshTokenKey = 'refresh_token';
@@ -41,10 +46,38 @@ class AuthService {
 
   // Rafraîchir le token d'accès
   Future<String?> refreshAccessToken() async {
-    // Note: Cette méthode devrait appeler l'API de refresh token
-    // Pour l'instant, on retourne null car le refresh n'est pas implémenté côté client
-    // TODO: Implémenter l'appel API pour rafraîchir le token
-    return null;
+    try {
+      final refreshToken = await getRefreshToken();
+      if (refreshToken == null || refreshToken.isEmpty) {
+        return null;
+      }
+
+      final response = await _refreshDio.post(
+        '/api/v1/auth/refresh/',
+        data: {'refresh': refreshToken},
+      );
+
+      if (response.statusCode == 200) {
+        final newAccessToken = response.data['access'] as String?;
+        final newRefreshToken = response.data['refresh'] as String?;
+        
+        if (newAccessToken != null) {
+          // Sauvegarder le nouveau access token
+          await storage.write(key: _accessTokenKey, value: newAccessToken);
+          
+          // Si un nouveau refresh token est fourni (rotation activée), le sauvegarder
+          if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
+            await storage.write(key: _refreshTokenKey, value: newRefreshToken);
+          }
+          
+          return newAccessToken;
+        }
+      }
+      return null;
+    } catch (e) {
+      // Refresh a échoué (token expiré ou invalide)
+      return null;
+    }
   }
 
   // Déconnexion

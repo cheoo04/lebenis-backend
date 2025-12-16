@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'network/dio_client.dart';
 import 'services/auth_service.dart';
 import '../data/providers/auth_provider.dart';
@@ -10,6 +11,7 @@ import 'constants/api_constants.dart';
 
 /// Force la déconnexion de l'utilisateur
 Future<void> _forceLogout(Ref ref, AuthService authService) async {
+  debugPrint('[Auth] Forcing logout - session expired');
   try {
     await ref.read(authStateProvider.notifier).logout();
   } catch (_) {
@@ -26,6 +28,9 @@ final dioProvider = Provider<Dio>((ref) {
 final dioClientProvider = Provider<DioClient>((ref) {
   final authService = ref.watch(authServiceProvider);
   final dio = ref.watch(dioProvider);
+  
+  // Flag pour éviter les boucles de refresh
+  bool isRefreshing = false;
   
   // Ajouter un intercepteur pour inclure le token JWT automatiquement
   dio.interceptors.clear(); // Nettoyer les anciens intercepteurs
@@ -46,21 +51,35 @@ final dioClientProvider = Provider<DioClient>((ref) {
       },
       onError: (error, handler) async {
         // Si erreur 401, essayer de rafraîchir le token
-        if (error.response?.statusCode == 401) {
+        final requestPath = error.requestOptions.path;
+        
+        // Ne pas essayer de refresh si c'est déjà un appel de refresh ou login
+        final isAuthEndpoint = requestPath.contains('/auth/refresh/') || 
+                               requestPath.contains('/auth/login/');
+        
+        if (error.response?.statusCode == 401 && !isAuthEndpoint && !isRefreshing) {
+          isRefreshing = true;
           try {
+            debugPrint('[Auth] Token expired, attempting refresh...');
             final newToken = await authService.refreshAccessToken();
             if (newToken != null && newToken.isNotEmpty) {
+              debugPrint('[Auth] Token refreshed successfully');
               // Réessayer la requête avec le nouveau token
               error.requestOptions.headers['Authorization'] = 'Bearer $newToken';
+              isRefreshing = false;
               final response = await dio.fetch(error.requestOptions);
               return handler.resolve(response);
             } else {
               // Token refresh retourné null, forcer la déconnexion
+              debugPrint('[Auth] Refresh token expired or invalid');
+              isRefreshing = false;
               await _forceLogout(ref, authService);
               return handler.reject(error);
             }
           } catch (e) {
             // Si le refresh échoue, déconnecter l'utilisateur
+            debugPrint('[Auth] Refresh failed: $e');
+            isRefreshing = false;
             await _forceLogout(ref, authService);
             return handler.reject(error);
           }
