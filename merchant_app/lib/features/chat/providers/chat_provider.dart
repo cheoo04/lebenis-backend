@@ -174,7 +174,8 @@ class ChatRoomsNotifier extends Notifier<ChatRoomsState> {
       String senderName = 'Marchand';
       
       if (profile is MerchantModel) {
-        senderId = profile.id;
+        // Utiliser l'ID utilisateur (pas l'ID du profil marchand)
+        senderId = profile.userId.isNotEmpty ? profile.userId : profile.id;
         senderName = profile.businessName;
       }
       

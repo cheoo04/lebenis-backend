@@ -84,6 +84,7 @@ class MerchantModel {
   }
 
   // Getters pour compatibilité et accès facile
+  String get userId => user?['id']?.toString() ?? '';
   String get email => user?['email'] ?? '';
   String get phone => user?['phone'] ?? '';
   String get firstName => user?['first_name'] ?? '';

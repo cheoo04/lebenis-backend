@@ -206,6 +206,7 @@ class ChatRepository {
       'sender': senderId,
       'senderId': senderId, // Compatibilité backend
       'sender_id': senderId, // Compatibilité driver
+      'senderName': senderName, // Compatibilité backend (camelCase)
       'sender_name': senderName,
       if (imageUrl != null) 'image_url': imageUrl,
       if (imageUrl != null) 'imageUrl': imageUrl, // Compatibilité backend
@@ -216,21 +217,8 @@ class ChatRepository {
       'type': imageUrl != null ? 'image' : 'text', // Compatibilité backend
     });
 
-    // Mettre à jour le backend via API (backup DB)
-    try {
-      await _dioClient.post(
-        '${ApiConstants.baseUrl}/api/v1/chat/messages/',
-        data: {
-          'chat_room_id': roomId,
-          'message_type': imageUrl != null ? 'image' : 'text',
-          'text': message,
-          if (imageUrl != null) 'image_url': imageUrl,
-        },
-      );
-    } catch (e) {
-      // Ignorer l'erreur backend - le message est déjà dans Firebase
-      debugPrint('[ChatRepository] Erreur sync backend: $e');
-    }
+    // Note: On n'envoie PAS au backend pour éviter la duplication
+    // Le backend lit les messages depuis Firebase quand nécessaire
   }
 
   /// Indicateur de saisie (typing)

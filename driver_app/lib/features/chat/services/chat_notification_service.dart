@@ -52,9 +52,11 @@ class ChatNotificationService {
   /// Enregistrer le token FCM après connexion (méthode publique)
   Future<void> registerTokenAfterLogin() async {
     try {
+      debugPrint('📱 [FCM] Tentative d\'enregistrement du token...');
       final token = await _notificationService.getFcmToken();
       
       if (token != null) {
+        debugPrint('📱 [FCM] Token obtenu: ${token.substring(0, 20)}...');
         _currentFcmToken = token;
         await _sendTokenToBackend(token);
         await _subscribeToTopics();
@@ -65,12 +67,12 @@ class ChatNotificationService {
           _sendTokenToBackend(newToken);
         });
         
-        if (kDebugMode) {
-        }
+        debugPrint('✅ [FCM] Token enregistré avec succès');
+      } else {
+        debugPrint('⚠️ [FCM] Impossible d\'obtenir le token FCM');
       }
     } catch (e) {
-      if (kDebugMode) {
-      }
+      debugPrint('❌ [FCM] Erreur enregistrement token: $e');
     }
   }
 

@@ -284,13 +284,53 @@ class _MessageBubble extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(
-                        message.messageText,
-                        style: TextStyle(
-                          color: isMine ? Colors.white : Colors.black87,
-                          fontSize: 15,
+                      // Afficher l'image si c'est un message image
+                      if (message.imageUrl != null && message.imageUrl!.isNotEmpty)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            message.imageUrl!,
+                            width: 200,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return SizedBox(
+                                width: 200,
+                                height: 150,
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                width: 200,
+                                height: 100,
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.broken_image, size: 40),
+                              );
+                            },
+                          ),
                         ),
-                      ),
+                      // Afficher le texte si présent
+                      if (message.messageText.isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(
+                            top: message.imageUrl != null && message.imageUrl!.isNotEmpty ? 8 : 0,
+                          ),
+                          child: Text(
+                            message.messageText,
+                            style: TextStyle(
+                              color: isMine ? Colors.white : Colors.black87,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 4),
                       Text(
                         DateFormat('HH:mm').format(message.timestamp),
