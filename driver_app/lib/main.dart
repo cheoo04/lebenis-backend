@@ -166,6 +166,7 @@ class _LeBenisDriverAppState extends ConsumerState<LeBenisDriverApp> {
       // Handler pour navigation après tap sur notification
       _notificationService.onNotificationTap = (data) {
         if (kDebugMode) {
+          debugPrint('📱 Notification tap: $data');
         }
         
         // Navigation selon le type de notification
@@ -181,6 +182,15 @@ class _LeBenisDriverAppState extends ConsumerState<LeBenisDriverApp> {
                 Navigator.of(context).pushNamed(
                   '/delivery-details',
                   arguments: data['delivery_id'],
+                );
+              }
+              break;
+            case 'new_chat_message':
+              // Naviguer vers la conversation
+              if (data.containsKey('chat_room_id')) {
+                Navigator.of(context).pushNamed(
+                  '/chat',
+                  arguments: {'chatRoomId': data['chat_room_id']},
                 );
               }
               break;

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 // Import des écrans
 import '../../features/chat/screens/conversations_list_screen.dart';
+import '../../features/chat/screens/chat_screen_by_id.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -43,6 +44,7 @@ class AppRouter {
   static const String qrScanner = '/qr-scanner';
   static const String settings = '/settings';
   static const String chatConversations = '/chat-conversations';
+  static const String chat = '/chat';
 
   // ========== GÉNÉRATEUR DE ROUTES ==========
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
@@ -51,6 +53,19 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => const ConversationsListScreen(),
         );
+      
+      case chat:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final chatRoomId = args?['chatRoomId'] as String?;
+        if (chatRoomId == null) {
+          return MaterialPageRoute(
+            builder: (_) => const PlaceholderScreen(title: 'Erreur: ID conversation manquant'),
+          );
+        }
+        return MaterialPageRoute(
+          builder: (_) => ChatScreenById(chatRoomId: chatRoomId),
+        );
+      
       case splash:
         return MaterialPageRoute(
           builder: (_) => const SplashScreen(),

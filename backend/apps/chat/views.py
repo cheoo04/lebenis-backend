@@ -101,7 +101,7 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['delivery__tracking_number', 'other_user__full_name']
     ordering_fields = ['last_message_at', 'created_at']
-    ordering = ['-last_message_at']
+    ordering = ['-created_at']  # Fallback vers created_at si last_message_at est NULL
     
     def get_queryset(self):
         """Retourne les conversations de l'utilisateur connecté"""
@@ -133,6 +133,13 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         include_archived = self.request.query_params.get('include_archived', 'false')
         if include_archived.lower() != 'true':
             queryset = queryset.filter(is_archived=False)
+        
+        # Tri: conversations avec messages récents en premier, puis par date de création
+        from django.db.models import F
+        from django.db.models.functions import Coalesce
+        queryset = queryset.annotate(
+            sort_date=Coalesce('last_message_at', 'created_at')
+        ).order_by('-sort_date')
         
         return queryset.select_related('driver', 'other_user', 'delivery')
     
