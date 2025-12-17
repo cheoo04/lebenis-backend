@@ -192,47 +192,25 @@ class ChatRepository {
     });
   }
 
-  /// Envoyer un message
+  /// Envoyer un message via le backend (qui sync Firebase + envoie notif push)
   Future<void> sendMessage({
     required String roomId,
     required String message,
-    required String senderId,
-    required String senderName,
     String? imageUrl,
+    double? latitude,
+    double? longitude,
   }) async {
-    if (_firebaseDatabase == null) {
-      throw Exception('Firebase not available');
-    }
-
-    final messagesRef = _firebaseDatabase!
-        .ref()
-        .child('chat_rooms')
-        .child(roomId)
-        .child('messages');
-
-    final newMessageRef = messagesRef.push();
-    final timestamp = DateTime.now();
-
-    // Format unifié compatible avec backend et driver_app
-    await newMessageRef.set({
-      'text': message,
-      'message_text': message, // Rétro-compatibilité
-      'sender': senderId,
-      'senderId': senderId, // Compatibilité backend
-      'sender_id': senderId, // Compatibilité driver
-      'senderName': senderName, // Compatibilité backend (camelCase)
-      'sender_name': senderName,
-      if (imageUrl != null) 'image_url': imageUrl,
-      if (imageUrl != null) 'imageUrl': imageUrl, // Compatibilité backend
-      'timestamp': timestamp.millisecondsSinceEpoch,
-      'is_read': false,
-      'isRead': false, // Compatibilité backend
-      'message_type': imageUrl != null ? 'image' : 'text',
-      'type': imageUrl != null ? 'image' : 'text', // Compatibilité backend
-    });
-
-    // Note: On n'envoie PAS au backend pour éviter la duplication
-    // Le backend lit les messages depuis Firebase quand nécessaire
+    await _dioClient.post(
+      '${ApiConstants.baseUrl}/api/v1/chat/messages/',
+      data: {
+        'chat_room_id': roomId,
+        'message_type': imageUrl != null ? 'image' : (latitude != null ? 'location' : 'text'),
+        'text': message,
+        if (imageUrl != null) 'image_url': imageUrl,
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
+      },
+    );
   }
 
   /// Indicateur de saisie (typing)
@@ -260,30 +238,4 @@ class ChatRepository {
     }
   }
 
-  /// Stream des indicateurs de saisie
-  Stream<Map<String, bool>> getTypingIndicatorsStream(String roomId) {
-    if (_firebaseDatabase == null) {
-      return Stream.value({});
-    }
-
-    final typingRef = _firebaseDatabase!
-        .ref()
-        .child('chat_rooms')
-        .child(roomId)
-        .child('typing');
-
-    return typingRef.onValue.map((event) {
-      if (event.snapshot.value == null) return <String, bool>{};
-
-      final typingMap = event.snapshot.value as Map<dynamic, dynamic>;
-      final indicators = <String, bool>{};
-
-      typingMap.forEach((userId, value) {
-        final data = Map<String, dynamic>.from(value as Map);
-        indicators[userId.toString()] = data['is_typing'] ?? false;
-      });
-
-      return indicators;
-    });
-  }
 }

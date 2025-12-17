@@ -2,10 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../../../data/models/chat/chat_room_model.dart';
-import '../../../data/models/merchant_model.dart';
 import '../../../data/repositories/chat_repository.dart';
 import '../../../data/providers/auth_provider.dart';
-import '../../../data/providers/user_profile_provider.dart';
 import '../../../core/providers.dart';
 
 // Provider Firebase Database
@@ -167,24 +165,7 @@ class ChatRoomsNotifier extends Notifier<ChatRoomsState> {
   Future<void> sendMessage(String roomId, String message) async {
     try {
       final repository = ref.read(chatRepositoryProvider);
-      
-      // Récupérer les infos du merchant pour l'expéditeur
-      final profile = ref.read(userProfileProvider).value;
-      String senderId = '';
-      String senderName = 'Marchand';
-      
-      if (profile is MerchantModel) {
-        // Utiliser l'ID utilisateur (pas l'ID du profil marchand)
-        senderId = profile.userId.isNotEmpty ? profile.userId : profile.id;
-        senderName = profile.businessName;
-      }
-      
-      await repository.sendMessage(
-        roomId: roomId,
-        message: message,
-        senderId: senderId,
-        senderName: senderName,
-      );
+      await repository.sendMessage(roomId: roomId, message: message);
     } catch (e) {
       state = state.copyWith(error: e.toString());
       rethrow;

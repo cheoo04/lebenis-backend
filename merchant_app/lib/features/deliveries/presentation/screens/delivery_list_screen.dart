@@ -4,8 +4,6 @@ import '../../../../theme/app_theme.dart';
 import '../../../../data/providers/delivery_provider.dart';
 import 'delivery_detail_screen.dart';
 import 'create_delivery_screen.dart';
-import '../../../chat/screens/chat_screen.dart';
-import '../../../chat/providers/chat_provider.dart';
 
 class DeliveryListScreen extends ConsumerStatefulWidget {
   const DeliveryListScreen({super.key});
@@ -276,11 +274,6 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen> with Si
                   ),
                   Row(
                     children: [
-                      // Bouton chat rapide si driver assigné
-                      if (delivery.driver != null && delivery.driver!.userId != null)
-                        _buildQuickChatButton(delivery),
-                      if (delivery.driver != null && delivery.driver!.userId != null)
-                        const SizedBox(width: 12),
                       if (delivery.price != null)
                         Text(
                           '${delivery.price!.toStringAsFixed(0)} FCFA',
@@ -444,65 +437,5 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen> with Si
         ],
       ),
     );
-  }
-
-  /// Bouton de chat rapide sur la carte de livraison
-  Widget _buildQuickChatButton(dynamic delivery) {
-    return Material(
-      color: Colors.blue.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        onTap: () => _openQuickChat(delivery),
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.chat_bubble_outline, size: 16, color: Colors.blue),
-              const SizedBox(width: 4),
-              const Text(
-                'Chat',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.blue,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Ouvre le chat avec le driver de la livraison
-  Future<void> _openQuickChat(dynamic delivery) async {
-    if (delivery.driver?.userId == null) return;
-
-    try {
-      final chatRoom = await ref.read(chatRoomsProvider.notifier).createOrGetChatRoom(
-        otherUserId: delivery.driver!.userId!,
-        deliveryId: delivery.id,
-      );
-
-      if (chatRoom != null && mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ChatScreen(chatRoom: chatRoom),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 }

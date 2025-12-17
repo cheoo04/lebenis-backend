@@ -5,7 +5,7 @@ import 'chat_screen.dart';
 
 /// Écran wrapper qui charge une conversation par son ID
 /// Utile pour la navigation depuis les notifications push
-class ChatScreenById extends ConsumerStatefulWidget {
+class ChatScreenById extends ConsumerWidget {
   final String chatRoomId;
 
   const ChatScreenById({
@@ -14,86 +14,43 @@ class ChatScreenById extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ChatScreenById> createState() => _ChatScreenByIdState();
-}
-
-class _ChatScreenByIdState extends ConsumerState<ChatScreenById> {
-  bool _isLoading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadChatRoom();
-  }
-
-  Future<void> _loadChatRoom() async {
-    try {
-      // Charger les conversations si pas encore fait
-      final chatRoomsState = ref.read(chatRoomsProvider);
-      
-      if (chatRoomsState.rooms.isEmpty) {
-        await ref.read(chatRoomsProvider.notifier).loadRooms();
-      }
-      
-      setState(() {
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _error = 'Erreur de chargement: $e';
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Chargement de la conversation...'),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (_error != null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Erreur')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(_error!),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Retour'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
+  Widget build(BuildContext context, WidgetRef ref) {
     final chatRoomsState = ref.watch(chatRoomsProvider);
-    
-    // Trouver la conversation par ID
-    final chatRoom = chatRoomsState.rooms.firstWhere(
-      (room) => room.id == widget.chatRoomId,
-      orElse: () => throw Exception('Conversation introuvable'),
-    );
 
-    // Naviguer vers ChatScreen avec la room chargée
-    return ChatScreen(chatRoom: chatRoom);
+    // Si les rooms sont en chargement et vides, afficher loader
+    if (chatRoomsState.isLoading && chatRoomsState.rooms.isEmpty) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // Chercher la room dans les rooms existantes
+    final roomIndex = chatRoomsState.rooms.indexWhere((r) => r.id == chatRoomId);
+    
+    if (roomIndex != -1) {
+      // Room trouvée, naviguer directement
+      return ChatScreen(chatRoom: chatRoomsState.rooms[roomIndex]);
+    }
+
+    // Room non trouvée, déclencher le chargement si pas déjà fait
+    if (!chatRoomsState.isLoading) {
+      // Charger les rooms en arrière-plan
+      Future.microtask(() => ref.read(chatRoomsProvider.notifier).loadRooms());
+    }
+
+    // En attendant, afficher un loader
+    return Scaffold(
+      appBar: AppBar(title: const Text('Conversation')),
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Chargement...'),
+          ],
+        ),
+      ),
+    );
   }
 }
