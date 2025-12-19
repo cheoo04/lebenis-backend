@@ -14,20 +14,26 @@ logger = logging.getLogger(__name__)
 
 def notify_new_delivery_assignment(driver, delivery):
     """Notifie un livreur d'une nouvelle livraison assignée"""
-    if not driver or not getattr(driver, 'user', None) or not getattr(driver.user, 'fcm_token', None):
+    if not driver or not getattr(driver, 'user', None):
         return False
-    success = FirebaseService.send_notification(
-        fcm_token=driver.user.fcm_token,
-        title="🚚 Nouvelle livraison !",
-        body=f"Livraison #{delivery.tracking_number} - {delivery.delivery_commune}",
-        data={
-            'type': 'new_delivery',
-            'delivery_id': str(delivery.id),
-            'tracking_number': delivery.tracking_number,
-            'action': 'open_delivery_details',
-        }
-    )
+    
+    # Essayer d'envoyer la notification FCM si le token existe
+    success = False
+    fcm_token = getattr(driver.user, 'fcm_token', None)
+    if fcm_token:
+        success = FirebaseService.send_notification(
+            fcm_token=fcm_token,
+            title="🚚 Nouvelle livraison !",
+            body=f"Livraison #{delivery.tracking_number} - {delivery.delivery_commune}",
+            data={
+                'type': 'new_delivery',
+                'delivery_id': str(delivery.id),
+                'tracking_number': delivery.tracking_number,
+                'action': 'open_delivery_details',
+            }
+        )
 
+    # Toujours persister la notification dans l'historique (même sans FCM)
     try:
         NotificationHistory.objects.create(
             user=driver.user,
@@ -48,8 +54,6 @@ def notify_delivery_status_change(user, delivery, new_status):
     """Notifie un changement de statut de livraison"""
     if not user:
         return False
-    if not getattr(user, 'fcm_token', None):
-        return False
     
     # Messages selon le statut
     status_messages = {
@@ -60,20 +64,24 @@ def notify_delivery_status_change(user, delivery, new_status):
         'cancelled': f"❌ Livraison annulée - #{delivery.tracking_number}",
     }
     
-    success = FirebaseService.send_notification(
-        fcm_token=user.fcm_token,
-        title="📦 Mise à jour livraison",
-        body=status_messages.get(new_status, f"Statut modifié: {new_status}"),
-        data={
-            'type': 'delivery_status_change',
-            'delivery_id': str(delivery.id),
-            'tracking_number': delivery.tracking_number,
-            'new_status': new_status,
-            'action': 'open_delivery_details',
-        }
-    )
+    # Essayer d'envoyer la notification FCM si le token existe
+    success = False
+    fcm_token = getattr(user, 'fcm_token', None)
+    if fcm_token:
+        success = FirebaseService.send_notification(
+            fcm_token=fcm_token,
+            title="📦 Mise à jour livraison",
+            body=status_messages.get(new_status, f"Statut modifié: {new_status}"),
+            data={
+                'type': 'delivery_status_change',
+                'delivery_id': str(delivery.id),
+                'tracking_number': delivery.tracking_number,
+                'new_status': new_status,
+                'action': 'open_delivery_details',
+            }
+        )
 
-    # Persist the notification in history for audit / debugging (do not re-send FCM here)
+    # Toujours persister la notification dans l'historique (même sans FCM)
     try:
         NotificationHistory.objects.create(
             user=user,
@@ -99,28 +107,32 @@ def notify_delivery_accepted(merchant, delivery):
     """Notifie le marchand qu'un livreur a accepté sa livraison"""
     if not merchant or not getattr(merchant, 'user', None):
         return False
-    if not getattr(merchant.user, 'fcm_token', None):
-        return False
 
     driver_name = delivery.driver.user.full_name if delivery.driver and getattr(delivery.driver, 'user', None) else "Livreur"
-    success = FirebaseService.send_notification(
-        fcm_token=merchant.user.fcm_token,
-        title="✅ Livreur trouvé !",
-        body=f"{driver_name} a accepté la livraison #{delivery.tracking_number}",
-        data={
-            'type': 'delivery_accepted',
-            'delivery_id': str(delivery.id),
-            'tracking_number': delivery.tracking_number,
-            'driver_id': str(delivery.driver.id) if delivery.driver else None,
-            'action': 'open_delivery_details',
-        }
-    )
+    
+    # Essayer d'envoyer la notification FCM si le token existe
+    success = False
+    fcm_token = getattr(merchant.user, 'fcm_token', None)
+    if fcm_token:
+        success = FirebaseService.send_notification(
+            fcm_token=fcm_token,
+            title="✅ Livreur trouvé !",
+            body=f"{driver_name} a accepté la livraison #{delivery.tracking_number}",
+            data={
+                'type': 'delivery_accepted',
+                'delivery_id': str(delivery.id),
+                'tracking_number': delivery.tracking_number,
+                'driver_id': str(delivery.driver.id) if delivery.driver else None,
+                'action': 'open_delivery_details',
+            }
+        )
 
+    # Toujours persister la notification dans l'historique
     try:
         NotificationHistory.objects.create(
             user=merchant.user,
             notification_type='delivery_accepted',
-            title='✅ Livreur trouvé !',
+            title='Livreur trouvé !',
             body=f"{driver_name} a accepté la livraison #{delivery.tracking_number}",
             data={'delivery_id': str(delivery.id), 'tracking_number': delivery.tracking_number, 'driver_id': str(delivery.driver.id) if delivery.driver else None},
             action='open_delivery_details',
@@ -136,25 +148,29 @@ def notify_delivery_rejected(merchant, delivery):
     """Notifie le marchand qu'un livreur a refusé sa livraison"""
     if not merchant or not getattr(merchant, 'user', None):
         return False
-    if not getattr(merchant.user, 'fcm_token', None):
-        return False
-    success = FirebaseService.send_notification(
-        fcm_token=merchant.user.fcm_token,
-        title="⚠️ Livraison refusée",
-        body=f"Le livreur a refusé #{delivery.tracking_number}. Recherche d'un autre...",
-        data={
-            'type': 'delivery_rejected',
-            'delivery_id': str(delivery.id),
-            'tracking_number': delivery.tracking_number,
-            'action': 'open_delivery_details',
-        }
-    )
+    
+    # Essayer d'envoyer la notification FCM si le token existe
+    success = False
+    fcm_token = getattr(merchant.user, 'fcm_token', None)
+    if fcm_token:
+        success = FirebaseService.send_notification(
+            fcm_token=fcm_token,
+            title="⚠️ Livraison refusée",
+            body=f"Le livreur a refusé #{delivery.tracking_number}. Recherche d'un autre...",
+            data={
+                'type': 'delivery_rejected',
+                'delivery_id': str(delivery.id),
+                'tracking_number': delivery.tracking_number,
+                'action': 'open_delivery_details',
+            }
+        )
 
+    # Toujours persister la notification dans l'historique
     try:
         NotificationHistory.objects.create(
             user=merchant.user,
             notification_type='delivery_rejected',
-            title='⚠️ Livraison refusée',
+            title='Livraison refusée',
             body=f"Le livreur a refusé #{delivery.tracking_number}. Recherche d'un autre...",
             data={'delivery_id': str(delivery.id), 'tracking_number': delivery.tracking_number},
             action='open_delivery_details',
@@ -183,33 +199,35 @@ def notify_delivery_pin(user, delivery, pin_code):
         logger.warning("notify_delivery_pin: no user provided")
         return False
     
-    if not getattr(user, 'fcm_token', None):
-        logger.warning(f"notify_delivery_pin: no FCM token for user {user.email}")
-        return False
-    
     if not pin_code:
         logger.warning(f"notify_delivery_pin: no PIN code for delivery {delivery.id}")
         return False
     
-    success = FirebaseService.send_notification(
-        fcm_token=user.fcm_token,
-        title="📦 Livraison en cours !",
-        body=f"Votre code PIN : {pin_code}\nDonnez ce code au livreur à la réception.",
-        data={
-            'type': 'delivery_pin',
-            'delivery_id': str(delivery.id),
-            'tracking_number': delivery.tracking_number,
-            'pin_code': str(pin_code),
-            'action': 'show_pin',
-        }
-    )
+    # Essayer d'envoyer la notification FCM si le token existe
+    success = False
+    fcm_token = getattr(user, 'fcm_token', None)
+    if fcm_token:
+        success = FirebaseService.send_notification(
+            fcm_token=fcm_token,
+            title="📦 Livraison en cours !",
+            body=f"Votre code PIN : {pin_code}\nDonnez ce code au livreur à la réception.",
+            data={
+                'type': 'delivery_pin',
+                'delivery_id': str(delivery.id),
+                'tracking_number': delivery.tracking_number,
+                'pin_code': str(pin_code),
+                'action': 'show_pin',
+            }
+        )
+    else:
+        logger.warning(f"notify_delivery_pin: no FCM token for user {user.email}")
     
-    # Enregistrer dans l'historique
+    # Toujours enregistrer dans l'historique (même sans FCM)
     try:
         NotificationHistory.objects.create(
             user=user,
             notification_type='delivery_pin',
-            title='📦 Livraison en cours !',
+            title='Livraison en cours !',
             body=f"Votre code PIN : {pin_code}",
             data={
                 'delivery_id': str(delivery.id),
@@ -226,5 +244,68 @@ def notify_delivery_pin(user, delivery, pin_code):
         logger.info(f"📲 PIN {pin_code} envoyé par notification push à {user.email} pour livraison {delivery.tracking_number}")
     else:
         logger.warning(f"❌ Échec envoi PIN par notification push à {user.email}")
+    
+    return success
+
+
+def notify_rating_received(driver, delivery, rating_value):
+    """
+    Notifie un livreur qu'il a reçu une notation.
+    
+    Args:
+        driver: L'objet Driver
+        delivery: L'objet Delivery
+        rating_value: La note reçue (1-5)
+    
+    Returns:
+        bool: True si la notification a été envoyée avec succès
+    """
+    if not driver or not getattr(driver, 'user', None):
+        return False
+    
+    user = driver.user
+    
+    # Déterminer le message selon la note
+    if rating_value >= 4.5:
+        body = f"Excellent ! Vous avez reçu {rating_value}⭐ pour #{delivery.tracking_number}"
+    elif rating_value >= 3.5:
+        body = f"Bien ! Vous avez reçu {rating_value}⭐ pour #{delivery.tracking_number}"
+    else:
+        body = f"Vous avez reçu {rating_value}⭐ pour #{delivery.tracking_number}"
+    
+    # Essayer d'envoyer la notification FCM si le token existe
+    success = False
+    fcm_token = getattr(user, 'fcm_token', None)
+    if fcm_token:
+        success = FirebaseService.send_notification(
+            fcm_token=fcm_token,
+            title="⭐ Nouvelle notation !",
+            body=body,
+            data={
+                'type': 'rating_received',
+                'delivery_id': str(delivery.id),
+                'tracking_number': delivery.tracking_number,
+                'rating': str(rating_value),
+                'action': 'view_ratings',
+            }
+        )
+    
+    # Toujours persister dans l'historique
+    try:
+        NotificationHistory.objects.create(
+            user=user,
+            notification_type='rating_received',
+            title='Nouvelle notation !',
+            body=body,
+            data={
+                'delivery_id': str(delivery.id),
+                'tracking_number': delivery.tracking_number,
+                'rating': str(rating_value),
+            },
+            action='view_ratings',
+            sent_via_fcm=bool(success)
+        )
+    except Exception:
+        logger.exception('Failed to persist notification history for rating received')
     
     return success

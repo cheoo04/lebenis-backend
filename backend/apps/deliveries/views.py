@@ -1134,6 +1134,14 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 f"Note: {serializer.data['rating']}"
             )
             
+            # Notifier le driver qu'il a reçu une note
+            from apps.notifications.services import notify_rating_received
+            notify_rating_received(
+                driver=delivery.driver,
+                delivery=delivery,
+                rating_value=float(serializer.data['rating'])
+            )
+            
             # Retourner les données complètes avec le serializer de lecture
             response_serializer = DeliveryRatingSerializer(rating_instance)
             
@@ -1392,6 +1400,14 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             merchant=merchant,
             driver=delivery.driver,
             rated_by=request.user  # Qui a donné la note (merchant user ou particulier)
+        )
+        
+        # Notifier le driver qu'il a reçu une note
+        from apps.notifications.services import notify_rating_received
+        notify_rating_received(
+            driver=delivery.driver,
+            delivery=delivery,
+            rating_value=float(serializer.validated_data['rating'])
         )
         
         # Retourner les données complètes avec le serializer de lecture

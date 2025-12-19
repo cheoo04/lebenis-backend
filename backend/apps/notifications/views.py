@@ -405,3 +405,29 @@ class NotificationHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         """
         return self.mark_as_read(request, pk=pk)
 
+    @action(detail=False, methods=['post'], url_path='create-test')
+    def create_test_notification(self, request):
+        """
+        Crée une notification de test pour l'utilisateur connecté.
+        
+        POST /notification-history/create-test/
+        
+        Utile pour tester que le système de notifications fonctionne.
+        """
+        notification = NotificationHistory.objects.create(
+            user=request.user,
+            notification_type='system',
+            title='Notification de test',
+            body='Ceci est une notification de test pour vérifier que le système fonctionne correctement.',
+            data={'test': True, 'timestamp': timezone.now().isoformat()},
+            action='none',
+            sent_via_fcm=False
+        )
+        
+        serializer = self.get_serializer(notification)
+        return Response({
+            'success': True,
+            'message': 'Notification de test créée avec succès',
+            'notification': serializer.data
+        }, status=status.HTTP_201_CREATED)
+
