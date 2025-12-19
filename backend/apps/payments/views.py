@@ -465,7 +465,6 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
         Utile si des gains n'ont pas été créés automatiquement.
         """
         from apps.deliveries.models import Delivery
-        from core.services.pricing import PricingCalculator
         
         try:
             driver = Driver.objects.get(user=request.user)
@@ -475,68 +474,64 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         
-        # Trouver les livraisons terminées sans DriverEarning
-        delivered_deliveries = Delivery.objects.filter(
-            driver=driver,
-            status='delivered'
-        ).exclude(
-            id__in=DriverEarning.objects.filter(driver=driver).values_list('delivery_id', flat=True)
-        )
-        
-        created_count = 0
-        total_amount = Decimal('0')
-        errors = []
-        
-        for delivery in delivered_deliveries:
-            try:
-                # Calculer le gain
-                if delivery.driver_amount:
-                    base_earning = Decimal(str(delivery.driver_amount))
-                elif delivery.calculated_price:
-                    # 75% du prix calculé pour le driver
-                    base_earning = Decimal(str(delivery.calculated_price)) * Decimal('0.75')
-                elif delivery.final_price:
-                    # 75% du prix final pour le driver
-                    base_earning = Decimal(str(delivery.final_price)) * Decimal('0.75')
-                else:
-                    # Recalculer avec PricingCalculator
-                    calculator = PricingCalculator()
-                    pricing_data = {
-                        'pickup_commune': getattr(delivery, 'pickup_commune', ''),
-                        'delivery_commune': delivery.delivery_commune,
-                        'package_weight_kg': float(delivery.package_weight_kg or 5.0),
-                        'is_fragile': getattr(delivery, 'is_fragile', False),
-                        'scheduling_type': 'immediate',
-                    }
-                    price_result = calculator.calculate_price(pricing_data)
-                    base_earning = Decimal(str(price_result.get('driver_amount', 0)))
-                
-                if base_earning > 0:
-                    earning = DriverEarning.objects.create(
-                        driver=driver,
-                        delivery=delivery,
-                        base_earning=base_earning,
-                        total_earning=base_earning,
-                        status='pending',
-                        notes=f'Gain créé par synchronisation manuelle le {timezone.now().strftime("%Y-%m-%d %H:%M")}'
-                    )
-                    created_count += 1
-                    total_amount += base_earning
-                    logger.info(f"[SYNC] Gain créé pour {delivery.tracking_number}: {base_earning} CFA")
-                else:
-                    errors.append(f"{delivery.tracking_number}: montant 0")
+        try:
+            # Trouver les livraisons terminées sans DriverEarning
+            delivered_deliveries = Delivery.objects.filter(
+                driver=driver,
+                status='delivered'
+            ).exclude(
+                id__in=DriverEarning.objects.filter(driver=driver).values_list('delivery_id', flat=True)
+            )
+            
+            created_count = 0
+            total_amount = Decimal('0')
+            errors = []
+            
+            for delivery in delivered_deliveries:
+                try:
+                    # Calculer le gain - utiliser calculated_price * 75%
+                    base_earning = Decimal('0')
                     
-            except Exception as e:
-                errors.append(f"{delivery.tracking_number}: {str(e)}")
-                logger.error(f"[SYNC] Erreur pour {delivery.tracking_number}: {e}")
-        
-        return Response({
-            'success': True,
-            'created_count': created_count,
-            'total_amount': str(total_amount),
-            'missing_before': delivered_deliveries.count() + created_count,
-            'errors': errors[:10] if errors else []  # Max 10 erreurs
-        })
+                    if delivery.driver_amount:
+                        base_earning = Decimal(str(delivery.driver_amount))
+                    elif delivery.calculated_price:
+                        # 75% du prix calculé pour le driver
+                        base_earning = Decimal(str(delivery.calculated_price)) * Decimal('0.75')
+                    elif delivery.final_price:
+                        # 75% du prix final pour le driver
+                        base_earning = Decimal(str(delivery.final_price)) * Decimal('0.75')
+                    
+                    if base_earning > 0:
+                        earning = DriverEarning.objects.create(
+                            driver=driver,
+                            delivery=delivery,
+                            base_earning=base_earning,
+                            total_earning=base_earning,
+                            status='pending',
+                            notes=f'Gain créé par synchronisation manuelle le {timezone.now().strftime("%Y-%m-%d %H:%M")}'
+                        )
+                        created_count += 1
+                        total_amount += base_earning
+                        logger.info(f"[SYNC] Gain créé pour {delivery.tracking_number}: {base_earning} CFA")
+                    else:
+                        errors.append(f"{delivery.tracking_number}: montant 0")
+                        
+                except Exception as e:
+                    errors.append(f"{delivery.tracking_number}: {str(e)}")
+                    logger.error(f"[SYNC] Erreur pour {delivery.tracking_number}: {e}")
+            
+            return Response({
+                'success': True,
+                'created_count': created_count,
+                'total_amount': str(total_amount),
+                'missing_before': len(list(delivered_deliveries)) + created_count,
+                'errors': errors[:10] if errors else []  # Max 10 erreurs
+            })
+        except Exception as e:
+            logger.error(f"[SYNC] Erreur globale: {e}")
+            return Response({
+                'error': f'Erreur lors de la synchronisation: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['POST'], permission_classes=[IsAdmin])
     def bulk_approve(self, request):
