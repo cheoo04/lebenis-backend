@@ -6,6 +6,28 @@ class DioClient {
 
   DioClient(this.dio);
 
+  /// Transforme les messages d'erreur techniques en messages conviviaux
+  String _beautifyErrorMessage(String message) {
+    // Messages de rating
+    if (message.contains('déjà noté') || message.contains('already rated')) {
+      return 'Cette livraison a déjà été notée. Vous ne pouvez noter qu\'une seule fois.';
+    }
+    if (message.contains('ne vous appartient pas')) {
+      return 'Vous n\'êtes pas autorisé à effectuer cette action.';
+    }
+    if (message.contains('livraison terminée') || message.contains('Statut actuel')) {
+      return 'Vous ne pouvez noter qu\'une livraison terminée.';
+    }
+    if (message.contains('Aucun livreur')) {
+      return 'Aucun livreur n\'est assigné à cette livraison.';
+    }
+    if (message.contains('Profil marchand introuvable')) {
+      return 'Erreur de profil. Veuillez vous reconnecter.';
+    }
+    // Autres messages restent inchangés mais proprement formatés
+    return message;
+  }
+
   String _formatErrorMessage(DioException e) {
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
@@ -18,8 +40,16 @@ class DioClient {
         
         // Gérer les erreurs de validation Django
         if (data is Map<String, dynamic>) {
-          // Prefer a friendly message for token-related backend "detail" errors
+          // Gérer les clés 'error' et 'detail' directement retournées par l'API
+          final errorValue = data['error'];
           final detailValue = data['detail'];
+          
+          // Si 'error' est une chaîne, la retourner directement (message du backend)
+          if (errorValue is String) {
+            return _beautifyErrorMessage(errorValue);
+          }
+          
+          // Prefer a friendly message for token-related backend "detail" errors
           if (detailValue is String) {
             final detailLower = detailValue.toLowerCase();
             if (detailLower.contains('token') || detailLower.contains('refresh') || detailLower.contains('not valid') || detailLower.contains('missing')) {
@@ -29,6 +59,7 @@ class DioClient {
             if (detailValue == 'Email ou mot de passe incorrect.' || detailValue.contains('mot de passe incorrect')) {
               return detailValue;
             }
+            return _beautifyErrorMessage(detailValue);
           }
 
           final errors = <String>[];
@@ -42,14 +73,14 @@ class DioClient {
                 errors.add(value[0].toString());
               } else if (key == 'non_field_errors') {
                 errors.add(value[0].toString());
-              } else if (key == 'detail') {
-                errors.add(value[0].toString());
+              } else if (key == 'detail' || key == 'error') {
+                errors.add(_beautifyErrorMessage(value[0].toString()));
               } else {
                 errors.add('${key}: ${value[0]}');
               }
             } else if (value is String) {
-              if (key == 'detail') {
-                errors.add(value);
+              if (key == 'detail' || key == 'error') {
+                errors.add(_beautifyErrorMessage(value));
               } else {
                 errors.add('${key}: $value');
               }

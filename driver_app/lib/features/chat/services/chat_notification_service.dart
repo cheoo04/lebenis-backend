@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/auth_service.dart';
@@ -52,33 +53,35 @@ class ChatNotificationService {
   /// Enregistrer le token FCM après connexion (méthode publique)
   Future<void> registerTokenAfterLogin() async {
     try {
-      debugPrint('📱 [FCM] Tentative d\'enregistrement du token...');
+      debugPrint('📱 [FCM-DRIVER] 🔄 Tentative d\'enregistrement du token...');
       final token = await _notificationService.getFcmToken();
       
       if (token != null) {
-        debugPrint('📱 [FCM] Token obtenu: ${token.substring(0, 20)}...');
+        debugPrint('📱 [FCM-DRIVER] ✅ Token obtenu: ${token.substring(0, min(50, token.length))}...');
         _currentFcmToken = token;
         await _sendTokenToBackend(token);
         await _subscribeToTopics();
         
         // Écouter les changements de token
         _notificationService.onTokenRefresh().listen((newToken) {
+          debugPrint('📱 [FCM-DRIVER] 🔄 Token rafraîchi');
           _currentFcmToken = newToken;
           _sendTokenToBackend(newToken);
         });
         
-        debugPrint('✅ [FCM] Token enregistré avec succès');
+        debugPrint('📱 [FCM-DRIVER] ✅ Token enregistré avec succès');
       } else {
-        debugPrint('⚠️ [FCM] Impossible d\'obtenir le token FCM');
+        debugPrint('⚠️ [FCM-DRIVER] ❌ Impossible d\'obtenir le token FCM');
       }
     } catch (e) {
-      debugPrint('❌ [FCM] Erreur enregistrement token: $e');
+      debugPrint('❌ [FCM-DRIVER] 💥 Erreur enregistrement token: $e');
     }
   }
 
   /// Envoyer le token FCM au backend
   Future<void> _sendTokenToBackend(String token) async {
     try {
+      debugPrint('📱 [FCM-DRIVER] 📤 Envoi du token au backend...');
       await _dioClient.post(
         '/api/v1/auth/register-fcm-token/',
         data: {
@@ -87,13 +90,13 @@ class ChatNotificationService {
         },
       );
       
-      if (kDebugMode) {
-        debugPrint('✅ Token FCM enregistré sur le backend');
-      }
+      debugPrint('✅ [FCM-DRIVER] Token FCM enregistré sur le backend');
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Erreur enregistrement token FCM: $e');
-      }
+      debugPrint('❌ [FCM-DRIVER] Erreur enregistrement token FCM: $e');
+      // Réessayer après 3 secondes en cas d'erreur
+      Future.delayed(const Duration(seconds: 3), () {
+        _sendTokenToBackend(token);
+      });
     }
   }
 

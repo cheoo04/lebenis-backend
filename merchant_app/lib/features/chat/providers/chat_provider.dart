@@ -94,13 +94,16 @@ class ChatRoomsNotifier extends Notifier<ChatRoomsState> {
     return ChatRoomsState();
   }
 
-  Future<void> loadChatRooms() async {
+  Future<void> loadChatRooms({bool includeArchived = false}) async {
     state = state.copyWith(isLoading: true, error: null);
+    debugPrint('📬 [ChatRoomsNotifier] Début du chargement des conversations...');
 
     try {
       final repository = ref.read(chatRepositoryProvider);
-      final rooms = await repository.getChatRooms();
+      final rooms = await repository.getChatRooms(includeArchived: includeArchived);
       final unreadCount = await repository.getUnreadCount();
+      
+      debugPrint('📬 [ChatRoomsNotifier] ✅ ${rooms.length} conversations chargées, $unreadCount non lus');
 
       state = ChatRoomsState(
         rooms: rooms,
@@ -108,6 +111,7 @@ class ChatRoomsNotifier extends Notifier<ChatRoomsState> {
         totalUnread: unreadCount,
       );
     } catch (e) {
+      debugPrint('📬 [ChatRoomsNotifier] ❌ Erreur: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -177,8 +181,32 @@ class ChatRoomsNotifier extends Notifier<ChatRoomsState> {
     try {
       final repository = ref.read(chatRepositoryProvider);
       await repository.archiveChatRoom(roomId);
-      // Retirer la conversation de la liste
-      final updatedRooms = state.rooms.where((r) => r.id != roomId).toList();
+      // Mettre à jour la liste: marquer comme archivée
+      final updatedRooms = state.rooms.map((r) {
+        if (r.id == roomId) {
+          return r.copyWith(isArchived: true);
+        }
+        return r;
+      }).toList();
+      state = state.copyWith(rooms: updatedRooms);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  /// Désarchiver une conversation
+  Future<void> unarchiveChatRoom(String roomId) async {
+    try {
+      final repository = ref.read(chatRepositoryProvider);
+      await repository.unarchiveChatRoom(roomId);
+      // Mettre à jour la liste: marquer comme non archivée
+      final updatedRooms = state.rooms.map((r) {
+        if (r.id == roomId) {
+          return r.copyWith(isArchived: false);
+        }
+        return r;
+      }).toList();
       state = state.copyWith(rooms: updatedRooms);
     } catch (e) {
       state = state.copyWith(error: e.toString());

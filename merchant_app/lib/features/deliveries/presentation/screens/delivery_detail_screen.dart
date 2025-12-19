@@ -228,10 +228,16 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
+        // Extraire le message propre de l'exception
+        String errorMessage = e.toString();
+        // Supprimer les préfixes techniques comme "Exception:", "ApiException:", etc.
+        errorMessage = errorMessage.replaceFirst(RegExp(r'^(Exception|ApiException|DioException):\s*'), '');
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            content: Text(errorMessage),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -272,8 +278,10 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
+        String errorMessage = e.toString();
+        errorMessage = errorMessage.replaceFirst(RegExp(r'^(Exception|ApiException|DioException):\s*'), '');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(errorMessage), backgroundColor: Colors.orange),
         );
       }
     } finally {

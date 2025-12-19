@@ -422,3 +422,16 @@ final totalUnreadCountProvider = FutureProvider<int>((ref) async {
   final repository = ref.watch(chatRepositoryProvider);
   return repository.getUnreadCount();
 });
+
+/// Stream provider pour surveiller les mises à jour des conversations
+/// Déclenche un refresh automatique quand de nouveaux messages arrivent
+final conversationsUpdatesProvider = StreamProvider<void>((ref) {
+  final repository = ref.watch(chatRepositoryProvider);
+  return repository.watchConversationsUpdates();
+});
+
+/// Provider pour les conversations archivées
+final archivedChatRoomsProvider = FutureProvider<List<ChatRoomModel>>((ref) async {
+  final repository = ref.watch(chatRepositoryProvider);
+  return repository.getChatRooms(includeArchived: true);
+});

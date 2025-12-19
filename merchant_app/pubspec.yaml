@@ -16,6 +16,7 @@ dependencies:
 
   # HTTP & Networking
   dio: ^5.3.3
+  http: ^1.6.0
 
   signature: ^6.3.0
   # State Management
@@ -92,4 +93,3 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/logo_lebeni_business2.png
-    - .env

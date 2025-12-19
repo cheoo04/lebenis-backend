@@ -76,6 +76,15 @@ class DioClient {
     Response response,
     ResponseInterceptorHandler handler,
   ) async {
+    // Log de la réponse en debug
+    if (kDebugMode) {
+      final time = DateTime.now().toIso8601String();
+      debugPrint('[$time] DioClient _onResponse: ${response.statusCode} ${response.requestOptions.path}');
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        debugPrint('[$time] DioClient Response Data: ${response.data}');
+      }
+    }
+    
     // Vérifier si la réponse contient une erreur d'authentification
     if (response.data is Map) {
       final data = response.data as Map;

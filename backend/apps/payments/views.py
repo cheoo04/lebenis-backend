@@ -416,20 +416,20 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
         
         earnings = all_earnings
         
-        # Filter by period
+        # Filter by period - utiliser la date de livraison, pas la date de création du gain
         period = request.query_params.get('period', 'week')
         now = timezone.now()  # Utiliser timezone.now() au lieu de datetime.now()
         
         if period == 'today':
             start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-            earnings = earnings.filter(created_at__gte=start)
+            earnings = earnings.filter(delivery__delivered_at__gte=start)
         elif period == 'week':
             start = now - timedelta(days=now.weekday())  # début de la semaine
             start = start.replace(hour=0, minute=0, second=0, microsecond=0)
-            earnings = earnings.filter(created_at__gte=start)
+            earnings = earnings.filter(delivery__delivered_at__gte=start)
         elif period == 'month':
             start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            earnings = earnings.filter(created_at__gte=start)
+            earnings = earnings.filter(delivery__delivered_at__gte=start)
         elif period == 'all':
             # Pas de filtre de date, afficher tous les gains
             pass

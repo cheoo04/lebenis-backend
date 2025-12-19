@@ -336,6 +336,21 @@ class ChatRepository {
 
   // ==================== Helpers ====================
 
+  /// Stream pour surveiller les mises à jour des conversations en temps réel
+  /// Écoute les derniers messages de toutes les rooms de l'utilisateur
+  Stream<void> watchConversationsUpdates() async* {
+    final currentUserId = await _getCurrentUserId();
+    if (currentUserId.isEmpty) return;
+    
+    // Écouter les changements dans le noeud user_rooms
+    final userRoomsRef = _firebaseDatabase.ref('user_rooms/$currentUserId');
+    
+    await for (final _ in userRoomsRef.onValue) {
+      // Émettre un événement pour déclencher un refresh
+      yield null;
+    }
+  }
+
   Exception _handleError(dynamic error) {
     if (error is DioException) {
       if (error.response?.statusCode == 404) {

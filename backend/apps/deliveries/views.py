@@ -1078,7 +1078,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         }
         """
         from .models_rating import DeliveryRating
-        from .serializers_rating import DeliveryRatingCreateSerializer
+        from .serializers_rating import DeliveryRatingCreateSerializer, DeliveryRatingSerializer
         
         delivery = self.get_object()
         
@@ -1120,7 +1120,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         serializer = DeliveryRatingCreateSerializer(data=request.data)
         
         if serializer.is_valid():
-            serializer.save(
+            rating_instance = serializer.save(
                 delivery=delivery,
                 merchant=merchant,
                 driver=delivery.driver,
@@ -1134,10 +1134,13 @@ class DeliveryViewSet(viewsets.ModelViewSet):
                 f"Note: {serializer.data['rating']}"
             )
             
+            # Retourner les données complètes avec le serializer de lecture
+            response_serializer = DeliveryRatingSerializer(rating_instance)
+            
             return Response({
                 'success': True,
                 'message': 'Merci pour votre évaluation !',
-                'rating': serializer.data
+                'rating': response_serializer.data
             }, status=status.HTTP_201_CREATED)
         
         return Response(
@@ -1376,7 +1379,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
             )
         
         # Créer la notation avec DeliveryRatingCreateSerializer (plus simple)
-        from .serializers_rating import DeliveryRatingCreateSerializer
+        from .serializers_rating import DeliveryRatingCreateSerializer, DeliveryRatingSerializer
         serializer = DeliveryRatingCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -1384,14 +1387,16 @@ class DeliveryViewSet(viewsets.ModelViewSet):
         merchant = delivery.merchant
         
         # Sauvegarder avec rated_by pour savoir qui a noté
-        serializer.save(
+        rating_instance = serializer.save(
             delivery=delivery,
             merchant=merchant,
             driver=delivery.driver,
             rated_by=request.user  # Qui a donné la note (merchant user ou particulier)
         )
         
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # Retourner les données complètes avec le serializer de lecture
+        response_serializer = DeliveryRatingSerializer(rating_instance)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
     
     @action(detail=True, methods=['GET'], url_path='report-pdf')
     def generate_pdf_report(self, request, pk=None):

@@ -65,16 +65,25 @@ void main() async {
       );
       firebaseInitialized = true;
       if (kDebugMode) {
+        debugPrint('🔥 Firebase initialized');
       }
 
       // Handler notifications en arrière-plan
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      
+      // Initialiser le NotificationService (singleton) pour FCM
+      await NotificationService().initialize(firebaseEnabled: true);
+      if (kDebugMode) {
+        debugPrint('📱 NotificationService initialized');
+      }
     } catch (e) {
       if (kDebugMode) {
+        debugPrint('❌ Firebase/Notification init error: $e');
       }
     }
   } else {
     if (kDebugMode) {
+      debugPrint('⚠️ Firebase not supported on this platform');
     }
   }
 

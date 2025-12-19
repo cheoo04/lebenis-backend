@@ -36,12 +36,17 @@ class ChatRepository {
     if (deliveryId != null) queryParams['delivery_id'] = deliveryId;
     if (includeArchived) queryParams['include_archived'] = 'true';
 
+    debugPrint('📬 [ChatRepository] GET /api/v1/chat/rooms/ params: $queryParams');
+    
     final response = await _dioClient.get(
       '${ApiConstants.baseUrl}/api/v1/chat/rooms/',
       queryParameters: queryParams,
     );
 
+    debugPrint('📬 [ChatRepository] Réponse brute: ${response.data}');
+    
     final List results = response.data['results'] ?? response.data;
+    debugPrint('📬 [ChatRepository] ${results.length} conversations trouvées');
     return results.map((json) => ChatRoomModel.fromJson(json)).toList();
   }
 
@@ -113,9 +118,16 @@ class ChatRepository {
 
   /// Archiver une conversation
   Future<void> archiveChatRoom(String roomId) async {
-    await _dioClient.post(
-      '${ApiConstants.baseUrl}/api/v1/chat/rooms/$roomId/archive/',
-    );
+    final url = '${ApiConstants.baseUrl}/api/v1/chat/rooms/$roomId/archive/';
+    debugPrint('📬 [ChatRepository] POST $url data: {archive: true}');
+    await _dioClient.post(url, data: {'archive': true});
+  }
+
+  /// Désarchiver une conversation
+  Future<void> unarchiveChatRoom(String roomId) async {
+    final url = '${ApiConstants.baseUrl}/api/v1/chat/rooms/$roomId/archive/';
+    debugPrint('📬 [ChatRepository] POST $url data: {archive: false}');
+    await _dioClient.post(url, data: {'archive': false});
   }
 
   /// Obtenir le nombre total de messages non lus
