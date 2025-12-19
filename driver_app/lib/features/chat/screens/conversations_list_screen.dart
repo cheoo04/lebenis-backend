@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/chat_provider.dart';
 import '../../../data/models/chat/chat_room_model.dart';
+import '../../../core/constants/app_colors.dart';
 import 'chat_screen.dart';
 import '../../../main.dart'; // Pour firebaseEnabledProvider
 
@@ -130,7 +131,7 @@ class _ConversationsListScreenState
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFF1E3A5F),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         title: Row(
           children: [
@@ -213,11 +214,11 @@ class _ConversationsListScreenState
         children: [
           // Header avec gradient
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFF1E3A5F), Color(0xFF2D5A87)],
+                colors: [AppColors.primary, AppColors.primaryDark],
               ),
             ),
             child: Padding(
@@ -319,13 +320,13 @@ class _ConversationsListScreenState
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E3A5F).withOpacity(0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 _showArchived ? Icons.archive_rounded : Icons.chat_bubble_outline_rounded,
                 size: 48,
-                color: const Color(0xFF1E3A5F),
+                color: AppColors.primary,
               ),
             ),
             const SizedBox(height: 20),
@@ -336,7 +337,7 @@ class _ConversationsListScreenState
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF1E3A5F),
+                color: AppColors.primary,
               ),
             ),
             const SizedBox(height: 8),
@@ -571,7 +572,7 @@ class _ConversationTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               border: hasUnread 
-                  ? const Border(left: BorderSide(color: Color(0xFF1E3A5F), width: 4))
+                  ? const Border(left: BorderSide(color: AppColors.primary, width: 4))
                   : null,
             ),
             child: Row(
@@ -587,7 +588,7 @@ class _ConversationTile extends StatelessWidget {
                         style: TextStyle(
                           fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w500,
                           fontSize: 16,
-                          color: const Color(0xFF1E3A5F),
+                          color: AppColors.primary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -597,19 +598,19 @@ class _ConversationTile extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E3A5F).withOpacity(0.1),
+                          color: AppColors.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.local_shipping_rounded, size: 12, color: Color(0xFF1E3A5F)),
+                            const Icon(Icons.local_shipping_rounded, size: 12, color: AppColors.primary),
                             const SizedBox(width: 4),
                             Text(
                               room.deliveryInfo!.trackingNumber,
                               style: const TextStyle(
                                 fontSize: 11, 
-                                color: Color(0xFF1E3A5F),
+                                color: AppColors.primary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -621,7 +622,7 @@ class _ConversationTile extends StatelessWidget {
                     Text(
                       room.lastMessageText ?? 'Nouvelle conversation',
                       style: TextStyle(
-                        color: hasUnread ? const Color(0xFF1E3A5F) : Colors.grey[600],
+                        color: hasUnread ? AppColors.primary : Colors.grey[600],
                         fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
                         fontSize: 14,
                         height: 1.3,
@@ -642,7 +643,7 @@ class _ConversationTile extends StatelessWidget {
                       _formatTime(room.lastMessageAt!),
                       style: TextStyle(
                         fontSize: 12,
-                        color: hasUnread ? const Color(0xFF1E3A5F) : Colors.grey[500],
+                        color: hasUnread ? AppColors.primary : Colors.grey[500],
                         fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
                       ),
                     ),
@@ -652,7 +653,7 @@ class _ConversationTile extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF1E3A5F), Color(0xFF2D5A87)],
+                          colors: [AppColors.primary, AppColors.primaryDark],
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -687,7 +688,7 @@ class _ConversationTile extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: hasUnread 
-                ? Border.all(color: const Color(0xFF1E3A5F), width: 2)
+                ? Border.all(color: AppColors.primary, width: 2)
                 : null,
             boxShadow: [
               BoxShadow(
@@ -699,7 +700,7 @@ class _ConversationTile extends StatelessWidget {
           ),
           child: CircleAvatar(
             radius: 26,
-            backgroundColor: const Color(0xFF1E3A5F),
+            backgroundColor: AppColors.primary,
             backgroundImage: photoUrl != null && photoUrl.isNotEmpty
                 ? CachedNetworkImageProvider(
                     photoUrl,

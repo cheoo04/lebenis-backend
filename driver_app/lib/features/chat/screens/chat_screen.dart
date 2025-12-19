@@ -9,7 +9,7 @@ import '../../../data/models/chat/chat_room_model.dart';
 import '../../../data/models/chat/message_model.dart';
 import '../providers/chat_provider.dart';
 import '../../../core/providers/cloudinary_provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../../core/constants/app_colors.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final ChatRoomModel chatRoom;
@@ -91,7 +91,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFF1E3A5F),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         leadingWidth: 30,
         title: Row(
@@ -137,7 +137,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFF27AE60),
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF1E3A5F), width: 2),
+                      border: Border.all(color: AppColors.primary, width: 2),
                     ),
                   ),
                 ),
@@ -221,7 +221,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           Expanded(
             child: messagesAsync.when(
               data: (messages) => _buildMessagesList(messages),
-              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF1E3A5F))),
+              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
               error: (error, stack) => _buildErrorWidget(error, stack),
             ),
           ),
@@ -346,7 +346,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF1E3A5F).withOpacity(0.3),
+                    color: AppColors.primary.withOpacity(0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -354,7 +354,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
               child: FloatingActionButton.small(
                 onPressed: _scrollToBottom,
-                backgroundColor: const Color(0xFF1E3A5F),
+                backgroundColor: AppColors.primary,
                 child: const Icon(
                   Icons.keyboard_double_arrow_down_rounded,
                   color: Colors.white,
@@ -425,13 +425,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.image_rounded, size: 22),
-                    color: const Color(0xFF1E3A5F),
+                    color: AppColors.primary,
                     onPressed: state.isSending ? null : _pickImage,
                     tooltip: 'Envoyer une image',
                   ),
                   IconButton(
                     icon: const Icon(Icons.location_on_rounded, size: 22),
-                    color: const Color(0xFF1E3A5F),
+                    color: AppColors.primary,
                     onPressed: state.isSending ? null : _sendLocation,
                     tooltip: 'Envoyer ma position',
                   ),
@@ -450,7 +450,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: _messageController.text.isNotEmpty 
-                        ? const Color(0xFF1E3A5F).withOpacity(0.3)
+                        ? AppColors.primary.withOpacity(0.3)
                         : Colors.transparent,
                   ),
                 ),
@@ -478,14 +478,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF1E3A5F), Color(0xFF2D5A87)],
+                  colors: [AppColors.primary, AppColors.primaryDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF1E3A5F).withOpacity(0.3),
+                    color: AppColors.primary.withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -732,7 +732,7 @@ class _MessageBubble extends StatelessWidget {
   });
 
   // Couleurs personnalisées modernes
-  static const Color _myBubbleColor = Color(0xFF1E3A5F);
+  static const Color _myBubbleColor = AppColors.primary;
   static const Color _otherBubbleColor = Colors.white;
   static const Color _myTextColor = Colors.white;
   static const Color _otherTextColor = Color(0xFF2C3E50);
@@ -776,7 +776,7 @@ class _MessageBubble extends StatelessWidget {
                 color: bubbleColor,
                 gradient: isMine 
                     ? const LinearGradient(
-                        colors: [Color(0xFF1E3A5F), Color(0xFF2D5A87)],
+                        colors: [AppColors.primary, AppColors.primaryDark],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       )
@@ -790,7 +790,7 @@ class _MessageBubble extends StatelessWidget {
                 boxShadow: [
                   BoxShadow(
                     color: isMine 
-                        ? const Color(0xFF1E3A5F).withOpacity(0.2)
+                        ? AppColors.primary.withOpacity(0.2)
                         : Colors.black.withOpacity(0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
@@ -884,7 +884,7 @@ class _MessageBubble extends StatelessWidget {
         ),
         child: CircleAvatar(
           radius: 16,
-          backgroundColor: const Color(0xFF1E3A5F),
+          backgroundColor: AppColors.primary,
           backgroundImage: photoUrl != null && photoUrl.isNotEmpty
               ? CachedNetworkImageProvider(
                   photoUrl,

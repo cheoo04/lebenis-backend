@@ -511,47 +511,60 @@ class _TypeFilterSheetState extends State<_TypeFilterSheet> {
 
     return Container(
       padding: const EdgeInsets.all(24),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.7,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Filtrer par type', style: AppTypography.h3),
           const SizedBox(height: 16),
-          // Custom radio group to avoid deprecated groupValue/onChanged
-          ...types.map((type) {
-            final selected = _tempSelectedType == type['value'];
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: GestureDetector(
-                onTap: () => setState(() => _tempSelectedType = type['value'] as String?),
-                child: Row(
-                  children: [
-                    Icon(
-                      selected
-                          ? Icons.radio_button_checked
-                          : Icons.radio_button_unchecked,
-                      color: selected ? AppColors.primary : AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 12),
-                    Icon(
-                      type['icon'] as IconData,
-                      size: 22,
-                      color: selected ? AppColors.primary : AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      type['label'] as String,
-                      style: TextStyle(
-                        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                        color: selected ? AppColors.primary : null,
+          // Liste scrollable des types
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                children: types.map((type) {
+                  final selected = _tempSelectedType == type['value'];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: GestureDetector(
+                      onTap: () => setState(() => _tempSelectedType = type['value'] as String?),
+                      child: Row(
+                        children: [
+                          Icon(
+                            selected
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_unchecked,
+                            color: selected ? AppColors.primary : AppColors.textSecondary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Icon(
+                            type['icon'] as IconData,
+                            size: 20,
+                            color: selected ? AppColors.primary : AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              type['label'] as String,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                                color: selected ? AppColors.primary : null,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  );
+                }).toList(),
               ),
-            );
-          }),
-          const SizedBox(height: 24),
+            ),
+          ),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
