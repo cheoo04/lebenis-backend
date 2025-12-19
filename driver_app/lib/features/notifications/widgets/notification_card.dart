@@ -40,13 +40,14 @@ class NotificationCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: _getIconBackgroundColor(),
+                color: notification.typeIconColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Center(
-                child: Text(
+                child: Icon(
                   notification.typeIcon,
-                  style: const TextStyle(fontSize: 24),
+                  size: 24,
+                  color: notification.typeIconColor,
                 ),
               ),
             ),
@@ -137,28 +138,5 @@ class NotificationCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Color _getIconBackgroundColor() {
-    switch (notification.notificationType) {
-      case 'new_delivery':
-        return AppColors.primary.withValues(alpha: 0.1);
-      case 'delivery_accepted':
-        return AppColors.success.withValues(alpha: 0.1);
-      case 'delivery_rejected':
-        return AppColors.error.withValues(alpha: 0.1);
-      case 'delivery_status_change':
-        return AppColors.info.withValues(alpha: 0.1);
-      case 'payment_received':
-        return AppColors.warning.withValues(alpha: 0.1);
-      case 'rating_received':
-        return Colors.amber.withValues(alpha: 0.1);
-      case 'system':
-        return AppColors.textSecondary.withValues(alpha: 0.1);
-      case 'promo':
-        return Colors.purple.withValues(alpha: 0.1);
-      default:
-        return AppColors.border.withValues(alpha: 0.1);
-    }
   }
 }

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class NotificationModel {
   final String id;
   final String userId;
@@ -98,26 +100,50 @@ class NotificationModel {
   }
 
   /// Retourne l'icône selon le type de notification
-  String get typeIcon {
+  IconData get typeIcon {
     switch (notificationType) {
       case 'new_delivery':
-        return '📦';
+        return Icons.local_shipping;
       case 'delivery_accepted':
-        return '✅';
+        return Icons.check_circle;
       case 'delivery_rejected':
-        return '❌';
+        return Icons.cancel;
       case 'delivery_status_change':
-        return '🔄';
+        return Icons.sync;
       case 'payment_received':
-        return '💰';
+        return Icons.payments;
       case 'rating_received':
-        return '⭐';
+        return Icons.star;
       case 'system':
-        return '🔔';
+        return Icons.notifications;
       case 'promo':
-        return '🎁';
+        return Icons.card_giftcard;
       default:
-        return '📬';
+        return Icons.mail;
+    }
+  }
+
+  /// Retourne la couleur de l'icône selon le type
+  Color get typeIconColor {
+    switch (notificationType) {
+      case 'new_delivery':
+        return const Color(0xFF2196F3); // Blue
+      case 'delivery_accepted':
+        return const Color(0xFF4CAF50); // Green
+      case 'delivery_rejected':
+        return const Color(0xFFF44336); // Red
+      case 'delivery_status_change':
+        return const Color(0xFFFF9800); // Orange
+      case 'payment_received':
+        return const Color(0xFF4CAF50); // Green
+      case 'rating_received':
+        return const Color(0xFFFFC107); // Amber
+      case 'system':
+        return const Color(0xFF9E9E9E); // Grey
+      case 'promo':
+        return const Color(0xFFE91E63); // Pink
+      default:
+        return const Color(0xFF9E9E9E); // Grey
     }
   }
 

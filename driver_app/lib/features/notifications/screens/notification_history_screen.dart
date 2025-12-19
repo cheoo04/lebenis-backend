@@ -347,9 +347,20 @@ class _NotificationDetailsSheet extends StatelessWidget {
           // Type + icône
           Row(
             children: [
-              Text(
-                notification.typeIcon,
-                style: const TextStyle(fontSize: 32),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: notification.typeIconColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Center(
+                  child: Icon(
+                    notification.typeIcon,
+                    size: 28,
+                    color: notification.typeIconColor,
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -488,14 +499,14 @@ class _TypeFilterSheetState extends State<_TypeFilterSheet> {
   @override
   Widget build(BuildContext context) {
     final types = [
-      {'value': 'new_delivery', 'label': 'Nouvelle livraison', 'icon': '📦'},
-      {'value': 'delivery_accepted', 'label': 'Livraison acceptée', 'icon': '✅'},
-      {'value': 'delivery_rejected', 'label': 'Livraison refusée', 'icon': '❌'},
-      {'value': 'delivery_status_change', 'label': 'Changement de statut', 'icon': '🔄'},
-      {'value': 'payment_received', 'label': 'Paiement reçu', 'icon': '💰'},
-      {'value': 'rating_received', 'label': 'Notation reçue', 'icon': '⭐'},
-      {'value': 'system', 'label': 'Système', 'icon': '🔔'},
-      {'value': 'promo', 'label': 'Promotion', 'icon': '🎁'},
+      {'value': 'new_delivery', 'label': 'Nouvelle livraison', 'icon': Icons.local_shipping},
+      {'value': 'delivery_accepted', 'label': 'Livraison acceptée', 'icon': Icons.check_circle},
+      {'value': 'delivery_rejected', 'label': 'Livraison refusée', 'icon': Icons.cancel},
+      {'value': 'delivery_status_change', 'label': 'Changement de statut', 'icon': Icons.sync},
+      {'value': 'payment_received', 'label': 'Paiement reçu', 'icon': Icons.payments},
+      {'value': 'rating_received', 'label': 'Notation reçue', 'icon': Icons.star},
+      {'value': 'system', 'label': 'Système', 'icon': Icons.notifications},
+      {'value': 'promo', 'label': 'Promotion', 'icon': Icons.card_giftcard},
     ];
 
     return Container(
@@ -509,25 +520,38 @@ class _TypeFilterSheetState extends State<_TypeFilterSheet> {
           // Custom radio group to avoid deprecated groupValue/onChanged
           ...types.map((type) {
             final selected = _tempSelectedType == type['value'];
-            return GestureDetector(
-              onTap: () => setState(() => _tempSelectedType = type['value']),
-              child: Row(
-                children: [
-                  Icon(
-                    selected
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_unchecked,
-                    color: selected ? AppColors.primary : AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(type['icon']!, style: const TextStyle(fontSize: 20)),
-                  const SizedBox(width: 12),
-                  Text(type['label']!),
-                ],
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: GestureDetector(
+                onTap: () => setState(() => _tempSelectedType = type['value'] as String?),
+                child: Row(
+                  children: [
+                    Icon(
+                      selected
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_unchecked,
+                      color: selected ? AppColors.primary : AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 12),
+                    Icon(
+                      type['icon'] as IconData,
+                      size: 22,
+                      color: selected ? AppColors.primary : AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      type['label'] as String,
+                      style: TextStyle(
+                        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                        color: selected ? AppColors.primary : null,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Row(
             children: [
               Expanded(
