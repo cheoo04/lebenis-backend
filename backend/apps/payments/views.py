@@ -393,8 +393,11 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
         GET /api/v1/payments/earnings/summary/?period=week
         
         Résumé des gains du driver connecté par période.
-        Périodes supportées: 'today', 'week', 'month'
+        Périodes supportées: 'today', 'week', 'month', 'all'
         """
+        from django.utils import timezone
+        from apps.deliveries.models import Delivery
+        
         try:
             driver = Driver.objects.get(user=request.user)
         except Driver.DoesNotExist:
@@ -404,11 +407,18 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
             )
         
         # Base queryset - DriverEarning for this driver
-        earnings = DriverEarning.objects.filter(driver=driver)
+        all_earnings = DriverEarning.objects.filter(driver=driver)
+        logger.info(f"[EARNINGS] Driver {driver.user.email}: {all_earnings.count()} total DriverEarnings")
+        
+        # Debug: Vérifier les livraisons terminées sans DriverEarning
+        delivered_count = Delivery.objects.filter(driver=driver, status='delivered').count()
+        logger.info(f"[EARNINGS] Driver {driver.user.email}: {delivered_count} livraisons 'delivered'")
+        
+        earnings = all_earnings
         
         # Filter by period
         period = request.query_params.get('period', 'week')
-        now = datetime.now()
+        now = timezone.now()  # Utiliser timezone.now() au lieu de datetime.now()
         
         if period == 'today':
             start = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -420,10 +430,17 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
         elif period == 'month':
             start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             earnings = earnings.filter(created_at__gte=start)
+        elif period == 'all':
+            # Pas de filtre de date, afficher tous les gains
+            pass
+        
+        logger.info(f"[EARNINGS] Period '{period}': {earnings.count()} DriverEarnings after filter")
         
         # Aggregate data from DriverEarning
         total_driver_amount = earnings.aggregate(Sum('total_earning'))['total_earning__sum'] or Decimal('0')
         payment_count = earnings.count()
+        
+        logger.info(f"[EARNINGS] Final: driver_amount={total_driver_amount}, payment_count={payment_count}")
         
         # Return in format expected by Flutter app
         return Response({
@@ -431,7 +448,91 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
             'driver_amount': str(total_driver_amount),
             'total_commission': '0',  # Commission calculée différemment pour DriverEarning
             'payment_count': payment_count,
-            'payments': []  # Liste vide pour éviter de charger trop de données
+            'payments': [],  # Liste vide pour éviter de charger trop de données
+            # Debug info
+            'debug': {
+                'total_earnings_all_time': all_earnings.count(),
+                'delivered_deliveries': delivered_count
+            }
+        })
+
+    @action(detail=False, methods=['POST'], permission_classes=[IsDriver])
+    def sync_missing(self, request):
+        """
+        POST /api/v1/payments/earnings/sync-missing/
+        
+        Synchronise les DriverEarnings manquants pour les livraisons terminées.
+        Utile si des gains n'ont pas été créés automatiquement.
+        """
+        from apps.deliveries.models import Delivery
+        from core.services.pricing import PricingCalculator
+        
+        try:
+            driver = Driver.objects.get(user=request.user)
+        except Driver.DoesNotExist:
+            return Response(
+                {'error': 'Profil driver introuvable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Trouver les livraisons terminées sans DriverEarning
+        delivered_deliveries = Delivery.objects.filter(
+            driver=driver,
+            status='delivered'
+        ).exclude(
+            id__in=DriverEarning.objects.filter(driver=driver).values_list('delivery_id', flat=True)
+        )
+        
+        created_count = 0
+        total_amount = Decimal('0')
+        errors = []
+        
+        for delivery in delivered_deliveries:
+            try:
+                # Calculer le gain
+                if delivery.driver_amount:
+                    base_earning = Decimal(str(delivery.driver_amount))
+                elif delivery.final_price:
+                    # 75% du prix final pour le driver
+                    base_earning = Decimal(str(delivery.final_price)) * Decimal('0.75')
+                else:
+                    # Recalculer avec PricingCalculator
+                    calculator = PricingCalculator()
+                    pricing_data = {
+                        'pickup_commune': getattr(delivery, 'pickup_commune', ''),
+                        'delivery_commune': delivery.delivery_commune,
+                        'package_weight_kg': float(delivery.package_weight_kg or 5.0),
+                        'is_fragile': getattr(delivery, 'is_fragile', False),
+                        'scheduling_type': 'immediate',
+                    }
+                    price_result = calculator.calculate_price(pricing_data)
+                    base_earning = Decimal(str(price_result.get('driver_amount', 0)))
+                
+                if base_earning > 0:
+                    earning = DriverEarning.objects.create(
+                        driver=driver,
+                        delivery=delivery,
+                        base_earning=base_earning,
+                        total_earning=base_earning,
+                        status='pending',
+                        notes=f'Gain créé par synchronisation manuelle le {timezone.now().strftime("%Y-%m-%d %H:%M")}'
+                    )
+                    created_count += 1
+                    total_amount += base_earning
+                    logger.info(f"[SYNC] Gain créé pour {delivery.tracking_number}: {base_earning} CFA")
+                else:
+                    errors.append(f"{delivery.tracking_number}: montant 0")
+                    
+            except Exception as e:
+                errors.append(f"{delivery.tracking_number}: {str(e)}")
+                logger.error(f"[SYNC] Erreur pour {delivery.tracking_number}: {e}")
+        
+        return Response({
+            'success': True,
+            'created_count': created_count,
+            'total_amount': str(total_amount),
+            'missing_before': delivered_deliveries.count() + created_count,
+            'errors': errors[:10] if errors else []  # Max 10 erreurs
         })
 
     @action(detail=False, methods=['POST'], permission_classes=[IsAdmin])
