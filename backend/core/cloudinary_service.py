@@ -126,6 +126,60 @@ class CloudinaryService:
             raise Exception(f'Erreur lors de l\'upload vers Cloudinary: {str(e)}')
     
     @classmethod
+    def upload_chat_image(cls, file, user_id):
+        """
+        Upload une image de chat (message)
+        
+        Args:
+            file: Fichier Django UploadedFile
+            user_id: ID de l'utilisateur qui envoie l'image
+        
+        Returns:
+            str: URL sécurisée de l'image
+        
+        Raises:
+            ValidationError: Si validation échoue
+        """
+        import time
+        
+        if file.size == 0:
+            raise Exception("Le fichier est vide !")
+        
+        cls._configure_cloudinary()
+        cls._validate_file(
+            file,
+            max_size=cls.MAX_FILE_SIZE,
+            allowed_types=cls.ALLOWED_IMAGE_TYPES
+        )
+        
+        # Nom unique avec timestamp pour éviter l'écrasement
+        timestamp = int(time.time() * 1000)  # Millisecondes pour unicité
+        public_id = f"chat_{user_id}_{timestamp}"
+        
+        try:
+            file.seek(0)
+            result = cloudinary.uploader.upload(
+                file,
+                public_id=public_id,
+                resource_type='image',
+                folder='lebenis/chat_images',
+                overwrite=False,  # Ne pas écraser les images existantes
+                transformation=[
+                    {'width': 1200, 'height': 1200, 'crop': 'limit'},
+                    {'quality': 'auto:good'},
+                    {'fetch_format': 'auto'}
+                ],
+            )
+            
+            secure_url = result.get('secure_url')
+            if not secure_url:
+                raise Exception("Cloudinary n'a pas retourné d'URL !")
+            return secure_url
+        
+        except Exception as e:
+            raise Exception(f'Erreur upload image chat: {str(e)}')
+
+    @classmethod
     def upload_document(cls, file, user_id, document_type='general'):
         """
         Upload un document (permis, carte d'identité, etc.)

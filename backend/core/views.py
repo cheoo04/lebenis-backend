@@ -61,7 +61,7 @@ class CloudinaryUploadView(APIView):
                     user_id=request.user.id
                 )
             elif upload_type == 'chat_image':
-                url = CloudinaryService.upload_profile_photo(
+                url = CloudinaryService.upload_chat_image(
                     uploaded_file,
                     user_id=request.user.id
                 )

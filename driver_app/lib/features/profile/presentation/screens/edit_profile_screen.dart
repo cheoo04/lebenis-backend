@@ -464,8 +464,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> with Phot
   }
 
   void _clearImageCache() {
-    imageCache.clear();
-    imageCache.clearLiveImages();
+    // Ne pas vider tout le cache, seulement l'image de profil spécifique
     final driver = ref.read(driverProvider).driver;
     if (driver?.profilePhoto != null) {
       CachedNetworkImageProvider(driver!.profilePhoto!).evict();
