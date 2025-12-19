@@ -456,7 +456,7 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
             }
         })
 
-    @action(detail=False, methods=['POST'], permission_classes=[IsDriver])
+    @action(detail=False, methods=['POST'])
     def sync_missing(self, request):
         """
         POST /api/v1/payments/earnings/sync-missing/
