@@ -1,5 +1,6 @@
 // lib/data/providers/payment_provider.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/dio_client.dart';
 import '../../core/services/auth_service.dart';
@@ -100,13 +101,38 @@ class PaymentNotifier extends Notifier<PaymentState> {
     return PaymentState();
   }
 
+  /// Synchroniser les gains manquants (crée les DriverEarning pour livraisons terminées)
+  Future<bool> syncMissingEarnings() async {
+    try {
+      final result = await _paymentRepository.syncMissingEarnings();
+      debugPrint('🔄 [SYNC] Résultat: $result');
+      
+      final createdCount = result['created_count'] ?? 0;
+      if (createdCount > 0) {
+        debugPrint('✅ [SYNC] $createdCount gains créés!');
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('❌ [SYNC] Erreur: $e');
+      return false;
+    }
+  }
+
   /// Charger les gains par période
   Future<void> loadEarnings({String period = 'week'}) async {
     state = state.copyWith(isLoading: true, error: null);
     
     try {
+      // D'abord synchroniser les gains manquants
+      await syncMissingEarnings();
       
       final data = await _paymentRepository.getMyEarnings(period: period);
+      
+      // Debug logging
+      debugPrint('📊 [EARNINGS] Données reçues: $data');
+      debugPrint('📊 [EARNINGS] driver_amount: ${data['driver_amount']}');
+      debugPrint('📊 [EARNINGS] payment_count: ${data['payment_count']}');
       
       state = state.copyWith(
         isLoading: false,
@@ -115,6 +141,7 @@ class PaymentNotifier extends Notifier<PaymentState> {
       );
       
     } catch (e) {
+      debugPrint('❌ [EARNINGS] Erreur: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -158,10 +185,14 @@ class PaymentNotifier extends Notifier<PaymentState> {
       
       final stats = await _paymentRepository.getStats();
       
+      // Debug logging
+      debugPrint('📈 [STATS] Données reçues: $stats');
+      
       state = state.copyWith(stats: stats);
       
     } catch (e) {
       // Ne pas bloquer si stats échouent
+      debugPrint('❌ [STATS] Erreur: $e');
     }
   }
 

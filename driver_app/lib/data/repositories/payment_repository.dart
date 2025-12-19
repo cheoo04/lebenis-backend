@@ -73,6 +73,8 @@ class PaymentRepository {
         queryParameters: {'period': period},
       );
 
+      // Debug logging
+      print('🔍 [PAYMENT_REPO] Response brute: ${response.data}');
       
     // Parse les payments dans la réponse
     final data = response.data as Map<String, dynamic>;
@@ -82,6 +84,7 @@ class PaymentRepository {
       .toList();
     return data;
     } catch (e) {
+      print('❌ [PAYMENT_REPO] Erreur getMyEarnings: $e');
       rethrow;
     }
   }
@@ -191,6 +194,31 @@ class PaymentRepository {
       .map((t) => TransactionHistoryModel.fromJson(t as Map<String, dynamic>))
       .toList();
     } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// POST /api/v1/payments/earnings/sync-missing/
+  /// Synchronise les DriverEarnings manquants pour les livraisons terminées
+  /// 
+  /// Returns:
+  /// ```json
+  /// {
+  ///   "success": true,
+  ///   "created_count": 3,
+  ///   "total_amount": 15000,
+  ///   "errors": []
+  /// }
+  /// ```
+  Future<Map<String, dynamic>> syncMissingEarnings() async {
+    try {
+      final response = await _dioClient.post(
+        '/api/v1/payments/earnings/sync-missing/',
+      );
+      print('🔄 [SYNC] Réponse sync-missing: ${response.data}');
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      print('❌ [SYNC] Erreur sync-missing: $e');
       rethrow;
     }
   }

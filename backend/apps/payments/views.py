@@ -311,7 +311,7 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['create', 'update', 'approve', 'bulk_approve']:
             return [IsAdmin()]
-        elif self.action in ['list', 'retrieve', 'my_earnings', 'summary']:
+        elif self.action in ['list', 'retrieve', 'my_earnings', 'summary', 'sync_missing']:
             return [IsAuthenticated()]
         return [IsAdmin()]
     
