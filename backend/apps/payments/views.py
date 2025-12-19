@@ -492,6 +492,9 @@ class DriverEarningViewSet(viewsets.ModelViewSet):
                 # Calculer le gain
                 if delivery.driver_amount:
                     base_earning = Decimal(str(delivery.driver_amount))
+                elif delivery.calculated_price:
+                    # 75% du prix calculé pour le driver
+                    base_earning = Decimal(str(delivery.calculated_price)) * Decimal('0.75')
                 elif delivery.final_price:
                     # 75% du prix final pour le driver
                     base_earning = Decimal(str(delivery.final_price)) * Decimal('0.75')
