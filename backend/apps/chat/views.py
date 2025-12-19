@@ -129,10 +129,16 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         if delivery_id:
             queryset = queryset.filter(delivery_id=delivery_id)
         
-        # Inclure ou non les archivées
-        include_archived = self.request.query_params.get('include_archived', 'false')
-        if include_archived.lower() != 'true':
-            queryset = queryset.filter(is_archived=False)
+        # Pour les actions sur un objet spécifique (archive, retrieve, update, etc.),
+        # on inclut toujours les archivées pour pouvoir les désarchiver
+        if self.action in ['retrieve', 'update', 'partial_update', 'destroy', 'archive', 'mark_as_read']:
+            # Ne pas filtrer par is_archived pour ces actions
+            pass
+        else:
+            # Inclure ou non les archivées pour la liste
+            include_archived = self.request.query_params.get('include_archived', 'false')
+            if include_archived.lower() != 'true':
+                queryset = queryset.filter(is_archived=False)
         
         # Tri: conversations avec messages récents en premier, puis par date de création
         from django.db.models import F
