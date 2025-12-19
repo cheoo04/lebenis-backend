@@ -71,7 +71,7 @@ class ChatPushNotificationService:
                 # Créer le message Firebase
                 message = messaging.Message(
                     notification=messaging.Notification(
-                        title=f'💬 {sender_name}',
+                        title=sender_name,
                         body=display_message,
                     ),
                     data=notification_data,
@@ -89,7 +89,7 @@ class ChatPushNotificationService:
                         payload=messaging.APNSPayload(
                             aps=messaging.Aps(
                                 alert=messaging.ApsAlert(
-                                    title=f'💬 {sender_name}',
+                                    title=sender_name,
                                     body=display_message,
                                 ),
                                 badge=1,
